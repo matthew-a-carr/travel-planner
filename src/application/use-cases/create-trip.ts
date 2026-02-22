@@ -1,5 +1,5 @@
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Trip, TripStatus, Currency } from '@/domain/trip/types';
+import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
 import { money } from '@/domain/trip/types';
 
 export type CreateTripInput = {
@@ -11,10 +11,7 @@ export type CreateTripInput = {
   ringfencedLabel: string | null;
 };
 
-export async function createTrip(
-  repo: TripRepository,
-  input: CreateTripInput,
-): Promise<Trip> {
+export async function createTrip(repo: TripRepository, input: CreateTripInput): Promise<Trip> {
   const now = new Date();
   const status: TripStatus = 'planning';
 

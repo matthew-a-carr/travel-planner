@@ -1,14 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import type { Trip } from '@/domain/trip/types';
+import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
-import { SignOutButton } from '@/ui/components/SignOutButton';
-import { SignInButton } from '@/ui/components/SignInButton';
 import { CreateTripButton } from '@/ui/components/CreateTripModal';
-import { formatMoney } from '@/domain/trip/types';
-import type { Trip } from '@/domain/trip/types';
+import { SignInButton } from '@/ui/components/SignInButton';
+import { SignOutButton } from '@/ui/components/SignOutButton';
 
 export default async function HomePage() {
   const session = await auth();
@@ -18,9 +18,7 @@ export default async function HomePage() {
       <main className="flex min-h-screen flex-col items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">
-              Wanderlust Budget
-            </h1>
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Wanderlust Budget</h1>
             <p className="mt-3 text-lg text-zinc-600">
               Plan and track spending for your round-the-world adventure.
             </p>
@@ -64,12 +62,9 @@ export default async function HomePage() {
           {trips.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center">
               <p className="text-zinc-500">
-                Welcome, {session.user.name ?? session.user.email}. You have no
-                trips yet.
+                Welcome, {session.user.name ?? session.user.email}. You have no trips yet.
               </p>
-              <p className="mt-1 text-sm text-zinc-400">
-                Create your first trip to get started.
-              </p>
+              <p className="mt-1 text-sm text-zinc-400">Create your first trip to get started.</p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -104,8 +99,7 @@ function TripCard({ trip }: { trip: Trip }) {
           </p>
           {trip.ringfencedLabel && (
             <p className="text-xs text-zinc-400">
-              {trip.ringfencedLabel}: {formatMoney(trip.ringfencedAmount)}{' '}
-              ringfenced
+              {trip.ringfencedLabel}: {formatMoney(trip.ringfencedAmount)} ringfenced
             </p>
           )}
         </div>

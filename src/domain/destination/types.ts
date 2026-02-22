@@ -1,1 +1,1 @@
-export type { Destination, ComfortLevel } from '../trip/types';
+export type { ComfortLevel, Destination } from '../trip/types';

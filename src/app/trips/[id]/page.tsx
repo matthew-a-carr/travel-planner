@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { getTripBudgetSummary } from '@/domain/trip/trip';
+import type { Trip } from '@/domain/trip/types';
+import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
-import { getTripBudgetSummary } from '@/domain/trip/trip';
-import { formatMoney } from '@/domain/trip/types';
-import type { Trip } from '@/domain/trip/types';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,14 +43,10 @@ export default async function TripDetailPage({ params }: Props) {
         <BudgetSummaryCard trip={trip} summary={summary} />
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold text-zinc-900">
-            Destinations
-          </h2>
+          <h2 className="mb-3 text-lg font-semibold text-zinc-900">Destinations</h2>
           <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center">
             <p className="text-zinc-500">No destinations added yet.</p>
-            <p className="mt-1 text-sm text-zinc-400">
-              Destination management coming soon.
-            </p>
+            <p className="mt-1 text-sm text-zinc-400">Destination management coming soon.</p>
           </div>
         </section>
       </div>
@@ -87,7 +83,11 @@ function BudgetSummaryCard({
       value: `−${formatMoney(summary.ringfenced)}`,
       muted: true,
     },
-    { label: 'Allocated to destinations', value: `−${formatMoney(summary.allocated)}`, muted: true },
+    {
+      label: 'Allocated to destinations',
+      value: `−${formatMoney(summary.allocated)}`,
+      muted: true,
+    },
     {
       label: 'Available',
       value: formatMoney(summary.available),
@@ -98,16 +98,12 @@ function BudgetSummaryCard({
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-base font-semibold text-zinc-900">
-        Budget overview
-      </h2>
+      <h2 className="mb-4 text-base font-semibold text-zinc-900">Budget overview</h2>
 
       <div className="space-y-2">
         {rows.map(({ label, value, muted, highlight }) => (
           <div key={label} className="flex justify-between text-sm">
-            <span className={muted ? 'text-zinc-500' : 'text-zinc-700'}>
-              {label}
-            </span>
+            <span className={muted ? 'text-zinc-500' : 'text-zinc-700'}>{label}</span>
             <span
               className={`font-medium ${highlight ?? (muted ? 'text-zinc-500' : 'text-zinc-900')}`}
             >

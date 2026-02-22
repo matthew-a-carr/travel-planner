@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm';
+import type { TripRepository } from '@/domain/trip/trip-repository';
+import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
+import { money } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { trips } from '../schema';
-import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Trip, TripStatus, Currency } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
 
 function toTrip(row: typeof trips.$inferSelect): Trip {
   return {

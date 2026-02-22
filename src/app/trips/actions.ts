@@ -1,11 +1,11 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { createTrip } from '@/application/use-cases/create-trip';
+import type { Currency } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
-import { createTrip } from '@/application/use-cases/create-trip';
-import type { Currency } from '@/domain/trip/types';
 
 export async function createTripAction(formData: FormData) {
   const session = await auth();
@@ -30,8 +30,8 @@ export async function createTripAction(formData: FormData) {
   const ringfencedAmountPence = Math.round(parseFloat(ringfencedPounds) * 100);
 
   if (
-    isNaN(totalBudgetPence) ||
-    isNaN(ringfencedAmountPence) ||
+    Number.isNaN(totalBudgetPence) ||
+    Number.isNaN(ringfencedAmountPence) ||
     totalBudgetPence <= 0
   ) {
     throw new Error('Invalid budget values');
@@ -46,9 +46,7 @@ export async function createTripAction(formData: FormData) {
     currency: 'GBP' as Currency,
     ringfencedAmountPence,
     ringfencedLabel:
-      typeof ringfencedLabel === 'string' && ringfencedLabel.trim()
-        ? ringfencedLabel.trim()
-        : null,
+      typeof ringfencedLabel === 'string' && ringfencedLabel.trim() ? ringfencedLabel.trim() : null,
   });
 
   redirect(`/trips/${trip.id}`);

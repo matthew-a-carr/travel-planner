@@ -1,6 +1,6 @@
-import type { Destination } from './types';
 import type { Result } from '../trip/types';
-import { ok, err } from '../trip/types';
+import { err, ok } from '../trip/types';
+import type { Destination } from './types';
 
 /**
  * Validates that a destination's date range is coherent.
@@ -31,9 +31,7 @@ export function validateDateRange(
 /**
  * Returns destinations sorted by their sort_order, then creation date.
  */
-export function sortDestinations(
-  destinations: readonly Destination[],
-): Destination[] {
+export function sortDestinations(destinations: readonly Destination[]): Destination[] {
   return [...destinations].sort((a, b) => {
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     return a.createdAt.getTime() - b.createdAt.getTime();

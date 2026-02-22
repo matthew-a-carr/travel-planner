@@ -20,10 +20,7 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
   return (
     <form action={dispatch} className="space-y-5">
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-zinc-700"
-        >
+        <label htmlFor="name" className="block text-sm font-medium text-zinc-700">
           Trip name
         </label>
         <input
@@ -37,10 +34,7 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
       </div>
 
       <div>
-        <label
-          htmlFor="totalBudgetPounds"
-          className="block text-sm font-medium text-zinc-700"
-        >
+        <label htmlFor="totalBudgetPounds" className="block text-sm font-medium text-zinc-700">
           Total budget (£)
         </label>
         <input
@@ -56,20 +50,15 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
       </div>
 
       <fieldset className="rounded-lg border border-zinc-200 p-4">
-        <legend className="px-1 text-sm font-medium text-zinc-700">
-          Ringfenced amount
-        </legend>
+        <legend className="px-1 text-sm font-medium text-zinc-700">Ringfenced amount</legend>
         <p className="mb-3 text-xs text-zinc-500">
-          Reserved budget that cannot be allocated to destinations (e.g. Australia
-          visa &amp; living costs).
+          Reserved budget that cannot be allocated to destinations (e.g. Australia visa &amp; living
+          costs).
         </p>
 
         <div className="space-y-3">
           <div>
-            <label
-              htmlFor="ringfencedPounds"
-              className="block text-sm font-medium text-zinc-700"
-            >
+            <label htmlFor="ringfencedPounds" className="block text-sm font-medium text-zinc-700">
               Amount (£)
             </label>
             <input
@@ -84,10 +73,7 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
             />
           </div>
           <div>
-            <label
-              htmlFor="ringfencedLabel"
-              className="block text-sm font-medium text-zinc-700"
-            >
+            <label htmlFor="ringfencedLabel" className="block text-sm font-medium text-zinc-700">
               Label (optional)
             </label>
             <input
@@ -102,9 +88,7 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
         </div>
       </fieldset>
 
-      {state.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
-      )}
+      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
       <div className="flex justify-end gap-3 pt-2">
         <button

@@ -3,7 +3,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
 async function runMigrations() {
-  const connectionString = process.env['POSTGRES_URL'];
+  const connectionString = process.env.POSTGRES_URL;
   if (!connectionString) {
     throw new Error('POSTGRES_URL environment variable is required');
   }

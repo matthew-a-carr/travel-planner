@@ -1,1 +1,1 @@
-export type { SpendEntry, SpendCategory } from '../trip/types';
+export type { SpendCategory, SpendEntry } from '../trip/types';

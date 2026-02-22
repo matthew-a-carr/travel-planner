@@ -1,19 +1,13 @@
-import type { Trip, Destination, Money, Result } from './types';
-import { ok, err, money } from './types';
+import type { Destination, Money, Result, Trip } from './types';
+import { err, money, ok } from './types';
 
 /**
  * Calculates the total amount allocated to destinations.
  * Only counts destinations belonging to the given trip.
  */
-export function calculateAllocatedBudget(
-  trip: Trip,
-  destinations: readonly Destination[],
-): Money {
+export function calculateAllocatedBudget(trip: Trip, destinations: readonly Destination[]): Money {
   const tripDestinations = destinations.filter((d) => d.tripId === trip.id);
-  const totalPence = tripDestinations.reduce(
-    (sum, d) => sum + d.estimatedBudget.amountPence,
-    0,
-  );
+  const totalPence = tripDestinations.reduce((sum, d) => sum + d.estimatedBudget.amountPence, 0);
   return money(totalPence, trip.totalBudget.currency);
 }
 
@@ -25,15 +19,10 @@ export function calculateAllocatedBudget(
  * The ringfenced amount is a hard reservation and is never available
  * for destination allocation.
  */
-export function calculateAvailableBudget(
-  trip: Trip,
-  destinations: readonly Destination[],
-): Money {
+export function calculateAvailableBudget(trip: Trip, destinations: readonly Destination[]): Money {
   const allocated = calculateAllocatedBudget(trip, destinations);
   const availablePence =
-    trip.totalBudget.amountPence -
-    trip.ringfencedAmount.amountPence -
-    allocated.amountPence;
+    trip.totalBudget.amountPence - trip.ringfencedAmount.amountPence - allocated.amountPence;
   return money(availablePence, trip.totalBudget.currency);
 }
 
@@ -68,10 +57,7 @@ export function canAllocateBudget(
 /**
  * Returns a summary of the trip budget state.
  */
-export function getTripBudgetSummary(
-  trip: Trip,
-  destinations: readonly Destination[],
-) {
+export function getTripBudgetSummary(trip: Trip, destinations: readonly Destination[]) {
   const allocated = calculateAllocatedBudget(trip, destinations);
   const available = calculateAvailableBudget(trip, destinations);
 

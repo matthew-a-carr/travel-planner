@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  text,
-  integer,
-  timestamp,
-  date,
-  primaryKey,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { date, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // ─── Auth.js tables ───────────────────────────────────────────────────────────
 
@@ -39,9 +31,7 @@ export const accounts = pgTable(
     id_token: text('id_token'),
     session_state: text('session_state'),
   },
-  (account) => [
-    primaryKey({ columns: [account.provider, account.providerAccountId] }),
-  ],
+  (account) => [primaryKey({ columns: [account.provider, account.providerAccountId] })],
 );
 
 export const sessions = pgTable('sessions', {
@@ -87,9 +77,7 @@ export const destinations = pgTable('destinations', {
   name: text('name').notNull(),
   country: text('country').notNull(),
   estimatedBudgetAmount: integer('estimated_budget_amount').notNull(),
-  estimatedBudgetCurrency: text('estimated_budget_currency')
-    .notNull()
-    .default('GBP'),
+  estimatedBudgetCurrency: text('estimated_budget_currency').notNull().default('GBP'),
   comfortLevel: text('comfort_level').notNull(),
   startDate: date('start_date'),
   endDate: date('end_date'),
