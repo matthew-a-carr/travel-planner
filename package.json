@@ -1,0 +1,45 @@
+{
+  "name": "travel-planner",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "tsx src/infrastructure/db/migrate.ts"
+  },
+  "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.1",
+    "@vercel/postgres": "^0.10.0",
+    "drizzle-orm": "^0.45.1",
+    "next": "16.1.6",
+    "next-auth": "5.0.0-beta.30",
+    "postgres": "^3.4.8",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "drizzle-kit": "^0.31.9",
+    "eslint": "^10.0.1",
+    "eslint-config-next": "^16.1.6",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.0.18"
+  }
+}
