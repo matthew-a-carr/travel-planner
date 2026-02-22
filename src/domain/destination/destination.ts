@@ -1,6 +1,7 @@
-import type { Result } from '../trip/types';
+import { canAllocateBudget } from '../trip/trip';
+import type { Destination, Result, Trip } from '../trip/types';
 import { err, ok } from '../trip/types';
-import type { Destination } from './types';
+import type {} from './types';
 
 /**
  * Validates that a destination's date range is coherent.
@@ -36,4 +37,32 @@ export function sortDestinations(destinations: readonly Destination[]): Destinat
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     return a.createdAt.getTime() - b.createdAt.getTime();
   });
+}
+
+/**
+ * Validates that a new destination can be added to the trip without
+ * violating the budget invariant (allocated + ringfenced <= total).
+ *
+ * Returns Ok(destination) if valid, Err with reason if not.
+ */
+export function validateNewDestination(
+  trip: Trip,
+  existingDestinations: readonly Destination[],
+  destination: Destination,
+): Result<Destination> {
+  const dateCheck = validateDateRange(destination);
+  if (!dateCheck.ok) return err(dateCheck.error);
+
+  const budgetCheck = canAllocateBudget(trip, existingDestinations, destination.estimatedBudget);
+  if (!budgetCheck.ok) return err(budgetCheck.error);
+
+  return ok(destination);
+}
+
+/**
+ * Returns the next sort order value for a new destination.
+ */
+export function nextSortOrder(destinations: readonly Destination[]): number {
+  if (destinations.length === 0) return 0;
+  return Math.max(...destinations.map((d) => d.sortOrder)) + 1;
 }

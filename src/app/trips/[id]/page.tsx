@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { sortDestinations } from '@/domain/destination/destination';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
+import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
+import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { DestinationSection } from '@/ui/components/DestinationSection';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -15,13 +19,21 @@ export default async function TripDetailPage({ params }: Props) {
 
   if (!session?.user?.id) redirect('/login');
 
-  const repo = new DrizzleTripRepository(db);
-  const trip = await repo.findById(id);
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(id);
 
   if (!trip || trip.ownerId !== session.user.id) notFound();
 
-  // No destinations yet — pass empty array; UI will prompt to add them
-  const summary = getTripBudgetSummary(trip, []);
+  const destRepo = new DrizzleDestinationRepository(db);
+  const spendRepo = new DrizzleSpendEntryRepository(db);
+
+  const [destinations, allSpend] = await Promise.all([
+    destRepo.findByTrip(id),
+    spendRepo.findByTrip(id),
+  ]);
+
+  const sorted = sortDestinations(destinations);
+  const summary = getTripBudgetSummary(trip, destinations);
 
   return (
     <main className="min-h-screen px-4 py-12">
@@ -40,19 +52,15 @@ export default async function TripDetailPage({ params }: Props) {
           </div>
         </header>
 
-        <BudgetSummaryCard trip={trip} summary={summary} />
+        <BudgetOverviewCard trip={trip} summary={summary} />
 
-        <section>
-          <h2 className="mb-3 text-lg font-semibold text-zinc-900">Destinations</h2>
-          <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center">
-            <p className="text-zinc-500">No destinations added yet.</p>
-            <p className="mt-1 text-sm text-zinc-400">Destination management coming soon.</p>
-          </div>
-        </section>
+        <DestinationSection tripId={id} destinations={sorted} allSpend={allSpend} />
       </div>
     </main>
   );
 }
+
+// ─── Status badge ─────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: Trip['status'] }) {
   const colours: Record<string, string> = {
@@ -69,7 +77,9 @@ function StatusBadge({ status }: { status: Trip['status'] }) {
   );
 }
 
-function BudgetSummaryCard({
+// ─── Budget overview ──────────────────────────────────────────────────────────
+
+function BudgetOverviewCard({
   trip,
   summary,
 }: {
@@ -119,9 +129,7 @@ function BudgetSummaryCard({
             className={`h-full rounded-full transition-all ${
               summary.isOverAllocated ? 'bg-red-500' : 'bg-zinc-800'
             }`}
-            style={{
-              width: `${Math.min(summary.allocationPercentage, 100)}%`,
-            }}
+            style={{ width: `${Math.min(summary.allocationPercentage, 100)}%` }}
           />
         </div>
         <p className="mt-1 text-right text-xs text-zinc-400">
