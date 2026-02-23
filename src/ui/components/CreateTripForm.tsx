@@ -47,46 +47,10 @@ export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
           placeholder="50000"
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         />
-      </div>
-
-      <fieldset className="rounded-lg border border-zinc-200 p-4">
-        <legend className="px-1 text-sm font-medium text-zinc-700">Ringfenced amount</legend>
-        <p className="mb-3 text-xs text-zinc-500">
-          Reserved budget that cannot be allocated to destinations (e.g. Australia visa &amp; living
-          costs).
+        <p className="mt-1 text-xs text-zinc-400">
+          Add flights, subscriptions, and other fixed costs after creating the trip.
         </p>
-
-        <div className="space-y-3">
-          <div>
-            <label htmlFor="ringfencedPounds" className="block text-sm font-medium text-zinc-700">
-              Amount (£)
-            </label>
-            <input
-              id="ringfencedPounds"
-              name="ringfencedPounds"
-              type="number"
-              required
-              min="0"
-              step="0.01"
-              defaultValue="16000"
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            />
-          </div>
-          <div>
-            <label htmlFor="ringfencedLabel" className="block text-sm font-medium text-zinc-700">
-              Label (optional)
-            </label>
-            <input
-              id="ringfencedLabel"
-              name="ringfencedLabel"
-              type="text"
-              placeholder="Australia Visa &amp; Living"
-              defaultValue="Australia Visa & Living"
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
-            />
-          </div>
-        </div>
-      </fieldset>
+      </div>
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 

@@ -2,42 +2,83 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { sortDestinations } from '@/domain/destination/destination';
+import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
-import type { Trip } from '@/domain/trip/types';
+import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
+import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DestinationSection } from '@/ui/components/DestinationSection';
+import { FixedCostSection } from '@/ui/components/FixedCostSection';
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function TripDetailPage({ params }: Props) {
   const { id } = await params;
   const session = await auth();
-
   if (!session?.user?.id) redirect('/login');
 
   const tripRepo = new DrizzleTripRepository(db);
   const trip = await tripRepo.findById(id);
-
   if (!trip || trip.ownerId !== session.user.id) notFound();
 
   const destRepo = new DrizzleDestinationRepository(db);
   const spendRepo = new DrizzleSpendEntryRepository(db);
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const refRepo = new DrizzleCountryReferenceRepository(db);
 
-  const [destinations, allSpend, countryReferences] = await Promise.all([
+  const [destinations, allSpend, fixedCosts, countryReferences] = await Promise.all([
     destRepo.findByTrip(id),
     spendRepo.findByTrip(id),
+    fixedCostRepo.findByTrip(id),
     getCountryReferences(refRepo),
   ]);
 
   const sorted = sortDestinations(destinations);
-  const summary = getTripBudgetSummary(trip, destinations);
+  const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
+
+  // Chart data — computed server-side, passed as plain serialisable props
+  const budgetBreakdownData = [
+    ...fixedCosts.map((fc) => ({
+      label: fc.label,
+      amountPence: fc.amount.amountPence,
+      fill: '#71717a', // zinc-500
+    })),
+    {
+      label: 'Destinations',
+      amountPence: summary.allocated.amountPence,
+      fill: '#18181b', // zinc-900
+    },
+    {
+      label: 'Available',
+      amountPence: Math.max(summary.available.amountPence, 0),
+      fill: '#d4d4d8', // zinc-300
+    },
+  ];
+
+  const estimatedVsActualData = sorted.map((dest) => {
+    const destSpend = allSpend.filter((s) => s.destinationId === dest.id);
+    const actual = calculateTotalSpend(destSpend).amountPence;
+    return {
+      name: dest.name,
+      estimated: dest.estimatedBudget.amountPence,
+      actual,
+    };
+  });
+
+  const spendByCategoryData = (() => {
+    const totals: Record<string, number> = {};
+    for (const entry of allSpend) {
+      totals[entry.category] = (totals[entry.category] ?? 0) + entry.amount.amountPence;
+    }
+    return Object.entries(totals).map(([category, amountPence]) => ({ category, amountPence }));
+  })();
 
   return (
     <main className="min-h-screen px-4 py-12">
@@ -49,14 +90,20 @@ export default async function TripDetailPage({ params }: Props) {
           / <span className="text-zinc-900">{trip.name}</span>
         </nav>
 
-        <header className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900">{trip.name}</h1>
-            <StatusBadge status={trip.status} />
-          </div>
+        <header>
+          <h1 className="text-2xl font-bold text-zinc-900">{trip.name}</h1>
+          <StatusBadge status={trip.status} />
         </header>
 
-        <BudgetOverviewCard trip={trip} summary={summary} />
+        <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />
+
+        <FixedCostSection tripId={id} fixedCosts={fixedCosts} />
+
+        <ChartsSection
+          budgetBreakdown={budgetBreakdownData}
+          estimatedVsActual={estimatedVsActualData}
+          spendByCategory={spendByCategoryData}
+        />
 
         <DestinationSection
           tripId={id}
@@ -89,47 +136,49 @@ function StatusBadge({ status }: { status: Trip['status'] }) {
 // ─── Budget overview ──────────────────────────────────────────────────────────
 
 function BudgetOverviewCard({
-  trip,
   summary,
+  fixedCosts,
 }: {
-  trip: Trip;
   summary: ReturnType<typeof getTripBudgetSummary>;
+  fixedCosts: TripFixedCost[];
 }) {
-  const rows = [
-    { label: 'Total budget', value: formatMoney(summary.total), muted: false },
-    {
-      label: trip.ringfencedLabel ?? 'Ringfenced',
-      value: `−${formatMoney(summary.ringfenced)}`,
-      muted: true,
-    },
-    {
-      label: 'Allocated to destinations',
-      value: `−${formatMoney(summary.allocated)}`,
-      muted: true,
-    },
-    {
-      label: 'Available',
-      value: formatMoney(summary.available),
-      muted: false,
-      highlight: summary.isOverAllocated ? 'text-red-600' : 'text-green-700',
-    },
-  ];
-
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="mb-4 text-base font-semibold text-zinc-900">Budget overview</h2>
 
       <div className="space-y-2">
-        {rows.map(({ label, value, muted, highlight }) => (
-          <div key={label} className="flex justify-between text-sm">
-            <span className={muted ? 'text-zinc-500' : 'text-zinc-700'}>{label}</span>
-            <span
-              className={`font-medium ${highlight ?? (muted ? 'text-zinc-500' : 'text-zinc-900')}`}
-            >
-              {value}
-            </span>
+        <div className="flex justify-between text-sm">
+          <span className="text-zinc-700">Total budget</span>
+          <span className="font-medium text-zinc-900">{formatMoney(summary.total)}</span>
+        </div>
+
+        {fixedCosts.map((fc) => (
+          <div key={fc.id} className="flex justify-between text-sm">
+            <span className="text-zinc-500">{fc.label}</span>
+            <span className="font-medium text-zinc-500">−{formatMoney(fc.amount)}</span>
           </div>
         ))}
+
+        {fixedCosts.length === 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400 italic">No fixed costs yet</span>
+            <span className="text-zinc-400">−£0.00</span>
+          </div>
+        )}
+
+        <div className="flex justify-between text-sm">
+          <span className="text-zinc-500">Allocated to destinations</span>
+          <span className="font-medium text-zinc-500">−{formatMoney(summary.allocated)}</span>
+        </div>
+
+        <div className="flex justify-between border-t border-zinc-100 pt-2 text-sm">
+          <span className="font-medium text-zinc-700">Available</span>
+          <span
+            className={`font-medium ${summary.isOverAllocated ? 'text-red-600' : 'text-green-700'}`}
+          >
+            {formatMoney(summary.available)}
+          </span>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -148,7 +197,7 @@ function BudgetOverviewCard({
 
       {summary.isOverAllocated && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          Budget exceeded — reduce destination allocations.
+          Budget exceeded — reduce fixed costs or destination allocations.
         </p>
       )}
     </div>

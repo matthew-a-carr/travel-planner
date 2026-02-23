@@ -58,12 +58,23 @@ export type Trip = {
   readonly ownerId: string;
   readonly name: string;
   readonly totalBudget: Money;
-  /** Reserved amount that cannot be allocated to destinations (e.g. Australia visa & living) */
-  readonly ringfencedAmount: Money;
-  readonly ringfencedLabel: string | null;
   readonly status: TripStatus;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+};
+
+/**
+ * A named fixed cost deducted from the trip budget before destination allocations.
+ * Examples: flights, travel insurance, ongoing subscriptions (phone, streaming).
+ * Users enter the pre-calculated total — there is no built-in recurring multiplier.
+ */
+export type TripFixedCost = {
+  readonly id: string;
+  readonly tripId: string;
+  readonly label: string;
+  readonly amount: Money;
+  readonly sortOrder: number;
+  readonly createdAt: Date;
 };
 
 export type Destination = {

@@ -1,5 +1,15 @@
-import type { Destination, Money, Result, Trip } from './types';
+import type { Destination, Money, Result, Trip, TripFixedCost } from './types';
 import { err, money, ok } from './types';
+
+/**
+ * Sums all fixed costs for a trip (flights, insurance, subscriptions, etc.).
+ */
+export function calculateTotalFixedCosts(fixedCosts: readonly TripFixedCost[]): Money {
+  const totalPence = fixedCosts.reduce((sum, fc) => sum + fc.amount.amountPence, 0);
+  // Fixed costs are always GBP for now; default to GBP when list is empty
+  const currency = fixedCosts[0]?.amount.currency ?? 'GBP';
+  return money(totalPence, currency);
+}
 
 /**
  * Calculates the total amount allocated to destinations.
@@ -14,21 +24,23 @@ export function calculateAllocatedBudget(trip: Trip, destinations: readonly Dest
 /**
  * Calculates the budget available for new destination allocations.
  *
- * available = total - ringfenced - allocated
- *
- * The ringfenced amount is a hard reservation and is never available
- * for destination allocation.
+ * available = total − sum(fixedCosts) − sum(destinationAllocations)
  */
-export function calculateAvailableBudget(trip: Trip, destinations: readonly Destination[]): Money {
+export function calculateAvailableBudget(
+  trip: Trip,
+  destinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
+): Money {
   const allocated = calculateAllocatedBudget(trip, destinations);
+  const totalFixed = calculateTotalFixedCosts(fixedCosts);
   const availablePence =
-    trip.totalBudget.amountPence - trip.ringfencedAmount.amountPence - allocated.amountPence;
+    trip.totalBudget.amountPence - totalFixed.amountPence - allocated.amountPence;
   return money(availablePence, trip.totalBudget.currency);
 }
 
 /**
  * Determines whether a new budget allocation can be made without
- * violating the invariant: allocated + ringfenced <= total.
+ * violating the invariant: sum(fixedCosts) + allocated + newAllocation ≤ total.
  *
  * Returns Ok(true) if the allocation fits.
  * Returns Err with a descriptive message if it would exceed the budget.
@@ -36,13 +48,14 @@ export function calculateAvailableBudget(trip: Trip, destinations: readonly Dest
 export function canAllocateBudget(
   trip: Trip,
   destinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
   newAllocation: Money,
 ): Result<true> {
   if (newAllocation.amountPence < 0) {
     return err('Allocation amount must not be negative');
   }
 
-  const available = calculateAvailableBudget(trip, destinations);
+  const available = calculateAvailableBudget(trip, destinations, fixedCosts);
 
   if (newAllocation.amountPence > available.amountPence) {
     const overBy = newAllocation.amountPence - available.amountPence;
@@ -57,22 +70,26 @@ export function canAllocateBudget(
 /**
  * Returns a summary of the trip budget state.
  */
-export function getTripBudgetSummary(trip: Trip, destinations: readonly Destination[]) {
+export function getTripBudgetSummary(
+  trip: Trip,
+  destinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
+) {
+  const totalFixed = calculateTotalFixedCosts(fixedCosts);
   const allocated = calculateAllocatedBudget(trip, destinations);
-  const available = calculateAvailableBudget(trip, destinations);
+  const available = calculateAvailableBudget(trip, destinations, fixedCosts);
 
   return {
     total: trip.totalBudget,
-    ringfenced: trip.ringfencedAmount,
+    fixedCosts,
+    totalFixed,
     allocated,
     available,
     isOverAllocated: available.amountPence < 0,
     allocationPercentage:
       trip.totalBudget.amountPence > 0
         ? Math.round(
-            ((allocated.amountPence + trip.ringfencedAmount.amountPence) /
-              trip.totalBudget.amountPence) *
-              100,
+            ((allocated.amountPence + totalFixed.amountPence) / trip.totalBudget.amountPence) * 100,
           )
         : 0,
   };

@@ -2,13 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { addDestination } from '@/application/use-cases/add-destination';
+import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
+import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
 import type { ComfortLevel, SpendCategory } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
+import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 
 async function getVerifiedUserId(): Promise<string> {
@@ -22,6 +25,60 @@ function parseDateField(value: FormDataEntryValue | null): Date | null {
   if (!value || typeof value !== 'string' || value.trim() === '') return null;
   const d = new Date(value.trim());
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// ─── Fixed cost actions ───────────────────────────────────────────────────────
+
+export type FixedCostState = { error: string | null };
+
+export async function addFixedCostAction(
+  tripId: string,
+  _prev: FixedCostState,
+  formData: FormData,
+): Promise<FixedCostState> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+
+  const label = formData.get('label');
+  const amountPounds = formData.get('amountPounds');
+
+  if (typeof label !== 'string' || typeof amountPounds !== 'string') {
+    return { error: 'Invalid form data' };
+  }
+  if (!label.trim()) return { error: 'Label is required' };
+
+  const amountPence = Math.round(Number.parseFloat(amountPounds) * 100);
+  if (Number.isNaN(amountPence) || amountPence <= 0) {
+    return { error: 'Invalid amount' };
+  }
+
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+  const result = await addFixedCost(tripRepo, fixedCostRepo, {
+    tripId,
+    label: label.trim(),
+    amountPence,
+    currency: 'GBP',
+  });
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  return { error: null };
+}
+
+export async function removeFixedCostAction(tripId: string, fixedCostId: string): Promise<void> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
+
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+  await removeFixedCost(fixedCostRepo, fixedCostId);
+
+  revalidatePath(`/trips/${tripId}`);
 }
 
 // ─── Destination actions ──────────────────────────────────────────────────────
@@ -62,7 +119,8 @@ export async function addDestinationAction(
   const endDate = parseDateField(formData.get('endDate'));
 
   const destRepo = new DrizzleDestinationRepository(db);
-  const result = await addDestination(tripRepo, destRepo, {
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+  const result = await addDestination(tripRepo, destRepo, fixedCostRepo, {
     tripId,
     name: name.trim(),
     country: country.trim(),
@@ -74,7 +132,6 @@ export async function addDestinationAction(
   });
 
   if (!result.ok) return { error: result.error };
-
   revalidatePath(`/trips/${tripId}`);
   return { error: null };
 }
@@ -131,7 +188,6 @@ export async function recordSpendAction(
 
   const destRepo = new DrizzleDestinationRepository(db);
   const spendRepo = new DrizzleSpendEntryRepository(db);
-
   const result = await recordSpend(destRepo, spendRepo, {
     destinationId,
     amountPence,
@@ -142,7 +198,6 @@ export async function recordSpendAction(
   });
 
   if (!result.ok) return { error: result.error };
-
   revalidatePath(`/trips/${tripId}`);
   return { error: null };
 }

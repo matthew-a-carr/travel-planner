@@ -59,14 +59,24 @@ export const trips = pgTable('trips', {
   name: text('name').notNull(),
   totalBudgetAmount: integer('total_budget_amount').notNull(),
   totalBudgetCurrency: text('total_budget_currency').notNull().default('GBP'),
-  ringfencedAmount: integer('ringfenced_amount').notNull().default(0),
-  ringfencedLabel: text('ringfenced_label'),
   status: text('status').notNull().default('planning'),
   ownerId: text('owner_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const tripFixedCosts = pgTable('trip_fixed_costs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tripId: uuid('trip_id')
+    .notNull()
+    .references(() => trips.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(), // e.g. "Flights to Asia", "Phone (£40/mo × 6)"
+  amountPence: integer('amount_pence').notNull(),
+  currency: text('currency').notNull().default('GBP'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const destinations = pgTable('destinations', {

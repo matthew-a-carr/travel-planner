@@ -1,5 +1,5 @@
 import { canAllocateBudget } from '../trip/trip';
-import type { Destination, Result, Trip } from '../trip/types';
+import type { Destination, Result, Trip, TripFixedCost } from '../trip/types';
 import { err, ok } from '../trip/types';
 import type {} from './types';
 
@@ -41,19 +41,25 @@ export function sortDestinations(destinations: readonly Destination[]): Destinat
 
 /**
  * Validates that a new destination can be added to the trip without
- * violating the budget invariant (allocated + ringfenced <= total).
+ * violating the budget invariant: sum(fixedCosts) + allocated + newAllocation ≤ total.
  *
  * Returns Ok(destination) if valid, Err with reason if not.
  */
 export function validateNewDestination(
   trip: Trip,
   existingDestinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
   destination: Destination,
 ): Result<Destination> {
   const dateCheck = validateDateRange(destination);
   if (!dateCheck.ok) return err(dateCheck.error);
 
-  const budgetCheck = canAllocateBudget(trip, existingDestinations, destination.estimatedBudget);
+  const budgetCheck = canAllocateBudget(
+    trip,
+    existingDestinations,
+    fixedCosts,
+    destination.estimatedBudget,
+  );
   if (!budgetCheck.ok) return err(budgetCheck.error);
 
   return ok(destination);

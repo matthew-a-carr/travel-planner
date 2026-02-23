@@ -9,6 +9,33 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- Trip fixed costs: `trip_fixed_costs` table replaces single `ringfenced_amount` field; users
+  can now add named line items (flights, insurance, phone contract, Netflix, etc.) each deducted
+  from the available budget; add/remove per trip from a new `FixedCostSection` on the trip page
+- `TripFixedCost` domain type, `TripFixedCostRepository` interface, `DrizzleTripFixedCostRepository`
+- `calculateTotalFixedCosts` domain function; `calculateAvailableBudget`, `canAllocateBudget`, and
+  `getTripBudgetSummary` now accept `fixedCosts[]` instead of a single ringfenced amount
+- `addFixedCost` and `removeFixedCost` application use cases
+- `drizzle/0000_initial_schema.sql` — complete SQL migration covering all tables including
+  `trip_fixed_costs` and `country_reference_data` (replaces `drizzle-kit push` for production)
+- Charts via Recharts: budget breakdown donut (fixed costs / destinations / available), estimated
+  vs actual grouped bar per destination, spend by category donut — all computed server-side and
+  passed as props; rendered conditionally when data exists
+- ADR 005 (trip fixed costs) and ADR 006 (charts) documenting design decisions
+- 6 new unit tests for `calculateTotalFixedCosts` and updated budget tests; total: 66 passing
+
+### Changed
+
+- `CreateTripForm` simplified — ringfenced fieldset removed; hardcoded "Australia Visa & Living"
+  defaults gone; hint text directs user to add fixed costs after trip creation
+- Budget overview card now shows per-line fixed cost deductions instead of a single "Ringfenced"
+  row
+- `addDestination` use case now accepts `TripFixedCostRepository` to validate budget including
+  all fixed costs
+- Dashboard trip cards: removed ringfenced label display (no longer on `Trip` type)
+
+### Also in this branch (previous commit)
+
 - Country reference data: `country_reference_data` DB table seeded with 33 countries and their
   mid-range daily travel costs in GBP pence (Japan £80/day, Thailand £35/day, etc.)
 - `CountryReference` domain type, `CountryReferenceRepository` interface, and

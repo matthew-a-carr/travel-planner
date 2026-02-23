@@ -7,8 +7,6 @@ export type CreateTripInput = {
   name: string;
   totalBudgetPence: number;
   currency: Currency;
-  ringfencedAmountPence: number;
-  ringfencedLabel: string | null;
 };
 
 export async function createTrip(repo: TripRepository, input: CreateTripInput): Promise<Trip> {
@@ -20,8 +18,6 @@ export async function createTrip(repo: TripRepository, input: CreateTripInput): 
     ownerId: input.ownerId,
     name: input.name,
     totalBudget: money(input.totalBudgetPence, input.currency),
-    ringfencedAmount: money(input.ringfencedAmountPence, input.currency),
-    ringfencedLabel: input.ringfencedLabel,
     status,
     createdAt: now,
     updatedAt: now,

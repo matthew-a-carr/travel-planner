@@ -97,11 +97,6 @@ function TripCard({ trip }: { trip: Trip }) {
           <p className="mt-0.5 text-sm text-zinc-500">
             Total budget: {formatMoney(trip.totalBudget)}
           </p>
-          {trip.ringfencedLabel && (
-            <p className="text-xs text-zinc-400">
-              {trip.ringfencedLabel}: {formatMoney(trip.ringfencedAmount)} ringfenced
-            </p>
-          )}
         </div>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColour[trip.status] ?? ''}`}

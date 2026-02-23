@@ -7,7 +7,7 @@ import {
   validateNewDestination,
 } from './destination';
 import { money } from '../trip/types';
-import type { Destination, Trip } from '../trip/types';
+import type { Destination, Trip, TripFixedCost } from '../trip/types';
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 
@@ -17,12 +17,21 @@ function makeTrip(overrides: Partial<Trip> = {}): Trip {
     ownerId: 'user-1',
     name: 'Round the World 2026',
     totalBudget: money(5_000_000, 'GBP'),
-    ringfencedAmount: money(1_600_000, 'GBP'),
-    ringfencedLabel: 'Australia Visa & Living',
     status: 'planning',
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
     ...overrides,
+  };
+}
+
+function makeFixedCost(amountPence: number): TripFixedCost {
+  return {
+    id: 'fc-1',
+    tripId: 'trip-1',
+    label: 'Flights',
+    amount: money(amountPence, 'GBP'),
+    sortOrder: 0,
+    createdAt: new Date('2026-01-01'),
   };
 }
 
@@ -133,18 +142,16 @@ describe('validateNewDestination', () => {
   it('should accept a valid destination that fits in the budget', () => {
     const trip = makeTrip();
     const destination = makeDestination({ amountPence: 1_000_000 });
-    const result = validateNewDestination(trip, [], destination);
+    const result = validateNewDestination(trip, [], [], destination);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toBe(destination);
   });
 
-  it('should reject a destination that exceeds available budget', () => {
-    const trip = makeTrip({
-      totalBudget: money(2_000_000, 'GBP'),
-      ringfencedAmount: money(1_600_000, 'GBP'),
-    });
+  it('should reject a destination that exceeds available budget after fixed costs', () => {
+    const trip = makeTrip({ totalBudget: money(2_000_000, 'GBP') });
+    const fixedCosts = [makeFixedCost(1_600_000)]; // £16,000 fixed, £4,000 available
     const destination = makeDestination({ amountPence: 400_001 });
-    const result = validateNewDestination(trip, [], destination);
+    const result = validateNewDestination(trip, [], fixedCosts, destination);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toContain('exceeds available budget');
   });
@@ -155,17 +162,18 @@ describe('validateNewDestination', () => {
       startDate: new Date('2026-07-01'),
       endDate: new Date('2026-06-01'),
     });
-    const result = validateNewDestination(trip, [], destination);
+    const result = validateNewDestination(trip, [], [], destination);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toContain('Start date must be before end date');
   });
 
   it('should account for existing destination allocations', () => {
     const trip = makeTrip();
+    const fixedCosts = [makeFixedCost(1_600_000)];
     const existing = [makeDestination({ id: 'dest-existing', amountPence: 3_000_000 })];
     // Available = 5,000,000 - 1,600,000 - 3,000,000 = 400,000
     const newDest = makeDestination({ id: 'dest-new', amountPence: 400_001 });
-    const result = validateNewDestination(trip, existing, newDest);
+    const result = validateNewDestination(trip, existing, fixedCosts, newDest);
     expect(result.ok).toBe(false);
   });
 });
