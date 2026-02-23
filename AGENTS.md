@@ -10,7 +10,7 @@
 ```bash
 pnpm lint          # Biome: lint + import ordering (src/ only)
 pnpm type-check    # tsc --noEmit
-pnpm test          # Vitest unit tests (40 tests, ~1 s)
+pnpm test          # Vitest unit tests (~1 s)
 ```
 
 All three must exit 0. Do not commit with failures.
@@ -63,7 +63,33 @@ Each layer has its own `AGENTS.md` with local rules.
 3. Implement minimum code to make tests pass.
 4. Run the verification trio above.
 5. Update `CHANGELOG.md` under `## [Unreleased]`.
-6. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message.
+6. **Write an ADR** if the change meets the trigger criteria below.
+7. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message.
+
+---
+
+## When to write an ADR
+
+An ADR is required for **any significant decision** — not just application code.
+If you are unsure, write one. The cost of an unnecessary ADR is low; the cost of
+an undocumented decision is high.
+
+**Always write an ADR when you:**
+
+- Choose a library or external tool (e.g. charting library, auth provider, ORM)
+- Change the CI pipeline structure (stages, jobs, parallelism, service containers)
+- Add or change a dependency management tool (Dependabot, Renovate, manual)
+- Establish a project-wide standard (accessibility target, responsive breakpoints)
+- Change the database schema strategy (migrations vs push, seed approach)
+- Make a non-obvious architectural trade-off in any layer
+
+**You do not need an ADR for:**
+- Bug fixes with no design decision
+- Routine dependency version bumps
+- Test additions that follow established patterns
+
+ADRs live in `docs/decisions/NNN-descriptive-title.md`.
+See CONSTITUTION.md §7 for the required template and naming rules.
 
 ---
 
@@ -91,8 +117,22 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-Runs on every push and PR: `pnpm lint` → `pnpm type-check` → `pnpm test`.
-e2e tests are excluded from CI (require running server + DB); run locally.
+Two-stage pipeline on every push and PR:
+
+**Stage 1 — parallel:**
+- `lint` (`pnpm lint`)
+- `type-check` (`pnpm type-check`)
+- `unit-test` (`pnpm test`)
+
+**Stage 2 — after Stage 1 passes:**
+- `e2e` — spins up `postgres:16`, runs `pnpm db:migrate`, builds the app
+  (`pnpm build`), then runs `pnpm test:e2e` (Playwright with `pnpm start`).
+  Failed runs upload the Playwright HTML report as a CI artifact.
+
+Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
+Actions updates. Dev tooling is grouped into a single PR to reduce noise.
+
+See ADR 008 for the rationale behind this structure.
 
 ---
 
