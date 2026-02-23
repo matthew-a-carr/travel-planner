@@ -2,33 +2,29 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-// Lazily initialised — intentionally not created at module evaluation time.
+// POSTGRES_URL must be set at server startup.
 //
-// `next build` statically analyses pages and imports server modules without a
-// real POSTGRES_URL present. Eagerly calling createDb() here would throw during
-// the build step and break CI. The connection is only established when the first
-// repository method is called (i.e. on a real incoming request), at which point
-// POSTGRES_URL is guaranteed to be set by the runtime environment.
-let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
-
-function getDb(): ReturnType<typeof drizzle<typeof schema>> {
-  if (!_db) {
-    const connectionString = process.env.POSTGRES_URL;
-    if (!connectionString) {
-      throw new Error('POSTGRES_URL environment variable is required');
-    }
-    const sql = postgres(connectionString);
-    _db = drizzle(sql, { schema });
+// During `next build`, Next.js evaluates server modules to collect static page
+// data. No actual queries run at that point, but a real drizzle instance must
+// be created so that DrizzleAdapter (used by Auth.js) can inspect its type via
+// instanceof checks. A Proxy wrapping an empty object fails those checks.
+//
+// The solution: CI and the pre-push hook supply a syntactically-valid dummy
+// URL (POSTGRES_URL=postgresql://build:build@localhost:5432/build) for the
+// build step only. The postgres library is lazy — no TCP connection is opened
+// until the first query — so the dummy URL is completely harmless at build time.
+//
+// `next start` spawns a fresh Node.js process and re-evaluates all modules
+// with the real POSTGRES_URL, so the dummy value never reaches a live server.
+function createDb() {
+  const connectionString = process.env.POSTGRES_URL;
+  if (!connectionString) {
+    throw new Error('POSTGRES_URL environment variable is required');
   }
-  return _db;
+  const sql = postgres(connectionString);
+  return drizzle(sql, { schema });
 }
 
-// Re-export as a Proxy so all existing `db.select()`, `db.insert()`, etc.
-// call sites continue to work unchanged — the lazy init is transparent.
-export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
-  get(_target, prop) {
-    return getDb()[prop as keyof ReturnType<typeof drizzle<typeof schema>>];
-  },
-});
+export const db = createDb();
 
 export type Db = typeof db;

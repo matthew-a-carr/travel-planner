@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# Pre-push: full suite including e2e.
-# Requires POSTGRES_URL to be set and a local Postgres to be reachable.
+# Pre-push: mirrors the CI pipeline so failures are caught locally before push.
+#
+# Build runs unconditionally with a dummy POSTGRES_URL when no real one is set.
+# This matches CI exactly: next build needs a syntactically-valid URL so drizzle
+# can be instantiated for DrizzleAdapter's instanceof checks, but no TCP
+# connection is ever opened during the build (postgres library is lazy).
+# E2e tests are skipped when POSTGRES_URL is absent; Testcontainers sets it
+# automatically when pnpm test:e2e is run directly or in CI.
 set -euo pipefail
 
 echo "▶ pre-push: lint"
@@ -12,14 +18,14 @@ pnpm type-check
 echo "▶ pre-push: unit tests"
 pnpm test
 
+echo "▶ pre-push: build"
+POSTGRES_URL="${POSTGRES_URL:-postgresql://build:build@localhost:5432/build}" pnpm build
+
 if [ -z "${POSTGRES_URL:-}" ]; then
   echo "⚠  pre-push: POSTGRES_URL not set — skipping e2e tests."
-  echo "   Set POSTGRES_URL and re-push to run the full suite."
+  echo "   Run pnpm test:e2e locally (requires Docker) to run the full suite."
   exit 0
 fi
-
-echo "▶ pre-push: build"
-pnpm build
 
 echo "▶ pre-push: e2e tests"
 pnpm test:e2e

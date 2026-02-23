@@ -109,7 +109,13 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Build application
-        run: pnpm build
+        # A syntactically-valid dummy POSTGRES_URL is required so that drizzle
+        # can be instantiated (for DrizzleAdapter's instanceof checks) without
+        # throwing. No queries run during next build — the postgres library only
+        # opens a TCP connection on the first query. next start (run by pnpm
+        # test:e2e via Playwright webServer) re-evaluates modules with the real
+        # POSTGRES_URL set by Testcontainers globalSetup.
+        run: POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
 
       - name: Run e2e tests
         run: pnpm test:e2e
