@@ -10,8 +10,8 @@ import { expect, test } from '@playwright/test';
  *   - tablet  : 768px  (iPad Mini / iPad Air)
  *   - desktop : 1280px (laptop / monitor)
  *
- * Public pages run unconditionally.
- * Authenticated pages require PLAYWRIGHT_AUTH_TOKEN (same guard as other e2e specs).
+ * Public pages run without a session cookie.
+ * Authenticated pages use the session written by global.setup.ts.
  *
  * A failing axe audit must be fixed — it is treated identically to a
  * unit test failure and blocks merging. See CONSTITUTION.md §8.
@@ -26,6 +26,9 @@ const VIEWPORTS = [
 // ─── Public pages ─────────────────────────────────────────────────────────────
 
 test.describe('Landing page — accessibility', () => {
+  // Landing page is the unauthenticated sign-in screen — no session cookie.
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   for (const vp of VIEWPORTS) {
     test(`passes axe audit at ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
@@ -66,6 +69,8 @@ test.describe('Landing page — accessibility', () => {
 });
 
 test.describe('Login page — accessibility', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   for (const vp of VIEWPORTS) {
     test(`passes axe audit at ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
@@ -86,7 +91,7 @@ test.describe('Login page — accessibility', () => {
 // ─── Authenticated pages ───────────────────────────────────────────────────────
 
 test.describe('Dashboard — accessibility & responsive', () => {
-  test.skip(!process.env.PLAYWRIGHT_AUTH_TOKEN, 'Requires authenticated session');
+  // Uses the global storageState (auth-state.json) from playwright.config.ts.
 
   for (const vp of VIEWPORTS) {
     test(`passes axe audit at ${vp.label}`, async ({ page }) => {

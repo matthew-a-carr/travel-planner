@@ -3,13 +3,14 @@ import { test, expect } from '@playwright/test';
 /**
  * Authentication journeys.
  *
- * These tests verify public/protected routing behaviour without
- * requiring a real Google OAuth flow. They check redirects and
- * page content based on the auth state.
- *
- * Full sign-in e2e (with real OAuth) requires a seeded test account
- * and is deferred to a separate test file that only runs in staging.
+ * These tests verify public/protected routing behaviour for
+ * unauthenticated users. They must run without a session cookie,
+ * so storage state is explicitly cleared here even though
+ * playwright.config.ts sets a global auth state.
  */
+
+// Override the global storageState — these tests run as unauthenticated visitors.
+test.use({ storageState: { cookies: [], origins: [] } });
 
 test('unauthenticated user sees landing page with sign-in button', async ({ page }) => {
   await page.goto('/');

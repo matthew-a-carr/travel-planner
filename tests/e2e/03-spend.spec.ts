@@ -3,7 +3,10 @@ import { test, expect } from '@playwright/test';
 /**
  * Spend entry journeys.
  *
- * Acceptance criteria for spend recording:
+ * Runs third (03-) — depends on the Japan destination created by
+ * 02-destinations.spec.ts.
+ *
+ * Acceptance criteria:
  * - User can record a spend against a destination
  * - Spend appears in the destination spend list
  * - Total spend is shown per destination
@@ -11,12 +14,10 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Spend recording', () => {
-  test.skip(!process.env.PLAYWRIGHT_AUTH_TOKEN, 'Requires authenticated session');
-
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByText('Test Round the World').click();
-    // Assumes Japan destination exists from destination tests
+    // Assumes Japan destination exists from 02-destinations.spec.ts
     await page.getByText('Japan').click();
   });
 

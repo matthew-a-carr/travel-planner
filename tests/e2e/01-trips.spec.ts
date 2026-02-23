@@ -3,19 +3,13 @@ import { test, expect } from '@playwright/test';
 /**
  * Trip management journeys.
  *
- * NOTE: These tests require an authenticated session.
- * Until a test-auth mechanism is wired up (session seeding or
- * a dedicated test OAuth provider), these tests are skipped.
+ * Runs first (01-) so that the "Test Round the World" trip created here
+ * is available to subsequent destination and spend tests.
  *
- * To run with auth: provide a PLAYWRIGHT_AUTH_TOKEN env var
- * or use the storageState pattern documented in playwright.config.ts.
- *
- * The test descriptions define the acceptance criteria for the feature.
+ * Auth is provided via the storageState written by global.setup.ts.
  */
 
 test.describe('Trip creation', () => {
-  test.skip(!process.env.PLAYWRIGHT_AUTH_TOKEN, 'Requires authenticated session');
-
   test('authenticated user can open the create trip modal', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /create trip/i }).click();
@@ -47,8 +41,6 @@ test.describe('Trip creation', () => {
 });
 
 test.describe('Trip detail page', () => {
-  test.skip(!process.env.PLAYWRIGHT_AUTH_TOKEN, 'Requires authenticated session');
-
   test('shows budget overview with correct figures', async ({ page }) => {
     await page.goto('/');
     await page.getByText('Test Round the World').click();

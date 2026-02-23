@@ -71,29 +71,19 @@ jobs:
       - run: pnpm test
 
   # ── Stage 2: e2e (runs after all stage 1 jobs pass) ───────────────────────
+  #
+  # PostgreSQL is no longer a GitHub Actions service container.
+  # Testcontainers starts a throwaway postgres:16-alpine container inside
+  # the Playwright globalSetup hook, writes the dynamic POSTGRES_URL to
+  # process.env, and tears it down in globalTeardown.
+  # Docker is available by default on ubuntu-latest runners.
 
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
     needs: [lint, type-check, unit-test]
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: travel_planner_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     env:
-      POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/travel_planner_test
       # AUTH_SECRET must be set for next-auth to initialise — value is not a real secret
       AUTH_SECRET: ci-only-not-a-real-secret-replace-in-production
       # Dummy OAuth credentials — no real sign-in happens in CI
@@ -117,9 +107,6 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run database migrations
-        run: pnpm db:migrate
 
       - name: Build application
         run: pnpm build

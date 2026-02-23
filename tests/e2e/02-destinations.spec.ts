@@ -3,7 +3,10 @@ import { test, expect } from '@playwright/test';
 /**
  * Destination management journeys.
  *
- * Acceptance criteria for the destination feature:
+ * Runs second (02-) — depends on the "Test Round the World" trip
+ * created by 01-trips.spec.ts.
+ *
+ * Acceptance criteria:
  * - User can add a destination to a trip
  * - Destination appears in the trip detail page
  * - Adding a destination updates the available budget
@@ -12,10 +15,8 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Destination management', () => {
-  test.skip(!process.env.PLAYWRIGHT_AUTH_TOKEN, 'Requires authenticated session');
-
   test.beforeEach(async ({ page }) => {
-    // Navigate to a known trip (created by auth fixture)
+    // Navigate to a known trip (created by 01-trips.spec.ts)
     await page.goto('/');
     await page.getByText('Test Round the World').click();
   });
