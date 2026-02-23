@@ -24,9 +24,10 @@ test('unauthenticated user is not redirected away from root', async ({ page }) =
 
 test('unauthenticated user visiting /trips is redirected to /login', async ({ page }) => {
   await page.goto('/trips/some-trip-id');
-  // Auth middleware redirects to /login or back to /
-  const url = page.url();
-  expect(url).toMatch(/\/(login)?$/);
+  // next-auth v5 redirects to /login?callbackUrl=... in production mode.
+  // Check only the pathname so query parameters don't break the assertion.
+  const { pathname } = new URL(page.url());
+  expect(pathname).toMatch(/\/(login)?$/);
 });
 
 test('login page renders correctly', async ({ page }) => {
