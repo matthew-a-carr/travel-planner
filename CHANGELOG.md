@@ -9,6 +9,18 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- Spend entry editing: each recorded spend item now shows an **Edit** button that expands
+  an inline form pre-filled with the existing amount, date, category, and description; changes
+  are saved immediately and the page reflects the updated totals
+- Spend entry deletion: a **Delete** button on each spend item removes the entry and recalculates
+  the destination's total spend in real time
+- `deleteSpendEntry` and `editSpendEntry` application use cases
+- `deleteSpendEntryAction` and `editSpendEntryAction` server actions (both verify trip ownership
+  before mutating)
+- `EditSpendEntryForm` client component
+
+### Also in this branch (previous commit)
+
 - Trip fixed costs: `trip_fixed_costs` table replaces single `ringfenced_amount` field; users
   can now add named line items (flights, insurance, phone contract, Netflix, etc.) each deducted
   from the available budget; add/remove per trip from a new `FixedCostSection` on the trip page

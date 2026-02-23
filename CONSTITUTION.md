@@ -99,8 +99,16 @@ A feature is not done until its e2e test passes against a running application.
 ### e2e test rules
 
 - Acceptance tests in `tests/e2e/`.
-- Auth-required tests skip gracefully without `PLAYWRIGHT_AUTH_TOKEN`.
-- CI skips e2e (requires running server + DB). Run locally with `pnpm test:e2e`.
+- A throwaway PostgreSQL database is started automatically via Testcontainers (Docker required).
+  `pnpm test:e2e` is fully self-contained — no external database or auth token needed.
+- `globalSetup` starts the container, runs migrations, seeds reference data, creates a test
+  user + session, and writes `tests/e2e/fixtures/auth-state.json` (session cookie).
+  `globalTeardown` stops the container when the suite finishes.
+- Test files are numbered (`01-trips`, `02-destinations`, `03-spend`) to make the data
+  dependency chain explicit. Authenticated tests use the session from `auth-state.json`;
+  public tests override with `test.use({ storageState: { cookies: [], origins: [] } })`.
+- CI runs e2e in stage 2 (after lint/type-check/unit-test). Docker is available by default
+  on `ubuntu-latest` GitHub Actions runners — no extra service containers required.
 
 ---
 
@@ -159,6 +167,20 @@ The update must be part of the same commit — not a follow-up.
 - New entries go under `## [Unreleased]`.
 - Sections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
 - Write from the user's perspective, not the implementer's.
+
+### What requires a changelog entry
+
+| Commit type | Changelog required? | Reason |
+|---|---|---|
+| `feat` — new UI capability | **Yes** | User experiences something new |
+| `fix` — visible bug fix | **Yes** | User's experience improves |
+| `feat(e2e)` / `test` — test infrastructure | No | Not visible to users |
+| `chore(deps)` — dependency bumps | No | No behaviour change |
+| `ci` — CI/CD pipeline | No | No behaviour change |
+| `docs` — documentation only | No | Not a behaviour change |
+| `refactor` — internal restructuring | No, unless it fixes a visible bug |
+
+When in doubt: if a real user would notice a difference, the changelog needs an entry.
 
 ---
 
