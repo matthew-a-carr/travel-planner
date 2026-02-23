@@ -22,10 +22,12 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
-- Application failed to build in CI (`next build`) because the database client threw
-  `POSTGRES_URL environment variable is required` at module evaluation time; the client is
-  now lazily initialised via a Proxy so the connection is only established on the first
-  real request, not during static page-data collection
+- Application failed to build in CI (`next build`) because `auth/index.ts` called
+  `DrizzleAdapter(getDb(), …)` at module-evaluation time without a database available;
+  `auth/index.ts` now imports the shared `db` singleton from `client.ts` (removing the
+  duplicate connection) and `next build` is run with a syntactically-valid dummy
+  `POSTGRES_URL` — the `postgres` library is lazy so no TCP connection is ever opened
+  during the build phase (see ADR 010)
 
 ### Also in this branch (previous commit)
 

@@ -16,18 +16,24 @@ These rules are enforced by `src/__tests__/architecture.test.ts`. Violations bre
 ```
 src/domain/
   trip/
-    types.ts          ← Money, Trip, Destination, SpendEntry, Result helpers
-    trip.ts           ← budget invariant functions (pure)
+    types.ts              ← Money, Trip, TripFixedCost, Destination, SpendEntry, Result helpers
+    trip.ts               ← budget invariant functions (pure)
     trip.test.ts
-    trip-repository.ts ← TripRepository interface (implemented in infrastructure/)
+    trip-repository.ts    ← TripRepository interface
+    fixed-cost-repository.ts ← TripFixedCostRepository interface
   destination/
-    destination.ts    ← validateNewDestination, nextSortOrder, sortDestinations
+    destination.ts        ← validateNewDestination, validateDestinationEdit, validateDateRange,
+                             destinationDays, nextSortOrder, sortDestinations
     destination.test.ts
-    destination-repository.ts
+    destination-repository.ts ← DestinationRepository interface
   spending/
-    spend-entry.ts    ← getTotalSpend, getSpendByCategory
+    spend-entry.ts        ← calculateTotalSpend, getSpendByCategory
     spend-entry.test.ts
-    spend-entry-repository.ts
+    spend-entry-repository.ts ← SpendEntryRepository interface
+  country-reference/
+    country-reference.ts  ← findReference, suggestBudget (budget suggestion engine)
+    country-reference.test.ts
+    types.ts              ← CountryReference type
 ```
 
 ## Testing

@@ -25,7 +25,8 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 
 - Node.js 20+
 - pnpm (`npm install -g pnpm`)
-- A Vercel Postgres or Neon database (or any Postgres connection string)
+- Docker (required for e2e tests — Testcontainers manages the database automatically)
+- A Vercel Postgres or Neon database (or any Postgres connection string) for local dev
 - A Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com))
 
 ### Setup
@@ -49,10 +50,11 @@ AUTH_GOOGLE_ID=           # Google OAuth client ID
 AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 ```
 
-Push the database schema:
+Apply database migrations and seed reference data:
 
 ```bash
-pnpm db:push
+pnpm db:migrate
+pnpm db:seed
 ```
 
 Start the dev server:
@@ -65,14 +67,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running checks
 
+Pre-commit and pre-push hooks run all checks automatically — you don't need to invoke
+them manually before committing or pushing.
+
+To run checks mid-task:
+
 ```bash
 pnpm lint          # Biome lint + import ordering
 pnpm type-check    # TypeScript strict type check
 pnpm test          # Vitest unit tests
-pnpm test:e2e      # Playwright e2e (requires running server)
+pnpm test:e2e      # Playwright e2e — self-contained via Testcontainers (Docker required)
 ```
 
-All three (`lint`, `type-check`, `test`) run automatically in CI on every push and PR.
+CI runs lint, type-check, and unit tests in parallel (Stage 1), then the production
+build and e2e suite (Stage 2).
 
 ## Architecture
 
@@ -91,7 +99,7 @@ Layer boundaries are enforced by `src/__tests__/architecture.test.ts`. Breaking 
 Key domain decisions:
 - **Money as integers in pence** — never floats
 - **Result types** — `{ ok: true; value }` or `{ ok: false; error }` — no exceptions from domain
-- **Ringfenced budget** — a `Trip` has a `ringfencedAmount` for fixed costs (e.g. visa reserve) that reduces allocatable budget before any destination allocation
+- **Named fixed costs** — a `Trip` has a list of `TripFixedCost` items (flights, insurance, etc.) each deducted from the total before destination allocations
 
 See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
 See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.
@@ -100,9 +108,10 @@ See [`docs/decisions/`](./docs/decisions/) for architecture decision records.
 ## Database
 
 ```bash
-pnpm db:push       # push schema to DB (dev / quick iteration)
-pnpm db:generate   # generate Drizzle migration files
-pnpm db:migrate    # run migrations (production)
+pnpm db:generate   # generate a Drizzle migration file from schema changes
+pnpm db:migrate    # apply pending migrations
+pnpm db:push       # push schema directly to DB (dev / quick iteration only)
+pnpm db:seed       # seed country reference data (idempotent upsert)
 ```
 
 ## Deployment

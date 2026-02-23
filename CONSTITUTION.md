@@ -24,17 +24,22 @@ The engineering harness consists of three things:
 | e2e acceptance criteria | `tests/e2e/` | `pnpm test:e2e` |
 | Accessibility (WCAG 2.1 AA) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
+| Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |
 | CI gate | `.github/workflows/ci.yml` | automatic on push/PR |
 
 **Nothing ships unless all gates are green.**
 
 ### Feedback loop for agents
 
-After every change, run the verification trio:
+The pre-commit and pre-push hooks enforce all checks automatically — you do not need
+to run them manually before committing or pushing. The hooks run lint, type-check,
+and unit tests in parallel on every commit; the push hook also runs the production
+build (and e2e tests when Docker is available).
+
+If you need to run checks manually (e.g. mid-task to verify progress):
 ```bash
 pnpm lint && pnpm type-check && pnpm test
 ```
-This is the single source of truth for correctness. If all three pass, the change is safe to commit.
 If any fail, fix them before proceeding — do not move on.
 
 ---

@@ -1,22 +1,35 @@
 #!/usr/bin/env bash
 # Pre-push: mirrors the CI pipeline so failures are caught locally before push.
 #
-# Build runs unconditionally with a dummy POSTGRES_URL when no real one is set.
-# This matches CI exactly: next build needs a syntactically-valid URL so drizzle
+# lint + type-check + unit tests run in parallel (they are independent).
+# build runs after — it needs a syntactically-valid POSTGRES_URL so drizzle
 # can be instantiated for DrizzleAdapter's instanceof checks, but no TCP
 # connection is ever opened during the build (postgres library is lazy).
 # E2e tests are skipped when POSTGRES_URL is absent; Testcontainers sets it
 # automatically when pnpm test:e2e is run directly or in CI.
 set -euo pipefail
 
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+echo "▶ pre-push: lint + type-check + unit tests (parallel)"
+pnpm lint        > "$TMPDIR/lint.log"  2>&1 & PID_LINT=$!
+pnpm type-check  > "$TMPDIR/type.log"  2>&1 & PID_TYPE=$!
+pnpm test        > "$TMPDIR/test.log"  2>&1 & PID_TEST=$!
+
+LINT_EXIT=0; TYPE_EXIT=0; TEST_EXIT=0
+wait $PID_LINT || LINT_EXIT=$?
+wait $PID_TYPE || TYPE_EXIT=$?
+wait $PID_TEST || TEST_EXIT=$?
+
 echo "▶ pre-push: lint"
-pnpm lint
-
+cat "$TMPDIR/lint.log"
 echo "▶ pre-push: type-check"
-pnpm type-check
-
+cat "$TMPDIR/type.log"
 echo "▶ pre-push: unit tests"
-pnpm test
+cat "$TMPDIR/test.log"
+
+[ $((LINT_EXIT + TYPE_EXIT + TEST_EXIT)) -eq 0 ] || exit 1
 
 echo "▶ pre-push: build"
 POSTGRES_URL="${POSTGRES_URL:-postgresql://build:build@localhost:5432/build}" pnpm build

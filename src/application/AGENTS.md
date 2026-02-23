@@ -17,8 +17,14 @@ src/application/
   use-cases/
     create-trip.ts
     add-destination.ts
+    edit-destination.ts
     remove-destination.ts
+    add-fixed-cost.ts
+    remove-fixed-cost.ts
     record-spend.ts
+    edit-spend-entry.ts
+    delete-spend-entry.ts
+    get-country-references.ts
 ```
 
 ## Use case shape

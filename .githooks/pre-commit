@@ -1,12 +1,28 @@
 #!/usr/bin/env bash
-# Pre-commit: lint + type-check + unit tests must all pass.
+# Pre-commit: lint + type-check + unit tests in parallel.
+#
+# All three are independent so they run concurrently. Output from each
+# is buffered and printed in order after all processes finish, keeping
+# the terminal readable. The commit is blocked if any check fails.
 set -euo pipefail
 
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+pnpm lint        > "$TMPDIR/lint.log"  2>&1 & PID_LINT=$!
+pnpm type-check  > "$TMPDIR/type.log"  2>&1 & PID_TYPE=$!
+pnpm test        > "$TMPDIR/test.log"  2>&1 & PID_TEST=$!
+
+LINT_EXIT=0; TYPE_EXIT=0; TEST_EXIT=0
+wait $PID_LINT || LINT_EXIT=$?
+wait $PID_TYPE || TYPE_EXIT=$?
+wait $PID_TEST || TEST_EXIT=$?
+
 echo "▶ pre-commit: lint"
-pnpm lint
-
+cat "$TMPDIR/lint.log"
 echo "▶ pre-commit: type-check"
-pnpm type-check
-
+cat "$TMPDIR/type.log"
 echo "▶ pre-commit: unit tests"
-pnpm test
+cat "$TMPDIR/test.log"
+
+[ $((LINT_EXIT + TYPE_EXIT + TEST_EXIT)) -eq 0 ] || exit 1

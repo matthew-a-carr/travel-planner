@@ -19,15 +19,20 @@ May import from `domain/` and `application/`. Must NOT import from `ui/` or `src
 src/infrastructure/
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
-    index.ts             ← full NextAuth with DrizzleAdapter
+    index.ts             ← full NextAuth with DrizzleAdapter (imports db from client.ts)
   db/
     schema.ts            ← Drizzle schema (source of truth for all tables)
-    client.ts            ← singleton db instance
+    client.ts            ← singleton db instance (see note below)
     migrate.ts           ← migration runner
     repositories/
       drizzle-trip-repository.ts
       drizzle-destination-repository.ts
       drizzle-spend-entry-repository.ts
+      drizzle-trip-fixed-cost-repository.ts
+      drizzle-country-reference-repository.ts
+    seed/
+      country-reference-seed.ts  ← seed data for 33 countries
+      seed.ts                    ← idempotent upsert runner (pnpm db:seed)
 ```
 
 ## Repository pattern
@@ -50,3 +55,17 @@ Each repository:
 
 `auth.config.ts` has no DB access — safe to import in `middleware.ts`.
 `index.ts` imports the Drizzle adapter — only import in server-side code, never in middleware.
+`index.ts` uses the shared `db` from `client.ts` (not its own connection). Do not create
+a separate drizzle instance inside `auth/`.
+
+## Build-time database requirement
+
+`client.ts` calls `createDb()` at module evaluation time. `next build` imports server
+modules without a real database, so a syntactically-valid dummy URL must be supplied:
+
+```bash
+POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
+```
+
+The `postgres` library is lazy — no TCP connection is made until the first query.
+`next start` spawns a fresh Node.js process with the real `POSTGRES_URL`. See ADR 010.
