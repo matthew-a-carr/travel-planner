@@ -98,3 +98,11 @@ export const spendEntries = pgTable('spend_entries', {
   spentAt: date('spent_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const countryReferenceData = pgTable('country_reference_data', {
+  country: text('country').primaryKey(), // canonical display name, e.g. "Japan"
+  avgDailyCostPence: integer('avg_daily_cost_pence').notNull(), // mid-range GBP pence
+  currency: text('currency').notNull().default('GBP'),
+  source: text('source').notNull().default('manual'), // 'manual' | 'api'
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

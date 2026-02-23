@@ -17,6 +17,13 @@ async function getVerifiedUserId(): Promise<string> {
   return session.user.id;
 }
 
+/** Parses an optional ISO date string (YYYY-MM-DD) from a form field. Returns null if absent. */
+function parseDateField(value: FormDataEntryValue | null): Date | null {
+  if (!value || typeof value !== 'string' || value.trim() === '') return null;
+  const d = new Date(value.trim());
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 // ─── Destination actions ──────────────────────────────────────────────────────
 
 export type AddDestinationState = { error: string | null };
@@ -51,6 +58,9 @@ export async function addDestinationAction(
     return { error: 'Invalid budget amount' };
   }
 
+  const startDate = parseDateField(formData.get('startDate'));
+  const endDate = parseDateField(formData.get('endDate'));
+
   const destRepo = new DrizzleDestinationRepository(db);
   const result = await addDestination(tripRepo, destRepo, {
     tripId,
@@ -59,8 +69,8 @@ export async function addDestinationAction(
     estimatedBudgetPence,
     currency: 'GBP',
     comfortLevel: comfortLevel as ComfortLevel,
-    startDate: null,
-    endDate: null,
+    startDate,
+    endDate,
   });
 
   if (!result.ok) return { error: result.error };

@@ -9,22 +9,37 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
-- `CONSTITUTION.md` section 1 "The Harness": enforcement map table, feedback loop command, and
-  context efficiency rules derived from OpenAI harness engineering principles
-- Per-layer `AGENTS.md` files in `src/domain/`, `src/application/`, `src/infrastructure/`
-  providing layer-specific rules and structure guidance for agents working in each layer
-- `.env.example` referenced in README for local setup
+- Country reference data: `country_reference_data` DB table seeded with 33 countries and their
+  mid-range daily travel costs in GBP pence (Japan £80/day, Thailand £35/day, etc.)
+- `CountryReference` domain type, `CountryReferenceRepository` interface, and
+  `DrizzleCountryReferenceRepository` implementation
+- `findReference` and `suggestBudget` pure domain functions, with 14 unit tests
+- `COMFORT_MULTIPLIERS` constant (budget 0.65×, mid 1.0×, luxury 1.8×) used by suggestion engine
+- `destinationDays` domain function deriving trip duration from start/end dates, with 6 unit tests
+- `getCountryReferences` application use case
+- `pnpm db:seed` script — idempotent upsert of country reference seed data
+- Budget suggestion hint on Add Destination form: when country + dates + comfort level are filled,
+  shows "Suggested £X,XXX — N days in [Country] (mid-range)" beneath the budget input
+- Start/end date inputs on Add Destination form (both optional)
+- Duration display ("· 45 days") shown on destination cards when dates are set
+- ADR 004 documenting the country reference data design decisions
 
 ### Changed
 
-- `AGENTS.md` restructured as a concise operational quick-reference (~120 lines): verification
-  commands are now the first thing an agent sees, exact copy-paste commands with backticks,
-  explicit feature-addition sequence, environment variable reference, and CI pipeline note
-- `CONSTITUTION.md` updated with Harness Engineering section (constraints, feedback loops,
-  enforcement map) and Context Efficiency section (dead code, TODO hygiene, file focus)
+- `AddDestinationForm` is now a controlled component tracking country, dates, and comfort level
+  for client-side suggestion computation — no server round-trip needed
+- `DestinationSection` now accepts and forwards `countryReferences` prop
+- Trip detail page now fetches country references in parallel with destinations and spend
+- Server action `addDestinationAction` now parses optional `startDate` / `endDate` fields
+
+### Also in this branch (previous commit)
+
+- `CONSTITUTION.md` section 1 "The Harness": enforcement map table, feedback loop command, and
+  context efficiency rules derived from OpenAI harness engineering principles
+- Per-layer `AGENTS.md` files in `src/domain/`, `src/application/`, `src/infrastructure/`
+- `AGENTS.md` restructured as concise operational quick-reference
 - Application renamed from "Wanderlust Budget" to "Travel Planner" throughout codebase
-- `README.md` replaced auto-generated Next.js starter with project-specific content: stack
-  table, local setup instructions, architecture overview, and links to engineering docs
+- `README.md` replaced auto-generated Next.js starter with project-specific content
 
 ## [0.3.0] - 2026-02-23
 

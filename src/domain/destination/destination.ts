@@ -60,6 +60,20 @@ export function validateNewDestination(
 }
 
 /**
+ * Calculates the number of days for a destination based on its start and end dates.
+ *
+ * Returns null if either date is missing — callers should treat null as "unknown duration".
+ * Duration feeds the budget suggestion engine and future burndown visualisation.
+ */
+export function destinationDays(
+  destination: Pick<Destination, 'startDate' | 'endDate'>,
+): number | null {
+  const { startDate, endDate } = destination;
+  if (!startDate || !endDate) return null;
+  return Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/**
  * Returns the next sort order value for a new destination.
  */
 export function nextSortOrder(destinations: readonly Destination[]): number {

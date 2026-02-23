@@ -1,24 +1,43 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import type { AddDestinationState } from '@/app/trips/[id]/actions';
 import { addDestinationAction } from '@/app/trips/[id]/actions';
+import { findReference, suggestBudget } from '@/domain/country-reference/country-reference';
+import type { CountryReference } from '@/domain/country-reference/types';
+import type { ComfortLevel } from '@/domain/trip/types';
+import { formatMoney } from '@/domain/trip/types';
 
-const COMFORT_OPTIONS = [
+const COMFORT_OPTIONS: { value: ComfortLevel; label: string }[] = [
   { value: 'budget', label: 'Budget' },
   { value: 'mid', label: 'Mid-range' },
   { value: 'luxury', label: 'Luxury' },
-] as const;
+];
 
 const initial: AddDestinationState = { error: null };
 
+function computeDays(startStr: string, endStr: string): number | null {
+  if (!startStr || !endStr) return null;
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) return null;
+  return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export function AddDestinationForm({
   tripId,
+  countryReferences,
   onSuccess,
 }: {
   tripId: string;
+  countryReferences: CountryReference[];
   onSuccess: () => void;
 }) {
+  const [country, setCountry] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [comfortLevel, setComfortLevel] = useState<ComfortLevel>('mid');
+
   const boundAction = addDestinationAction.bind(null, tripId);
 
   const [state, dispatch, isPending] = useActionState(
@@ -30,8 +49,15 @@ export function AddDestinationForm({
     initial,
   );
 
+  // Compute suggestion client-side — no API call needed
+  const days = computeDays(startDate, endDate);
+  const reference = country ? findReference(country, countryReferences) : null;
+  const suggestion =
+    days !== null && reference ? suggestBudget(days, reference, comfortLevel) : null;
+
   return (
     <form action={dispatch} className="space-y-4">
+      {/* Name + Country */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="dest-name" className="block text-sm font-medium text-zinc-700">
@@ -56,11 +82,45 @@ export function AddDestinationForm({
             type="text"
             required
             placeholder="Japan"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           />
         </div>
       </div>
 
+      {/* Dates */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="dest-start" className="block text-sm font-medium text-zinc-700">
+            Start date <span className="text-zinc-400">(optional)</span>
+          </label>
+          <input
+            id="dest-start"
+            name="startDate"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="dest-end" className="block text-sm font-medium text-zinc-700">
+            End date <span className="text-zinc-400">(optional)</span>
+          </label>
+          <input
+            id="dest-end"
+            name="endDate"
+            type="date"
+            value={endDate}
+            min={startDate || undefined}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          />
+        </div>
+      </div>
+
+      {/* Budget + Comfort */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="dest-budget" className="block text-sm font-medium text-zinc-700">
@@ -73,9 +133,20 @@ export function AddDestinationForm({
             required
             min="0.01"
             step="0.01"
-            placeholder="5000"
+            placeholder={suggestion ? String(Math.round(suggestion.amountPence / 100)) : '5000'}
             className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           />
+          {suggestion && days !== null && reference && (
+            <p className="mt-1 text-xs text-zinc-500">
+              Suggested {formatMoney(suggestion)} — {days} days in {reference.country} (
+              {COMFORT_OPTIONS.find((o) => o.value === comfortLevel)?.label.toLowerCase()})
+            </p>
+          )}
+          {country && !reference && (
+            <p className="mt-1 text-xs text-zinc-400">
+              No reference data for &quot;{country}&quot;
+            </p>
+          )}
         </div>
         <div>
           <label htmlFor="dest-comfort" className="block text-sm font-medium text-zinc-700">
@@ -85,7 +156,8 @@ export function AddDestinationForm({
             id="dest-comfort"
             name="comfortLevel"
             required
-            defaultValue="mid"
+            value={comfortLevel}
+            onChange={(e) => setComfortLevel(e.target.value as ComfortLevel)}
             className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           >
             {COMFORT_OPTIONS.map((o) => (

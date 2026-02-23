@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  destinationDays,
   nextSortOrder,
   sortDestinations,
   validateDateRange,
@@ -166,6 +167,45 @@ describe('validateNewDestination', () => {
     const newDest = makeDestination({ id: 'dest-new', amountPence: 400_001 });
     const result = validateNewDestination(trip, existing, newDest);
     expect(result.ok).toBe(false);
+  });
+});
+
+// ─── destinationDays ──────────────────────────────────────────────────────────
+
+describe('destinationDays', () => {
+  it('should return null when both dates are null', () => {
+    expect(destinationDays({ startDate: null, endDate: null })).toBeNull();
+  });
+
+  it('should return null when only start date is set', () => {
+    expect(destinationDays({ startDate: new Date('2026-06-01'), endDate: null })).toBeNull();
+  });
+
+  it('should return null when only end date is set', () => {
+    expect(destinationDays({ startDate: null, endDate: new Date('2026-06-30') })).toBeNull();
+  });
+
+  it('should return correct number of days for a one-month span', () => {
+    // 1 June → 1 July = 30 days
+    const days = destinationDays({
+      startDate: new Date('2026-06-01'),
+      endDate: new Date('2026-07-01'),
+    });
+    expect(days).toBe(30);
+  });
+
+  it('should return 1 for a single-day stay', () => {
+    const days = destinationDays({
+      startDate: new Date('2026-06-01'),
+      endDate: new Date('2026-06-02'),
+    });
+    expect(days).toBe(1);
+  });
+
+  it('should return correct days for a 45-day stay', () => {
+    const start = new Date('2026-09-01');
+    const end = new Date('2026-10-16'); // 45 days
+    expect(destinationDays({ startDate: start, endDate: end })).toBe(45);
   });
 });
 

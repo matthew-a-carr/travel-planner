@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { removeDestinationAction } from '@/app/trips/[id]/actions';
+import type { CountryReference } from '@/domain/country-reference/types';
+import { destinationDays } from '@/domain/destination/destination';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import type { Destination, SpendEntry } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
@@ -12,9 +14,10 @@ type Props = {
   tripId: string;
   destinations: Destination[];
   allSpend: SpendEntry[];
+  countryReferences: CountryReference[];
 };
 
-export function DestinationSection({ tripId, destinations, allSpend }: Props) {
+export function DestinationSection({ tripId, destinations, allSpend, countryReferences }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
@@ -33,7 +36,11 @@ export function DestinationSection({ tripId, destinations, allSpend }: Props) {
       {showAddForm && (
         <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h3 className="mb-4 text-sm font-semibold text-zinc-700">New destination</h3>
-          <AddDestinationForm tripId={tripId} onSuccess={() => setShowAddForm(false)} />
+          <AddDestinationForm
+            tripId={tripId}
+            countryReferences={countryReferences}
+            onSuccess={() => setShowAddForm(false)}
+          />
         </div>
       )}
 
@@ -76,6 +83,8 @@ function DestinationCard({
   const spendPercent = budgetPence > 0 ? Math.min((spendPence / budgetPence) * 100, 100) : 0;
   const isOverSpend = spendPence > budgetPence;
 
+  const days = destinationDays(destination);
+
   const comfortLabel: Record<string, string> = {
     budget: 'Budget',
     mid: 'Mid-range',
@@ -99,7 +108,14 @@ function DestinationCard({
               {comfortLabel[destination.comfortLevel] ?? destination.comfortLevel}
             </span>
           </div>
-          <p className="mt-0.5 text-sm text-zinc-500">{destination.country}</p>
+          <p className="mt-0.5 text-sm text-zinc-500">
+            {destination.country}
+            {days !== null && (
+              <span className="ml-1 text-zinc-400">
+                · {days} {days === 1 ? 'day' : 'days'}
+              </span>
+            )}
+          </p>
         </div>
 
         <div className="flex items-center gap-2 pl-4">

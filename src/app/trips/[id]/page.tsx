@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { sortDestinations } from '@/domain/destination/destination';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
+import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
@@ -26,10 +28,12 @@ export default async function TripDetailPage({ params }: Props) {
 
   const destRepo = new DrizzleDestinationRepository(db);
   const spendRepo = new DrizzleSpendEntryRepository(db);
+  const refRepo = new DrizzleCountryReferenceRepository(db);
 
-  const [destinations, allSpend] = await Promise.all([
+  const [destinations, allSpend, countryReferences] = await Promise.all([
     destRepo.findByTrip(id),
     spendRepo.findByTrip(id),
+    getCountryReferences(refRepo),
   ]);
 
   const sorted = sortDestinations(destinations);
@@ -54,7 +58,12 @@ export default async function TripDetailPage({ params }: Props) {
 
         <BudgetOverviewCard trip={trip} summary={summary} />
 
-        <DestinationSection tripId={id} destinations={sorted} allSpend={allSpend} />
+        <DestinationSection
+          tripId={id}
+          destinations={sorted}
+          allSpend={allSpend}
+          countryReferences={countryReferences}
+        />
       </div>
     </main>
   );
