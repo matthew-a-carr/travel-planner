@@ -148,6 +148,11 @@ function DestinationCard({
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
           <div
+            role="progressbar"
+            aria-valuenow={Math.min(Math.round(spendPercent), 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Spend progress for ${destination.name}: ${Math.min(Math.round(spendPercent), 100)}% of budget used`}
             className={`h-full rounded-full ${isOverSpend ? 'bg-red-500' : 'bg-zinc-800'}`}
             style={{ width: `${spendPercent}%` }}
           />

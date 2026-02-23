@@ -184,6 +184,11 @@ function BudgetOverviewCard({
       <div className="mt-4">
         <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
           <div
+            role="progressbar"
+            aria-valuenow={Math.min(summary.allocationPercentage, 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Budget allocation: ${summary.allocationPercentage}% allocated`}
             className={`h-full rounded-full transition-all ${
               summary.isOverAllocated ? 'bg-red-500' : 'bg-zinc-800'
             }`}

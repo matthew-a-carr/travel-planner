@@ -22,6 +22,8 @@ The engineering harness consists of three things:
 | TypeScript correctness | `tsconfig.json` (strict) | `pnpm type-check` |
 | Code style + lint | `biome.json` | `pnpm lint` |
 | e2e acceptance criteria | `tests/e2e/` | `pnpm test:e2e` |
+| Accessibility (WCAG 2.1 AA) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
+| Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | CI gate | `.github/workflows/ci.yml` | automatic on push/PR |
 
 **Nothing ships unless all gates are green.**
@@ -224,7 +226,50 @@ What are the trade-offs? What becomes easier or harder as a result?
 
 ---
 
-## 8. Context Efficiency
+## 8. Mobile-First & Accessibility
+
+The application must be fully usable on all commonly-used devices and screen sizes. This is a non-negotiable product requirement.
+
+### Target viewports
+
+| Device class | Width | Representative device |
+|---|---|---|
+| Mobile | 375px | iPhone SE / most Android phones |
+| Tablet | 768px | iPad Mini / iPad Air |
+| Desktop | 1280px | Standard laptop / desktop |
+
+All layouts must be functional and readable at every viewport listed above.
+
+### Mobile-first CSS
+
+- Write base styles for mobile (smallest viewport).
+- Layer larger-screen overrides using Tailwind responsive prefixes: `sm:` (≥640px), `md:` (≥768px), `lg:` (≥1024px).
+- Two-column form grids (`grid-cols-2`) must stack to a single column on mobile: `grid grid-cols-1 gap-4 sm:grid-cols-2`.
+- Minimum touch target size: 44×44px for all interactive elements on mobile.
+
+### Accessibility standard
+
+**Minimum: WCAG 2.1 Level AA.**
+
+- Every interactive element must have an accessible name (via visible label, `aria-label`, or `aria-labelledby`).
+- Colour is never the sole means of conveying information.
+- Progress bars and other visual indicators use `role="progressbar"` with `aria-valuenow`, `aria-valuemin`, `aria-valuemax`.
+- Form inputs are always associated to a `<label>` via `htmlFor` / `id`.
+- Sufficient colour contrast: 4.5:1 for normal text, 3:1 for large text and UI components.
+
+### Automated enforcement
+
+Accessibility and responsive-layout regressions are caught by `tests/e2e/accessibility.spec.ts`:
+
+- **axe-core** (`@axe-core/playwright`) audits every key page at all three viewports.
+- The test file runs as part of the standard `pnpm test:e2e` suite.
+- A failing axe audit is treated the same as a failing unit test — it blocks merging.
+
+**No UI change ships without verifying it passes the accessibility spec at all three viewports.**
+
+---
+
+## 9. Context Efficiency
 
 Keep the context agents work with clean and signal-dense:
 

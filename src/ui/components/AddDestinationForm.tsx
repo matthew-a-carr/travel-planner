@@ -58,7 +58,7 @@ export function AddDestinationForm({
   return (
     <form action={dispatch} className="space-y-4">
       {/* Name + Country */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="dest-name" className="block text-sm font-medium text-zinc-700">
             Name
@@ -90,7 +90,7 @@ export function AddDestinationForm({
       </div>
 
       {/* Dates */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="dest-start" className="block text-sm font-medium text-zinc-700">
             Start date <span className="text-zinc-400">(optional)</span>
@@ -121,7 +121,7 @@ export function AddDestinationForm({
       </div>
 
       {/* Budget + Comfort */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="dest-budget" className="block text-sm font-medium text-zinc-700">
             Estimated budget (£)
