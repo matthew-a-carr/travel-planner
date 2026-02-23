@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travel Planner
 
-## Getting Started
+A personal travel budget planning app for multi-destination round-the-world trips. Create trips, allocate budgets per destination, log spending, and track what you have left — with a ringfenced reserve for fixed costs like visas.
 
-First, run the development server:
+Built as a portfolio piece demonstrating production-quality Next.js architecture, DDD-inspired layered design, and AI-assisted development practices.
+
+## Stack
+
+| Concern | Choice |
+|---|---|
+| Framework | Next.js 15 (App Router, server components, server actions) |
+| Language | TypeScript (strict mode) |
+| Database | Vercel Postgres (Neon) via Drizzle ORM |
+| Auth | Auth.js v5 — Google OAuth |
+| Styling | Tailwind CSS v4 |
+| Lint / Format | Biome v2 |
+| Unit tests | Vitest |
+| e2e tests | Playwright |
+| Package manager | pnpm |
+| Deployment | Vercel |
+
+## Local development
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm (`npm install -g pnpm`)
+- A Vercel Postgres or Neon database (or any Postgres connection string)
+- A Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com))
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/matthew-a-carr/travel-planner.git
+cd travel-planner
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copy the environment variable template and fill in your values:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+POSTGRES_URL=             # Vercel Postgres / Neon connection string
+AUTH_SECRET=              # generate with: openssl rand -base64 32
+AUTH_GOOGLE_ID=           # Google OAuth client ID
+AUTH_GOOGLE_SECRET=       # Google OAuth client secret
+```
 
-## Learn More
+Push the database schema:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm db:push
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start the dev server:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000](http://localhost:3000).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Running checks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm lint          # Biome lint + import ordering
+pnpm type-check    # TypeScript strict type check
+pnpm test          # Vitest unit tests
+pnpm test:e2e      # Playwright e2e (requires running server)
+```
+
+All three (`lint`, `type-check`, `test`) run automatically in CI on every push and PR.
+
+## Architecture
+
+The codebase follows a DDD-inspired layered architecture with mechanically enforced import boundaries:
+
+```
+src/domain/        Pure TypeScript domain logic — no external dependencies
+src/application/   Use cases — orchestrates domain; no framework code
+src/infrastructure Adapters — Drizzle repositories, Auth.js, external APIs
+src/ui/            React components
+src/app/           Next.js App Router (pages, layouts, server actions)
+```
+
+Layer boundaries are enforced by `src/__tests__/architecture.test.ts`. Breaking them fails CI.
+
+Key domain decisions:
+- **Money as integers in pence** — never floats
+- **Result types** — `{ ok: true; value }` or `{ ok: false; error }` — no exceptions from domain
+- **Ringfenced budget** — a `Trip` has a `ringfencedAmount` for fixed costs (e.g. visa reserve) that reduces allocatable budget before any destination allocation
+
+See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
+See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.
+See [`docs/decisions/`](./docs/decisions/) for architecture decision records.
+
+## Database
+
+```bash
+pnpm db:push       # push schema to DB (dev / quick iteration)
+pnpm db:generate   # generate Drizzle migration files
+pnpm db:migrate    # run migrations (production)
+```
+
+## Deployment
+
+Deploys to Vercel. Connect the GitHub repository in the Vercel dashboard, set the environment variables, and deployments happen automatically on push to `main`.

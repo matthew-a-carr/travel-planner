@@ -1,87 +1,110 @@
-# Engineering Constitution — Wanderlust Budget
+# Engineering Constitution — Travel Planner
 
-> **This document MUST be read and consulted before any coding work begins.**
-> It defines the non-negotiable engineering standards for this project. Deviations require an
-> explicit Architecture Decision Record (ADR) in `docs/decisions/`.
+> **Read this before writing any code.**
+> It defines the non-negotiable engineering standards. Deviations require an ADR in `docs/decisions/`.
 
 ---
 
-## 1. Architecture & Domain Separation
+## 1. The Harness
 
-This project follows a DDD-inspired layered architecture with strictly enforced import boundaries.
+This project is designed to be worked on by human engineers and AI agents interchangeably.
+The engineering harness consists of three things:
 
-### Layers
+- **Constraints** — what the system mechanically prevents (layer boundaries, type safety, lint rules)
+- **Feedback loops** — how you know when your work is correct (test suite, type checker, linter)
+- **Enforcement** — automated checks that run on every commit and every PR
+
+### Enforcement map
+
+| What | Where | Run via |
+|---|---|---|
+| Layer import boundaries | `src/__tests__/architecture.test.ts` | `pnpm test` |
+| TypeScript correctness | `tsconfig.json` (strict) | `pnpm type-check` |
+| Code style + lint | `biome.json` | `pnpm lint` |
+| e2e acceptance criteria | `tests/e2e/` | `pnpm test:e2e` |
+| CI gate | `.github/workflows/ci.yml` | automatic on push/PR |
+
+**Nothing ships unless all gates are green.**
+
+### Feedback loop for agents
+
+After every change, run the verification trio:
+```bash
+pnpm lint && pnpm type-check && pnpm test
+```
+This is the single source of truth for correctness. If all three pass, the change is safe to commit.
+If any fail, fix them before proceeding — do not move on.
+
+---
+
+## 2. Architecture & Domain Separation
+
+### Layers and import rules
 
 ```
 src/domain/        Pure domain logic. No external dependencies whatsoever.
 src/application/   Use cases only. Imports domain. No framework code.
-src/infrastructure/ Adapters (DB, Auth, APIs). Imports domain + application.
-src/ui/            React components, server actions, Next.js pages.
-src/app/           Next.js App Router (pages, layouts, API routes).
+src/infrastructure/ Adapters (DB, Auth, external APIs). Imports domain + application.
+src/ui/            React components. May import any layer.
+src/app/           Next.js App Router (pages, layouts, server actions). May import any layer.
 ```
 
-### Import Rules (non-negotiable)
+These rules are **mechanically enforced** by `src/__tests__/architecture.test.ts`.
+Breaking them causes test failures. Do not use `// @ts-ignore` or similar to silence them.
 
-| Layer | Allowed imports |
-|---|---|
-| `domain/` | None — pure TypeScript only |
-| `application/` | `domain/` only |
-| `infrastructure/` | `domain/`, `application/` |
-| `ui/` | Any layer |
-| `app/` | Any layer |
+### Domain design rules
 
-> Violations are enforced by `src/__tests__/architecture.test.ts`. Tests will fail on import
-> boundary breaches.
-
-### Domain Design Rules
-
-- **No exceptions from domain logic.** Use `Result<T, E>` for operations that can fail:
-  `{ ok: true; value: T } | { ok: false; error: E }`.
-- **Money is always integers in pence.** Never use floats for monetary values.
-- **Prefer value objects over primitives** for domain concepts: `Money`, `Currency`, `DateRange`.
+- **No exceptions from domain logic.** Return `Result<T, E>`:
+  `{ ok: true; value: T } | { ok: false; error: E }`
+- **Money is always integers in pence.** Never floats. Convert at the UI boundary only.
+- **Value objects over primitives.** Use `Money`, `Currency`, `DateRange` — not raw numbers/strings.
 - **Domain functions are pure.** No side effects. No I/O. No `async`.
-- **Aggregates own their invariants.** A `Trip` must enforce its own budget constraints.
+- **Aggregates own their invariants.** A `Trip` enforces its own budget constraints.
+- **Repository interfaces live in `domain/`.** Implementations live in `infrastructure/`.
+
+### Sub-directory guidance
+
+Each layer has its own `AGENTS.md` with layer-specific rules. Read it before editing that layer.
 
 ---
 
-## 2. Test-Driven Development (TDD / ATDD)
+## 3. Test-Driven Development (TDD / ATDD)
 
-### The Rule
+### The rule: tests first, always
 
-**Tests come first. Always.**
-
-No production code is written without a failing test describing the expected behaviour.
+No production code is written without a failing test that describes the expected behaviour.
 
 ### Workflow
 
 ```
-1. Write e2e acceptance test (Playwright) — defines the user-facing acceptance criterion.
-2. Write domain unit tests (Vitest) — for any new domain logic.
-3. Implement the minimum code to make tests pass (no more).
-4. Refactor if needed, keeping tests green.
-5. Run: biome check + tsc --noEmit + vitest run — ALL must pass before committing.
+1. Write Playwright e2e test → defines the acceptance criterion (what the user experiences).
+2. Write Vitest domain unit tests → for any new domain logic.
+3. Implement the minimum code to make tests pass.
+4. Refactor if needed, keeping all tests green.
+5. pnpm lint && pnpm type-check && pnpm test must all pass before committing.
 ```
 
-### Unit Test Rules
+A feature is not done until its e2e test passes against a running application.
+
+### Unit test rules
 
 - Domain logic MUST have Vitest unit tests.
-- Tests live alongside the code they test (`foo.test.ts` next to `foo.ts`).
-- Use descriptive names: `it('should reject allocation that exceeds available budget')`.
-- **No mocking of domain objects.** Mock only infrastructure boundaries (repositories, APIs).
-- Test behaviour, not implementation. Do not test private functions directly.
+- Tests co-located with source: `trip.ts` → `trip.test.ts`.
+- Descriptive names: `it('should reject allocation that exceeds available budget')`.
+- No mocking of domain objects. Mock only infrastructure boundaries.
+- Test behaviour, not implementation. Never test private functions directly.
 
-### e2e Test Rules
+### e2e test rules
 
-- Acceptance tests live in `tests/e2e/`.
-- Each feature starts with a failing Playwright test before any implementation.
+- Acceptance tests in `tests/e2e/`.
 - Auth-required tests skip gracefully without `PLAYWRIGHT_AUTH_TOKEN`.
-- A feature is not considered done until its e2e test passes against a running app.
+- CI skips e2e (requires running server + DB). Run locally with `pnpm test:e2e`.
 
 ---
 
-## 3. Conventional Commits
+## 4. Conventional Commits
 
-**All commits MUST follow the [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification.**
+**All commits MUST follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).**
 
 ### Format
 
@@ -93,25 +116,25 @@ No production code is written without a failing test describing the expected beh
 [optional footer(s)]
 ```
 
-### Commit Types
+### Types
 
-| Type | When to use |
+| Type | Use for |
 |---|---|
-| `feat` | A new feature or user-facing capability |
-| `fix` | A bug fix |
-| `refactor` | Code change that is neither a fix nor a feature |
+| `feat` | New user-facing feature |
+| `fix` | Bug fix |
+| `refactor` | Code change that is neither fix nor feature |
 | `test` | Adding or updating tests only |
-| `docs` | Documentation only changes |
-| `chore` | Build system, dependency updates, tooling config |
+| `docs` | Documentation only |
+| `chore` | Build, dependencies, tooling |
 | `ci` | CI/CD pipeline changes |
-| `perf` | A performance improvement |
+| `perf` | Performance improvement |
 
 ### Rules
 
-- Subject line: **lowercase**, no trailing period, **≤ 72 characters**.
-- Use **imperative mood**: "add feature" not "added feature" or "adds feature".
-- Breaking changes: append `!` after type (`feat!:`) and include a `BREAKING CHANGE:` footer.
-- Scope is optional but encouraged: `feat(destination):`, `fix(auth):`, `test(spend):`.
+- Subject line: lowercase, no trailing period, ≤ 72 characters.
+- Imperative mood: "add feature" not "added" or "adds".
+- Breaking changes: `feat!:` + `BREAKING CHANGE:` footer.
+- Scope is optional but encouraged: `feat(destination):`, `fix(auth):`.
 
 ### Examples
 
@@ -119,79 +142,51 @@ No production code is written without a failing test describing the expected beh
 feat(destination): add validateNewDestination domain function
 fix(auth): handle undefined session.user when narrowing type
 test(trip): add unit tests for ringfence budget invariant
-docs(adr): add decision record for Biome migration
+docs: add engineering constitution
 chore: upgrade drizzle-orm to 0.43.0
-ci: add e2e job to GitHub Actions workflow
 ```
 
 ---
 
-## 4. Changelog
+## 5. Changelog
 
-**`CHANGELOG.md` MUST be updated with every commit that introduces a user-facing change.**
+**`CHANGELOG.md` MUST be updated with every commit that changes user-facing behaviour.**
+The update must be part of the same commit — not a follow-up.
 
-### Rules
-
-- Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-- Changes go under `## [Unreleased]` until a version is tagged.
-- On release, move unreleased entries to a version section with the date.
-- Sections within a release: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
-- Write entries from the perspective of the end user, not the implementer.
-
-### Example Entry
-
-```markdown
-## [Unreleased]
-
-### Added
-- Destination management: add and remove destinations per trip with budget validation
-
-### Fixed
-- Budget summary no longer shows negative available amount when ringfence exceeds allocation
-```
+- Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+- New entries go under `## [Unreleased]`.
+- Sections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Write from the user's perspective, not the implementer's.
 
 ---
 
-## 5. Code Quality
+## 6. Code Quality
 
 ### TypeScript
 
-- Strict mode enforced (`strict: true` in `tsconfig.json`). No exceptions.
-- No `any` types. Use `unknown` and narrow, or model the type properly.
-- No non-null assertions (`!`) unless with explicit justification in a comment.
-- Prefer named exports over default exports.
-- File names: `kebab-case.ts`. Component files: `PascalCase.tsx`.
+- Strict mode (`strict: true`). No exceptions.
+- No `any`. Use `unknown` and narrow, or model the type properly.
+- No non-null assertions (`!`) without an explanatory comment.
+- Prefer named exports.
 
-### Linting & Formatting
+### Linting & formatting
 
-- **Biome v2** is the single tool for linting, formatting, and import organisation.
-- Run `pnpm lint` before every commit. No warnings left unresolved.
-- Auto-fix safe issues: `pnpm run format`. Unsafe fixes require manual review.
+- **Biome v2** handles lint, format, and import ordering.
+- `pnpm lint` must be clean before committing.
+- `pnpm run format` for auto-formatting.
+- Config in `biome.json`.
 
-### Naming Conventions
+### Naming
 
 | Concept | Convention | Example |
 |---|---|---|
-| Domain entities | PascalCase | `Trip`, `Destination` |
-| Value objects | PascalCase | `Money`, `BudgetAllocation` |
+| Domain entities / value objects | PascalCase | `Trip`, `Money` |
 | Use cases | camelCase verb phrase | `createTrip`, `recordSpend` |
-| Repository interfaces | PascalCase + suffix | `TripRepository` |
+| Repository interfaces | PascalCase + `Repository` | `TripRepository` |
+| Server actions | camelCase + `Action` | `createTripAction` |
 | DB tables | snake_case | `spend_entries` |
 | React components | PascalCase | `BudgetSummary.tsx` |
-| Server actions | camelCase + `Action` suffix | `createTripAction` |
-
----
-
-## 6. Git Workflow
-
-- Work on feature branches. Merge to `main` via PR (or fast-forward for solo work).
-- One logical change per commit. Do not batch unrelated changes.
-- Always run the full check suite before pushing:
-  ```
-  pnpm lint && pnpm type-check && pnpm test
-  ```
-- Do not push with failing checks.
-- `CHANGELOG.md` update must be part of the same commit as the change, not a follow-up.
+| File names | kebab-case | `spend-entry.ts` |
 
 ---
 
@@ -199,14 +194,15 @@ ci: add e2e job to GitHub Actions workflow
 
 Significant technical decisions MUST be documented as ADRs in `docs/decisions/`.
 
-### Naming Convention
+### Naming
 
 ```
 NNN-short-descriptive-title.md
 ```
 
-Where `NNN` is a zero-padded sequence number. The title must describe the decision itself,
-not just the feature it relates to. A reader should understand the subject from the filename alone.
+The filename must convey the subject from the filename alone — not "next-features-approach" but
+"atdd-destination-spend-dashboard-approach". A reader unfamiliar with the project must understand
+the decision from the title.
 
 ### Template
 
@@ -223,5 +219,17 @@ Why does this decision need to be made?
 What was decided?
 
 ## Consequences
-What are the trade-offs? What becomes easier/harder?
+What are the trade-offs? What becomes easier or harder as a result?
 ```
+
+---
+
+## 8. Context Efficiency
+
+Keep the context agents work with clean and signal-dense:
+
+- Delete dead code immediately — do not comment it out.
+- Remove unused imports, variables, and types (enforced by Biome).
+- Do not leave `TODO` or `FIXME` comments in committed code — file an issue or create a task instead.
+- Keep files focused. If a file grows beyond ~200 lines, consider whether it has a single responsibility.
+- ADRs capture *decisions*, not implementation notes. Keep them concise.

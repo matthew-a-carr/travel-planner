@@ -18,7 +18,7 @@ export default async function HomePage() {
       <main className="flex min-h-screen flex-col items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Wanderlust Budget</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Travel Planner</h1>
             <p className="mt-3 text-lg text-zinc-600">
               Plan and track spending for your round-the-world adventure.
             </p>
@@ -38,7 +38,7 @@ export default async function HomePage() {
     <main className="min-h-screen px-4 py-12">
       <div className="mx-auto w-full max-w-2xl space-y-8">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-zinc-900">Wanderlust Budget</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Travel Planner</h1>
           <div className="flex items-center gap-4">
             {session.user.image && (
               <Image

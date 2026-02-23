@@ -5,7 +5,7 @@
 
 ## Context
 
-We are building a personal travel budget planning application — Wanderlust Budget — to plan and track spending across a multi-destination round-the-world trip. The application needs to be production-quality (serving as a portfolio piece), maintainable over time, and deployed publicly.
+We are building a personal travel budget planning application — Travel Planner — to plan and track spending across a multi-destination round-the-world trip. The application needs to be production-quality (serving as a portfolio piece), maintainable over time, and deployed publicly.
 
 The developer (Matt) is a Senior Backend Engineer with deep experience in Java/Spring Boot, DDD, and TDD. The stack should feel natural to someone coming from a typed, layered backend background while fully embracing the modern JavaScript/TypeScript ecosystem.
 

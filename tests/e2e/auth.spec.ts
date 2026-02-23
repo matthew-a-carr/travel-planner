@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 
 test('unauthenticated user sees landing page with sign-in button', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Wanderlust Budget' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Travel Planner' })).toBeVisible();
   await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
 });
 
@@ -31,6 +31,6 @@ test('unauthenticated user visiting /trips is redirected to /login', async ({ pa
 
 test('login page renders correctly', async ({ page }) => {
   await page.goto('/login');
-  await expect(page.getByRole('heading', { name: 'Wanderlust Budget' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Travel Planner' })).toBeVisible();
   await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
 });

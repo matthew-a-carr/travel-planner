@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Wanderlust Budget',
+  title: 'Travel Planner',
   description: 'Plan and track your round-the-world trip budget',
 };
 

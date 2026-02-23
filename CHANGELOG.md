@@ -7,6 +7,25 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Added
+
+- `CONSTITUTION.md` section 1 "The Harness": enforcement map table, feedback loop command, and
+  context efficiency rules derived from OpenAI harness engineering principles
+- Per-layer `AGENTS.md` files in `src/domain/`, `src/application/`, `src/infrastructure/`
+  providing layer-specific rules and structure guidance for agents working in each layer
+- `.env.example` referenced in README for local setup
+
+### Changed
+
+- `AGENTS.md` restructured as a concise operational quick-reference (~120 lines): verification
+  commands are now the first thing an agent sees, exact copy-paste commands with backticks,
+  explicit feature-addition sequence, environment variable reference, and CI pipeline note
+- `CONSTITUTION.md` updated with Harness Engineering section (constraints, feedback loops,
+  enforcement map) and Context Efficiency section (dead code, TODO hygiene, file focus)
+- Application renamed from "Wanderlust Budget" to "Travel Planner" throughout codebase
+- `README.md` replaced auto-generated Next.js starter with project-specific content: stack
+  table, local setup instructions, architecture overview, and links to engineering docs
+
 ## [0.3.0] - 2026-02-23
 
 ### Added
