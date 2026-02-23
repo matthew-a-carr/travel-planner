@@ -1,0 +1,45 @@
+version: 2
+
+updates:
+  # ── npm / pnpm dependencies ─────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+    labels:
+      - dependencies
+    # Group low-noise dev tooling updates into a single PR to reduce churn
+    groups:
+      dev-tooling:
+        dependency-type: development
+        patterns:
+          - "@axe-core/*"
+          - "@biomejs/*"
+          - "@playwright/*"
+          - "@types/*"
+          - "@vitejs/*"
+          - "drizzle-kit"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "tsx"
+          - "typescript"
+          - "vitest"
+          - "vite-tsconfig-paths"
+
+  # ── GitHub Actions ───────────────────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+      - ci

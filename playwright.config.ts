@@ -27,13 +27,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // Start Next.js dev server automatically when running e2e tests locally
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: true,
-        timeout: 60_000,
-      },
+  // In CI: start the pre-built production server (app must be built before running tests).
+  // Locally: start the dev server and reuse an already-running instance.
+  webServer: {
+    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
+  },
 });
