@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Pre-commit: lint + type-check + unit tests must all pass.
+set -euo pipefail
+
+echo "▶ pre-commit: lint"
+pnpm lint
+
+echo "▶ pre-commit: type-check"
+pnpm type-check
+
+echo "▶ pre-commit: unit tests"
+pnpm test
