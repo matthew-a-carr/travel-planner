@@ -1,43 +1,71 @@
-# AGENTS.md — Travel Planner Constitution
+# AGENTS.md — Wanderlust Budget
 
-## Architecture
+> **Before writing any code, read [`CONSTITUTION.md`](./CONSTITUTION.md).**
+> It is the authoritative source for all engineering standards on this project.
+> What follows is a quick-reference summary only.
 
-This project follows DDD-inspired layered architecture. See `docs/architecture.md` for the full overview.
+---
 
-### Layer Dependency Rules
-- `src/domain/` → ZERO external imports. Pure TypeScript only. No Next.js, no Drizzle, no framework code.
-- `src/application/` → May import from `domain/` only.
-- `src/infrastructure/` → May import from `domain/` and `application/`.
-- `src/ui/` → May import from any layer.
+## Quick Reference
 
-Violations of these rules will break the structural tests.
+### Architecture — Layer Import Rules
 
-### Testing
-- Domain logic MUST have unit tests (Vitest). Test behaviour, not implementation.
-- Write tests FIRST or alongside implementation, never after.
-- Use descriptive test names: `it('should reject allocation exceeding available budget')`
-- No mocking of domain objects. Mock only infrastructure boundaries.
+```
+domain/        → no external imports (pure TypeScript)
+application/   → domain/ only
+infrastructure → domain/ + application/
+ui/ + app/     → any layer
+```
+
+Violations break `src/__tests__/architecture.test.ts`.
+
+### Test-First Mandate
+
+1. Write the Playwright e2e test first (acceptance criterion).
+2. Write Vitest domain unit tests before implementing domain logic.
+3. Implement only what is needed to make tests pass.
+4. `pnpm lint && pnpm type-check && pnpm test` must all pass before committing.
+
+### Commits — Conventional Commits (mandatory)
+
+```
+feat(scope): add destination budget validation
+fix(auth): handle undefined session user
+test(trip): cover ringfence invariant edge cases
+docs(adr): record decision on Biome migration
+chore: upgrade drizzle-orm
+```
+
+Types: `feat` · `fix` · `refactor` · `test` · `docs` · `chore` · `ci` · `perf`
+
+### Changelog — Update on Every Change
+
+Update `CHANGELOG.md` under `## [Unreleased]` as part of the same commit.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Code Style
-- TypeScript strict mode. No `any` types.
-- Prefer value objects over primitives for domain concepts (Money, Currency, DateRange).
-- Use Result types for operations that can fail — no throwing exceptions from domain logic.
-- Prefer named exports.
-- File names: kebab-case (e.g., `spend-entry.ts`)
+
+- TypeScript strict mode. No `any`. No non-null assertions without justification.
+- Money is always integers in pence. Never floats.
+- Result types for fallible domain operations — no exceptions from domain.
+- Prefer named exports. kebab-case filenames. PascalCase components.
 
 ### Naming
-- Domain entities: PascalCase (`Trip`, `Destination`)
-- Value objects: PascalCase (`Money`, `BudgetAllocation`)
-- Use cases: camelCase verb phrases (`createTrip`, `recordSpend`)
-- Database tables: snake_case (`spend_entries`)
-- React components: PascalCase (`BudgetSummary.tsx`)
 
-### Commits
-- Small, focused commits with clear messages
-- Format: `feat: add destination budget allocation`
-- Prefix: feat, fix, refactor, test, docs, chore
+| Concept | Convention |
+|---|---|
+| Domain entities / Value objects | `PascalCase` |
+| Use cases | `camelCase` verb phrase |
+| Server actions | `camelCase` + `Action` suffix |
+| DB tables | `snake_case` |
 
-### Design System (Placeholder)
-- Use Tailwind CSS utility classes
-- Colour palette and component patterns TBD — keep styling minimal and clean for now
-- Use shadcn/ui components where appropriate — install as needed
+### Design System
+
+- Tailwind CSS utility classes throughout.
+- shadcn/ui components where appropriate — install as needed.
+- Keep styling minimal and clean until a design system ADR is accepted.
+
+---
+
+Full rules → [`CONSTITUTION.md`](./CONSTITUTION.md)
+ADRs → [`docs/decisions/`](./docs/decisions/)

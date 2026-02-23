@@ -1,4 +1,4 @@
-# ADR 003: Next Features — Approach and Sequencing
+# ADR 003: ATDD-Driven Approach for Destination, Spend, and Budget Dashboard Features
 
 **Date:** 2026-02-22
 **Status:** Accepted
