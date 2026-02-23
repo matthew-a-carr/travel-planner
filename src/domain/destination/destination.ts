@@ -1,7 +1,6 @@
 import { canAllocateBudget } from '../trip/trip';
 import type { Destination, Result, Trip, TripFixedCost } from '../trip/types';
-import { err, ok } from '../trip/types';
-import type {} from './types';
+import { err, money, ok } from '../trip/types';
 
 /**
  * Validates that a destination's date range is coherent.
@@ -77,6 +76,45 @@ export function destinationDays(
   const { startDate, endDate } = destination;
   if (!startDate || !endDate) return null;
   return Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Validates that an edited destination does not violate the trip's budget invariant.
+ *
+ * Uses a delta approach: only a budget *increase* consumes additional headroom.
+ * The delta (newBudget − existingBudget) is passed to canAllocateBudget alongside
+ * allDestinations (which still contains the existing allocation at its current value),
+ * so the maths cancel correctly without any exclusion logic:
+ *
+ *   available = total − fixed − sum(allDests)         [existing alloc already included]
+ *   check:      delta ≤ available
+ *   ↔           newBudget ≤ total − fixed − sum(otherDests)  ✓
+ *
+ * A budget decrease (delta ≤ 0) always passes — the allocation is shrinking.
+ */
+export function validateDestinationEdit(
+  trip: Trip,
+  allDestinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
+  existing: Destination,
+  updated: Destination,
+): Result<Destination> {
+  const dateCheck = validateDateRange(updated);
+  if (!dateCheck.ok) return err(dateCheck.error);
+
+  const deltaPence = updated.estimatedBudget.amountPence - existing.estimatedBudget.amountPence;
+
+  if (deltaPence > 0) {
+    const budgetCheck = canAllocateBudget(
+      trip,
+      allDestinations,
+      fixedCosts,
+      money(deltaPence, updated.estimatedBudget.currency),
+    );
+    if (!budgetCheck.ok) return err(budgetCheck.error);
+  }
+
+  return ok(updated);
 }
 
 /**

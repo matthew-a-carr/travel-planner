@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { addDestination } from '@/application/use-cases/add-destination';
 import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
 import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
+import { editDestination } from '@/application/use-cases/edit-destination';
 import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
@@ -123,6 +124,63 @@ export async function addDestinationAction(
   const destRepo = new DrizzleDestinationRepository(db);
   const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const result = await addDestination(tripRepo, destRepo, fixedCostRepo, {
+    tripId,
+    name: name.trim(),
+    country: country.trim(),
+    estimatedBudgetPence,
+    currency: 'GBP',
+    comfortLevel: comfortLevel as ComfortLevel,
+    startDate,
+    endDate,
+  });
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  return { error: null };
+}
+
+export type EditDestinationState = { error: string | null };
+
+export async function editDestinationAction(
+  tripId: string,
+  destinationId: string,
+  _prev: EditDestinationState,
+  formData: FormData,
+): Promise<EditDestinationState> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+
+  const name = formData.get('name');
+  const country = formData.get('country');
+  const estimatedBudgetPounds = formData.get('estimatedBudgetPounds');
+  const comfortLevel = formData.get('comfortLevel');
+
+  if (
+    typeof name !== 'string' ||
+    typeof country !== 'string' ||
+    typeof estimatedBudgetPounds !== 'string' ||
+    typeof comfortLevel !== 'string'
+  ) {
+    return { error: 'Invalid form data' };
+  }
+  if (!name.trim()) return { error: 'Name is required' };
+  if (!country.trim()) return { error: 'Country is required' };
+
+  const estimatedBudgetPence = Math.round(Number.parseFloat(estimatedBudgetPounds) * 100);
+  if (Number.isNaN(estimatedBudgetPence) || estimatedBudgetPence <= 0) {
+    return { error: 'Invalid budget amount' };
+  }
+
+  const startDate = parseDateField(formData.get('startDate'));
+  const endDate = parseDateField(formData.get('endDate'));
+
+  const destRepo = new DrizzleDestinationRepository(db);
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+  const result = await editDestination(tripRepo, destRepo, fixedCostRepo, {
+    destinationId,
     tripId,
     name: name.trim(),
     country: country.trim(),

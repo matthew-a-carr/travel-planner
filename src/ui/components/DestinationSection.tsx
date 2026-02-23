@@ -8,6 +8,7 @@ import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import type { Destination, SpendEntry } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { AddDestinationForm } from './AddDestinationForm';
+import { EditDestinationForm } from './EditDestinationForm';
 import { EditSpendEntryForm } from './EditSpendEntryForm';
 import { RecordSpendForm } from './RecordSpendForm';
 
@@ -57,7 +58,13 @@ export function DestinationSection({ tripId, destinations, allSpend, countryRefe
           {destinations.map((dest) => {
             const destSpend = allSpend.filter((s) => s.destinationId === dest.id);
             return (
-              <DestinationCard key={dest.id} tripId={tripId} destination={dest} spend={destSpend} />
+              <DestinationCard
+                key={dest.id}
+                tripId={tripId}
+                destination={dest}
+                spend={destSpend}
+                countryReferences={countryReferences}
+              />
             );
           })}
         </ul>
@@ -70,12 +77,15 @@ function DestinationCard({
   tripId,
   destination,
   spend,
+  countryReferences,
 }: {
   tripId: string;
   destination: Destination;
   spend: SpendEntry[];
+  countryReferences: CountryReference[];
 }) {
   const [showSpendForm, setShowSpendForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const totalSpend = calculateTotalSpend(spend);
@@ -122,7 +132,21 @@ function DestinationCard({
         <div className="flex items-center gap-2 pl-4">
           <button
             type="button"
-            onClick={() => setShowSpendForm((v) => !v)}
+            onClick={() => {
+              setShowEditForm((v) => !v);
+              setShowSpendForm(false);
+            }}
+            aria-label={`Edit ${destination.name}`}
+            className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50"
+          >
+            {showEditForm ? 'Cancel' : 'Edit'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowSpendForm((v) => !v);
+              setShowEditForm(false);
+            }}
             className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50"
           >
             {showSpendForm ? 'Cancel' : 'Add spend'}
@@ -138,6 +162,19 @@ function DestinationCard({
           </button>
         </div>
       </div>
+
+      {/* Edit destination form */}
+      {showEditForm && (
+        <div className="border-t border-zinc-100 px-5 py-4">
+          <EditDestinationForm
+            tripId={tripId}
+            destination={destination}
+            countryReferences={countryReferences}
+            onSuccess={() => setShowEditForm(false)}
+            onCancel={() => setShowEditForm(false)}
+          />
+        </div>
+      )}
 
       {/* Budget vs spend bar */}
       <div className="border-t border-zinc-100 px-5 py-3">

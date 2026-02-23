@@ -11,6 +11,9 @@ import { test, expect } from '@playwright/test';
  * - Destination appears in the trip detail page
  * - Adding a destination updates the available budget
  * - User cannot allocate more than the available budget
+ * - User can edit a destination's details and budget
+ * - Editing budget to the same value succeeds (no false rejection)
+ * - Editing budget to an amount exceeding available headroom is rejected
  * - User can remove a destination
  */
 
@@ -55,6 +58,49 @@ test.describe('Destination management', () => {
     await page.getByRole('button', { name: /save/i }).click();
 
     await expect(page.getByText(/exceeds available budget/i)).toBeVisible();
+  });
+
+  test('user can edit a destination name and country', async ({ page }) => {
+    await page.getByRole('button', { name: /edit japan/i }).click();
+
+    await page.getByLabel(/name/i).fill('Japan (updated)');
+    await page.getByLabel(/country/i).fill('Japan');
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await expect(page.getByText('Japan (updated)')).toBeVisible();
+    await expect(page.getByRole('button', { name: /edit japan \(updated\)/i })).toBeVisible();
+  });
+
+  test('user can edit a destination budget (same value succeeds)', async ({ page }) => {
+    // Regression guard: editing with the same budget must not be rejected.
+    // Without the delta approach, canAllocateBudget would double-count the
+    // existing allocation and falsely block this.
+    await page.getByRole('button', { name: /edit japan/i }).click();
+
+    // Budget field is pre-filled; submit without changing it
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await expect(page.getByText('Japan')).toBeVisible();
+    // Available budget unchanged at £29,000
+    await expect(page.getByText('£29,000.00')).toBeVisible();
+  });
+
+  test('user cannot edit a destination to exceed available budget', async ({ page }) => {
+    await page.getByRole('button', { name: /edit japan/i }).click();
+
+    await page.getByLabel(/estimated budget/i).fill('999999');
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await expect(page.getByText(/exceeds available budget/i)).toBeVisible();
+  });
+
+  test('user can cancel editing a destination', async ({ page }) => {
+    await page.getByRole('button', { name: /edit japan/i }).click();
+    await page.getByLabel(/name/i).fill('Should not save');
+    await page.getByRole('button', { name: /cancel/i }).click();
+
+    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(page.getByText('Should not save')).not.toBeVisible();
   });
 
   test('user can remove a destination', async ({ page }) => {

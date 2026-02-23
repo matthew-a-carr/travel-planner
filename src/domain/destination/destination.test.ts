@@ -4,6 +4,7 @@ import {
   nextSortOrder,
   sortDestinations,
   validateDateRange,
+  validateDestinationEdit,
   validateNewDestination,
 } from './destination';
 import { money } from '../trip/types';
@@ -231,5 +232,98 @@ describe('nextSortOrder', () => {
       makeDestination({ sortOrder: 1 }),
     ];
     expect(nextSortOrder(destinations)).toBe(4);
+  });
+});
+
+// ─── validateDestinationEdit ──────────────────────────────────────────────────
+//
+// Budget validation uses the delta approach:
+//   available = total − fixed − sum(allDestinations)   [existing alloc included]
+//   only check when delta > 0; pass delta (not new total) to canAllocateBudget
+//
+// Trip setup for these tests:
+//   total = £10,000  (1_000_000p)
+//   fixed = £0
+//   Japan (existing, under edit) = £4,000  (400_000p)
+//   Thailand (sibling)           = £3,000  (300_000p)
+//   available (excl. Japan)      = £3,000  (300_000p)
+
+describe('validateDestinationEdit', () => {
+  function makeEditTrip() {
+    return makeTrip({ totalBudget: money(1_000_000, 'GBP') });
+  }
+
+  const japan = makeDestination({ id: 'dest-japan', amountPence: 400_000 });
+  const thailand = makeDestination({ id: 'dest-thailand', amountPence: 300_000 });
+  const allDestinations = [japan, thailand];
+
+  it('should accept an edit with no budget change', () => {
+    const updated = { ...japan, name: 'Japan — renamed' };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should accept an edit that decreases the budget', () => {
+    const updated = { ...japan, estimatedBudget: money(200_000, 'GBP') };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should accept a budget increase that fits within available headroom', () => {
+    // delta = 600_000 − 400_000 = 200_000; available = 300_000 → fits
+    const updated = { ...japan, estimatedBudget: money(600_000, 'GBP') };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should accept a budget increase that exactly uses all available headroom', () => {
+    // delta = 700_000 − 400_000 = 300_000; available = 300_000 → exactly fits
+    const updated = { ...japan, estimatedBudget: money(700_000, 'GBP') };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should reject a budget increase that exceeds available headroom', () => {
+    // delta = 700_001 − 400_000 = 300_001; available = 300_000 → over by 1p
+    const updated = { ...japan, estimatedBudget: money(700_001, 'GBP') };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('exceeds available budget');
+  });
+
+  it('should reject an edit with an invalid date range', () => {
+    const updated = {
+      ...japan,
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-06-01'),
+    };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], japan, updated);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('Start date must be before end date');
+  });
+
+  it('should accept clearing previously set dates', () => {
+    const withDates = {
+      ...japan,
+      startDate: new Date('2026-06-01'),
+      endDate: new Date('2026-07-01'),
+    };
+    const updated = { ...withDates, startDate: null, endDate: null };
+    const result = validateDestinationEdit(makeEditTrip(), allDestinations, [], withDates, updated);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should account for fixed costs when checking the budget delta', () => {
+    // fixed = £5,000; available = 1_000_000 − 500_000 − 700_000 = −200_000 … wait
+    // Let's use a cleaner setup: total = £10,000, fixed = £2,000, Japan = £4,000, Thailand = £3,000
+    // available = 10,000 − 2,000 − 7,000 = £1,000
+    const trip = makeTrip({ totalBudget: money(1_000_000, 'GBP') });
+    const fixedCosts = [makeFixedCost(200_000)]; // £2,000 fixed
+    // delta = 500_001 − 400_000 = 100_001; available = 300_000 - 200_000 = wait...
+    // available = 1_000_000 − 200_000 − (400_000 + 300_000) = 100_000
+    // delta = 500_001 − 400_000 = 100_001 > 100_000 → rejected
+    const updated = { ...japan, estimatedBudget: money(500_001, 'GBP') };
+    const result = validateDestinationEdit(trip, allDestinations, fixedCosts, japan, updated);
+    expect(result.ok).toBe(false);
   });
 });

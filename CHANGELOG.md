@@ -9,6 +9,26 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- Destination editing: each destination card now has an **Edit** button that expands an inline
+  form pre-filled with the existing name, country, estimated budget, comfort level, and dates;
+  the budget suggestion hint is shown (same as when adding); changes are saved immediately and
+  all budget totals update in real time
+- `validateDestinationEdit` domain function — uses a delta approach: only a budget *increase*
+  consumes available headroom, so `canAllocateBudget` is called with `newBudget − oldBudget`
+  rather than the full new amount, avoiding any exclusion logic
+- `editDestination` application use case
+- `editDestinationAction` server action (verifies trip ownership before mutating)
+- `EditDestinationForm` client component
+
+### Fixed
+
+- Application failed to build in CI (`next build`) because the database client threw
+  `POSTGRES_URL environment variable is required` at module evaluation time; the client is
+  now lazily initialised via a Proxy so the connection is only established on the first
+  real request, not during static page-data collection
+
+### Also in this branch (previous commit)
+
 - Spend entry editing: each recorded spend item now shows an **Edit** button that expands
   an inline form pre-filled with the existing amount, date, category, and description; changes
   are saved immediately and the page reflects the updated totals
