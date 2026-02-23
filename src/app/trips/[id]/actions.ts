@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { addDestination } from '@/application/use-cases/add-destination';
 import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
+import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
+import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
@@ -190,6 +192,68 @@ export async function recordSpendAction(
   const spendRepo = new DrizzleSpendEntryRepository(db);
   const result = await recordSpend(destRepo, spendRepo, {
     destinationId,
+    amountPence,
+    currency: 'GBP',
+    category: category as SpendCategory,
+    description: typeof description === 'string' && description.trim() ? description.trim() : null,
+    spentAt: new Date(spentAtRaw),
+  });
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  return { error: null };
+}
+
+// ─── Spend entry management actions ──────────────────────────────────────────
+
+export async function deleteSpendEntryAction(tripId: string, entryId: string): Promise<void> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
+
+  const spendRepo = new DrizzleSpendEntryRepository(db);
+  await deleteSpendEntry(spendRepo, entryId);
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+export type EditSpendEntryState = { error: string | null };
+
+export async function editSpendEntryAction(
+  tripId: string,
+  entryId: string,
+  _prev: EditSpendEntryState,
+  formData: FormData,
+): Promise<EditSpendEntryState> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+
+  const amountPounds = formData.get('amountPounds');
+  const category = formData.get('category');
+  const description = formData.get('description');
+  const spentAtRaw = formData.get('spentAt');
+
+  if (
+    typeof amountPounds !== 'string' ||
+    typeof category !== 'string' ||
+    typeof spentAtRaw !== 'string'
+  ) {
+    return { error: 'Invalid form data' };
+  }
+
+  const amountPence = Math.round(Number.parseFloat(amountPounds) * 100);
+  if (Number.isNaN(amountPence) || amountPence <= 0) {
+    return { error: 'Invalid amount' };
+  }
+
+  const spendRepo = new DrizzleSpendEntryRepository(db);
+  const result = await editSpendEntry(spendRepo, {
+    entryId,
     amountPence,
     currency: 'GBP',
     category: category as SpendCategory,

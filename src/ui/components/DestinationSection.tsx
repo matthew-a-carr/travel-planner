@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { removeDestinationAction } from '@/app/trips/[id]/actions';
+import { deleteSpendEntryAction, removeDestinationAction } from '@/app/trips/[id]/actions';
 import type { CountryReference } from '@/domain/country-reference/types';
 import { destinationDays } from '@/domain/destination/destination';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import type { Destination, SpendEntry } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { AddDestinationForm } from './AddDestinationForm';
+import { EditSpendEntryForm } from './EditSpendEntryForm';
 import { RecordSpendForm } from './RecordSpendForm';
 
 type Props = {
@@ -168,15 +169,7 @@ function DestinationCard({
           </p>
           <ul className="space-y-1">
             {spend.map((entry) => (
-              <li key={entry.id} className="flex justify-between text-sm">
-                <span className="text-zinc-600">
-                  <span className="capitalize">{entry.category}</span>
-                  {entry.description && (
-                    <span className="ml-1 text-zinc-400">— {entry.description}</span>
-                  )}
-                </span>
-                <span className="font-medium text-zinc-900">{formatMoney(entry.amount)}</span>
-              </li>
+              <SpendEntryRow key={entry.id} tripId={tripId} entry={entry} />
             ))}
           </ul>
         </div>
@@ -190,6 +183,57 @@ function DestinationCard({
             destinationId={destination.id}
             onSuccess={() => setShowSpendForm(false)}
           />
+        </div>
+      )}
+    </li>
+  );
+}
+
+function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry }) {
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  function handleDelete() {
+    startDeleteTransition(async () => {
+      await deleteSpendEntryAction(tripId, entry.id);
+    });
+  }
+
+  return (
+    <li className="rounded-lg border border-zinc-100 bg-zinc-50 p-2.5">
+      {showEditForm ? (
+        <EditSpendEntryForm
+          tripId={tripId}
+          entry={entry}
+          onSuccess={() => setShowEditForm(false)}
+          onCancel={() => setShowEditForm(false)}
+        />
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <span className="min-w-0 text-sm text-zinc-600">
+            <span className="capitalize">{entry.category}</span>
+            {entry.description && <span className="ml-1 text-zinc-400">— {entry.description}</span>}
+          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="font-medium text-zinc-900">{formatMoney(entry.amount)}</span>
+            <button
+              type="button"
+              onClick={() => setShowEditForm(true)}
+              aria-label={`Edit spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
+              className="rounded px-2 py-0.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              aria-label={`Delete spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
+              className="rounded px-2 py-0.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+            >
+              {isDeleting ? '…' : 'Delete'}
+            </button>
+          </div>
         </div>
       )}
     </li>
