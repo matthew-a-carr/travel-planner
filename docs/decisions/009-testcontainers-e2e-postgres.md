@@ -1,9 +1,7 @@
-# ADR 009 — Testcontainers for E2E PostgreSQL
+# ADR 009: Testcontainers for E2E PostgreSQL
 
 **Date:** 2026-02-23
 **Status:** Accepted
-
----
 
 ## Context
 
@@ -22,8 +20,6 @@ Prior to this ADR, the E2E test suite had two problems:
 
 The result was an incomplete test suite and a local-dev experience that required
 manual infrastructure setup.
-
----
 
 ## Decision
 
@@ -92,8 +88,6 @@ Tests that must run as **unauthenticated** override this via:
 test.use({ storageState: { cookies: [], origins: [] } });
 ```
 
----
-
 ## Consequences
 
 ### Positive
@@ -121,8 +115,6 @@ test.use({ storageState: { cookies: [], origins: [] } });
   means a failure in `01-trips` will cascade to `02-destinations` and `03-spend`.
   This is a known limitation of stateful integration tests; it is mitigated by
   the small scope of each spec and Playwright's per-test failure reporting.
-
----
 
 ## Alternatives considered
 

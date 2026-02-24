@@ -3,8 +3,6 @@
 **Date:** 2026-02-23
 **Status:** Accepted
 
----
-
 ## Context
 
 `next build` statically analyses server routes to collect page data. During this
@@ -34,8 +32,6 @@ is incompatible with DrizzleAdapter's type detection.
 own drizzle connection, duplicating the pool and suffering the same eager-evaluation
 problem. This was removed; `auth/index.ts` now imports the shared `db` from
 `client.ts`.
-
----
 
 ## Decision
 
@@ -69,8 +65,6 @@ Without a syntactically-valid `POSTGRES_URL`, `createDb()` throws and the build
 fails. If you see `Error: POSTGRES_URL environment variable is required` during
 `next build`, the dummy URL has been removed from the build step.
 
----
-
 ## Consequences
 
 ### Positive
@@ -92,8 +86,6 @@ fails. If you see `Error: POSTGRES_URL environment variable is required` during
   dummy URL.
 - The pattern is non-obvious: a developer seeing `POSTGRES_URL=...build...` might
   think it is a mistake and remove it. This ADR exists to prevent that.
-
----
 
 ## Alternatives considered
 

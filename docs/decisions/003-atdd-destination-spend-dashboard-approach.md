@@ -3,7 +3,9 @@
 **Date:** 2026-02-22
 **Status:** Accepted
 
-## Features in scope
+## Context
+
+The following features needed to be designed and implemented:
 
 1. Destination management UI (add / list / remove destinations per trip)
 2. Spend entry recording (log a spend against a destination)
@@ -12,7 +14,9 @@
 
 Out of scope for this phase: AI cost estimation, currency conversion (deferred to later ADRs).
 
-## Test-first approach (TDD / ATDD)
+## Decision
+
+### Test-first approach (TDD / ATDD)
 
 All features follow this order:
 
@@ -25,36 +29,32 @@ No feature is considered done until its e2e test passes against a running app.
 
 For this bootstrap phase, e2e tests will run against `localhost` (not a deployed URL). The CI pipeline skips e2e by default (requires a running server + DB); they are run locally with `pnpm test:e2e`.
 
-## Domain additions
+### Domain additions
 
-### Destination aggregate
-
-New domain logic required:
+**Destination aggregate** — new domain logic required:
 - `addDestination(trip, existing, newDestination)` — validates ringfence constraint before insert
 - `removeDestination(destination)` — pure (no side effects in domain)
 - `updateDestinationBudget(trip, existing, destinationId, newAmount)` — re-validates allocation invariant
 
-### SpendEntry aggregate
-
-New domain logic:
+**SpendEntry aggregate** — new domain logic:
 - `recordSpend(destination, entry)` — validates amount is positive
 - `getTotalSpend(entries)` — already exists in `spend-entry.ts`
 - `getSpendByCategory(entries)` — already exists in `spend-entry.ts`
 
-## Repository additions
+### Repository additions
 
 - `DestinationRepository`: `findByTrip(tripId)`, `save(destination)`, `delete(id)`
 - `SpendEntryRepository`: `findByDestination(destinationId)`, `findByTrip(tripId)`, `save(entry)`, `delete(id)`
 
 Both follow the same pattern as `DrizzleTripRepository`: interface in domain, implementation in infrastructure.
 
-## Use cases (application layer)
+### Use cases (application layer)
 
 - `addDestination(tripRepo, destRepo, input)` — fetches trip, validates, saves
 - `removeDestination(destRepo, id)` — deletes
 - `recordSpend(destRepo, spendRepo, input)` — fetches destination, validates, saves
 
-## UI routes
+### UI routes
 
 | Route | Purpose |
 |---|---|
@@ -63,7 +63,7 @@ Both follow the same pattern as `DrizzleTripRepository`: interface in domain, im
 | `DELETE /trips/[id]/destinations/[destId]` | Remove destination (server action) |
 | `POST /trips/[id]/destinations/[destId]/spend` | Record spend (server action) |
 
-## Budget dashboard
+### Budget dashboard
 
 Displayed on `/trips/[id]`:
 - Total budget / ringfenced / allocated / available (already built)
@@ -71,7 +71,7 @@ Displayed on `/trips/[id]`:
 - Warning badge when a destination is over-spend
 - Overall trip allocation percentage bar (already built)
 
-## Playwright setup
+### Playwright setup
 
 - Install `@playwright/test`
 - `playwright.config.ts` targeting `localhost:3000`
@@ -79,7 +79,7 @@ Displayed on `/trips/[id]`:
 - CI: separate job `e2e` (optional/skipped without DB; documented)
 - Auth handled via mock session or test user seeding
 
-## Commit strategy
+### Commit strategy
 
 Each feature ships as a focused commit:
 1. `test: add e2e scaffolding and Playwright config`
@@ -88,3 +88,10 @@ Each feature ships as a focused commit:
 4. `feat: spend entry domain logic and repository`
 5. `feat: record spend UI and server actions`
 6. `feat: budget dashboard visual breakdown`
+
+## Consequences
+
+- Every feature has an acceptance criterion (e2e test) before implementation begins, reducing the chance of shipping something that does not meet user needs.
+- Domain logic is independently testable via Vitest before the full stack is wired up — fast feedback during development.
+- e2e tests run locally against `localhost`; the CI pipeline skips them without a running server and database. The infrastructure gap is addressed in ADR 009.
+- Each commit delivers a vertical slice (test → domain → UI), keeping the git history bisectable and reviewable in isolation.
