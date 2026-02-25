@@ -81,8 +81,8 @@ pnpm test:integration   # Vitest integration tests — real Postgres via Testcon
 pnpm test:e2e           # Playwright e2e — self-contained via Testcontainers (Docker required)
 ```
 
-CI runs lint, type-check, and unit tests in parallel (Stage 1), then integration tests
-(Stage 2), then the production build and e2e suite (Stage 3).
+CI runs all checks in parallel: lint, type-check, unit tests, integration tests, and the
+production build and e2e suite.
 
 ## Architecture
 

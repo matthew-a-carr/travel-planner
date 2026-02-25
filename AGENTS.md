@@ -133,19 +133,14 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-Three-stage pipeline on every push and PR:
+All five jobs run in parallel on every push and PR:
 
-**Stage 1 — parallel:**
 - `lint` (`pnpm lint`)
 - `type-check` (`pnpm type-check`)
 - `unit-test` (`pnpm test:unit`)
-
-**Stage 2 — after Stage 1 passes:**
 - `integration-test` (`pnpm test:integration`) — runs repository and use-case tests
   against a real Postgres database via Testcontainers. Docker is available by default
   on `ubuntu-latest` GitHub Actions runners.
-
-**Stage 3 — after Stage 2 passes:**
 - `e2e` — builds the app with a dummy `POSTGRES_URL` (`pnpm build`), then runs
   `pnpm test:e2e`. Playwright's `globalSetup` starts a throwaway `postgres:16-alpine`
   container via Testcontainers, runs migrations, seeds data, creates a test session,
