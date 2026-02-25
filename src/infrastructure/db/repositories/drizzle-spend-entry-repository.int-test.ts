@@ -1,16 +1,16 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DrizzleSpendEntryRepository } from './drizzle-spend-entry-repository';
+import { money } from '../../../domain/trip/types';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedDestination,
   seedSpendEntry,
   seedTrip,
   seedUser,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
-import { money } from '../../../domain/trip/types';
+import { DrizzleSpendEntryRepository } from './drizzle-spend-entry-repository';
 
 let db: Db;
 let sql: Sql;
@@ -69,7 +69,10 @@ describe('DrizzleSpendEntryRepository', () => {
       const trip = await seedTrip(db, ownerId);
       const dest = await seedDestination(db, trip.id);
       await seedSpendEntry(db, dest.id, { spentAt: new Date('2026-07-20'), description: 'Later' });
-      await seedSpendEntry(db, dest.id, { spentAt: new Date('2026-07-01'), description: 'Earlier' });
+      await seedSpendEntry(db, dest.id, {
+        spentAt: new Date('2026-07-01'),
+        description: 'Earlier',
+      });
 
       const repo = new DrizzleSpendEntryRepository(db);
       const result = await repo.findByDestination(dest.id);

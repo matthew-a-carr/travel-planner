@@ -1,6 +1,6 @@
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
-import type { TripRepository } from '@/domain/trip/trip-repository';
 import { nextFixedCostSortOrder } from '@/domain/trip/trip';
+import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { Currency, Result, TripFixedCost } from '@/domain/trip/types';
 import { err, money, ok } from '@/domain/trip/types';
 

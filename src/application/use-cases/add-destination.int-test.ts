@@ -3,9 +3,9 @@ import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/d
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedDestination,
   seedFixedCost,
   seedTrip,

@@ -29,6 +29,7 @@ function toSpendCategory(v: string): SpendCategory | null {
 function toComfortLevel(v: string): ComfortLevel | null {
   return (COMFORT_LEVELS as readonly string[]).includes(v) ? (v as ComfortLevel) : null;
 }
+
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';

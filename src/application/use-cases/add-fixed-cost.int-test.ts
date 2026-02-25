@@ -2,9 +2,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedFixedCost,
   seedTrip,
   seedUser,

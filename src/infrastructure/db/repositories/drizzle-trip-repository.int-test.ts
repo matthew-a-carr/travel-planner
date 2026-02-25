@@ -1,13 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DrizzleTripRepository } from './drizzle-trip-repository';
+import { money } from '../../../domain/trip/types';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedUser,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
-import { money } from '../../../domain/trip/types';
+import { DrizzleTripRepository } from './drizzle-trip-repository';
 
 let db: Db;
 let sql: Sql;

@@ -265,33 +265,35 @@ function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry })
         />
       ) : (
         <>
-        <div className="flex items-center justify-between gap-2">
-          <span className="min-w-0 text-sm text-zinc-600">
-            <span className="capitalize">{entry.category}</span>
-            {entry.description && <span className="ml-1 text-zinc-400">— {entry.description}</span>}
-          </span>
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="font-medium text-zinc-900">{formatMoney(entry.amount)}</span>
-            <button
-              type="button"
-              onClick={() => setShowEditForm(true)}
-              aria-label={`Edit spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
-              className="rounded px-2 py-0.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              aria-label={`Delete spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
-              className="rounded px-2 py-0.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
-            >
-              {isDeleting ? '…' : 'Delete'}
-            </button>
+          <div className="flex items-center justify-between gap-2">
+            <span className="min-w-0 text-sm text-zinc-600">
+              <span className="capitalize">{entry.category}</span>
+              {entry.description && (
+                <span className="ml-1 text-zinc-400">— {entry.description}</span>
+              )}
+            </span>
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="font-medium text-zinc-900">{formatMoney(entry.amount)}</span>
+              <button
+                type="button"
+                onClick={() => setShowEditForm(true)}
+                aria-label={`Edit spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
+                className="rounded px-2 py-0.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-700"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                aria-label={`Delete spend entry: ${entry.category}${entry.description ? ` — ${entry.description}` : ''}`}
+                className="rounded px-2 py-0.5 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50"
+              >
+                {isDeleting ? '…' : 'Delete'}
+              </button>
+            </div>
           </div>
-        </div>
-        {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+          {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
         </>
       )}
     </li>

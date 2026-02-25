@@ -14,19 +14,27 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from '../db/schema';
-import type {
-  Destination,
-  SpendEntry,
-  Trip,
-  TripFixedCost,
-} from '../../domain/trip/types';
+import type { Destination, SpendEntry, Trip, TripFixedCost } from '../../domain/trip/types';
 import { money } from '../../domain/trip/types';
+import * as schema from '../db/schema';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Db = ReturnType<typeof drizzle<typeof schema>>;
 export type Sql = ReturnType<typeof postgres>;
+
+// ─── Internal helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Extracts the first row from a Drizzle `.returning()` result.
+ * Throws if the insert returned no rows, which should never happen under normal
+ * Postgres operation but gives a clear error if it does.
+ */
+function requireFirstRow<T>(rows: T[], context: string): T {
+  const row = rows[0];
+  if (row === undefined) throw new Error(`${context} returned no rows`);
+  return row;
+}
 
 // ─── Connection ───────────────────────────────────────────────────────────────
 
@@ -119,7 +127,7 @@ export async function seedTrip(
     })
     .returning();
 
-  const row = rows[0]!;
+  const row = requireFirstRow(rows, 'seedTrip');
   return {
     id: row.id,
     ownerId: row.ownerId,
@@ -175,7 +183,7 @@ export async function seedDestination(
     })
     .returning();
 
-  const row = rows[0]!;
+  const row = requireFirstRow(rows, 'seedDestination');
   return {
     id: row.id,
     tripId: row.tripId,
@@ -220,7 +228,7 @@ export async function seedFixedCost(
     })
     .returning();
 
-  const row = rows[0]!;
+  const row = requireFirstRow(rows, 'seedFixedCost');
   return {
     id: row.id,
     tripId: row.tripId,
@@ -258,12 +266,12 @@ export async function seedSpendEntry(
       currency: 'GBP',
       category,
       description,
-      spentAt: spentAt.toISOString().split('T')[0]!,
+      spentAt: spentAt.toISOString().substring(0, 10),
       createdAt: now,
     })
     .returning();
 
-  const row = rows[0]!;
+  const row = requireFirstRow(rows, 'seedSpendEntry');
   return {
     id: row.id,
     destinationId: row.destinationId,

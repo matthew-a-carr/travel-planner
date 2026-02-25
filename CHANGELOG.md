@@ -7,6 +7,24 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Changed
+
+- Integration test files renamed from `.test.ts` to `.int-test.ts` suffix; Vitest config
+  now uses file-suffix globs (`src/**/*.int-test.ts`) so new integration tests are
+  auto-discovered without updating the config (ADR 012)
+- CI: `unit-test` job now runs `pnpm test:unit`; new `integration-test` job runs
+  `pnpm test:integration` in stage 2; E2E gate moved to stage 3 (needs integration-test)
+- `CONTRIBUTING.md`: added test file naming convention table and mandatory pre-push
+  checklist
+
+### Fixed
+
+- Lint: replaced non-null assertion (`!`) in `helpers.ts` and `spend-entry.ts` with
+  explicit null-checks (biome `noNonNullAssertion`)
+- TypeScript: `global-setup.ts` container teardown now returns `Promise<void>` to satisfy
+  the `containerStop` type
+- `DestinationSection.tsx`: corrected JSX fragment indentation (biome format)
+
 ## [0.4.0] - 2026-02-25
 
 ### Added

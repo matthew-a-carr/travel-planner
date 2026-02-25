@@ -41,6 +41,37 @@ container is shared across all integration test files in a single `pnpm test:int
 
 **E2E tests** start the full Next.js application and a separate Testcontainers Postgres instance.
 
+### Test file naming convention
+
+| Suffix | Type | Docker | Example |
+|--------|------|--------|---------|
+| `.test.ts` | Unit | No | `src/domain/trip/trip.test.ts` |
+| `.int-test.ts` | Integration | Yes | `src/application/use-cases/create-trip.int-test.ts` |
+| `.spec.ts` | E2E (Playwright) | Yes | `tests/e2e/01-trips.spec.ts` |
+
+The Vitest config uses file-suffix globs (`src/**/*.test.ts` / `src/**/*.int-test.ts`) so new
+integration test files are picked up automatically — no config change needed.
+See `docs/decisions/012-integration-test-naming-convention.md`.
+
+## Before pushing — mandatory checks
+
+CI will catch failures, but running these locally before pushing saves the round-trip:
+
+```bash
+pnpm lint         # Biome lint — must produce zero errors
+pnpm type-check   # TypeScript strict — must produce zero errors
+pnpm test:unit    # Unit tests — instant, no Docker
+```
+
+If Docker is running, also run:
+
+```bash
+pnpm test:integration
+```
+
+These three commands match the CI pipeline stages and must all pass before a PR is ready
+for review. A pre-push git hook can automate this check; see the section below.
+
 ## Commit conventions
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).

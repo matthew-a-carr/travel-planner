@@ -7,28 +7,25 @@ export default defineConfig({
     projects: [
       {
         // Unit project — pure domain functions and architecture checks.
+        // Matches all *.test.ts files, excluding *.int-test.ts.
         // No Docker required; runs instantly.
         plugins: [tsconfigPaths()],
         test: {
           name: 'unit',
           environment: 'node',
-          include: [
-            'src/domain/**/*.test.ts',
-            'src/__tests__/**/*.test.ts',
-          ],
+          include: ['src/**/*.test.ts'],
+          exclude: ['**/node_modules/**', 'src/**/*.int-test.ts'],
         },
       },
       {
         // Integration project — repository and use-case tests against real PostgreSQL.
+        // Matches all *.int-test.ts files anywhere under src/.
         // Requires Docker. A shared Testcontainers instance is started by globalSetup.
         plugins: [tsconfigPaths()],
         test: {
           name: 'integration',
           environment: 'node',
-          include: [
-            'src/infrastructure/db/repositories/**/*.test.ts',
-            'src/application/use-cases/**/*.test.ts',
-          ],
+          include: ['src/**/*.int-test.ts'],
           globalSetup: ['src/infrastructure/testing/global-setup.ts'],
         },
       },

@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DrizzleDestinationRepository } from './drizzle-destination-repository';
+import { money } from '../../../domain/trip/types';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedDestination,
   seedTrip,
   seedUser,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
-import { money } from '../../../domain/trip/types';
+import { DrizzleDestinationRepository } from './drizzle-destination-repository';
 
 let db: Db;
 let sql: Sql;
@@ -138,7 +138,10 @@ describe('DrizzleDestinationRepository', () => {
     it('upserts an existing destination — name and budget are updated', async () => {
       const { id: ownerId } = await seedUser(db);
       const trip = await seedTrip(db, ownerId);
-      const dest = await seedDestination(db, trip.id, { name: 'Old Name', estimatedBudgetPence: 500_000 });
+      const dest = await seedDestination(db, trip.id, {
+        name: 'Old Name',
+        estimatedBudgetPence: 500_000,
+      });
 
       const repo = new DrizzleDestinationRepository(db);
       const updated = await repo.save({

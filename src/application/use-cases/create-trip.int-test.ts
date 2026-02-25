@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedUser,
   truncateAll,
 } from '@/infrastructure/testing/helpers';

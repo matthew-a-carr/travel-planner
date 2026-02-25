@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedDestination,
   seedSpendEntry,
   seedTrip,

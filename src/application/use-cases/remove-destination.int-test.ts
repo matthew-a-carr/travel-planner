@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   seedDestination,
   seedTrip,
   seedUser,

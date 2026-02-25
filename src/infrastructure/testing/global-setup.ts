@@ -34,7 +34,9 @@ export async function setup(): Promise<void> {
   const connectionUri = container.getConnectionUri();
   process.env.POSTGRES_URL = connectionUri;
 
-  containerStop = () => container.stop();
+  containerStop = async () => {
+    await container.stop();
+  };
   console.log(`[integration] PostgreSQL ready at ${connectionUri}`);
 
   const sql = postgres(connectionUri, { max: 1 });

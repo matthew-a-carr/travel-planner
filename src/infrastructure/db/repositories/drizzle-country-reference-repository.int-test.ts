@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DrizzleCountryReferenceRepository } from './drizzle-country-reference-repository';
 import {
+  createTestDb,
   type Db,
   type Sql,
-  createTestDb,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
 import * as schema from '../schema';
+import { DrizzleCountryReferenceRepository } from './drizzle-country-reference-repository';
 
 let db: Db;
 let sql: Sql;
@@ -23,11 +23,7 @@ beforeEach(async () => {
   await truncateAll(db);
 });
 
-async function seedCountryRef(
-  db: Db,
-  country: string,
-  avgDailyCostPence: number,
-): Promise<void> {
+async function seedCountryRef(db: Db, country: string, avgDailyCostPence: number): Promise<void> {
   await db.insert(schema.countryReferenceData).values({
     country,
     avgDailyCostPence,
