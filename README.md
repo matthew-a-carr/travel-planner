@@ -15,6 +15,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | Styling | Tailwind CSS v4 |
 | Lint / Format | Biome v2 |
 | Unit tests | Vitest |
+| Integration tests | Vitest + Testcontainers |
 | e2e tests | Playwright |
 | Package manager | pnpm |
 | Deployment | Vercel |
@@ -25,7 +26,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 
 - Node.js 20+
 - pnpm (`npm install -g pnpm`)
-- Docker (required for e2e tests — Testcontainers manages the database automatically)
+- Docker (required for integration tests and e2e tests — Testcontainers manages the database automatically)
 - A Vercel Postgres or Neon database (or any Postgres connection string) for local dev
 - A Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com))
 
@@ -67,20 +68,21 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running checks
 
-Pre-commit and pre-push hooks run all checks automatically — you don't need to invoke
-them manually before committing or pushing.
+A pre-push hook runs all checks automatically before every `git push` — you don't need
+to invoke them manually before pushing.
 
 To run checks mid-task:
 
 ```bash
-pnpm lint          # Biome lint + import ordering
-pnpm type-check    # TypeScript strict type check
-pnpm test          # Vitest unit tests
-pnpm test:e2e      # Playwright e2e — self-contained via Testcontainers (Docker required)
+pnpm lint               # Biome lint + import ordering
+pnpm type-check         # TypeScript strict type check
+pnpm test:unit          # Vitest unit tests (no Docker required)
+pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
+pnpm test:e2e           # Playwright e2e — self-contained via Testcontainers (Docker required)
 ```
 
-CI runs lint, type-check, and unit tests in parallel (Stage 1), then the production
-build and e2e suite (Stage 2).
+CI runs lint, type-check, and unit tests in parallel (Stage 1), then integration tests
+(Stage 2), then the production build and e2e suite (Stage 3).
 
 ## Architecture
 

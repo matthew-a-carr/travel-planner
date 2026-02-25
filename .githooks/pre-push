@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # Git pre-push hook — runs before every `git push`.
 #
@@ -11,7 +11,7 @@
 # Activated automatically by the `prepare` npm script (pnpm install).
 # Bypass in an emergency with: git push --no-verify
 
-set -e
+set -euo pipefail
 
 echo "pre-push: running lint…"
 pnpm lint
@@ -26,7 +26,7 @@ if docker info > /dev/null 2>&1; then
   echo "pre-push: running integration tests…"
   pnpm test:integration
 else
-  echo "pre-push: Docker unavailable — skipping integration tests (CI will run them)."
+  echo "WARNING: pre-push: Docker unavailable — skipping integration tests (CI will run them)."
 fi
 
 echo "pre-push: all checks passed."

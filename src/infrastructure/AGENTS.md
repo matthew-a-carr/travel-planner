@@ -69,3 +69,20 @@ POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
 
 The `postgres` library is lazy — no TCP connection is made until the first query.
 `next start` spawns a fresh Node.js process with the real `POSTGRES_URL`. See ADR 010.
+
+## Testing
+
+Repository implementations are tested with integration tests (`.int-test.ts` files
+co-located in `db/repositories/`). These run against a real Testcontainers PostgreSQL
+instance — never mock the database in repository tests.
+
+```bash
+pnpm test:integration   # runs all *.int-test.ts files (Docker required)
+pnpm test:integration -- src/infrastructure/db/repositories/drizzle-trip-repository.int-test.ts  # single file
+```
+
+There are currently 5 integration test files in `db/repositories/`, one per repository.
+
+Do not use in-memory fakes or mock `db` in repository tests. The Testcontainers
+container is shared across all integration test files in a single run — start-up cost
+is paid once (~10–15 s on first run).
