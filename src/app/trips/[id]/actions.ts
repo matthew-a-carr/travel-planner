@@ -10,6 +10,25 @@ import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
 import type { ComfortLevel, SpendCategory } from '@/domain/trip/types';
+
+const SPEND_CATEGORIES: readonly SpendCategory[] = [
+  'accommodation',
+  'food',
+  'transport',
+  'activities',
+  'shopping',
+  'other',
+];
+
+const COMFORT_LEVELS: readonly ComfortLevel[] = ['budget', 'mid', 'luxury'];
+
+function toSpendCategory(v: string): SpendCategory | null {
+  return (SPEND_CATEGORIES as readonly string[]).includes(v) ? (v as SpendCategory) : null;
+}
+
+function toComfortLevel(v: string): ComfortLevel | null {
+  return (COMFORT_LEVELS as readonly string[]).includes(v) ? (v as ComfortLevel) : null;
+}
 import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
@@ -63,7 +82,7 @@ export async function addFixedCostAction(
     tripId,
     label: label.trim(),
     amountPence,
-    currency: 'GBP',
+    currency: 'GBP', // GBP-only: see ADR 011
   });
 
   if (!result.ok) return { error: result.error };
@@ -118,6 +137,9 @@ export async function addDestinationAction(
     return { error: 'Invalid budget amount' };
   }
 
+  const level = toComfortLevel(comfortLevel);
+  if (!level) return { error: 'Invalid comfort level' };
+
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
@@ -128,8 +150,8 @@ export async function addDestinationAction(
     name: name.trim(),
     country: country.trim(),
     estimatedBudgetPence,
-    currency: 'GBP',
-    comfortLevel: comfortLevel as ComfortLevel,
+    currency: 'GBP', // GBP-only: see ADR 011
+    comfortLevel: level,
     startDate,
     endDate,
   });
@@ -174,6 +196,9 @@ export async function editDestinationAction(
     return { error: 'Invalid budget amount' };
   }
 
+  const level = toComfortLevel(comfortLevel);
+  if (!level) return { error: 'Invalid comfort level' };
+
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
@@ -185,8 +210,8 @@ export async function editDestinationAction(
     name: name.trim(),
     country: country.trim(),
     estimatedBudgetPence,
-    currency: 'GBP',
-    comfortLevel: comfortLevel as ComfortLevel,
+    currency: 'GBP', // GBP-only: see ADR 011
+    comfortLevel: level,
     startDate,
     endDate,
   });
@@ -207,7 +232,7 @@ export async function removeDestinationAction(
   if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
 
   const destRepo = new DrizzleDestinationRepository(db);
-  await removeDestination(destRepo, destinationId, userId);
+  await removeDestination(destRepo, destinationId);
 
   revalidatePath(`/trips/${tripId}`);
 }
@@ -246,13 +271,16 @@ export async function recordSpendAction(
     return { error: 'Invalid amount' };
   }
 
+  const spendCategory = toSpendCategory(category);
+  if (!spendCategory) return { error: 'Invalid category' };
+
   const destRepo = new DrizzleDestinationRepository(db);
   const spendRepo = new DrizzleSpendEntryRepository(db);
   const result = await recordSpend(destRepo, spendRepo, {
     destinationId,
     amountPence,
-    currency: 'GBP',
-    category: category as SpendCategory,
+    currency: 'GBP', // GBP-only: see ADR 011
+    category: spendCategory,
     description: typeof description === 'string' && description.trim() ? description.trim() : null,
     spentAt: new Date(spentAtRaw),
   });
@@ -309,12 +337,15 @@ export async function editSpendEntryAction(
     return { error: 'Invalid amount' };
   }
 
+  const spendCategory = toSpendCategory(category);
+  if (!spendCategory) return { error: 'Invalid category' };
+
   const spendRepo = new DrizzleSpendEntryRepository(db);
   const result = await editSpendEntry(spendRepo, {
     entryId,
     amountPence,
-    currency: 'GBP',
-    category: category as SpendCategory,
+    currency: 'GBP', // GBP-only: see ADR 011
+    category: spendCategory,
     description: typeof description === 'string' && description.trim() ? description.trim() : null,
     spentAt: new Date(spentAtRaw),
   });

@@ -9,7 +9,15 @@ import type { SpendEntry } from './types';
 export function calculateTotalSpend(entries: readonly SpendEntry[]): Money {
   if (entries.length === 0) return money(0, 'GBP');
 
-  const currency = entries[0]?.amount.currency;
+  const currency = entries[0]!.amount.currency;
+  for (const entry of entries) {
+    if (entry.amount.currency !== currency) {
+      throw new Error(
+        `calculateTotalSpend: mixed currencies (${currency} and ${entry.amount.currency})`,
+      );
+    }
+  }
+
   const total = entries.reduce((sum, entry) => sum + entry.amount.amountPence, 0);
   return money(total, currency);
 }

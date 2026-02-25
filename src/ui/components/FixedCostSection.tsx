@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useTransition } from 'react';
+import { useActionState, useState, useTransition } from 'react';
 import type { FixedCostState } from '@/app/trips/[id]/actions';
 import { addFixedCostAction, removeFixedCostAction } from '@/app/trips/[id]/actions';
 import type { TripFixedCost } from '@/domain/trip/types';
@@ -87,26 +87,35 @@ export function FixedCostSection({
 
 function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFixedCost }) {
   const [isPending, startTransition] = useTransition();
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   return (
-    <li className="flex items-center justify-between px-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-zinc-900">{fixedCost.label}</p>
-        <p className="text-sm text-zinc-500">{formatMoney(fixedCost.amount)}</p>
+    <li className="px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-zinc-900">{fixedCost.label}</p>
+          <p className="text-sm text-zinc-500">{formatMoney(fixedCost.amount)}</p>
+        </div>
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => {
+            setRemoveError(null);
+            startTransition(async () => {
+              try {
+                await removeFixedCostAction(tripId, fixedCost.id);
+              } catch {
+                setRemoveError('Failed to remove. Please try again.');
+              }
+            });
+          }}
+          aria-label={`Remove ${fixedCost.label}`}
+          className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+        >
+          {isPending ? '…' : 'Remove'}
+        </button>
       </div>
-      <button
-        type="button"
-        disabled={isPending}
-        onClick={() =>
-          startTransition(async () => {
-            await removeFixedCostAction(tripId, fixedCost.id);
-          })
-        }
-        aria-label={`Remove ${fixedCost.label}`}
-        className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
-      >
-        {isPending ? '…' : 'Remove'}
-      </button>
+      {removeError && <p className="mt-1 text-xs text-red-600">{removeError}</p>}
     </li>
   );
 }

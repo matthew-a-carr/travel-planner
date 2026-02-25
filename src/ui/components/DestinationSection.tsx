@@ -12,6 +12,12 @@ import { EditDestinationForm } from './EditDestinationForm';
 import { EditSpendEntryForm } from './EditSpendEntryForm';
 import { RecordSpendForm } from './RecordSpendForm';
 
+const COMFORT_LABELS: Record<string, string> = {
+  budget: 'Budget',
+  mid: 'Mid-range',
+  luxury: 'Luxury',
+};
+
 type Props = {
   tripId: string;
   destinations: Destination[];
@@ -87,6 +93,7 @@ function DestinationCard({
   const [showSpendForm, setShowSpendForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   const totalSpend = calculateTotalSpend(spend);
   const spendPence = totalSpend.amountPence;
@@ -96,15 +103,14 @@ function DestinationCard({
 
   const days = destinationDays(destination);
 
-  const comfortLabel: Record<string, string> = {
-    budget: 'Budget',
-    mid: 'Mid-range',
-    luxury: 'Luxury',
-  };
-
   function handleRemove() {
+    setRemoveError(null);
     startTransition(async () => {
-      await removeDestinationAction(tripId, destination.id);
+      try {
+        await removeDestinationAction(tripId, destination.id);
+      } catch {
+        setRemoveError('Failed to remove destination. Please try again.');
+      }
     });
   }
 
@@ -116,7 +122,7 @@ function DestinationCard({
           <div className="flex items-center gap-2">
             <p className="font-semibold text-zinc-900">{destination.name}</p>
             <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
-              {comfortLabel[destination.comfortLevel] ?? destination.comfortLevel}
+              {COMFORT_LABELS[destination.comfortLevel] ?? destination.comfortLevel}
             </span>
           </div>
           <p className="mt-0.5 text-sm text-zinc-500">
@@ -162,6 +168,12 @@ function DestinationCard({
           </button>
         </div>
       </div>
+
+      {removeError && (
+        <div className="border-t border-red-100 bg-red-50 px-5 py-2">
+          <p className="text-xs text-red-600">{removeError}</p>
+        </div>
+      )}
 
       {/* Edit destination form */}
       {showEditForm && (
@@ -229,10 +241,16 @@ function DestinationCard({
 function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry }) {
   const [showEditForm, setShowEditForm] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   function handleDelete() {
+    setDeleteError(null);
     startDeleteTransition(async () => {
-      await deleteSpendEntryAction(tripId, entry.id);
+      try {
+        await deleteSpendEntryAction(tripId, entry.id);
+      } catch {
+        setDeleteError('Failed to delete. Please try again.');
+      }
     });
   }
 
@@ -246,6 +264,7 @@ function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry })
           onCancel={() => setShowEditForm(false)}
         />
       ) : (
+        <>
         <div className="flex items-center justify-between gap-2">
           <span className="min-w-0 text-sm text-zinc-600">
             <span className="capitalize">{entry.category}</span>
@@ -272,6 +291,8 @@ function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry })
             </button>
           </div>
         </div>
+        {deleteError && <p className="mt-1 text-xs text-red-600">{deleteError}</p>}
+        </>
       )}
     </li>
   );

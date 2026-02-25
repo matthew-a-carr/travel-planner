@@ -49,4 +49,14 @@ describe('Architecture layer boundaries', () => {
       }
     }
   });
+
+  it('infrastructure layer must not import from ui', () => {
+    const infraFiles = getAllTsFiles(path.resolve('src/infrastructure'));
+    for (const file of infraFiles) {
+      const imports = getImports(file);
+      for (const imp of imports) {
+        expect(imp).not.toMatch(/\/ui\//);
+      }
+    }
+  });
 });

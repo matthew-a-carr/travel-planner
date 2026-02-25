@@ -43,4 +43,29 @@ test.describe('Spend recording', () => {
     await expect(page.getByText(/total spent/i)).toBeVisible();
     await expect(page.getByText('£120.50')).toBeVisible();
   });
+
+  test('user can edit a spend entry', async ({ page }) => {
+    // Depends on "Ramen dinner" recorded in the previous test
+    await page
+      .getByRole('button', { name: /edit spend entry: food — ramen dinner/i })
+      .click();
+
+    await page.getByLabel(/amount/i).fill('150.00');
+    await page.getByLabel(/description/i).fill('Ramen dinner (updated)');
+
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await expect(page.getByText('Ramen dinner (updated)')).toBeVisible();
+    await expect(page.getByText('£150.00')).toBeVisible();
+  });
+
+  test('user can delete a spend entry', async ({ page }) => {
+    // Depends on the updated entry from the previous test
+    await page
+      .getByRole('button', { name: /delete spend entry: food — ramen dinner \(updated\)/i })
+      .click();
+
+    await expect(page.getByText('Ramen dinner (updated)')).not.toBeVisible();
+    await expect(page.getByText(/no spend recorded/i)).toBeVisible();
+  });
 });

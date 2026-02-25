@@ -7,6 +7,42 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-25
+
+### Added
+
+- Integration test suite: repository layer (5 files) and application use-case layer (9 files)
+  tested against a real PostgreSQL database via Testcontainers — no mocks; ~55 new tests
+- Reusable test harness: `src/infrastructure/testing/helpers.ts` with `createTestDb()`,
+  `truncateAll()`, and typed seed factories (`seedUser`, `seedTrip`, `seedDestination`,
+  `seedFixedCost`, `seedSpendEntry`) consumed by all integration test files
+- `vitest-mock-extended` dev dependency for Mockito-style mocking in future adapter tests
+- `pnpm test:unit` and `pnpm test:integration` scripts; Vitest projects split (unit runs
+  without Docker, integration starts a Testcontainers Postgres container)
+- `nextFixedCostSortOrder` pure domain function extracted to `src/domain/trip/trip.ts`
+- `toSpendCategory()` and `toComfortLevel()` type-guard helpers in server actions — eliminates
+  all unsafe `as SpendCategory` / `as ComfortLevel` casts
+- Error states on remove/delete UI actions: `DestinationCard`, `SpendEntryRow`, and
+  `FixedCostRow` now surface network/server errors to the user rather than silently swallowing
+  them inside `useTransition`
+- Spend entry edit and delete E2E tests (`tests/e2e/03-spend.spec.ts`)
+- Trip detail page accessibility audit at three canonical viewports
+  (`tests/e2e/accessibility.spec.ts`)
+- Release Please GitHub Actions workflow (`.github/workflows/release-please.yml`) for
+  automated versioning, CHANGELOG generation, and GitHub Releases from conventional commits
+- ADR 011 documenting the GBP-only MVP currency decision
+- `CONTRIBUTING.md` internal team guide: prerequisites, setup, test commands, commit
+  conventions, branch workflow, and release process
+
+### Fixed
+
+- `createTripAction` now returns `{ error: string | null }` consistent with all other server
+  actions — previously it `throw`s, forcing `CreateTripForm` to wrap it in a `.catch()` shim
+- `calculateTotalSpend` now throws on mixed-currency entries instead of silently returning
+  the wrong total
+- `removeDestination` use case no longer accepts a dead `ownerId` parameter
+- `COMFORT_LABELS` extracted from inside `DestinationCard` render to module-level constant
+
 ### Added
 
 - Destination editing: each destination card now has an **Edit** button that expands an inline

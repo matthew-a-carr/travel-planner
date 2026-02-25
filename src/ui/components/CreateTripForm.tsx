@@ -1,21 +1,12 @@
 'use client';
 
 import { useActionState } from 'react';
-import { createTripAction } from '@/app/trips/actions';
+import { createTripAction, type CreateTripState } from '@/app/trips/actions';
 
-const initialState = { error: null as string | null };
-
-function formAction(_prev: typeof initialState, formData: FormData) {
-  return createTripAction(formData).then(
-    () => initialState,
-    (err: unknown) => ({
-      error: err instanceof Error ? err.message : 'Something went wrong',
-    }),
-  );
-}
+const initialState: CreateTripState = { error: null };
 
 export function CreateTripForm({ onCancel }: { onCancel: () => void }) {
-  const [state, dispatch, isPending] = useActionState(formAction, initialState);
+  const [state, dispatch, isPending] = useActionState(createTripAction, initialState);
 
   return (
     <form action={dispatch} className="space-y-5">

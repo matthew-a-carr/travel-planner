@@ -1,5 +1,6 @@
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
 import type { TripRepository } from '@/domain/trip/trip-repository';
+import { nextFixedCostSortOrder } from '@/domain/trip/trip';
 import type { Currency, Result, TripFixedCost } from '@/domain/trip/types';
 import { err, money, ok } from '@/domain/trip/types';
 
@@ -19,15 +20,13 @@ export async function addFixedCost(
   if (!trip) return err(`Trip not found: ${input.tripId}`);
 
   const existing = await fixedCostRepo.findByTrip(input.tripId);
-  const nextSortOrder =
-    existing.length === 0 ? 0 : Math.max(...existing.map((fc) => fc.sortOrder)) + 1;
 
   const fixedCost: TripFixedCost = {
     id: crypto.randomUUID(),
     tripId: input.tripId,
     label: input.label,
     amount: money(input.amountPence, input.currency),
-    sortOrder: nextSortOrder,
+    sortOrder: nextFixedCostSortOrder(existing),
     createdAt: new Date(),
   };
 
