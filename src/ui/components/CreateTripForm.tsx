@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { createTripAction, type CreateTripState } from '@/app/trips/actions';
+import { type CreateTripState, createTripAction } from '@/app/trips/actions';
 
 const initialState: CreateTripState = { error: null };
 
