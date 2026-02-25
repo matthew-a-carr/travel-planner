@@ -13,7 +13,9 @@ import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
-const CONTAINER_ID_FILE = join(process.cwd(), 'tests/e2e/fixtures/.container-id');
+const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
+const CONTAINER_ID_FILE = join(FIXTURES_DIR, '.container-id');
+const POSTGRES_URL_FILE = join(FIXTURES_DIR, '.postgres-url');
 
 export default async function globalTeardown(): Promise<void> {
   let containerId: string;
@@ -34,9 +36,11 @@ export default async function globalTeardown(): Promise<void> {
     console.log('[e2e] Container already removed.');
   }
 
-  try {
-    await unlink(CONTAINER_ID_FILE);
-  } catch {
-    // File already gone — no-op.
+  for (const file of [CONTAINER_ID_FILE, POSTGRES_URL_FILE]) {
+    try {
+      await unlink(file);
+    } catch {
+      // File already gone — no-op.
+    }
   }
 }

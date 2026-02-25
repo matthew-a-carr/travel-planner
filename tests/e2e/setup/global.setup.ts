@@ -3,8 +3,10 @@
  *
  * Responsibilities:
  *  1. Start a throwaway PostgreSQL 16 container via Testcontainers.
- *  2. Expose the connection string to the process so Next.js
- *     picks it up when the web server is started by Playwright.
+ *  2. Write the connection string to fixtures/.postgres-url so the
+ *     playwright.config.ts webServer command can inject it into pnpm start
+ *     (process.env mutations in globalSetup don't reach the webServer process
+ *     in Playwright v1.42+ where globalSetup runs in a separate process).
  *  3. Run Drizzle migrations against the fresh database.
  *  4. Seed country reference data.
  *  5. Create a test user + session and write a Playwright
@@ -28,6 +30,7 @@ import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/coun
 
 const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
 const CONTAINER_ID_FILE = join(FIXTURES_DIR, '.container-id');
+const POSTGRES_URL_FILE = join(FIXTURES_DIR, '.postgres-url');
 const AUTH_STATE_FILE = join(FIXTURES_DIR, 'auth-state.json');
 
 export default async function globalSetup(): Promise<void> {
@@ -43,8 +46,11 @@ export default async function globalSetup(): Promise<void> {
 
   const connectionUri = container.getConnectionUri();
 
-  // Make the URL available to the Next.js web server that Playwright
-  // will spawn after globalSetup completes.
+  // Write the URL to a file so the webServer command in playwright.config.ts
+  // can read it via shell substitution. process.env mutations here do not
+  // propagate to the Playwright runner process that spawns pnpm start.
+  await writeFile(POSTGRES_URL_FILE, connectionUri);
+  // Also set process.env for any code that runs inside this globalSetup process.
   process.env.POSTGRES_URL = connectionUri;
 
   // Persist the container ID for globalTeardown.

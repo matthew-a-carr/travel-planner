@@ -40,9 +40,14 @@ export default defineConfig({
   ],
 
   // In CI: start the pre-built production server (app must be built before running tests).
+  // POSTGRES_URL is injected via shell substitution from the file written by globalSetup —
+  // process.env mutations in globalSetup don't propagate to the Playwright runner process
+  // that spawns the webServer (Playwright v1.42+ runs globalSetup in a separate process).
   // Locally: start the dev server and reuse an already-running instance.
   webServer: {
-    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
+    command: process.env.CI
+      ? 'POSTGRES_URL=$(cat tests/e2e/fixtures/.postgres-url) pnpm start'
+      : 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
