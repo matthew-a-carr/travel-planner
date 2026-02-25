@@ -21,25 +21,26 @@ type-check, and unit tests sequentially. Two problems needed addressing:
 
 ### CI pipeline structure
 
-Split the single `check` job into four separate jobs across two logical stages:
+Split the single `check` job into five fully parallel jobs:
 
-**Stage 1 — static checks (run in parallel):**
 - `lint` — Biome code style and import ordering
 - `type-check` — TypeScript strict-mode compilation
 - `unit-test` — Vitest domain unit tests
+- `integration-test` — Vitest repository and use-case tests against real Postgres via Testcontainers
+- `e2e` — Playwright tests; builds the app then runs the full suite via Testcontainers
 
-**Stage 2 — integration (runs only after all Stage 1 jobs pass):**
-- `e2e` — Playwright tests with a `postgres:16` service container
-
-Rationale for the split:
-- The three Stage 1 jobs are independent and each takes ~10–15 seconds. Running them
-  in parallel gives faster feedback and makes the failing check immediately obvious.
-- The `e2e` job is expensive (DB service container, `pnpm build`, browser install).
-  It only makes sense to run it once the cheap checks have already passed — gated via
-  `needs: [lint, type-check, unit-test]`.
+Rationale:
+- All five jobs are independent of one another. None shares output or state with
+  any other job, so there is no technical reason to impose ordering between them.
+- Running everything in parallel gives the fastest possible wall-clock feedback —
+  the pipeline completes as soon as the slowest job finishes rather than waiting
+  for sequential stages.
 - Separate named jobs appear as distinct status checks on pull requests, making it
-  clear at a glance whether a failure is a lint issue, a type error, a unit test, or
-  an e2e regression.
+  clear at a glance whether a failure is a lint issue, a type error, a unit test,
+  an integration regression, or an e2e regression.
+- Both `integration-test` and `e2e` manage their own throwaway Postgres containers
+  via Testcontainers, so they have no shared infrastructure dependency that would
+  require serialisation.
 
 The `playwright.config.ts` was updated to use `pnpm start` (pre-built production
 server) in CI and `pnpm dev` (with `reuseExistingServer`) locally. A `concurrency`
@@ -74,7 +75,8 @@ Configuration decisions:
 - CI failure messages are precise — a lint failure doesn't hide a type error.
 - Security patches and minor updates arrive automatically; the team reviews and merges
   rather than having to proactively check for updates.
-- Slow e2e tests don't penalise contributors whose changes only touch types or lint.
+- All checks start immediately on push — no waiting for an earlier stage to pass
+  before slower checks begin, giving the shortest possible time-to-feedback.
 
 **Harder:**
 - The e2e job adds infrastructure complexity to CI: a Postgres service container,
@@ -88,7 +90,7 @@ Configuration decisions:
   volume but does not eliminate the review burden.
 
 **Files changed by this ADR:**
-- `.github/workflows/ci.yml` — rewritten with four-job two-stage structure
+- `.github/workflows/ci.yml` — rewritten with five fully parallel jobs (no `needs` dependencies)
 - `.github/dependabot.yml` — new file
 - `playwright.config.ts` — `webServer` updated to support both CI and local runs
 - `docs/decisions/008-ci-pipeline-structure-and-dependabot.md` — this file
