@@ -68,6 +68,16 @@ export function canAllocateBudget(
 }
 
 /**
+ * Returns the next sort order value for a new fixed cost.
+ * Mirrors nextSortOrder in destination.ts — kept separate to preserve
+ * independent typing for TripFixedCost vs Destination arrays.
+ */
+export function nextFixedCostSortOrder(fixedCosts: readonly TripFixedCost[]): number {
+  if (fixedCosts.length === 0) return 0;
+  return Math.max(...fixedCosts.map((fc) => fc.sortOrder)) + 1;
+}
+
+/**
  * Returns a summary of the trip budget state.
  */
 export function getTripBudgetSummary(

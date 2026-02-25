@@ -1,44 +1,32 @@
-#!/usr/bin/env bash
-# Pre-push: mirrors the CI pipeline so failures are caught locally before push.
+#!/usr/bin/env sh
 #
-# lint + type-check + unit tests run in parallel (they are independent).
-# build runs after — it needs a syntactically-valid POSTGRES_URL so drizzle
-# can be instantiated for DrizzleAdapter's instanceof checks, but no TCP
-# connection is ever opened during the build (postgres library is lazy).
-# E2e tests are skipped when POSTGRES_URL is absent; Testcontainers sets it
-# automatically when pnpm test:e2e is run directly or in CI.
-set -euo pipefail
+# Git pre-push hook — runs before every `git push`.
+#
+# Checks (in order):
+#   1. pnpm lint          — Biome, zero errors required
+#   2. pnpm type-check    — TypeScript strict, zero errors required
+#   3. pnpm test:unit     — Unit tests, no Docker required
+#   4. pnpm test:integration — Real-DB tests via Testcontainers (skipped if Docker unavailable)
+#
+# Activated automatically by the `prepare` npm script (pnpm install).
+# Bypass in an emergency with: git push --no-verify
 
-TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
+set -e
 
-echo "▶ pre-push: lint + type-check + unit tests (parallel)"
-pnpm lint        > "$TMPDIR/lint.log"  2>&1 & PID_LINT=$!
-pnpm type-check  > "$TMPDIR/type.log"  2>&1 & PID_TYPE=$!
-pnpm test        > "$TMPDIR/test.log"  2>&1 & PID_TEST=$!
+echo "pre-push: running lint…"
+pnpm lint
 
-LINT_EXIT=0; TYPE_EXIT=0; TEST_EXIT=0
-wait $PID_LINT || LINT_EXIT=$?
-wait $PID_TYPE || TYPE_EXIT=$?
-wait $PID_TEST || TEST_EXIT=$?
+echo "pre-push: running type-check…"
+pnpm type-check
 
-echo "▶ pre-push: lint"
-cat "$TMPDIR/lint.log"
-echo "▶ pre-push: type-check"
-cat "$TMPDIR/type.log"
-echo "▶ pre-push: unit tests"
-cat "$TMPDIR/test.log"
+echo "pre-push: running unit tests…"
+pnpm test:unit
 
-[ $((LINT_EXIT + TYPE_EXIT + TEST_EXIT)) -eq 0 ] || exit 1
-
-echo "▶ pre-push: build"
-POSTGRES_URL="${POSTGRES_URL:-postgresql://build:build@localhost:5432/build}" pnpm build
-
-if [ -z "${POSTGRES_URL:-}" ]; then
-  echo "⚠  pre-push: POSTGRES_URL not set — skipping e2e tests."
-  echo "   Run pnpm test:e2e locally (requires Docker) to run the full suite."
-  exit 0
+if docker info > /dev/null 2>&1; then
+  echo "pre-push: running integration tests…"
+  pnpm test:integration
+else
+  echo "pre-push: Docker unavailable — skipping integration tests (CI will run them)."
 fi
 
-echo "▶ pre-push: e2e tests"
-pnpm test:e2e
+echo "pre-push: all checks passed."

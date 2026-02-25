@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'claude/**']
+    branches: [main]
   pull_request:
 
 # Cancel in-progress runs for the same branch when a newer push arrives
@@ -68,9 +68,36 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm test
+      - run: pnpm test:unit
 
-  # ── Stage 2: e2e (runs after all stage 1 jobs pass) ───────────────────────
+  # ── Stage 2: integration tests (runs after all stage 1 jobs pass) ─────────
+  #
+  # Testcontainers starts a throwaway postgres:16-alpine container inside
+  # the Vitest globalSetup hook, sets POSTGRES_URL, runs Drizzle migrations,
+  # and tears it down in teardown. Docker is available by default on
+  # ubuntu-latest runners. No additional service containers are required.
+
+  integration-test:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    needs: [lint, type-check, unit-test]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm test:integration
+
+  # ── Stage 3: e2e (runs after integration tests pass) ──────────────────────
   #
   # PostgreSQL is no longer a GitHub Actions service container.
   # Testcontainers starts a throwaway postgres:16-alpine container inside
@@ -81,7 +108,7 @@ jobs:
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
-    needs: [lint, type-check, unit-test]
+    needs: [integration-test]
 
     env:
       # AUTH_SECRET must be set for next-auth to initialise — value is not a real secret

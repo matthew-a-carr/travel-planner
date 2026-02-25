@@ -117,6 +117,31 @@ test.describe('Dashboard — accessibility & responsive', () => {
   });
 });
 
+// ─── Trip detail page ─────────────────────────────────────────────────────────
+
+test.describe('Trip detail page — accessibility', () => {
+  // Uses the global storageState (auth-state.json) from playwright.config.ts.
+  // Depends on the "Test Round the World" trip created by 01-trips.spec.ts.
+
+  for (const vp of VIEWPORTS) {
+    test(`passes axe audit at ${vp.label}`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
+      await page.getByText('Test Round the World').click();
+      await page.waitForURL(/\/trips\//);
+
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+
+      expect(
+        results.violations,
+        formatViolations(results.violations),
+      ).toEqual([]);
+    });
+  }
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type AxeViolation = {

@@ -21,7 +21,7 @@ function getAllTsFiles(dir: string): string[] {
     if (entry.isDirectory()) {
       files.push(...getAllTsFiles(fullPath));
     } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
-      if (!entry.name.endsWith('.test.ts')) {
+      if (!entry.name.endsWith('.test.ts') && !entry.name.endsWith('.int-test.ts')) {
         files.push(fullPath);
       }
     }
@@ -46,6 +46,16 @@ describe('Architecture layer boundaries', () => {
       const imports = getImports(file);
       for (const imp of imports) {
         expect(imp).not.toMatch(/infrastructure|ui|next|drizzle|@vercel/);
+      }
+    }
+  });
+
+  it('infrastructure layer must not import from ui', () => {
+    const infraFiles = getAllTsFiles(path.resolve('src/infrastructure'));
+    for (const file of infraFiles) {
+      const imports = getImports(file);
+      for (const imp of imports) {
+        expect(imp).not.toMatch(/\/ui\//);
       }
     }
   });
