@@ -39,12 +39,22 @@ export default defineConfig({
     },
   ],
 
-  // In CI: start the pre-built production server (app must be built before running tests).
+  // In CI: globalSetup starts the pre-built production server directly — after
+  // Testcontainers has written the real POSTGRES_URL into process.env.  Playwright's
+  // webServer plugin spawns the command *before* globalSetup runs, so it would
+  // capture an empty POSTGRES_URL and cause next start to crash.  By managing the
+  // server lifecycle inside globalSetup/globalTeardown we guarantee the correct
+  // startup order: container → env → server.
+  //
   // Locally: start the dev server and reuse an already-running instance.
-  webServer: {
-    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  ...(process.env.CI
+    ? {}
+    : {
+        webServer: {
+          command: 'pnpm dev',
+          url: 'http://localhost:3000',
+          reuseExistingServer: true,
+          timeout: 120_000,
+        },
+      }),
 });

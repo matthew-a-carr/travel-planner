@@ -13,9 +13,28 @@ import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
-const CONTAINER_ID_FILE = join(process.cwd(), 'tests/e2e/fixtures/.container-id');
+const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
+const CONTAINER_ID_FILE = join(FIXTURES_DIR, '.container-id');
+const SERVER_PID_FILE = join(FIXTURES_DIR, '.server-pid');
 
 export default async function globalTeardown(): Promise<void> {
+  // ── 1. Stop the Next.js production server (CI only) ───────────────────────
+  // globalSetup wrote the shell process-group leader PID so we can send
+  // SIGTERM to the entire group (shell → pnpm → node) in one call.
+  try {
+    const serverPid = parseInt((await readFile(SERVER_PID_FILE, 'utf-8')).trim(), 10);
+    console.log(`[e2e] Stopping Next.js server (PID: ${serverPid})…`);
+    try {
+      process.kill(-serverPid, 'SIGTERM');
+    } catch {
+      // Process already gone — no-op.
+    }
+    await unlink(SERVER_PID_FILE);
+  } catch {
+    // File doesn't exist (local dev mode, not CI) — nothing to do.
+  }
+
+  // ── 2. Stop the PostgreSQL container ──────────────────────────────────────
   let containerId: string;
   try {
     containerId = (await readFile(CONTAINER_ID_FILE, 'utf-8')).trim();

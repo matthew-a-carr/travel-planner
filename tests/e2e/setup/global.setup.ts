@@ -17,6 +17,7 @@
  * side-car even if teardown never runs (e.g. on a SIGKILL).
  */
 
+import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
@@ -29,6 +30,7 @@ import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/coun
 const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
 const CONTAINER_ID_FILE = join(FIXTURES_DIR, '.container-id');
 const AUTH_STATE_FILE = join(FIXTURES_DIR, 'auth-state.json');
+const SERVER_PID_FILE = join(FIXTURES_DIR, '.server-pid');
 
 export default async function globalSetup(): Promise<void> {
   await mkdir(FIXTURES_DIR, { recursive: true });
@@ -114,4 +116,58 @@ export default async function globalSetup(): Promise<void> {
 
   await writeFile(AUTH_STATE_FILE, JSON.stringify(authState, null, 2));
   console.log('[e2e] Auth storage state written.');
+
+  // ── 7. Start Next.js production server (CI only) ──────────────────────────
+  // In CI the app is pre-built via `pnpm build` and we manage the `next start`
+  // process here — AFTER POSTGRES_URL is in process.env — so the server starts
+  // with the real database URL.  Playwright's webServer plugin is intentionally
+  // omitted from playwright.config.ts for CI because it spawns the command
+  // *before* globalSetup runs, capturing an empty POSTGRES_URL.
+  if (process.env.CI) {
+    console.log('[e2e] Starting Next.js production server…');
+
+    // Spawn in its own process group (detached) so that teardown can send
+    // SIGTERM to the entire group (shell → pnpm → node) in one call.
+    const serverProcess = spawn('pnpm start', {
+      env: { ...process.env }, // POSTGRES_URL is now set
+      stdio: 'inherit',
+      detached: true,
+      shell: true,
+    });
+
+    if (!serverProcess.pid) {
+      throw new Error('[e2e] Failed to obtain PID for Next.js server process');
+    }
+
+    // Persist the process-group leader PID so globalTeardown can kill it.
+    await writeFile(SERVER_PID_FILE, serverProcess.pid.toString());
+
+    // Detach so globalSetup can return without keeping Node.js alive.
+    serverProcess.unref();
+
+    // Poll until the server accepts HTTP connections (or timeout).
+    const serverUrl = 'http://localhost:3000';
+    const timeoutMs = 120_000;
+    const deadline = Date.now() + timeoutMs;
+
+    let ready = false;
+    while (Date.now() < deadline) {
+      try {
+        const res = await fetch(serverUrl);
+        if (res.status < 500) {
+          ready = true;
+          break;
+        }
+      } catch {
+        // ECONNREFUSED — server not yet listening
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    if (!ready) {
+      throw new Error(`[e2e] Next.js server did not become ready within ${timeoutMs}ms`);
+    }
+
+    console.log('[e2e] Next.js production server ready.');
+  }
 }
