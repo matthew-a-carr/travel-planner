@@ -48,5 +48,13 @@ export async function createTrip(
 
 ## Testing
 
-Use cases are tested indirectly via e2e tests or with in-memory repository fakes.
-Unit-test use cases only when they contain non-trivial orchestration logic.
+Use cases are tested with integration tests (`.int-test.ts` files co-located in
+`use-cases/`). These run against a real Testcontainers PostgreSQL instance — never
+mock repositories or the database in integration tests.
+
+```bash
+pnpm test:integration   # runs all *.int-test.ts files (Docker required)
+pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
+```
+
+There are currently 9 integration test files in `use-cases/`, one per use case.

@@ -5,15 +5,17 @@
 
 ---
 
-## Verification — run this before every commit
+## Verification — run this before pushing
 
 ```bash
-pnpm lint          # Biome: lint + import ordering (src/ only)
-pnpm type-check    # tsc --noEmit
-pnpm test          # Vitest unit tests (~1 s)
+pnpm lint               # Biome: lint + import ordering (src/ only)
+pnpm type-check         # tsc --noEmit
+pnpm test:unit          # Vitest unit tests (~1 s, no Docker)
+pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
 ```
 
-All three must exit 0. Do not commit with failures.
+All four must exit 0. Do not push with failures. The pre-push hook runs these
+automatically, but run them manually to verify mid-task.
 
 Before pushing, also verify the production build:
 
@@ -70,9 +72,11 @@ Each layer has its own `AGENTS.md` with local rules.
 ## Adding a feature — standard sequence
 
 1. Write the Playwright e2e test first (`tests/e2e/`).
-2. Write domain unit tests (`*.test.ts` alongside the domain file).
+2. Write domain unit tests (`*.test.ts` alongside the domain file). For use-case and
+   repository layer changes, also write integration tests (`*.int-test.ts` in the same
+   directory).
 3. Implement minimum code to make tests pass.
-4. Run the verification trio above.
+4. Run the verification commands above.
 5. Update `CHANGELOG.md` under `## [Unreleased]`.
 6. **Review and patch any docs that describe stale state** (see Doc review below).
 7. **Write an ADR** if the change meets the trigger criteria below.
@@ -129,14 +133,19 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-Two-stage pipeline on every push and PR:
+Three-stage pipeline on every push and PR:
 
 **Stage 1 — parallel:**
 - `lint` (`pnpm lint`)
 - `type-check` (`pnpm type-check`)
-- `unit-test` (`pnpm test`)
+- `unit-test` (`pnpm test:unit`)
 
 **Stage 2 — after Stage 1 passes:**
+- `integration-test` (`pnpm test:integration`) — runs repository and use-case tests
+  against a real Postgres database via Testcontainers. Docker is available by default
+  on `ubuntu-latest` GitHub Actions runners.
+
+**Stage 3 — after Stage 2 passes:**
 - `e2e` — builds the app with a dummy `POSTGRES_URL` (`pnpm build`), then runs
   `pnpm test:e2e`. Playwright's `globalSetup` starts a throwaway `postgres:16-alpine`
   container via Testcontainers, runs migrations, seeds data, creates a test session,

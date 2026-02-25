@@ -18,9 +18,10 @@ The engineering harness consists of three things:
 
 | What | Where | Run via |
 |---|---|---|
-| Layer import boundaries | `src/__tests__/architecture.test.ts` | `pnpm test` |
+| Layer import boundaries | `src/__tests__/architecture.test.ts` | `pnpm test:unit` |
 | TypeScript correctness | `tsconfig.json` (strict) | `pnpm type-check` |
 | Code style + lint | `biome.json` | `pnpm lint` |
+| Repository + use-case correctness | `src/**/*.int-test.ts` | `pnpm test:integration` |
 | e2e acceptance criteria | `tests/e2e/` | `pnpm test:e2e` |
 | Accessibility (WCAG 2.1 AA) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
@@ -31,14 +32,13 @@ The engineering harness consists of three things:
 
 ### Feedback loop for agents
 
-The pre-commit and pre-push hooks enforce all checks automatically — you do not need
-to run them manually before committing or pushing. The hooks run lint, type-check,
-and unit tests in parallel on every commit; the push hook also runs the production
-build (and e2e tests when Docker is available).
+The pre-push hook enforces all checks automatically — you do not need to run them
+manually before pushing. The hook runs lint, type-check, unit tests, and integration
+tests (when Docker is available) in sequence on every `git push`.
 
 If you need to run checks manually (e.g. mid-task to verify progress):
 ```bash
-pnpm lint && pnpm type-check && pnpm test
+pnpm lint && pnpm type-check && pnpm test:unit && pnpm test:integration
 ```
 If any fail, fix them before proceeding — do not move on.
 
@@ -86,9 +86,12 @@ No production code is written without a failing test that describes the expected
 ```
 1. Write Playwright e2e test → defines the acceptance criterion (what the user experiences).
 2. Write Vitest domain unit tests → for any new domain logic.
-3. Implement the minimum code to make tests pass.
-4. Refactor if needed, keeping all tests green.
-5. pnpm lint && pnpm type-check && pnpm test must all pass before committing.
+3. Write Vitest integration tests → for any new use cases or repository methods
+   (.int-test.ts alongside the source file; Docker + Testcontainers required).
+4. Implement the minimum code to make tests pass.
+5. Refactor if needed, keeping all tests green.
+6. pnpm lint && pnpm type-check && pnpm test:unit && pnpm test:integration must all
+   pass before pushing.
 ```
 
 A feature is not done until its e2e test passes against a running application.
@@ -100,6 +103,15 @@ A feature is not done until its e2e test passes against a running application.
 - Descriptive names: `it('should reject allocation that exceeds available budget')`.
 - No mocking of domain objects. Mock only infrastructure boundaries.
 - Test behaviour, not implementation. Never test private functions directly.
+
+### Integration test rules
+
+- Repository implementations and use cases MUST have integration tests (`.int-test.ts`).
+- Tests co-located with source: `create-trip.ts` → `create-trip.int-test.ts`.
+- Use a real Testcontainers PostgreSQL instance — never mock the database in integration tests.
+- The container is shared across all integration test files in a single `pnpm test:integration` run.
+- Docker is required. If Docker is unavailable locally, the pre-push hook skips integration
+  tests with a WARNING and CI runs them instead.
 
 ### e2e test rules
 
