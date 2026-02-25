@@ -53,24 +53,27 @@ The Vitest config uses file-suffix globs (`src/**/*.test.ts` / `src/**/*.int-tes
 integration test files are picked up automatically — no config change needed.
 See `docs/decisions/012-integration-test-naming-convention.md`.
 
-## Before pushing — mandatory checks
+## Before pushing — pre-push hook
 
-CI will catch failures, but running these locally before pushing saves the round-trip:
+A git pre-push hook in `.githooks/pre-push` runs automatically on every `git push` and
+blocks the push if any check fails:
+
+1. `pnpm lint` — Biome, zero errors required
+2. `pnpm type-check` — TypeScript strict, zero errors required
+3. `pnpm test:unit` — unit tests, no Docker required
+4. `pnpm test:integration` — real-DB tests via Testcontainers (skipped with a warning if Docker is unavailable; CI always runs them)
+
+The hook is activated by the `prepare` npm lifecycle script, which runs on install:
 
 ```bash
-pnpm lint         # Biome lint — must produce zero errors
-pnpm type-check   # TypeScript strict — must produce zero errors
-pnpm test:unit    # Unit tests — instant, no Docker
+pnpm install   # installs deps AND runs: git config core.hooksPath .githooks
 ```
 
-If Docker is running, also run:
+**Bypass** (emergency only, requires team lead approval):
 
 ```bash
-pnpm test:integration
+git push --no-verify
 ```
-
-These three commands match the CI pipeline stages and must all pass before a PR is ready
-for review. A pre-push git hook can automate this check; see the section below.
 
 ## Commit conventions
 

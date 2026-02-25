@@ -21,7 +21,7 @@ function getAllTsFiles(dir: string): string[] {
     if (entry.isDirectory()) {
       files.push(...getAllTsFiles(fullPath));
     } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
-      if (!entry.name.endsWith('.test.ts')) {
+      if (!entry.name.endsWith('.test.ts') && !entry.name.endsWith('.int-test.ts')) {
         files.push(fullPath);
       }
     }
