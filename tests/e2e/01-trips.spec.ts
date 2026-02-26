@@ -55,3 +55,52 @@ test.describe('Trip detail page', () => {
     await expect(page.getByText('Australia Visa & Living')).toBeVisible();
   });
 });
+
+test.describe('Trip editing', () => {
+  test('authenticated user can edit a trip name, budget, and status', async ({ page }) => {
+    await page.goto('/');
+    await page.getByText('Test Round the World').click();
+
+    // Open edit modal
+    await page.getByRole('button', { name: /edit trip/i }).click();
+    await expect(page.getByRole('heading', { name: /edit trip/i })).toBeVisible();
+
+    // Pre-populated fields should reflect current trip values
+    await expect(page.getByLabel('Trip name')).toHaveValue('Test Round the World');
+
+    // Update name, budget, and status
+    await page.getByLabel('Trip name').fill('Big Adventure');
+    await page.getByLabel('Total budget').fill('60000');
+    await page.getByLabel('Status').selectOption('active');
+
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    // Heading and status badge should reflect the update
+    await expect(page.getByRole('heading', { name: 'Big Adventure' })).toBeVisible();
+    await expect(page.getByText('£60,000.00')).toBeVisible();
+    await expect(page.getByText('active')).toBeVisible();
+  });
+
+  test('edit trip shows error when budget is reduced below existing allocations', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    // Navigate to the trip and add a destination so budget is allocated
+    await page.getByText('Big Adventure').click();
+
+    await page.getByRole('button', { name: /edit trip/i }).click();
+
+    // Try to set budget lower than the £16,000 fixed cost already on the trip
+    await page.getByLabel('Total budget').fill('1');
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await expect(
+      page.getByText(/budget.*too small|reduce fixed costs/i),
+    ).toBeVisible();
+  });
+
+  test('edited trip name appears on the dashboard', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText('Big Adventure')).toBeVisible();
+  });
+});

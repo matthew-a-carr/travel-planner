@@ -15,6 +15,7 @@ import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DestinationSection } from '@/ui/components/DestinationSection';
+import { EditTripButton } from '@/ui/components/EditTripModal';
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 
 type Props = { params: Promise<{ id: string }> };
@@ -90,9 +91,12 @@ export default async function TripDetailPage({ params }: Props) {
           / <span className="text-zinc-900">{trip.name}</span>
         </nav>
 
-        <header>
-          <h1 className="text-2xl font-bold text-zinc-900">{trip.name}</h1>
-          <StatusBadge status={trip.status} />
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900">{trip.name}</h1>
+            <StatusBadge status={trip.status} />
+          </div>
+          <EditTripButton trip={trip} />
         </header>
 
         <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />

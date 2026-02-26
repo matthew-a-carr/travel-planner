@@ -7,24 +7,29 @@
 - **Import from `domain/` only.** No `next`, `drizzle`, `react`, or infrastructure imports.
 - **Thin orchestration only.** Use cases fetch, validate, and delegate — no business logic here.
 - Business logic belongs in `domain/`. Infrastructure concerns belong in `infrastructure/`.
+- **Every use case must have a co-located integration test.** When you add `my-use-case.ts`,
+  you must also add `my-use-case.int-test.ts` in the same directory. A use case without an
+  integration test is considered incomplete and must not be merged.
 
-These rules are enforced by `src/__tests__/architecture.test.ts`.
+These rules are enforced by `src/__tests__/architecture.test.ts` (layer isolation)
+and by code review / CI for the integration test requirement.
 
 ## Structure
 
 ```
 src/application/
   use-cases/
-    create-trip.ts
-    add-destination.ts
-    edit-destination.ts
-    remove-destination.ts
-    add-fixed-cost.ts
-    remove-fixed-cost.ts
-    record-spend.ts
-    edit-spend-entry.ts
-    delete-spend-entry.ts
-    get-country-references.ts
+    create-trip.ts                + create-trip.int-test.ts
+    edit-trip.ts                  + edit-trip.int-test.ts
+    add-destination.ts            + add-destination.int-test.ts
+    edit-destination.ts           + edit-destination.int-test.ts
+    remove-destination.ts         + remove-destination.int-test.ts
+    add-fixed-cost.ts             + add-fixed-cost.int-test.ts
+    remove-fixed-cost.ts          + remove-fixed-cost.int-test.ts
+    record-spend.ts               + record-spend.int-test.ts
+    edit-spend-entry.ts           + edit-spend-entry.int-test.ts
+    delete-spend-entry.ts         + delete-spend-entry.int-test.ts
+    get-country-references.ts     + get-country-references.int-test.ts
 ```
 
 ## Use case shape
@@ -57,4 +62,5 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 9 integration test files in `use-cases/`, one per use case.
+There are currently 11 integration test files in `use-cases/`, **one per use case**.
+Adding a use case without its paired `.int-test.ts` breaks this invariant.

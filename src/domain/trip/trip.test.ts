@@ -5,6 +5,7 @@ import {
   calculateTotalFixedCosts,
   canAllocateBudget,
   getTripBudgetSummary,
+  validateTripBudgetEdit,
 } from './trip';
 import type { Destination, Trip, TripFixedCost } from './types';
 import { money } from './types';
@@ -213,6 +214,56 @@ describe('canAllocateBudget', () => {
     const trip = makeTrip({ totalBudget: money(1_600_000, 'GBP') });
     const fixedCosts = [makeFixedCost({ amountPence: 1_600_000 })];
     const result = canAllocateBudget(trip, [], fixedCosts, money(1, 'GBP'));
+    expect(result.ok).toBe(false);
+  });
+});
+
+// ─── validateTripBudgetEdit ───────────────────────────────────────────────────
+
+describe('validateTripBudgetEdit', () => {
+  it('should return ok when there are no destinations or fixed costs', () => {
+    const result = validateTripBudgetEdit(1_000_000, [], []);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should return ok when new budget exactly covers destinations and fixed costs', () => {
+    const destinations = [makeDestination({ amountPence: 1_000_000 })];
+    const fixedCosts = [makeFixedCost({ amountPence: 600_000 })];
+    // exactly 1,600,000
+    const result = validateTripBudgetEdit(1_600_000, destinations, fixedCosts);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should return ok when new budget exceeds total allocations', () => {
+    const destinations = [makeDestination({ amountPence: 500_000 })];
+    const fixedCosts = [makeFixedCost({ amountPence: 200_000 })];
+    const result = validateTripBudgetEdit(1_000_000, destinations, fixedCosts);
+    expect(result.ok).toBe(true);
+  });
+
+  it('should return err when new budget is below sum of destinations and fixed costs', () => {
+    const destinations = [makeDestination({ amountPence: 1_000_000 })];
+    const fixedCosts = [makeFixedCost({ amountPence: 600_000 })];
+    const result = validateTripBudgetEdit(1_599_999, destinations, fixedCosts);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/too small|reduce fixed costs/i);
+    }
+  });
+
+  it('should return err when fixed costs alone exceed new budget', () => {
+    const fixedCosts = [makeFixedCost({ amountPence: 1_600_000 })];
+    const result = validateTripBudgetEdit(500_000, [], fixedCosts);
+    expect(result.ok).toBe(false);
+  });
+
+  it('should sum multiple destinations', () => {
+    const destinations = [
+      makeDestination({ id: 'dest-1', amountPence: 500_000 }),
+      makeDestination({ id: 'dest-2', amountPence: 500_000 }),
+    ];
+    // 1,000,000 destinations, no fixed costs — needs at least 1,000,000
+    const result = validateTripBudgetEdit(999_999, destinations, []);
     expect(result.ok).toBe(false);
   });
 });

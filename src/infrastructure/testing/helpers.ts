@@ -239,6 +239,30 @@ export async function seedFixedCost(
   };
 }
 
+export async function seedCountryReference(
+  db: Db,
+  overrides: {
+    country?: string;
+    avgDailyCostPence?: number;
+    currency?: string;
+    source?: 'manual' | 'api';
+  } = {},
+): Promise<{ country: string; avgDailyCostPence: number }> {
+  const country = overrides.country ?? 'Japan';
+  const avgDailyCostPence = overrides.avgDailyCostPence ?? 7_500; // £75/day mid-range
+  const currency = overrides.currency ?? 'GBP';
+  const source = overrides.source ?? 'manual';
+
+  await db.insert(schema.countryReferenceData).values({
+    country,
+    avgDailyCostPence,
+    currency,
+    source,
+  });
+
+  return { country, avgDailyCostPence };
+}
+
 export async function seedSpendEntry(
   db: Db,
   destinationId: string,

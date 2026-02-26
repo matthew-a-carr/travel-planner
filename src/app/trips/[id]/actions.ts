@@ -6,10 +6,17 @@ import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
 import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
 import { editDestination } from '@/application/use-cases/edit-destination';
 import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
+import { editTrip } from '@/application/use-cases/edit-trip';
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
-import type { ComfortLevel, SpendCategory } from '@/domain/trip/types';
+import type { ComfortLevel, SpendCategory, TripStatus } from '@/domain/trip/types';
+
+const TRIP_STATUSES: readonly TripStatus[] = ['planning', 'active', 'completed'];
+
+function toTripStatus(v: string): TripStatus | null {
+  return (TRIP_STATUSES as readonly string[]).includes(v) ? (v as TripStatus) : null;
+}
 
 const SPEND_CATEGORIES: readonly SpendCategory[] = [
   'accommodation',
@@ -48,6 +55,58 @@ function parseDateField(value: FormDataEntryValue | null): Date | null {
   if (!value || typeof value !== 'string' || value.trim() === '') return null;
   const d = new Date(value.trim());
   return Number.isNaN(d.getTime()) ? null : d;
+}
+
+// ─── Trip edit action ─────────────────────────────────────────────────────────
+
+export type EditTripState = { error: string | null };
+
+export async function editTripAction(
+  tripId: string,
+  _prev: EditTripState,
+  formData: FormData,
+): Promise<EditTripState> {
+  const userId = await getVerifiedUserId();
+
+  const tripRepo = new DrizzleTripRepository(db);
+  const trip = await tripRepo.findById(tripId);
+  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+
+  const name = formData.get('name');
+  const totalBudgetPounds = formData.get('totalBudgetPounds');
+  const statusRaw = formData.get('status');
+
+  if (
+    typeof name !== 'string' ||
+    typeof totalBudgetPounds !== 'string' ||
+    typeof statusRaw !== 'string'
+  ) {
+    return { error: 'Invalid form data' };
+  }
+  if (!name.trim()) return { error: 'Trip name is required' };
+
+  const totalBudgetPence = Math.round(Number.parseFloat(totalBudgetPounds) * 100);
+  if (Number.isNaN(totalBudgetPence) || totalBudgetPence <= 0) {
+    return { error: 'Invalid budget value' };
+  }
+
+  const status = toTripStatus(statusRaw);
+  if (!status) return { error: 'Invalid status' };
+
+  const destRepo = new DrizzleDestinationRepository(db);
+  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+  const result = await editTrip(tripRepo, destRepo, fixedCostRepo, {
+    tripId,
+    name: name.trim(),
+    totalBudgetPence,
+    currency: 'GBP', // GBP-only: see ADR 011
+    status,
+  });
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  revalidatePath('/');
+  return { error: null };
 }
 
 // ─── Fixed cost actions ───────────────────────────────────────────────────────
