@@ -68,6 +68,35 @@ export function canAllocateBudget(
 }
 
 /**
+ * Validates that a proposed new total budget for a trip is large enough to
+ * cover all existing fixed costs and destination allocations.
+ *
+ * Called before persisting an edit to prevent the budget from being reduced
+ * below what has already been committed to.
+ *
+ * Returns Ok(true) if the new budget is valid.
+ * Returns Err with a descriptive message if existing commitments would exceed it.
+ */
+export function validateTripBudgetEdit(
+  newBudgetPence: number,
+  destinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
+): Result<true> {
+  const totalAllocatedPence = destinations.reduce(
+    (sum, d) => sum + d.estimatedBudget.amountPence,
+    0,
+  );
+  const totalFixedPence = fixedCosts.reduce((sum, fc) => sum + fc.amount.amountPence, 0);
+  const requiredPence = totalAllocatedPence + totalFixedPence;
+
+  if (newBudgetPence < requiredPence) {
+    return err('New budget is too small — reduce fixed costs or destination allocations first');
+  }
+
+  return ok(true);
+}
+
+/**
  * Returns the next sort order value for a new fixed cost.
  * Mirrors nextSortOrder in destination.ts — kept separate to preserve
  * independent typing for TripFixedCost vs Destination arrays.
