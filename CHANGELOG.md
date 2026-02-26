@@ -7,6 +7,16 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Added
+
+- Edit trip: users can now update a trip's name, total budget, and status
+  (planning / active / completed) via an Edit trip button on the trip detail page.
+  Reducing the budget below existing fixed costs + destination allocations is
+  rejected with a clear error message (ADR 013).
+- `validateTripBudgetEdit` domain guard enforces the budget invariant on edits.
+- Integration test for `get-country-references` use case (previously missing).
+- `seedCountryReference` factory in the test harness (`src/infrastructure/testing/helpers.ts`).
+
 ### Changed
 
 - Integration test files renamed from `.test.ts` to `.int-test.ts` suffix; Vitest config
