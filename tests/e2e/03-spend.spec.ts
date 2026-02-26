@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Spend entry journeys.
+ * Spend entry journeys, plus destination removal.
  *
  * Runs third (03-) — depends on the Japan destination created by
- * 02-destinations.spec.ts.
+ * 02-destinations.spec.ts.  The destination removal test is here (rather
+ * than in 02-) because it must run after all spend journeys complete.
  *
  * Acceptance criteria:
  * - User can record a spend against a destination
  * - Spend appears in the destination spend list
  * - Total spend is shown per destination
  * - Budget overview reflects actual spend vs estimated
+ * - User can remove a destination (tested last, after all spend journeys)
  */
 
 test.describe('Spend recording', () => {
@@ -33,7 +35,7 @@ test.describe('Spend recording', () => {
     await page.getByLabel(/description/i).fill('Ramen dinner');
     await page.getByLabel(/date/i).fill('2026-06-15');
 
-    await page.getByRole('button', { name: /save/i }).click();
+    await page.getByRole('button', { name: /record spend/i }).click();
 
     await expect(page.getByText('Ramen dinner')).toBeVisible();
     await expect(page.getByText('£120.50')).toBeVisible();
@@ -67,5 +69,21 @@ test.describe('Spend recording', () => {
 
     await expect(page.getByText('Ramen dinner (updated)')).not.toBeVisible();
     await expect(page.getByText(/no spend recorded/i)).toBeVisible();
+  });
+});
+
+test.describe('Destination removal', () => {
+  // Runs after all spend tests so the Japan destination can be removed cleanly.
+  // By this point the destination was renamed to "Japan (updated)" by 02-destinations.spec.ts.
+  test('user can remove a destination', async ({ page }) => {
+    await page.goto('/');
+    await page.getByText('Test Round the World').click();
+
+    // aria-label is "Remove Japan (updated)" — regex matches as a substring
+    await page.getByRole('button', { name: /remove japan/i }).click();
+
+    await expect(page.getByText('Japan')).not.toBeVisible();
+    // Available budget returns to £34,000 (£50,000 - £16,000 fixed costs)
+    await expect(page.getByText('£34,000.00')).toBeVisible();
   });
 });

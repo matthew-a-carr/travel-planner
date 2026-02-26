@@ -14,7 +14,10 @@ import { test, expect } from '@playwright/test';
  * - User can edit a destination's details and budget
  * - Editing budget to the same value succeeds (no false rejection)
  * - Editing budget to an amount exceeding available headroom is rejected
- * - User can remove a destination
+ *
+ * Note: "User can remove a destination" is tested in 03-spend.spec.ts after
+ * all spend journeys complete, because 03-spend depends on the Japan
+ * destination existing.
  */
 
 test.describe('Destination management', () => {
@@ -36,7 +39,7 @@ test.describe('Destination management', () => {
     await page.getByLabel(/estimated budget/i).fill('5000');
     await page.getByLabel(/comfort/i).selectOption('mid');
 
-    await page.getByRole('button', { name: /save/i }).click();
+    await page.getByRole('button', { name: /add destination/i }).click();
 
     await expect(page.getByText('Japan')).toBeVisible();
   });
@@ -55,7 +58,7 @@ test.describe('Destination management', () => {
     await page.getByLabel(/estimated budget/i).fill('999999');
     await page.getByLabel(/comfort/i).selectOption('luxury');
 
-    await page.getByRole('button', { name: /save/i }).click();
+    await page.getByRole('button', { name: /add destination/i }).click();
 
     await expect(page.getByText(/exceeds available budget/i)).toBeVisible();
   });
@@ -103,12 +106,4 @@ test.describe('Destination management', () => {
     await expect(page.getByText('Should not save')).not.toBeVisible();
   });
 
-  test('user can remove a destination', async ({ page }) => {
-    await page.getByRole('button', { name: /remove japan/i }).click();
-    await page.getByRole('button', { name: /confirm/i }).click();
-
-    await expect(page.getByText('Japan')).not.toBeVisible();
-    // Available budget returns to £34,000
-    await expect(page.getByText('£34,000.00')).toBeVisible();
-  });
 });

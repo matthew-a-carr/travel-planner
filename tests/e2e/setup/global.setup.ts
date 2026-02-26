@@ -18,7 +18,8 @@
  */
 
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { openSync, closeSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { drizzle } from 'drizzle-orm/postgres-js';
@@ -126,18 +127,29 @@ export default async function globalSetup(): Promise<void> {
   if (process.env.CI) {
     console.log('[e2e] Starting Next.js production server…');
 
-    // Spawn in its own process group (detached) so that teardown can send
-    // SIGTERM to the entire group (shell → pnpm → node) in one call.
-    const serverProcess = spawn('pnpm start', {
+    const serverLogFile = join(FIXTURES_DIR, 'next-server.log');
+
+    // Open a log file and pass the raw FD to the child so output is captured
+    // even after this process moves on.  Parent closes its copy immediately
+    // after spawn; the child retains its own copy.
+    const logFd = openSync(serverLogFile, 'w');
+    const serverProcess = spawn('pnpm', ['start'], {
       env: { ...process.env }, // POSTGRES_URL is now set
-      stdio: 'inherit',
+      stdio: ['ignore', logFd, logFd],
       detached: true,
-      shell: true,
     });
+    closeSync(logFd);
 
     if (!serverProcess.pid) {
       throw new Error('[e2e] Failed to obtain PID for Next.js server process');
     }
+
+    // Detect an early crash so we can fail immediately rather than waiting
+    // out the full poll timeout.
+    let serverExitCode: number | null = null;
+    serverProcess.on('exit', (code) => {
+      serverExitCode = code ?? -1;
+    });
 
     // Persist the process-group leader PID so globalTeardown can kill it.
     await writeFile(SERVER_PID_FILE, serverProcess.pid.toString());
@@ -147,11 +159,20 @@ export default async function globalSetup(): Promise<void> {
 
     // Poll until the server accepts HTTP connections (or timeout).
     const serverUrl = 'http://localhost:3000';
-    const timeoutMs = 120_000;
+    const timeoutMs = 60_000;
     const deadline = Date.now() + timeoutMs;
 
     let ready = false;
     while (Date.now() < deadline) {
+      // Fail fast if the server process exited before becoming ready.
+      if (serverExitCode !== null) {
+        const log = await readFile(serverLogFile, 'utf-8').catch(() => '(no log)');
+        throw new Error(
+          `[e2e] Next.js server exited (code ${serverExitCode}) before becoming ready.\n` +
+            `Server log:\n${log.slice(-3000)}`,
+        );
+      }
+
       try {
         const res = await fetch(serverUrl);
         if (res.status < 500) {
@@ -161,11 +182,15 @@ export default async function globalSetup(): Promise<void> {
       } catch {
         // ECONNREFUSED — server not yet listening
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
 
     if (!ready) {
-      throw new Error(`[e2e] Next.js server did not become ready within ${timeoutMs}ms`);
+      const log = await readFile(serverLogFile, 'utf-8').catch(() => '(no log)');
+      throw new Error(
+        `[e2e] Next.js server did not become ready within ${timeoutMs}ms.\n` +
+          `Server log:\n${log.slice(-3000)}`,
+      );
     }
 
     console.log('[e2e] Next.js production server ready.');

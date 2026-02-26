@@ -148,3 +148,12 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      - name: Upload Next.js server log
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: next-server-log
+          path: tests/e2e/fixtures/next-server.log
+          if-no-files-found: ignore
+          retention-days: 7
