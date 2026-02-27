@@ -15,7 +15,9 @@ pnpm test:integration   # Vitest integration tests — real Postgres via Testcon
 ```
 
 All four must exit 0. Do not push with failures. The pre-push hook runs these
-automatically, but run them manually to verify mid-task.
+**sequentially** in this order — run them manually to verify mid-task.
+
+The hook does **not** cover e2e tests or `terraform-check`; those only run in CI.
 
 Before pushing, also verify the production build:
 
@@ -133,7 +135,7 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-All six jobs run in parallel on every push and PR:
+Six GitHub Actions jobs run **in parallel** on every push to `main` and on every PR (distinct from the sequential pre-push hook above):
 
 - `lint` (`pnpm lint`)
 - `type-check` (`pnpm type-check`)
