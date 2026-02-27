@@ -100,6 +100,35 @@ jobs:
   # process.env, and tears it down in globalTeardown.
   # Docker is available by default on ubuntu-latest runners.
 
+  terraform-check:
+    name: Terraform check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+
+      - name: Check formatting
+        # -recursive checks all subdirectories; exits non-zero if any file needs reformatting.
+        # Run `terraform fmt -recursive terraform/` locally to fix.
+        run: terraform fmt -check -recursive terraform/
+
+      - name: Validate preview environment
+        # -backend=false skips HCP Terraform state initialisation — no credentials required.
+        # Downloads providers using lock file checksums, then validates syntax and types.
+        working-directory: terraform/environments/preview
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate production environment
+        working-directory: terraform/environments/production
+        run: |
+          terraform init -backend=false
+          terraform validate
+
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest

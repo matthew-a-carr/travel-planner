@@ -1,0 +1,38 @@
+# terraform.tfvars.example
+#
+# Documents the variables required by this environment.
+# This file is safe to commit — it contains no real values.
+#
+# DO NOT create a terraform.tfvars file with real credentials.
+# Store all sensitive values as Terraform variables in the HCP Terraform
+# workspace UI (marked Sensitive so they are write-only after being set).
+#
+# Apply order:
+#   1. Apply environments/preview first to create the preview Neon database.
+#   2. Copy the postgres_url output from the preview HCP Terraform workspace.
+#   3. Set it as preview_postgres_url in this workspace's variables.
+#   4. Apply this environment.
+
+# ── Provider credentials ──────────────────────────────────────────────────────
+
+# Generate at: https://console.neon.tech/app/settings/api-keys
+neon_api_key = "YOUR_NEON_API_KEY"
+
+# Generate at: https://vercel.com/account/tokens
+# Scope: Full Account (required for project creation)
+vercel_api_token = "YOUR_VERCEL_API_TOKEN"
+
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+# Create credentials at: https://console.cloud.google.com/apis/credentials
+# Application type: Web application
+# Authorised JavaScript origins: https://travel-planner.vercel.app
+# Authorised redirect URIs: https://travel-planner.vercel.app/api/auth/callback/google
+
+auth_google_id     = "YOUR_CLIENT_ID.apps.googleusercontent.com"
+auth_google_secret = "YOUR_CLIENT_SECRET"
+
+# ── Preview database ──────────────────────────────────────────────────────────
+# Connection string from the travel-planner-preview HCP Terraform workspace.
+# HCP Terraform UI → travel-planner-preview workspace → Outputs tab → postgres_url
+
+preview_postgres_url = "postgresql://travel_planner_owner:PASSWORD@HOST-pooler.eu-west-2.aws.neon.tech/travel_planner?sslmode=require"

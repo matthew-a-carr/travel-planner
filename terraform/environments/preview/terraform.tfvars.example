@@ -1,0 +1,12 @@
+# terraform.tfvars.example
+#
+# Documents the variables required by this environment.
+# This file is safe to commit — it contains no real values.
+#
+# Apply this environment before environments/production.
+# After applying, copy the postgres_url output to the production workspace:
+#   HCP Terraform UI → travel-planner-preview → Outputs → postgres_url
+#   Then set it as preview_postgres_url in travel-planner-production workspace.
+
+# Generate at: https://console.neon.tech/app/settings/api-keys
+neon_api_key = "YOUR_NEON_API_KEY"
