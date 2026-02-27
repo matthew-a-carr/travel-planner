@@ -17,6 +17,7 @@
 # Testcontainers runtime artefacts (written by global.setup.ts, not for VCS)
 /tests/e2e/fixtures/auth-state.json
 /tests/e2e/fixtures/.container-id
+/tests/e2e/fixtures/next-server.log
 
 # next.js
 /.next/
