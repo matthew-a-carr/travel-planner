@@ -133,7 +133,7 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-All five jobs run in parallel on every push and PR:
+All six jobs run in parallel on every push and PR:
 
 - `lint` (`pnpm lint`)
 - `type-check` (`pnpm type-check`)
@@ -147,6 +147,10 @@ All five jobs run in parallel on every push and PR:
   and writes `auth-state.json`. `pnpm start` (pre-built production server) is used
   in CI; `pnpm dev` locally. Failed runs upload the Playwright HTML report as an
   artifact (7-day retention). See ADR 009 for Testcontainers rationale.
+- `terraform-check` — runs `terraform fmt -check -recursive terraform/` and
+  `terraform validate -backend=false` in each environment. Requires no API credentials.
+  Full speculative plans (with real API calls) are handled by HCP Terraform's VCS
+  integration. See ADR 014.
 
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
 Actions updates. Dev tooling is grouped into a single PR to reduce noise.
@@ -172,7 +176,7 @@ the code change.
 | Infrastructure repos or auth (`src/infrastructure/`) | `src/infrastructure/AGENTS.md` structure |
 | Environment variables | `AGENTS.md` env section, `README.md` setup section |
 | Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
-| A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable |
+| A significant architectural decision | New ADR in `docs/decisions/`, **add a row to `docs/decisions/README.md` index**, update superseded ADR status if applicable |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 
 **Signs a doc is stale:** it describes a tool, file, or behaviour that no longer

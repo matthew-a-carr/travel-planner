@@ -19,3 +19,7 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [008](008-ci-pipeline-structure-and-dependabot.md) | CI Pipeline Structure and Automated Dependency Updates | 2026-02-23 | Accepted |
 | [009](009-testcontainers-e2e-postgres.md) | Testcontainers for E2E PostgreSQL | 2026-02-23 | Accepted |
 | [010](010-build-time-postgres-url-pattern.md) | Build-time POSTGRES_URL Pattern for next build | 2026-02-23 | Accepted |
+| [011](011-gbp-only-currency.md) | GBP-Only Currency in MVP | 2026-02-25 | Accepted |
+| [012](012-integration-test-naming-convention.md) | Integration Test File Naming Convention (`.int-test.ts`) | 2026-02-25 | Accepted |
+| [013](013-trip-status-transition-model.md) | Trip Status Transition Model | 2026-02-26 | Accepted |
+| [014](014-terraform-infrastructure.md) | Terraform Infrastructure as Code | 2026-02-27 | Accepted |
