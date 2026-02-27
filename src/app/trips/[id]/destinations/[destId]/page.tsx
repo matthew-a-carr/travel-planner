@@ -73,7 +73,12 @@ export default async function DestinationDetailPage({ params }: Props) {
           </p>
         </header>
 
-        <BudgetProgressCard destination={destination} spendPercent={spendPercent} isOverSpend={isOverSpend} totalSpend={totalSpend} />
+        <BudgetProgressCard
+          destination={destination}
+          spendPercent={spendPercent}
+          isOverSpend={isOverSpend}
+          totalSpend={totalSpend}
+        />
 
         <DestinationSpendSection tripId={tripId} destinationId={destId} spend={spend} />
       </div>
@@ -116,9 +121,7 @@ function BudgetProgressCard({
           style={{ width: `${spendPercent}%` }}
         />
       </div>
-      {isOverSpend && (
-        <p className="mt-2 text-xs text-red-600">Over estimated budget</p>
-      )}
+      {isOverSpend && <p className="mt-2 text-xs text-red-600">Over estimated budget</p>}
     </div>
   );
 }
