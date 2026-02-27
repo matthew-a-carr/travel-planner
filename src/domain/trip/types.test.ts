@@ -64,7 +64,7 @@ describe('addMoney', () => {
 
 describe('formatMoney', () => {
   it('formats GBP with £ symbol', () => {
-    expect(formatMoney(money(5_000_00, 'GBP'))).toBe('£5000.00');
+    expect(formatMoney(money(5_000_00, 'GBP'))).toBe('£5,000.00');
   });
 
   it('formats USD with $ symbol', () => {

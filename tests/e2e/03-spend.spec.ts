@@ -19,8 +19,9 @@ test.describe('Spend recording', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByText('Test Round the World').click();
-    // Assumes Japan destination exists from 02-destinations.spec.ts
-    await page.getByText('Japan').click();
+    // Destination was renamed to "Japan (updated)" by 02-destinations.spec.ts.
+    // Use role=link so we match only the clickable name, not the country text.
+    await page.getByRole('link', { name: /japan/i }).click();
   });
 
   test('destination detail shows empty spend state', async ({ page }) => {
@@ -37,13 +38,13 @@ test.describe('Spend recording', () => {
 
     await page.getByRole('button', { name: /record spend/i }).click();
 
-    await expect(page.getByText('Ramen dinner')).toBeVisible();
-    await expect(page.getByText('£120.50')).toBeVisible();
+    await expect(page.getByText('Ramen dinner').first()).toBeVisible();
+    await expect(page.getByText('£120.50').first()).toBeVisible();
   });
 
   test('total spend is shown correctly', async ({ page }) => {
     await expect(page.getByText(/total spent/i)).toBeVisible();
-    await expect(page.getByText('£120.50')).toBeVisible();
+    await expect(page.getByText('£120.50').first()).toBeVisible();
   });
 
   test('user can edit a spend entry', async ({ page }) => {
@@ -57,8 +58,8 @@ test.describe('Spend recording', () => {
 
     await page.getByRole('button', { name: /save changes/i }).click();
 
-    await expect(page.getByText('Ramen dinner (updated)')).toBeVisible();
-    await expect(page.getByText('£150.00')).toBeVisible();
+    await expect(page.getByText('Ramen dinner (updated)').first()).toBeVisible();
+    await expect(page.getByText('£150.00').first()).toBeVisible();
   });
 
   test('user can delete a spend entry', async ({ page }) => {
@@ -82,8 +83,8 @@ test.describe('Destination removal', () => {
     // aria-label is "Remove Japan (updated)" — regex matches as a substring
     await page.getByRole('button', { name: /remove japan/i }).click();
 
-    await expect(page.getByText('Japan')).not.toBeVisible();
+    await expect(page.getByText('Japan').first()).not.toBeVisible();
     // Available budget returns to £34,000 (£50,000 - £16,000 fixed costs)
-    await expect(page.getByText('£34,000.00')).toBeVisible();
+    await expect(page.getByText('£34,000.00').first()).toBeVisible();
   });
 });

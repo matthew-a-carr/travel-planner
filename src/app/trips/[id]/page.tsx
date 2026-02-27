@@ -195,7 +195,7 @@ function BudgetOverviewCard({
             style={{ width: `${Math.min(summary.allocationPercentage, 100)}%` }}
           />
         </div>
-        <p className="mt-1 text-right text-xs text-zinc-400">
+        <p className="mt-1 text-right text-xs text-zinc-500">
           {summary.allocationPercentage}% allocated
         </p>
       </div>

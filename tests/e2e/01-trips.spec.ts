@@ -25,7 +25,9 @@ test.describe('Trip creation', () => {
     await page.getByLabel('Trip name').fill('Test Round the World');
     await page.getByLabel('Total budget').fill('50000');
 
-    await page.getByRole('button', { name: /create trip/i }).click();
+    // Use form-scoped selector to avoid strict mode violation (two "Create trip"
+    // buttons exist when the modal is open: the backdrop trigger and the submit).
+    await page.locator('form').getByRole('button', { name: /create trip/i }).click();
 
     // Should redirect to /trips/[uuid]
     await expect(page).toHaveURL(/\/trips\/[0-9a-f-]+/);
@@ -34,9 +36,10 @@ test.describe('Trip creation', () => {
     // Add a fixed cost on the trip detail page (ADR 005: fixed costs live here, not in the create form)
     await page.getByLabel('Label').fill('Australia Visa & Living');
     await page.getByLabel('Amount (£)').fill('16000');
-    await page.getByRole('button', { name: 'Add' }).click();
+    // exact: true prevents matching "Add destination" (partial match default)
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
-    await expect(page.getByText('Australia Visa & Living')).toBeVisible();
+    await expect(page.getByText('Australia Visa & Living').first()).toBeVisible();
   });
 
   test('created trip appears on dashboard', async ({ page }) => {
@@ -52,6 +55,6 @@ test.describe('Trip detail page', () => {
 
     await expect(page.getByText(/budget overview/i)).toBeVisible();
     await expect(page.getByText('£50,000.00')).toBeVisible();
-    await expect(page.getByText('Australia Visa & Living')).toBeVisible();
+    await expect(page.getByText('Australia Visa & Living').first()).toBeVisible();
   });
 });

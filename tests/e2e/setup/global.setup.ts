@@ -24,8 +24,9 @@ import { join } from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { encode } from 'next-auth/jwt';
 import postgres from 'postgres';
-import { countryReferenceData, sessions, users } from '../../../src/infrastructure/db/schema';
+import { countryReferenceData, users } from '../../../src/infrastructure/db/schema';
 import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/country-reference-seed';
 
 const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
@@ -36,23 +37,32 @@ const SERVER_PID_FILE = join(FIXTURES_DIR, '.server-pid');
 export default async function globalSetup(): Promise<void> {
   await mkdir(FIXTURES_DIR, { recursive: true });
 
-  // ── 1. Start PostgreSQL container ─────────────────────────────────────────
-  console.log('[e2e] Starting PostgreSQL container…');
-  const container = await new PostgreSqlContainer('postgres:16-alpine')
-    .withDatabase('travel_planner_test')
-    .withUsername('testuser')
-    .withPassword('testpass')
-    .start();
+  // ── 1. Start PostgreSQL container (or use existing POSTGRES_URL) ─────────
+  let connectionUri: string;
 
-  const connectionUri = container.getConnectionUri();
+  if (process.env.POSTGRES_URL) {
+    // When POSTGRES_URL is already set (e.g. local dev with a running postgres
+    // instance), skip Testcontainers entirely and use the provided URL.
+    connectionUri = process.env.POSTGRES_URL;
+    console.log(`[e2e] Using existing PostgreSQL at ${connectionUri}`);
+  } else {
+    console.log('[e2e] Starting PostgreSQL container…');
+    const container = await new PostgreSqlContainer('postgres:16-alpine')
+      .withDatabase('travel_planner_test')
+      .withUsername('testuser')
+      .withPassword('testpass')
+      .start();
 
-  // Make the URL available to the Next.js web server that Playwright
-  // will spawn after globalSetup completes.
-  process.env.POSTGRES_URL = connectionUri;
+    connectionUri = container.getConnectionUri();
 
-  // Persist the container ID for globalTeardown.
-  await writeFile(CONTAINER_ID_FILE, container.getId());
-  console.log(`[e2e] PostgreSQL ready at ${connectionUri}`);
+    // Persist the container ID for globalTeardown.
+    await writeFile(CONTAINER_ID_FILE, container.getId());
+
+    // Make the URL available to the Next.js web server that Playwright
+    // will spawn after globalSetup completes.
+    process.env.POSTGRES_URL = connectionUri;
+    console.log(`[e2e] PostgreSQL ready at ${connectionUri}`);
+  }
 
   // ── 2. Run migrations ──────────────────────────────────────────────────────
   const sql = postgres(connectionUri, { max: 1 });
@@ -90,20 +100,37 @@ export default async function globalSetup(): Promise<void> {
     image: null,
   });
 
-  // ── 5. Create test session ──────────────────────────────────────────────────
-  const sessionToken = crypto.randomUUID();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-  await db.insert(sessions).values({ sessionToken, userId, expires });
-
   await sql.end();
+
+  // ── 5. Create signed JWT for storage state ─────────────────────────────────
+  // NextAuth v5 uses JWT strategy (session: { strategy: 'jwt' }).  The cookie
+  // must contain a JOSE-encrypted JWT signed with AUTH_SECRET, not a raw UUID.
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  const authSecret = process.env.AUTH_SECRET;
+  if (!authSecret) throw new Error('[e2e] AUTH_SECRET must be set for JWT encoding');
+
+  const cookieName = 'authjs.session-token';
+  const jwt = await encode({
+    token: {
+      sub: userId,
+      name: 'E2E Test User',
+      email: 'e2e@travelplanner.test',
+      picture: null,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(expires.getTime() / 1000),
+      jti: crypto.randomUUID(),
+    },
+    secret: authSecret,
+    salt: cookieName,
+  });
 
   // ── 6. Write Playwright storage state ─────────────────────────────────────
   // NextAuth v5 on HTTP uses the `authjs.session-token` cookie name.
   const authState = {
     cookies: [
       {
-        name: 'authjs.session-token',
-        value: sessionToken,
+        name: cookieName,
+        value: jwt,
         domain: 'localhost',
         path: '/',
         expires: Math.floor(expires.getTime() / 1000),

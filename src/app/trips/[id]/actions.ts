@@ -87,7 +87,7 @@ export async function addFixedCostAction(
   });
 
   if (!result.ok) return { error: result.error };
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
   return { error: null };
 }
 
@@ -101,7 +101,7 @@ export async function removeFixedCostAction(tripId: string, fixedCostId: string)
   const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   await removeFixedCost(fixedCostRepo, fixedCostId);
 
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
 }
 
 // ─── Destination actions ──────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ export async function addDestinationAction(
   });
 
   if (!result.ok) return { error: result.error };
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
   return { error: null };
 }
 
@@ -218,7 +218,7 @@ export async function editDestinationAction(
   });
 
   if (!result.ok) return { error: result.error };
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
   return { error: null };
 }
 
@@ -235,7 +235,7 @@ export async function removeDestinationAction(
   const destRepo = new DrizzleDestinationRepository(db);
   await removeDestination(destRepo, destinationId);
 
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
 }
 
 // ─── Spend actions ────────────────────────────────────────────────────────────
@@ -287,7 +287,7 @@ export async function recordSpendAction(
   });
 
   if (!result.ok) return { error: result.error };
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
   return { error: null };
 }
 
@@ -303,7 +303,7 @@ export async function deleteSpendEntryAction(tripId: string, entryId: string): P
   const spendRepo = new DrizzleSpendEntryRepository(db);
   await deleteSpendEntry(spendRepo, entryId);
 
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
 }
 
 export type EditSpendEntryState = { error: string | null };
@@ -352,6 +352,6 @@ export async function editSpendEntryAction(
   });
 
   if (!result.ok) return { error: result.error };
-  revalidatePath(`/trips/${tripId}`);
+  revalidatePath(`/trips/${tripId}`, 'layout');
   return { error: null };
 }

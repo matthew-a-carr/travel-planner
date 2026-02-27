@@ -41,13 +41,13 @@ test.describe('Destination management', () => {
 
     await page.getByRole('button', { name: /add destination/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(page.getByText('Japan').first()).toBeVisible();
   });
 
   test('adding a destination reduces available budget', async ({ page }) => {
     // Available was £34,000 (50,000 - 16,000 ringfenced)
     // After adding Japan (£5,000) it should be £29,000
-    await expect(page.getByText('£29,000.00')).toBeVisible();
+    await expect(page.getByText('£29,000.00').first()).toBeVisible();
   });
 
   test('user cannot add a destination exceeding available budget', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('Destination management', () => {
     await page.getByLabel(/country/i).fill('Japan');
     await page.getByRole('button', { name: /save changes/i }).click();
 
-    await expect(page.getByText('Japan (updated)')).toBeVisible();
+    await expect(page.getByText('Japan (updated)').first()).toBeVisible();
     await expect(page.getByRole('button', { name: /edit japan \(updated\)/i })).toBeVisible();
   });
 
@@ -83,9 +83,9 @@ test.describe('Destination management', () => {
     // Budget field is pre-filled; submit without changing it
     await page.getByRole('button', { name: /save changes/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(page.getByText('Japan').first()).toBeVisible();
     // Available budget unchanged at £29,000
-    await expect(page.getByText('£29,000.00')).toBeVisible();
+    await expect(page.getByText('£29,000.00').first()).toBeVisible();
   });
 
   test('user cannot edit a destination to exceed available budget', async ({ page }) => {
@@ -102,7 +102,7 @@ test.describe('Destination management', () => {
     await page.getByLabel(/name/i).fill('Should not save');
     await page.getByRole('button', { name: /cancel/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(page.getByText('Japan').first()).toBeVisible();
     await expect(page.getByText('Should not save')).not.toBeVisible();
   });
 

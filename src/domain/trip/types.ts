@@ -23,8 +23,10 @@ export function addMoney(a: Money, b: Money): Money {
 
 export function formatMoney(m: Money): string {
   const symbol = currencySymbol(m.currency);
-  const pounds = (m.amountPence / 100).toFixed(2);
-  return `${symbol}${pounds}`;
+  const pounds = m.amountPence / 100;
+  const abs = Math.abs(pounds);
+  const formatted = abs.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return pounds < 0 ? `${symbol}-${formatted}` : `${symbol}${formatted}`;
 }
 
 function currencySymbol(currency: Currency): string {

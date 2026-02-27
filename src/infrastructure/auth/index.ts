@@ -16,4 +16,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     verificationTokensTable: schema.verificationTokens,
   }),
   session: { strategy: 'jwt' },
+  callbacks: {
+    ...authConfig.callbacks,
+    session({ session, token }) {
+      if (token?.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
+  },
 });

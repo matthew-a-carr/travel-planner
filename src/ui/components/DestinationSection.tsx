@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { deleteSpendEntryAction, removeDestinationAction } from '@/app/trips/[id]/actions';
 import type { CountryReference } from '@/domain/country-reference/types';
@@ -55,7 +56,7 @@ export function DestinationSection({ tripId, destinations, allSpend, countryRefe
       {destinations.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center">
           <p className="text-zinc-500">No destinations added yet.</p>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-zinc-500">
             Add destinations to start allocating your budget.
           </p>
         </div>
@@ -120,8 +121,13 @@ function DestinationCard({
       <div className="flex items-start justify-between p-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-zinc-900">{destination.name}</p>
-            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
+            <Link
+              href={`/trips/${tripId}/destinations/${destination.id}`}
+              className="font-semibold text-zinc-900 hover:underline"
+            >
+              {destination.name}
+            </Link>
+            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-700">
               {COMFORT_LABELS[destination.comfortLevel] ?? destination.comfortLevel}
             </span>
           </div>
