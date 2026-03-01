@@ -8,17 +8,15 @@
 
 import { exec } from 'node:child_process';
 import { readFile, unlink } from 'node:fs/promises';
-import { join } from 'node:path';
 import { promisify } from 'node:util';
+import { E2E_CONTAINER_ID_FILE, E2E_POSTGRES_URL_FILE } from './e2e-env';
 
 const execAsync = promisify(exec);
-
-const CONTAINER_ID_FILE = join(process.cwd(), 'tests/e2e/fixtures/.container-id');
 
 export default async function globalTeardown(): Promise<void> {
   let containerId: string;
   try {
-    containerId = (await readFile(CONTAINER_ID_FILE, 'utf-8')).trim();
+    containerId = (await readFile(E2E_CONTAINER_ID_FILE, 'utf-8')).trim();
   } catch {
     // Setup never wrote the file — nothing to clean up.
     return;
@@ -35,7 +33,13 @@ export default async function globalTeardown(): Promise<void> {
   }
 
   try {
-    await unlink(CONTAINER_ID_FILE);
+    await unlink(E2E_CONTAINER_ID_FILE);
+  } catch {
+    // File already gone — no-op.
+  }
+
+  try {
+    await unlink(E2E_POSTGRES_URL_FILE);
   } catch {
     // File already gone — no-op.
   }

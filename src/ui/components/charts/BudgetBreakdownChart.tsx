@@ -15,7 +15,9 @@ export function BudgetBreakdownChart({ data }: { data: Segment[] }) {
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-zinc-700">Budget breakdown</h3>
+      <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+        Budget breakdown
+      </h3>
       <div className="flex items-center gap-6">
         <ResponsiveContainer width={160} height={160}>
           <PieChart>
@@ -40,14 +42,16 @@ export function BudgetBreakdownChart({ data }: { data: Segment[] }) {
         <ul className="flex-1 space-y-1.5">
           {nonZero.map((seg) => (
             <li key={seg.label} className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1.5 text-zinc-600">
+              <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                 <span
                   className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
                   style={{ backgroundColor: seg.fill }}
                 />
                 {seg.label}
               </span>
-              <span className="font-medium text-zinc-900">{penceToLabel(seg.amountPence)}</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {penceToLabel(seg.amountPence)}
+              </span>
             </li>
           ))}
         </ul>

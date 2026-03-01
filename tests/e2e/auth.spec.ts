@@ -49,5 +49,5 @@ test('local dev sign-in succeeds when the local-dev provider is available', asyn
 
   await localDevButton.click();
   await expect(page).toHaveURL('/');
-  await expect(page.getByRole('button', { name: /create trip/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /create trip/i }).first()).toBeVisible();
 });

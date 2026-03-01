@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 /**
  * Destination management journeys.
@@ -17,11 +17,70 @@ import { test, expect } from '@playwright/test';
  * - User can remove a destination
  */
 
+function tripLink(page: Page, name: string) {
+  return page.getByRole('link').filter({ hasText: name }).first();
+}
+
+async function openExistingTrip(page: Page, ...candidateNames: string[]) {
+  for (const name of candidateNames) {
+    const link = tripLink(page, name);
+    if ((await link.count()) > 0) {
+      await link.click();
+      return;
+    }
+  }
+  throw new Error(`Could not find trip link for: ${candidateNames.join(', ')}`);
+}
+
+function addDestinationForm(page: Page) {
+  return page.locator('form').filter({ has: page.locator('#dest-name') });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function editDestinationButton(page: Page, destinationName: string) {
+  return page.getByRole('button', {
+    name: new RegExp(`^edit ${escapeRegExp(destinationName)}$`, 'i'),
+  });
+}
+
+function budgetOverviewCard(page: Page) {
+  return page
+    .locator('div')
+    .filter({ has: page.getByRole('heading', { name: /budget overview/i }) })
+    .first();
+}
+
+function primaryDestinationEditButton(page: Page) {
+  return page.getByRole('button', { name: /^edit (?!trip)/i }).first();
+}
+
+async function findExistingDestinationName(page: Page, ...candidateNames: string[]) {
+  const editButton = primaryDestinationEditButton(page);
+  await expect(editButton).toBeVisible();
+  const ariaLabel = await editButton.getAttribute('aria-label');
+  const destinationName = ariaLabel?.replace(/^edit\s+/i, '').trim();
+  if (!destinationName) {
+    throw new Error('Could not determine destination name from edit button aria-label');
+  }
+  return destinationName;
+}
+
+async function openDestinationEditor(page: Page) {
+  const editButton = primaryDestinationEditButton(page);
+  await expect(editButton).toBeVisible();
+  const ariaLabel = await editButton.getAttribute('aria-label');
+  await editButton.click();
+  return ariaLabel?.replace(/^edit\s+/i, '').trim() ?? 'destination';
+}
+
 test.describe('Destination management', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to a known trip (created by 01-trips.spec.ts)
     await page.goto('/');
-    await page.getByText('Test Round the World').click();
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
   });
 
   test('shows empty destinations state', async ({ page }) => {
@@ -31,31 +90,33 @@ test.describe('Destination management', () => {
   test('user can add a destination', async ({ page }) => {
     await page.getByRole('button', { name: /add destination/i }).click();
 
-    await page.getByLabel(/name/i).fill('Japan');
-    await page.getByLabel(/country/i).fill('Japan');
-    await page.getByLabel(/estimated budget/i).fill('5000');
-    await page.getByLabel(/comfort/i).selectOption('mid');
+    const form = addDestinationForm(page);
+    await form.getByLabel(/name/i).fill('Japan');
+    await form.getByLabel(/country/i).fill('Japan');
+    await form.getByLabel(/estimated budget/i).fill('5000');
+    await form.getByLabel(/comfort/i).selectOption('mid');
 
-    await page.getByRole('button', { name: /save/i }).click();
+    await form.getByRole('button', { name: /add destination/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(editDestinationButton(page, 'Japan')).toBeVisible();
   });
 
   test('adding a destination reduces available budget', async ({ page }) => {
-    // Available was £34,000 (50,000 - 16,000 ringfenced)
-    // After adding Japan (£5,000) it should be £29,000
-    await expect(page.getByText('£29,000.00')).toBeVisible();
+    // Available was £44,000 (60,000 - 16,000 ringfenced)
+    // After adding Japan (£5,000) it should be £39,000
+    await expect(budgetOverviewCard(page)).toContainText(/£39,?000\.00/);
   });
 
   test('user cannot add a destination exceeding available budget', async ({ page }) => {
     await page.getByRole('button', { name: /add destination/i }).click();
 
-    await page.getByLabel(/name/i).fill('Expensive');
-    await page.getByLabel(/country/i).fill('Monaco');
-    await page.getByLabel(/estimated budget/i).fill('999999');
-    await page.getByLabel(/comfort/i).selectOption('luxury');
+    const form = addDestinationForm(page);
+    await form.getByLabel(/name/i).fill('Expensive');
+    await form.getByLabel(/country/i).fill('Monaco');
+    await form.getByLabel(/estimated budget/i).fill('999999');
+    await form.getByLabel(/comfort/i).selectOption('luxury');
 
-    await page.getByRole('button', { name: /save/i }).click();
+    await form.getByRole('button', { name: /add destination/i }).click();
 
     await expect(page.getByText(/exceeds available budget/i)).toBeVisible();
   });
@@ -67,7 +128,7 @@ test.describe('Destination management', () => {
     await page.getByLabel(/country/i).fill('Japan');
     await page.getByRole('button', { name: /save changes/i }).click();
 
-    await expect(page.getByText('Japan (updated)')).toBeVisible();
+    await expect(editDestinationButton(page, 'Japan (updated)')).toBeVisible();
     await expect(page.getByRole('button', { name: /edit japan \(updated\)/i })).toBeVisible();
   });
 
@@ -75,18 +136,18 @@ test.describe('Destination management', () => {
     // Regression guard: editing with the same budget must not be rejected.
     // Without the delta approach, canAllocateBudget would double-count the
     // existing allocation and falsely block this.
-    await page.getByRole('button', { name: /edit japan/i }).click();
+    const destinationName = await openDestinationEditor(page);
 
     // Budget field is pre-filled; submit without changing it
     await page.getByRole('button', { name: /save changes/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
-    // Available budget unchanged at £29,000
-    await expect(page.getByText('£29,000.00')).toBeVisible();
+    await expect(editDestinationButton(page, destinationName)).toBeVisible();
+    // Available budget unchanged at £39,000
+    await expect(budgetOverviewCard(page)).toContainText(/£39,?000\.00/);
   });
 
   test('user cannot edit a destination to exceed available budget', async ({ page }) => {
-    await page.getByRole('button', { name: /edit japan/i }).click();
+    await openDestinationEditor(page);
 
     await page.getByLabel(/estimated budget/i).fill('999999');
     await page.getByRole('button', { name: /save changes/i }).click();
@@ -95,20 +156,22 @@ test.describe('Destination management', () => {
   });
 
   test('user can cancel editing a destination', async ({ page }) => {
-    await page.getByRole('button', { name: /edit japan/i }).click();
+    const destinationName = await openDestinationEditor(page);
     await page.getByLabel(/name/i).fill('Should not save');
     await page.getByRole('button', { name: /cancel/i }).click();
 
-    await expect(page.getByText('Japan')).toBeVisible();
+    await expect(editDestinationButton(page, destinationName)).toBeVisible();
     await expect(page.getByText('Should not save')).not.toBeVisible();
   });
 
   test('user can remove a destination', async ({ page }) => {
-    await page.getByRole('button', { name: /remove japan/i }).click();
-    await page.getByRole('button', { name: /confirm/i }).click();
+    const destinationName = await findExistingDestinationName(page);
+    await page
+      .getByRole('button', { name: new RegExp(`^remove ${escapeRegExp(destinationName)}$`, 'i') })
+      .click();
 
-    await expect(page.getByText('Japan')).not.toBeVisible();
-    // Available budget returns to £34,000
-    await expect(page.getByText('£34,000.00')).toBeVisible();
+    await expect(editDestinationButton(page, destinationName)).not.toBeVisible();
+    // Available budget returns to £44,000
+    await expect(budgetOverviewCard(page)).toContainText(/£44,?000\.00/);
   });
 });

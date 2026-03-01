@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const SIGN_IN_BUTTON_NAME = /sign in (with google|locally \(dev\))/i;
 
@@ -24,6 +24,21 @@ const VIEWPORTS = [
   { label: 'tablet (768px)', width: 768, height: 1024 },
   { label: 'desktop (1280px)', width: 1280, height: 800 },
 ] as const;
+
+function tripLink(page: Page, name: string) {
+  return page.getByRole('link').filter({ hasText: name }).first();
+}
+
+async function openExistingTrip(page: Page, ...candidateNames: string[]) {
+  for (const name of candidateNames) {
+    const link = tripLink(page, name);
+    if ((await link.count()) > 0) {
+      await link.click();
+      return;
+    }
+  }
+  throw new Error(`Could not find trip link for: ${candidateNames.join(', ')}`);
+}
 
 // ─── Public pages ─────────────────────────────────────────────────────────────
 
@@ -115,14 +130,14 @@ test.describe('Dashboard — accessibility & responsive', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
 
-    await expect(page.getByRole('button', { name: /create trip/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /create trip/i }).first()).toBeVisible();
   });
 
   test('passes axe audit in dark mode with create trip modal open', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto('/');
-    await page.getByRole('button', { name: /create trip/i }).click();
+    await page.getByRole('button', { name: /create trip/i }).first().click();
     await expect(page.getByRole('heading', { name: /new trip/i })).toBeVisible();
 
     const results = await new AxeBuilder({ page })
@@ -146,7 +161,7 @@ test.describe('Trip detail page — accessibility', () => {
     test(`passes axe audit at ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto('/');
-      await page.getByText('Test Round the World').click();
+      await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
       await page.waitForURL(/\/trips\//);
 
       const results = await new AxeBuilder({ page })
@@ -164,7 +179,7 @@ test.describe('Trip detail page — accessibility', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto('/');
-    await page.getByText('Test Round the World').click();
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
     await page.waitForURL(/\/trips\//);
 
     const results = await new AxeBuilder({ page })

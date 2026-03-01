@@ -26,25 +26,28 @@ export function FixedCostSection({
 
   return (
     <section>
-      <h2 className="mb-3 text-base font-semibold text-zinc-900">Fixed costs</h2>
-      <p className="mb-4 text-xs text-zinc-500">
+      <h2 className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-100">Fixed costs</h2>
+      <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
         Flights, insurance, subscriptions — costs deducted from your budget before destination
         allocations. Enter the total (e.g. &quot;Phone £40/mo × 6&quot; = £240).
       </p>
 
       {fixedCosts.length > 0 && (
-        <ul className="mb-4 divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <ul className="mb-4 divide-y divide-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm">
           {fixedCosts.map((fc) => (
             <FixedCostRow key={fc.id} tripId={tripId} fixedCost={fc} />
           ))}
         </ul>
       )}
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-        <p className="mb-3 text-xs font-medium text-zinc-500">Add fixed cost</p>
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+        <p className="mb-3 text-xs font-medium text-zinc-500 dark:text-zinc-400">Add fixed cost</p>
         <form action={dispatch} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label htmlFor="fc-label" className="block text-sm font-medium text-zinc-700">
+            <label
+              htmlFor="fc-label"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+            >
               Label
             </label>
             <input
@@ -53,11 +56,14 @@ export function FixedCostSection({
               type="text"
               required
               placeholder="Flights to Asia"
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
             />
           </div>
           <div className="w-36">
-            <label htmlFor="fc-amount" className="block text-sm font-medium text-zinc-700">
+            <label
+              htmlFor="fc-amount"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+            >
               Amount (£)
             </label>
             <input
@@ -68,13 +74,13 @@ export function FixedCostSection({
               min="0.01"
               step="0.01"
               placeholder="950"
-              className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
             />
           </div>
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
           >
             {isPending ? 'Adding…' : 'Add'}
           </button>
@@ -93,8 +99,10 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
     <li className="px-4 py-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-zinc-900">{fixedCost.label}</p>
-          <p className="text-sm text-zinc-500">{formatMoney(fixedCost.amount)}</p>
+          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{fixedCost.label}</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            {formatMoney(fixedCost.amount)}
+          </p>
         </div>
         <button
           type="button"
@@ -110,7 +118,7 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
             });
           }}
           aria-label={`Remove ${fixedCost.label}`}
-          className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+          className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-500/10"
         >
           {isPending ? '…' : 'Remove'}
         </button>

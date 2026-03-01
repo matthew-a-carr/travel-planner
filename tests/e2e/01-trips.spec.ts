@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 /**
  * Trip management journeys.
@@ -9,10 +9,25 @@ import { test, expect } from '@playwright/test';
  * Auth is provided via the storageState written by global.setup.ts.
  */
 
+function tripLink(page: Page, name: string) {
+  return page.getByRole('link').filter({ hasText: name }).first();
+}
+
+async function openExistingTrip(page: Page, ...candidateNames: string[]) {
+  for (const name of candidateNames) {
+    const link = tripLink(page, name);
+    if ((await link.count()) > 0) {
+      await link.click();
+      return;
+    }
+  }
+  throw new Error(`Could not find trip link for: ${candidateNames.join(', ')}`);
+}
+
 test.describe('Trip creation', () => {
   test('authenticated user can open the create trip modal', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /create trip/i }).click();
+    await page.getByRole('button', { name: /create trip/i }).first().click();
     await expect(page.getByRole('heading', { name: /new trip/i })).toBeVisible();
   });
 
@@ -20,46 +35,47 @@ test.describe('Trip creation', () => {
     page,
   }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /create trip/i }).click();
+    await page.getByRole('button', { name: /create trip/i }).first().click();
 
     await page.getByLabel('Trip name').fill('Test Round the World');
     await page.getByLabel('Total budget').fill('50000');
 
-    await page.getByRole('button', { name: /create trip/i }).click();
+    await page.locator('form').getByRole('button', { name: /create trip/i }).click();
 
     // Should redirect to /trips/[uuid]
     await expect(page).toHaveURL(/\/trips\/[0-9a-f-]+/);
     await expect(page.getByRole('heading', { name: 'Test Round the World' })).toBeVisible();
 
     // Add a fixed cost on the trip detail page (ADR 005: fixed costs live here, not in the create form)
-    await page.getByLabel('Label').fill('Australia Visa & Living');
-    await page.getByLabel('Amount (£)').fill('16000');
-    await page.getByRole('button', { name: 'Add' }).click();
+    const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
+    await fixedCostForm.getByLabel('Label').fill('Australia Visa & Living');
+    await fixedCostForm.getByLabel('Amount (£)').fill('16000');
+    await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
 
-    await expect(page.getByText('Australia Visa & Living')).toBeVisible();
+    await expect(page.getByRole('button', { name: /remove australia visa & living/i })).toBeVisible();
   });
 
   test('created trip appears on dashboard', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('Test Round the World')).toBeVisible();
+    await expect(tripLink(page, 'Test Round the World')).toBeVisible();
   });
 });
 
 test.describe('Trip detail page', () => {
   test('shows budget overview with correct figures', async ({ page }) => {
     await page.goto('/');
-    await page.getByText('Test Round the World').click();
+    await tripLink(page, 'Test Round the World').click();
 
     await expect(page.getByText(/budget overview/i)).toBeVisible();
-    await expect(page.getByText('£50,000.00')).toBeVisible();
-    await expect(page.getByText('Australia Visa & Living')).toBeVisible();
+    await expect(page.getByText(/£50,?000\.00/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /remove australia visa & living/i })).toBeVisible();
   });
 });
 
 test.describe('Trip editing', () => {
   test('authenticated user can edit a trip name, budget, and status', async ({ page }) => {
     await page.goto('/');
-    await page.getByText('Test Round the World').click();
+    await openExistingTrip(page, 'Test Round the World', 'Big Adventure');
 
     // Open edit modal
     await page.getByRole('button', { name: /edit trip/i }).click();
@@ -77,16 +93,15 @@ test.describe('Trip editing', () => {
 
     // Heading and status badge should reflect the update
     await expect(page.getByRole('heading', { name: 'Big Adventure' })).toBeVisible();
-    await expect(page.getByText('£60,000.00')).toBeVisible();
-    await expect(page.getByText('active')).toBeVisible();
+    await expect(page.getByText(/£60,?000\.00/)).toBeVisible();
+    await expect(page.locator('header span').filter({ hasText: /^active$/i }).first()).toBeVisible();
   });
 
   test('edit trip shows error when budget is reduced below existing allocations', async ({
     page,
   }) => {
     await page.goto('/');
-    // Navigate to the trip and add a destination so budget is allocated
-    await page.getByText('Big Adventure').click();
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
 
     await page.getByRole('button', { name: /edit trip/i }).click();
 
@@ -101,6 +116,6 @@ test.describe('Trip editing', () => {
 
   test('edited trip name appears on the dashboard', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('Big Adventure')).toBeVisible();
+    await expect(tripLink(page, 'Big Adventure')).toBeVisible();
   });
 });

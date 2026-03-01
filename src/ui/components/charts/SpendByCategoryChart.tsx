@@ -5,7 +5,7 @@ import { formatMoney } from '@/domain/trip/types';
 
 type Row = { category: string; amountPence: number };
 
-const FILLS = ['#18181b', '#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#e4e4e7'];
+const FILLS = ['#3b82f6', '#0ea5e9', '#14b8a6', '#22c55e', '#f59e0b', '#f97316'];
 
 function penceToLabel(pence: number): string {
   return formatMoney({ amountPence: pence, currency: 'GBP' });
@@ -16,7 +16,9 @@ export function SpendByCategoryChart({ data }: { data: Row[] }) {
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-zinc-700">Spend by category</h3>
+      <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+        Spend by category
+      </h3>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
           <Pie
@@ -41,7 +43,9 @@ export function SpendByCategoryChart({ data }: { data: Row[] }) {
           <Legend
             iconType="square"
             iconSize={10}
-            formatter={(value) => <span className="text-xs text-zinc-500 capitalize">{value}</span>}
+            formatter={(value) => (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 capitalize">{value}</span>
+            )}
           />
         </PieChart>
       </ResponsiveContainer>

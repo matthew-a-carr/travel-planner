@@ -47,7 +47,7 @@ export function EditSpendEntryForm({
         <div>
           <label
             htmlFor={`edit-spend-amount-${entry.id}`}
-            className="block text-xs font-medium text-zinc-700"
+            className="block text-xs font-medium text-zinc-700 dark:text-zinc-200"
           >
             Amount (£)
           </label>
@@ -59,13 +59,13 @@ export function EditSpendEntryForm({
             min="0.01"
             step="0.01"
             defaultValue={defaultAmount}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
         </div>
         <div>
           <label
             htmlFor={`edit-spend-date-${entry.id}`}
-            className="block text-xs font-medium text-zinc-700"
+            className="block text-xs font-medium text-zinc-700 dark:text-zinc-200"
           >
             Date
           </label>
@@ -75,7 +75,7 @@ export function EditSpendEntryForm({
             type="date"
             required
             defaultValue={defaultDate}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
       </div>
@@ -83,7 +83,7 @@ export function EditSpendEntryForm({
       <div>
         <label
           htmlFor={`edit-spend-category-${entry.id}`}
-          className="block text-xs font-medium text-zinc-700"
+          className="block text-xs font-medium text-zinc-700 dark:text-zinc-200"
         >
           Category
         </label>
@@ -92,7 +92,7 @@ export function EditSpendEntryForm({
           name="category"
           required
           defaultValue={entry.category}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
         >
           {CATEGORY_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -105,16 +105,17 @@ export function EditSpendEntryForm({
       <div>
         <label
           htmlFor={`edit-spend-description-${entry.id}`}
-          className="block text-xs font-medium text-zinc-700"
+          className="block text-xs font-medium text-zinc-700 dark:text-zinc-200"
         >
-          Description <span className="font-normal text-zinc-400">(optional)</span>
+          Description{' '}
+          <span className="font-normal text-zinc-400 dark:text-zinc-500">(optional)</span>
         </label>
         <input
           id={`edit-spend-description-${entry.id}`}
           name="description"
           type="text"
           defaultValue={entry.description ?? ''}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
         />
       </div>
 
@@ -124,14 +125,14 @@ export function EditSpendEntryForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50"
+          className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-zinc-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+          className="rounded-lg bg-zinc-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           {isPending ? 'Saving…' : 'Save changes'}
         </button>

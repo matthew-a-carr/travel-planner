@@ -49,17 +49,17 @@ export default async function TripDetailPage({ params }: Props) {
     ...fixedCosts.map((fc) => ({
       label: fc.label,
       amountPence: fc.amount.amountPence,
-      fill: '#71717a', // zinc-500
+      fill: '#f59e0b', // amber-500
     })),
     {
       label: 'Destinations',
       amountPence: summary.allocated.amountPence,
-      fill: '#18181b', // zinc-900
+      fill: '#3b82f6', // blue-500
     },
     {
       label: 'Available',
       amountPence: Math.max(summary.available.amountPence, 0),
-      fill: '#d4d4d8', // zinc-300
+      fill: '#22c55e', // green-500
     },
   ];
 
@@ -84,16 +84,16 @@ export default async function TripDetailPage({ params }: Props) {
   return (
     <main className="min-h-screen px-4 py-12">
       <div className="mx-auto w-full max-w-2xl space-y-8">
-        <nav className="text-sm text-zinc-500">
-          <Link href="/" className="hover:text-zinc-900">
+        <nav className="text-sm text-zinc-500 dark:text-zinc-400">
+          <Link href="/" className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">
             Dashboard
           </Link>{' '}
-          / <span className="text-zinc-900">{trip.name}</span>
+          / <span className="text-zinc-900 dark:text-zinc-100">{trip.name}</span>
         </nav>
 
         <header className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900">{trip.name}</h1>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{trip.name}</h1>
             <StatusBadge status={trip.status} />
           </div>
           <EditTripButton trip={trip} />
@@ -126,7 +126,7 @@ function StatusBadge({ status }: { status: Trip['status'] }) {
   const colours: Record<string, string> = {
     planning: 'bg-amber-100 text-amber-800',
     active: 'bg-green-100 text-green-800',
-    completed: 'bg-zinc-100 text-zinc-600',
+    completed: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300',
   };
   return (
     <span
@@ -147,38 +147,50 @@ function BudgetOverviewCard({
   fixedCosts: TripFixedCost[];
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-base font-semibold text-zinc-900">Budget overview</h2>
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+      <h2 className="mb-4 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+        Budget overview
+      </h2>
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-700">Total budget</span>
-          <span className="font-medium text-zinc-900">{formatMoney(summary.total)}</span>
+          <span className="text-zinc-700 dark:text-zinc-200">Total budget</span>
+          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+            {formatMoney(summary.total)}
+          </span>
         </div>
 
         {fixedCosts.map((fc) => (
           <div key={fc.id} className="flex justify-between text-sm">
-            <span className="text-zinc-500">{fc.label}</span>
-            <span className="font-medium text-zinc-500">−{formatMoney(fc.amount)}</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{fc.label}</span>
+            <span className="font-medium text-zinc-500 dark:text-zinc-400">
+              −{formatMoney(fc.amount)}
+            </span>
           </div>
         ))}
 
         {fixedCosts.length === 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400 italic">No fixed costs yet</span>
-            <span className="text-zinc-400">−£0.00</span>
+            <span className="text-zinc-400 dark:text-zinc-500 italic">No fixed costs yet</span>
+            <span className="text-zinc-400 dark:text-zinc-500">−£0.00</span>
           </div>
         )}
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-500">Allocated to destinations</span>
-          <span className="font-medium text-zinc-500">−{formatMoney(summary.allocated)}</span>
+          <span className="text-zinc-500 dark:text-zinc-400">Allocated to destinations</span>
+          <span className="font-medium text-zinc-500 dark:text-zinc-400">
+            −{formatMoney(summary.allocated)}
+          </span>
         </div>
 
-        <div className="flex justify-between border-t border-zinc-100 pt-2 text-sm">
-          <span className="font-medium text-zinc-700">Available</span>
+        <div className="flex justify-between border-t border-zinc-100 dark:border-zinc-800 pt-2 text-sm">
+          <span className="font-medium text-zinc-700 dark:text-zinc-200">Available</span>
           <span
-            className={`font-medium ${summary.isOverAllocated ? 'text-red-600' : 'text-green-700'}`}
+            className={`font-medium ${
+              summary.isOverAllocated
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-green-700 dark:text-green-400'
+            }`}
           >
             {formatMoney(summary.available)}
           </span>
@@ -186,7 +198,7 @@ function BudgetOverviewCard({
       </div>
 
       <div className="mt-4">
-        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
           <div
             role="progressbar"
             aria-valuenow={Math.min(summary.allocationPercentage, 100)}
@@ -194,12 +206,12 @@ function BudgetOverviewCard({
             aria-valuemax={100}
             aria-label={`Budget allocation: ${summary.allocationPercentage}% allocated`}
             className={`h-full rounded-full transition-all ${
-              summary.isOverAllocated ? 'bg-red-500' : 'bg-zinc-800'
+              summary.isOverAllocated ? 'bg-red-500' : 'bg-zinc-800 dark:bg-zinc-300'
             }`}
             style={{ width: `${Math.min(summary.allocationPercentage, 100)}%` }}
           />
         </div>
-        <p className="mt-1 text-right text-xs text-zinc-400">
+        <p className="mt-1 text-right text-xs text-zinc-500 dark:text-zinc-300">
           {summary.allocationPercentage}% allocated
         </p>
       </div>

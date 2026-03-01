@@ -23,19 +23,21 @@ export function EstimatedVsActualChart({ data }: { data: Row[] }) {
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-zinc-700">Estimated vs actual spend</h3>
+      <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+        Estimated vs actual spend
+      </h3>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#71717a" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: '#71717a' }}
+            tick={{ fontSize: 11, fill: '#a1a1aa' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={(v: number) => `£${Math.round(v / 100).toLocaleString()}`}
-            tick={{ fontSize: 11, fill: '#71717a' }}
+            tick={{ fontSize: 11, fill: '#a1a1aa' }}
             axisLine={false}
             tickLine={false}
             width={55}
@@ -44,10 +46,12 @@ export function EstimatedVsActualChart({ data }: { data: Row[] }) {
           <Legend
             iconType="square"
             iconSize={10}
-            formatter={(value) => <span className="text-xs text-zinc-500 capitalize">{value}</span>}
+            formatter={(value) => (
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 capitalize">{value}</span>
+            )}
           />
-          <Bar dataKey="estimated" name="Estimated" fill="#d4d4d8" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="actual" name="Actual spend" fill="#18181b" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="estimated" name="Estimated" fill="#60a5fa" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="actual" name="Actual spend" fill="#2563eb" radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

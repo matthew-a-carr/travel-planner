@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
  * throwaway PostgreSQL database managed by Testcontainers (Docker).
  *
  * globalSetup starts the container, runs migrations, seeds reference data,
- * creates a test user + session, and writes tests/e2e/fixtures/auth-state.json.
+ * creates a test user + auth cookie, and writes tests/e2e/fixtures/auth-state.json.
  * globalTeardown stops the container when the suite finishes.
  *
  * Run: pnpm test:e2e
@@ -39,12 +39,12 @@ export default defineConfig({
     },
   ],
 
-  // In CI: start the pre-built production server (app must be built before running tests).
-  // Locally: start the dev server and reuse an already-running instance.
+  // start-web-server.ts waits for the DB URL written by globalSetup, then
+  // starts either `pnpm start` (CI) or `pnpm dev:next` (local) with that URL.
   webServer: {
-    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
+    command: 'pnpm exec tsx tests/e2e/setup/start-web-server.ts',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

@@ -72,7 +72,7 @@ export function EditDestinationForm({
         <div>
           <label
             htmlFor={`edit-dest-name-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
             Name
           </label>
@@ -82,13 +82,13 @@ export function EditDestinationForm({
             type="text"
             required
             defaultValue={destination.name}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
         </div>
         <div>
           <label
             htmlFor={`edit-dest-country-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
             Country
           </label>
@@ -99,7 +99,7 @@ export function EditDestinationForm({
             required
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
         </div>
       </div>
@@ -109,9 +109,9 @@ export function EditDestinationForm({
         <div>
           <label
             htmlFor={`edit-dest-start-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
-            Start date <span className="text-zinc-400">(optional)</span>
+            Start date <span className="text-zinc-400 dark:text-zinc-500">(optional)</span>
           </label>
           <input
             id={`edit-dest-start-${destination.id}`}
@@ -119,15 +119,15 @@ export function EditDestinationForm({
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
         <div>
           <label
             htmlFor={`edit-dest-end-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
-            End date <span className="text-zinc-400">(optional)</span>
+            End date <span className="text-zinc-400 dark:text-zinc-500">(optional)</span>
           </label>
           <input
             id={`edit-dest-end-${destination.id}`}
@@ -136,7 +136,7 @@ export function EditDestinationForm({
             value={endDate}
             min={startDate || undefined}
             onChange={(e) => setEndDate(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
       </div>
@@ -146,7 +146,7 @@ export function EditDestinationForm({
         <div>
           <label
             htmlFor={`edit-dest-budget-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
             Estimated budget (£)
           </label>
@@ -158,16 +158,16 @@ export function EditDestinationForm({
             min="0.01"
             step="0.01"
             defaultValue={defaultBudget}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
           {suggestion && days !== null && reference && (
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
               Suggested {formatMoney(suggestion)} — {days} days in {reference.country} (
               {COMFORT_OPTIONS.find((o) => o.value === comfortLevel)?.label.toLowerCase()})
             </p>
           )}
           {country && !reference && (
-            <p className="mt-1 text-xs text-zinc-400">
+            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
               No reference data for &quot;{country}&quot;
             </p>
           )}
@@ -175,7 +175,7 @@ export function EditDestinationForm({
         <div>
           <label
             htmlFor={`edit-dest-comfort-${destination.id}`}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
             Comfort level
           </label>
@@ -185,7 +185,7 @@ export function EditDestinationForm({
             required
             value={comfortLevel}
             onChange={(e) => setComfortLevel(e.target.value as ComfortLevel)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           >
             {COMFORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -202,14 +202,14 @@ export function EditDestinationForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50"
+          className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+          className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           {isPending ? 'Saving…' : 'Save changes'}
         </button>

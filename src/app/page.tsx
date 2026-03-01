@@ -20,8 +20,10 @@ export default async function HomePage() {
       <main className="flex min-h-screen flex-col items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Travel Planner</h1>
-            <p className="mt-3 text-lg text-zinc-600">
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Travel Planner
+            </h1>
+            <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-300">
               Plan and track spending for your round-the-world adventure.
             </p>
           </div>
@@ -40,7 +42,7 @@ export default async function HomePage() {
     <main className="min-h-screen px-4 py-12">
       <div className="mx-auto w-full max-w-2xl space-y-8">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-zinc-900">Travel Planner</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Travel Planner</h1>
           <div className="flex items-center gap-4">
             {session.user.image && (
               <Image
@@ -57,16 +59,18 @@ export default async function HomePage() {
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-900">Your trips</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Your trips</h2>
             <CreateTripButton />
           </div>
 
           {trips.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center">
-              <p className="text-zinc-500">
+            <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-10 text-center">
+              <p className="text-zinc-500 dark:text-zinc-400">
                 Welcome, {session.user.name ?? session.user.email}. You have no trips yet.
               </p>
-              <p className="mt-1 text-sm text-zinc-400">Create your first trip to get started.</p>
+              <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">
+                Create your first trip to get started.
+              </p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -85,18 +89,18 @@ function TripCard({ trip }: { trip: Trip }) {
   const statusColour: Record<string, string> = {
     planning: 'bg-amber-100 text-amber-800',
     active: 'bg-green-100 text-green-800',
-    completed: 'bg-zinc-100 text-zinc-600',
+    completed: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300',
   };
 
   return (
     <li>
       <Link
         href={`/trips/${trip.id}`}
-        className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+        className="flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-5 shadow-sm transition-shadow hover:shadow-md"
       >
         <div>
-          <p className="font-semibold text-zinc-900">{trip.name}</p>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <p className="font-semibold text-zinc-900 dark:text-zinc-100">{trip.name}</p>
+          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
             Total budget: {formatMoney(trip.totalBudget)}
           </p>
         </div>

@@ -2,53 +2,62 @@
  * Playwright global setup — Testcontainers-backed PostgreSQL.
  *
  * Responsibilities:
- *  1. Start a throwaway PostgreSQL 16 container via Testcontainers.
- *  2. Expose the connection string to the process so Next.js
- *     picks it up when the web server is started by Playwright.
- *  3. Run Drizzle migrations against the fresh database.
- *  4. Seed country reference data.
- *  5. Create a test user + session and write a Playwright
+ *  1. Wait for the web-server bootstrap to provision PostgreSQL and persist
+ *     its connection URL.
+ *  2. Run Drizzle migrations against the fresh database.
+ *  3. Seed country reference data.
+ *  4. Create a test user and write a JWT-backed Playwright
  *     storage-state file (auth-state.json) so authenticated
- *     tests start with a valid session cookie.
- *  6. Persist the container ID to fixtures/.container-id so
+ *     tests start with a valid auth cookie.
+ *  5. Persist the container ID to fixtures/.container-id so
  *     global.teardown.ts can stop it cleanly.
  *
  * The container is automatically reaped by Testcontainers' Ryuk
  * side-car even if teardown never runs (e.g. on a SIGKILL).
  */
 
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { encode } from 'next-auth/jwt';
 import postgres from 'postgres';
-import { countryReferenceData, sessions, users } from '../../../src/infrastructure/db/schema';
+import { countryReferenceData, users } from '../../../src/infrastructure/db/schema';
 import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/country-reference-seed';
+import {
+  E2E_AUTH_STATE_FILE,
+  E2E_FIXTURES_DIR,
+  E2E_POSTGRES_URL_FILE,
+} from './e2e-env';
+const SESSION_COOKIE_NAME = 'authjs.session-token';
+const E2E_DEFAULT_AUTH_SECRET = 'dev-only-not-a-real-secret';
+const STARTUP_TIMEOUT_MS = 120_000;
+const POLL_INTERVAL_MS = 250;
 
-const FIXTURES_DIR = join(process.cwd(), 'tests/e2e/fixtures');
-const CONTAINER_ID_FILE = join(FIXTURES_DIR, '.container-id');
-const AUTH_STATE_FILE = join(FIXTURES_DIR, 'auth-state.json');
+async function waitForPostgresUrlFile(): Promise<string> {
+  const deadline = Date.now() + STARTUP_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    try {
+      const connectionUri = (await readFile(E2E_POSTGRES_URL_FILE, 'utf8')).trim();
+      if (connectionUri) return connectionUri;
+    } catch {
+      // File is not ready yet; continue polling.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+
+  throw new Error(`Timed out waiting for ${E2E_POSTGRES_URL_FILE}`);
+}
 
 export default async function globalSetup(): Promise<void> {
-  await mkdir(FIXTURES_DIR, { recursive: true });
+  await mkdir(E2E_FIXTURES_DIR, { recursive: true });
 
-  // ── 1. Start PostgreSQL container ─────────────────────────────────────────
-  console.log('[e2e] Starting PostgreSQL container…');
-  const container = await new PostgreSqlContainer('postgres:16-alpine')
-    .withDatabase('travel_planner_test')
-    .withUsername('testuser')
-    .withPassword('testpass')
-    .start();
-
-  const connectionUri = container.getConnectionUri();
-
-  // Make the URL available to the Next.js web server that Playwright
-  // will spawn after globalSetup completes.
+  // ── 1. Read PostgreSQL URL from web-server bootstrap ──────────────────────
+  console.log('[e2e] Waiting for PostgreSQL container bootstrap…');
+  const connectionUri = await waitForPostgresUrlFile();
   process.env.POSTGRES_URL = connectionUri;
-
-  // Persist the container ID for globalTeardown.
-  await writeFile(CONTAINER_ID_FILE, container.getId());
+  await writeFile(E2E_POSTGRES_URL_FILE, connectionUri);
   console.log(`[e2e] PostgreSQL ready at ${connectionUri}`);
 
   // ── 2. Run migrations ──────────────────────────────────────────────────────
@@ -87,19 +96,28 @@ export default async function globalSetup(): Promise<void> {
     image: null,
   });
 
-  // ── 5. Create test session ──────────────────────────────────────────────────
-  const sessionToken = crypto.randomUUID();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-  await db.insert(sessions).values({ sessionToken, userId, expires });
-
   await sql.end();
 
   // ── 6. Write Playwright storage state ─────────────────────────────────────
-  // NextAuth v5 on HTTP uses the `authjs.session-token` cookie name.
+  const maxAgeSeconds = 30 * 24 * 60 * 60;
+  const expires = new Date(Date.now() + maxAgeSeconds * 1000);
+  const secret = process.env.AUTH_SECRET ?? E2E_DEFAULT_AUTH_SECRET;
+  const sessionToken = await encode({
+    token: {
+      sub: userId,
+      name: 'E2E Test User',
+      email: 'e2e@travelplanner.test',
+      picture: null,
+    },
+    secret,
+    salt: SESSION_COOKIE_NAME,
+    maxAge: maxAgeSeconds,
+  });
+
   const authState = {
     cookies: [
       {
-        name: 'authjs.session-token',
+        name: SESSION_COOKIE_NAME,
         value: sessionToken,
         domain: 'localhost',
         path: '/',
@@ -112,6 +130,6 @@ export default async function globalSetup(): Promise<void> {
     origins: [],
   };
 
-  await writeFile(AUTH_STATE_FILE, JSON.stringify(authState, null, 2));
+  await writeFile(E2E_AUTH_STATE_FILE, JSON.stringify(authState, null, 2));
   console.log('[e2e] Auth storage state written.');
 }
