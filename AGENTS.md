@@ -59,7 +59,8 @@ Each layer has its own `AGENTS.md` with local rules.
 
 | Task | Command |
 |---|---|
-| Dev server | `pnpm dev` |
+| Dev server (one command) | `pnpm dev` |
+| Raw Next.js dev server (no bootstrap) | `pnpm dev:next` |
 | DB schema push | `pnpm db:push` |
 | DB migrations | `pnpm db:migrate` |
 | Generate migration | `pnpm db:generate` |
@@ -120,13 +121,20 @@ See CONSTITUTION.md §7 for the required template and naming rules.
 
 ---
 
-## Environment variables (`.env.local`)
+## Environment variables (`.env.local`, optional for local dev)
+
+`pnpm dev` now bootstraps local development automatically when `POSTGRES_URL` is
+missing: it starts a Testcontainers Postgres instance, runs migrations + seed,
+and injects safe local defaults for auth vars.
+
+Use `.env.local` when you want to target your own database/OAuth credentials:
 
 ```
 POSTGRES_URL=            # Vercel Postgres / Neon connection string
 AUTH_SECRET=             # next-auth secret (openssl rand -base64 32)
 AUTH_GOOGLE_ID=          # Google OAuth client ID
 AUTH_GOOGLE_SECRET=      # Google OAuth client secret
+AUTH_URL=http://localhost:3000
 ```
 
 ---

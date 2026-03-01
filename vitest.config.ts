@@ -21,11 +21,13 @@ export default defineConfig({
         // Integration project — repository and use-case tests against real PostgreSQL.
         // Matches all *.int-test.ts files anywhere under src/.
         // Requires Docker. A shared Testcontainers instance is started by globalSetup.
+        // Run serially in one worker because each file truncates shared tables in beforeEach.
         plugins: [tsconfigPaths()],
         test: {
           name: 'integration',
           environment: 'node',
           include: ['src/**/*.int-test.ts'],
+          maxWorkers: 1,
           globalSetup: ['src/infrastructure/testing/global-setup.ts'],
         },
       },

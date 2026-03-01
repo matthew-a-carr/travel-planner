@@ -8,7 +8,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 
 | Concern | Choice |
 |---|---|
-| Framework | Next.js 15 (App Router, server components, server actions) |
+| Framework | Next.js 16 (App Router, server components, server actions) |
 | Language | TypeScript (strict mode) |
 | Database | Vercel Postgres (Neon) via Drizzle ORM |
 | Auth | Auth.js v5 — Google OAuth |
@@ -26,9 +26,9 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 
 - Node.js 20+
 - pnpm (`npm install -g pnpm`)
-- Docker (required for integration tests and e2e tests — Testcontainers manages the database automatically)
-- A Vercel Postgres or Neon database (or any Postgres connection string) for local dev
-- A Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com))
+- Docker (required for one-command local dev, integration tests, and e2e tests)
+- Optional: a Vercel Postgres/Neon database URL if you do not want the local Testcontainers database
+- Optional: a Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com)) for real Google sign-in
 
 ### Setup
 
@@ -38,7 +38,20 @@ cd travel-planner
 pnpm install
 ```
 
-Copy the environment variable template and fill in your values:
+Start the app with one command:
+
+```bash
+pnpm dev
+```
+
+If `POSTGRES_URL` is missing, `pnpm dev` will:
+- start a throwaway `postgres:16-alpine` container via Testcontainers
+- run `pnpm db:migrate`
+- run `pnpm db:seed`
+- set safe local defaults for `AUTH_SECRET`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET`
+- on macOS, attempt to open Docker Desktop automatically if the Docker runtime is not ready
+
+If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
 ```bash
 cp .env.example .env.local
@@ -49,19 +62,7 @@ POSTGRES_URL=             # Vercel Postgres / Neon connection string
 AUTH_SECRET=              # generate with: openssl rand -base64 32
 AUTH_GOOGLE_ID=           # Google OAuth client ID
 AUTH_GOOGLE_SECRET=       # Google OAuth client secret
-```
-
-Apply database migrations and seed reference data:
-
-```bash
-pnpm db:migrate
-pnpm db:seed
-```
-
-Start the dev server:
-
-```bash
-pnpm dev
+AUTH_URL=http://localhost:3000
 ```
 
 Open [http://localhost:3000](http://localhost:3000).

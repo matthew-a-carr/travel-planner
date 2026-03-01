@@ -22,6 +22,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - Integration test files renamed from `.test.ts` to `.int-test.ts` suffix; Vitest config
   now uses file-suffix globs (`src/**/*.int-test.ts`) so new integration tests are
   auto-discovered without updating the config (ADR 012)
+- Local development startup is now one command: `pnpm dev` auto-starts a
+  throwaway Postgres container via Testcontainers when `POSTGRES_URL` is
+  missing, runs migrations + reference-data seed, injects safe auth env
+  defaults for local bootstrapping, and auto-detects Docker context settings
+  (including Colima socket overrides)
 - CI: `unit-test` job now runs `pnpm test:unit`; new `integration-test` job runs
   `pnpm test:integration` in stage 2; E2E gate moved to stage 3 (needs integration-test)
 - `CONTRIBUTING.md`: added test file naming convention table and mandatory pre-push

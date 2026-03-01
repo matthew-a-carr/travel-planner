@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
-    "dev": "next dev",
+    "dev": "tsx scripts/dev.ts",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "biome check src/",
@@ -12,7 +13,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run --project=unit",
-    "test:integration": "vitest run --project=integration",
+    "test:integration": "vitest run --project=integration --maxWorkers=1",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
