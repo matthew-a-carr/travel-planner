@@ -17,5 +17,3 @@ jobs:
         with:
           release-type: node
           # Uses GITHUB_TOKEN by default.
-          # Swap for a PAT (secret: RELEASE_PAT) if CI checks need to run on
-          # the Release PR — GITHUB_TOKEN-triggered pushes do not re-trigger CI.
