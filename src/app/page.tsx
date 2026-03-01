@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import type { Trip } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
+import { getVisibleSignInProviders } from '@/infrastructure/auth/provider-availability';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { CreateTripButton } from '@/ui/components/CreateTripModal';
@@ -12,6 +13,7 @@ import { SignOutButton } from '@/ui/components/SignOutButton';
 
 export default async function HomePage() {
   const session = await auth();
+  const { showGoogle, showLocalDev } = getVisibleSignInProviders();
 
   if (!session?.user) {
     return (
@@ -23,7 +25,7 @@ export default async function HomePage() {
               Plan and track spending for your round-the-world adventure.
             </p>
           </div>
-          <SignInButton />
+          <SignInButton showGoogle={showGoogle} showLocalDev={showLocalDev} />
         </div>
       </main>
     );

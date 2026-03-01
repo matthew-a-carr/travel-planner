@@ -42,6 +42,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - `validateTripBudgetEdit` domain guard enforces the budget invariant on edits.
 - Integration test for `get-country-references` use case (previously missing).
 - `seedCountryReference` factory in the test harness (`src/infrastructure/testing/helpers.ts`).
+- Dev-only local login fallback: in development, a one-click **Sign in locally (dev)**
+  path is now available for manual testing without configuring Google OAuth. The
+  local flow provisions/reuses a stable test user so trip ownership remains
+  consistent across sessions.
 
 ### Changed
 
@@ -57,6 +61,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   `pnpm test:integration` in stage 2; E2E gate moved to stage 3 (needs integration-test)
 - `CONTRIBUTING.md`: added test file naming convention table and mandatory pre-push
   checklist
+- Auth sign-in UX now adapts to configured providers:
+  - Development: local dev login is always shown.
+  - Development: Google login is shown only when `AUTH_GOOGLE_ID` and
+    `AUTH_GOOGLE_SECRET` are non-placeholder values.
+  - Production: local dev login is hidden.
 
 ### Fixed
 
@@ -65,6 +74,9 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - TypeScript: `global-setup.ts` container teardown now returns `Promise<void>` to satisfy
   the `containerStop` type
 - `DestinationSection.tsx`: corrected JSX fragment indentation (biome format)
+- Dev auth: local-dev sign-in no longer depends on `ON CONFLICT (email)` upsert semantics,
+  preventing `CallbackRouteError` on drifted local schemas where the expected unique
+  constraint is missing.
 
 ## [0.4.0] - 2026-02-25
 

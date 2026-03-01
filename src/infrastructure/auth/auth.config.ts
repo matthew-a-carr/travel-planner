@@ -1,13 +1,9 @@
 import type { NextAuthConfig } from 'next-auth';
-import Google from 'next-auth/providers/google';
 
 export const authConfig: NextAuthConfig = {
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
-  ],
+  // Providers are configured in auth/index.ts. Middleware only needs
+  // route protection callbacks and custom page paths.
+  providers: [],
   pages: {
     signIn: '/login',
   },

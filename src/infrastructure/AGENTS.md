@@ -20,6 +20,7 @@ src/infrastructure/
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
     index.ts             ← full NextAuth with DrizzleAdapter (imports db from client.ts)
+    provider-availability.ts ← env-aware auth provider visibility helpers (UI + provider wiring)
   db/
     schema.ts            ← Drizzle schema (source of truth for all tables)
     client.ts            ← singleton db instance (see note below)
@@ -54,6 +55,7 @@ Each repository:
 ## Auth
 
 `auth.config.ts` has no DB access — safe to import in `middleware.ts`.
+`provider-availability.ts` centralises environment checks for which sign-in providers are shown.
 `index.ts` imports the Drizzle adapter — only import in server-side code, never in middleware.
 `index.ts` uses the shared `db` from `client.ts` (not its own connection). Do not create
 a separate drizzle instance inside `auth/`.

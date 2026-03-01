@@ -2,16 +2,43 @@
 
 import { signIn } from 'next-auth/react';
 
-export function SignInButton() {
+type SignInButtonProps = {
+  showGoogle: boolean;
+  showLocalDev: boolean;
+};
+
+export function SignInButton({ showGoogle, showLocalDev }: SignInButtonProps) {
+  if (!showGoogle && !showLocalDev) {
+    return (
+      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        Sign-in is unavailable. Configure Google OAuth credentials to continue.
+      </p>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={() => signIn('google')}
-      className="inline-flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-6 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50"
-    >
-      <GoogleIcon />
-      Sign in with Google
-    </button>
+    <div className="flex flex-col items-center gap-3">
+      {showLocalDev && (
+        <button
+          type="button"
+          onClick={() => signIn('local-dev', { redirectTo: '/' })}
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-800"
+        >
+          Sign in locally (dev)
+        </button>
+      )}
+
+      {showGoogle && (
+        <button
+          type="button"
+          onClick={() => signIn('google')}
+          className="inline-flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-white px-6 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50"
+        >
+          <GoogleIcon />
+          Sign in with Google
+        </button>
+      )}
+    </div>
   );
 }
 

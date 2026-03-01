@@ -127,6 +127,11 @@ See CONSTITUTION.md §7 for the required template and naming rules.
 missing: it starts a Testcontainers Postgres instance, runs migrations + seed,
 and injects safe local defaults for auth vars.
 
+In `NODE_ENV=development`, local manual testing can sign in via a dev-only
+`local-dev` credentials provider (no Google setup required). Google sign-in is
+shown only when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are real values (not
+placeholder defaults).
+
 Use `.env.local` when you want to target your own database/OAuth credentials:
 
 ```

@@ -11,7 +11,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | Framework | Next.js 16 (App Router, server components, server actions) |
 | Language | TypeScript (strict mode) |
 | Database | Vercel Postgres (Neon) via Drizzle ORM |
-| Auth | Auth.js v5 — Google OAuth |
+| Auth | Auth.js v5 — Google OAuth + dev-only local login fallback |
 | Styling | Tailwind CSS v4 |
 | Lint / Format | Biome v2 |
 | Unit tests | Vitest |
@@ -50,6 +50,10 @@ If `POSTGRES_URL` is missing, `pnpm dev` will:
 - run `pnpm db:seed`
 - set safe local defaults for `AUTH_SECRET`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET`
 - on macOS, attempt to open Docker Desktop automatically if the Docker runtime is not ready
+
+In local development, you can always use a one-click **Sign in locally (dev)** button
+without configuring Google OAuth. The **Sign in with Google** button only appears when
+`AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set to real (non-placeholder) values.
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 

@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+const SIGN_IN_BUTTON_NAME = /sign in (with google|locally \(dev\))/i;
+
 /**
  * Accessibility and responsive layout tests.
  *
@@ -49,7 +51,7 @@ test.describe('Landing page — accessibility', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
 
-    const btn = page.getByRole('button', { name: /sign in with google/i });
+    const btn = page.getByRole('button', { name: SIGN_IN_BUTTON_NAME }).first();
     await expect(btn).toBeVisible();
 
     // Ensure it is within viewport (not scrolled off-screen)
@@ -63,7 +65,7 @@ test.describe('Landing page — accessibility', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
 
-    const btn = page.getByRole('button', { name: /sign in with google/i });
+    const btn = page.getByRole('button', { name: SIGN_IN_BUTTON_NAME }).first();
     await expect(btn).toBeVisible();
   });
 });
@@ -115,6 +117,23 @@ test.describe('Dashboard — accessibility & responsive', () => {
 
     await expect(page.getByRole('button', { name: /create trip/i })).toBeVisible();
   });
+
+  test('passes axe audit in dark mode with create trip modal open', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/');
+    await page.getByRole('button', { name: /create trip/i }).click();
+    await expect(page.getByRole('heading', { name: /new trip/i })).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+
+    expect(
+      results.violations,
+      formatViolations(results.violations),
+    ).toEqual([]);
+  });
 });
 
 // ─── Trip detail page ─────────────────────────────────────────────────────────
@@ -140,6 +159,23 @@ test.describe('Trip detail page — accessibility', () => {
       ).toEqual([]);
     });
   }
+
+  test('passes axe audit in dark mode', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/');
+    await page.getByText('Test Round the World').click();
+    await page.waitForURL(/\/trips\//);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+
+    expect(
+      results.violations,
+      formatViolations(results.violations),
+    ).toEqual([]);
+  });
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

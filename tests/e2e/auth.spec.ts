@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const SIGN_IN_BUTTON_NAME = /sign in (with google|locally \(dev\))/i;
+
 /**
  * Authentication journeys.
  *
@@ -15,7 +17,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test('unauthenticated user sees landing page with sign-in button', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Travel Planner' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: SIGN_IN_BUTTON_NAME }).first()).toBeVisible();
 });
 
 test('unauthenticated user is not redirected away from root', async ({ page }) => {
@@ -34,5 +36,18 @@ test('unauthenticated user visiting /trips is redirected to /login', async ({ pa
 test('login page renders correctly', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Travel Planner' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /sign in with google/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: SIGN_IN_BUTTON_NAME }).first()).toBeVisible();
+});
+
+test('local dev sign-in succeeds when the local-dev provider is available', async ({ page }) => {
+  await page.goto('/login');
+
+  const localDevButton = page.getByRole('button', { name: /sign in locally \(dev\)/i });
+  if ((await localDevButton.count()) === 0) {
+    test.skip(true, 'local-dev sign-in is only available in development mode');
+  }
+
+  await localDevButton.click();
+  await expect(page).toHaveURL('/');
+  await expect(page.getByRole('button', { name: /create trip/i })).toBeVisible();
 });
