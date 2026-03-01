@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## 1.0.0 (2026-03-01)
+
+
+### Features
+
+* **a11y:** add mobile-first responsive layout and WCAG 2.1 AA accessibility ([6651a0c](https://github.com/matthew-a-carr/travel-planner/commit/6651a0cbc222dcd438c02ef1cce9ab6b8e8a5d42))
+* add integration test suite, fix code smells, automate releases ([#8](https://github.com/matthew-a-carr/travel-planner/issues/8)) ([8c56c1c](https://github.com/matthew-a-carr/travel-planner/commit/8c56c1c130382ae19c6b87e85723b5a9c44457de))
+* add spend entry delete and edit ([cd33275](https://github.com/matthew-a-carr/travel-planner/commit/cd332758157ba8f6cb34585a4bc6b5393b9debcc))
+* bootstrap travel-planner project scaffold ([fbd4c29](https://github.com/matthew-a-carr/travel-planner/commit/fbd4c2994f6ef1df9f790b93a51be5d6fe358fb4))
+* **country-reference:** add budget suggestion engine and destination dates ([f6b0625](https://github.com/matthew-a-carr/travel-planner/commit/f6b0625f68ee88c230928f908cbf75ae7512efb9))
+* destination management, spend recording, and e2e scaffolding ([44a2604](https://github.com/matthew-a-carr/travel-planner/commit/44a2604ecda9bdf8087a8d74c5c4b25f00cf4259))
+* **destination:** add destination editing; fix CI build (lazy DB client) ([45287af](https://github.com/matthew-a-carr/travel-planner/commit/45287afc8245db447501e142ab863b60f34dfcf2))
+* **dev:** bootstrap local dev db and stabilize integration runs ([c3931ef](https://github.com/matthew-a-carr/travel-planner/commit/c3931efce05e3a7a9875d6cba54de940809d6fd5))
+* **e2e:** self-contained Testcontainers PostgreSQL for e2e tests ([26a1b72](https://github.com/matthew-a-carr/travel-planner/commit/26a1b728ffb58f6dd292101fa1de9e9a31747284))
+* **fixed-costs+charts:** replace ringfenced amount with named cost items; add Recharts charts ([c8b4c8c](https://github.com/matthew-a-carr/travel-planner/commit/c8b4c8c6193d89c6b653b58d351cd3dfedb24729))
+* trip creation, persistence, and detail page ([96770a4](https://github.com/matthew-a-carr/travel-planner/commit/96770a46ba2fd3b7f67435d674de0616d85f6c3c))
+
+
+### Bug Fixes
+
+* **ci:** fix e2e build failures — local fonts and proxy migration ([e6e7d4e](https://github.com/matthew-a-carr/travel-planner/commit/e6e7d4effbbcedd1f5f83d583acad08ea65e5ac0))
+* **ci:** generate drizzle migration journal; add pre-commit/pre-push hooks ([ebf3d65](https://github.com/matthew-a-carr/travel-planner/commit/ebf3d658c9a7a3d94c18aadbc5ce0dbb1b4b1182))
+* **ci:** resolve build failure — dummy POSTGRES_URL for next build ([03e4782](https://github.com/matthew-a-carr/travel-planner/commit/03e47820e5a44806aa0b854d214375f7956b9d61))
+* **e2e:** check pathname only in auth redirect assertion ([01c0b45](https://github.com/matthew-a-carr/travel-planner/commit/01c0b45275e667ef2e933540daa692cae2d11d20))
+* **e2e:** update trip creation test to match current UI (ADR 005) ([1c72fea](https://github.com/matthew-a-carr/travel-planner/commit/1c72fea956903b76d1d4ed3ce8c89ceee015ff21))
+
 ## [Unreleased]
 
 ### Added
