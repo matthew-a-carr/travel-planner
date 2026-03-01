@@ -69,6 +69,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   missing, runs migrations + reference-data seed, injects safe auth env
   defaults for local bootstrapping, and auto-detects Docker context settings
   (including Colima socket overrides)
+- `.env.example` no longer hard-codes `POSTGRES_URL`, so local setup defaults
+  to auto-bootstrapped Postgres unless developers opt into a custom database.
 - CI: `unit-test` job now runs `pnpm test:unit`; new `integration-test` job runs
   `pnpm test:integration` in stage 2; E2E gate moved to stage 3 (needs integration-test)
 - `CONTRIBUTING.md`: added test file naming convention table and mandatory pre-push
@@ -81,6 +83,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Dark mode accessibility across dashboard and trip detail pages: low-contrast
+  text, cards, forms, and modal surfaces now use explicit dark-theme colors;
+  create/edit trip modals no longer render as bright white overlays in dark mode.
+- Added dark-mode accessibility regression coverage in Playwright for the
+  dashboard create-trip modal and trip detail page.
 - Lint: replaced non-null assertion (`!`) in `helpers.ts` and `spend-entry.ts` with
   explicit null-checks (biome `noNonNullAssertion`)
 - TypeScript: `global-setup.ts` container teardown now returns `Promise<void>` to satisfy
