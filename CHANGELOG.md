@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.1.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.0.0...v1.1.0) (2026-03-01)
+
+
+### Features
+
+* **auth:** add dev-only local login fallback ([f131ae5](https://github.com/matthew-a-carr/travel-planner/commit/f131ae5789988e1d1625731ecc5c063874a99f84))
+
+
+### Bug Fixes
+
+* **e2e:** stabilize ci auth harness and test reliability ([5580ca2](https://github.com/matthew-a-carr/travel-planner/commit/5580ca2db9723c53defeb24ea86721a30e0f32f4))
+
 ## 1.0.0 (2026-03-01)
 
 
