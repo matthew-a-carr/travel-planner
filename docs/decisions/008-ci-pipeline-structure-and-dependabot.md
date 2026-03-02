@@ -95,3 +95,17 @@ Configuration decisions:
 - `playwright.config.ts` — `webServer` updated to support both CI and local runs
 - `docs/decisions/008-ci-pipeline-structure-and-dependabot.md` — this file
 - `AGENTS.md` — updated to reflect new CI structure and add ADR trigger guidance
+
+## Current implementation note (2026-03-02)
+
+The decision remains accepted: CI still runs five parallel jobs and keeps
+Dependabot as the dependency-update mechanism.
+
+Current e2e implementation differs from some historical wording above:
+
+- Local e2e startup now uses `pnpm dev:next` via
+  `tests/e2e/setup/start-web-server.ts` (not `pnpm dev` with
+  `reuseExistingServer`).
+- `playwright.config.ts` currently sets `reuseExistingServer: false`.
+- The e2e job does not use a GitHub Actions Postgres service container;
+  Testcontainers starts `postgres:16-alpine` during the Playwright run.

@@ -106,3 +106,18 @@ trade-off.
 
 Would remove the need for any URL but requires maintaining a separate schema
 bootstrap path. Ruled out due to complexity.
+
+## Current implementation note (2026-03-02)
+
+The decision in this ADR remains accepted: `next build` still requires a
+syntactically-valid `POSTGRES_URL`, and CI still injects the dummy URL for the
+build step.
+
+Current operational behavior differs from some historical wording above:
+
+- The pre-push hook no longer runs `pnpm build`, so it does not apply the dummy
+  `POSTGRES_URL`.
+- Local verification of the build-time requirement is done via the manual
+  command documented in `AGENTS.md`:
+  `POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build`.
+- CI remains the automated enforcement point for this pattern.

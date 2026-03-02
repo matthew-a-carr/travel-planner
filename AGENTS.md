@@ -38,6 +38,9 @@ pnpm run format           # biome format --write src/
 pnpm lint -- --write      # biome check --write src/  (safe fixes)
 ```
 
+Whenever ADR files in `docs/decisions/` are added, renamed, or have a status
+change, update `docs/decisions/README.md` in the same commit.
+
 ---
 
 ## Architecture — enforced by structural tests
@@ -155,11 +158,12 @@ All five jobs run in parallel on every push and PR:
   against a real Postgres database via Testcontainers. Docker is available by default
   on `ubuntu-latest` GitHub Actions runners.
 - `e2e` — builds the app with a dummy `POSTGRES_URL` (`pnpm build`), then runs
-  `pnpm test:e2e`. Playwright's `globalSetup` starts a throwaway `postgres:16-alpine`
-  container via Testcontainers, runs migrations, seeds data, creates a test session,
-  and writes `auth-state.json`. `pnpm start` (pre-built production server) is used
-  in CI; `pnpm dev` locally. Failed runs upload the Playwright HTML report as an
-  artifact (7-day retention). See ADR 009 for Testcontainers rationale.
+  `pnpm test:e2e`. `tests/e2e/setup/start-web-server.ts` starts a throwaway
+  `postgres:16-alpine` container via Testcontainers and boots the app (`pnpm start`
+  in CI, `pnpm dev:next` locally). Playwright `globalSetup` then waits for the
+  DB URL file, runs migrations, seeds data, and writes `auth-state.json`. Failed
+  runs upload the Playwright HTML report as an artifact (7-day retention). See
+  ADR 009 for Testcontainers rationale.
 
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
 Actions updates. Dev tooling is grouped into a single PR to reduce noise.
@@ -185,7 +189,8 @@ the code change.
 | Infrastructure repos or auth (`src/infrastructure/`) | `src/infrastructure/AGENTS.md` structure |
 | Environment variables | `AGENTS.md` env section, `README.md` setup section |
 | Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
-| A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable |
+| A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
+| ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 
 **Signs a doc is stale:** it describes a tool, file, or behaviour that no longer

@@ -73,8 +73,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running checks
 
-A pre-push hook runs all checks automatically before every `git push` — you don't need
-to invoke them manually before pushing.
+A pre-push hook runs `pnpm lint`, `pnpm type-check`, `pnpm test:unit`, and
+`pnpm test:integration` automatically before every `git push`.
 
 To run checks mid-task:
 
@@ -84,6 +84,12 @@ pnpm type-check         # TypeScript strict type check
 pnpm test:unit          # Vitest unit tests (no Docker required)
 pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
 pnpm test:e2e           # Playwright e2e — self-contained via Testcontainers (Docker required)
+```
+
+Before pushing changes that can affect production build/runtime wiring, also run:
+
+```bash
+POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
 ```
 
 CI runs all checks in parallel: lint, type-check, unit tests, integration tests, and the

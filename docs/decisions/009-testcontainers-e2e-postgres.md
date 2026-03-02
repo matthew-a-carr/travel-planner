@@ -134,3 +134,20 @@ not worth the benefit at the current scale. Can be revisited if the suite grows.
 Would remove the Docker dependency entirely. At the time of writing, PGlite lacks
 production parity (e.g. `date` columns, certain extension behaviour) and Drizzle
 migration support is limited. Revisit when PGlite matures.
+
+## Current implementation note (2026-03-02)
+
+The decision remains accepted: E2E uses Testcontainers + Playwright
+`storageState`, and Docker is required.
+
+Current wiring differs from some historical flow text above:
+
+- The PostgreSQL container is started by `tests/e2e/setup/start-web-server.ts`
+  (configured via Playwright `webServer.command`), not by `global.setup.ts`.
+- `global.setup.ts` waits for the `.postgres-url` file, then runs migrations,
+  seeds reference data, and writes `auth-state.json`.
+- Auth state is now generated as a JWT cookie via `next-auth/jwt` encode; the
+  setup does not insert a row into the `sessions` table.
+- In CI, `start-web-server.ts` runs `pnpm start`; locally it runs
+  `pnpm dev:next`.
+- `reuseExistingServer` is currently `false` in `playwright.config.ts`.

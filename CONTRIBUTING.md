@@ -14,15 +14,21 @@ Internal team guide. See `CONSTITUTION.md` for the full engineering contract.
 
 ```bash
 pnpm install
+pnpm dev
+```
 
-# Copy the example env file and fill in your values
+`pnpm dev` is the default local bootstrap path. When `POSTGRES_URL` is not set,
+it starts a throwaway Testcontainers Postgres instance, runs migrations, and
+seeds country reference data automatically.
+
+If you want to use your own database/OAuth credentials instead:
+
+```bash
 cp .env.example .env.local
-
-# Run database migrations
+# fill in .env.local values
 pnpm db:migrate
-
-# Seed country reference data
 pnpm db:seed
+pnpm dev
 ```
 
 ## Running tests
