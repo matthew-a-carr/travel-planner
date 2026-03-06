@@ -80,16 +80,32 @@ export async function truncateAll(db: Db): Promise<void> {
 
 export async function seedUser(
   db: Db,
-  overrides: { id?: string; name?: string; email?: string } = {},
+  overrides: {
+    id?: string;
+    name?: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string;
+    isApproved?: boolean;
+    isAdmin?: boolean;
+  } = {},
 ): Promise<{ id: string; email: string }> {
   const id = overrides.id ?? crypto.randomUUID();
   const email = overrides.email ?? `test-${id}@example.com`;
   const name = overrides.name ?? 'Test User';
+  const firstName = overrides.firstName ?? null;
+  const lastName = overrides.lastName ?? null;
+  const isApproved = overrides.isApproved ?? false;
+  const isAdmin = overrides.isAdmin ?? false;
 
   await db.insert(schema.users).values({
     id,
     name,
+    firstName,
+    lastName,
     email,
+    isApproved,
+    isAdmin,
     emailVerified: null,
     image: null,
   });

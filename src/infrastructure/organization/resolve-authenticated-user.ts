@@ -15,7 +15,6 @@ export async function resolveAuthenticatedUserId(
   const sessionUserId = input.id ?? null;
   const trimmedEmail = input.email?.trim() ?? null;
   const normalizedEmail = trimmedEmail?.toLowerCase() ?? null;
-  const normalizedName = input.name?.trim() || null;
 
   if (sessionUserId) {
     const existingById = await db
@@ -36,29 +35,5 @@ export async function resolveAuthenticatedUserId(
   }
 
   if (!trimmedEmail) return null;
-
-  try {
-    const inserted = await db
-      .insert(users)
-      .values({
-        ...(sessionUserId ? { id: sessionUserId } : {}),
-        email: trimmedEmail,
-        name: normalizedName,
-        emailVerified: null,
-        image: null,
-      })
-      .returning({ id: users.id });
-
-    const insertedUser = inserted[0];
-    if (insertedUser) return insertedUser.id;
-  } catch {
-    // Concurrent inserts or unique-email races should be recovered via re-read.
-  }
-
-  const fallback = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(sql`lower(${users.email}) = ${normalizedEmail}`)
-    .limit(1);
-  return fallback[0]?.id ?? null;
+  return null;
 }

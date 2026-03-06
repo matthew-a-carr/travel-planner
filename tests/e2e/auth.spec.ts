@@ -39,6 +39,13 @@ test('login page renders correctly', async ({ page }) => {
   await expect(page.getByRole('button', { name: SIGN_IN_BUTTON_NAME }).first()).toBeVisible();
 });
 
+test('login page shows access denied message when provider rejects sign-in', async ({ page }) => {
+  await page.goto('/login?error=AccessDenied');
+  await expect(
+    page.getByText('Access denied. Your account is not approved for this app yet.'),
+  ).toBeVisible();
+});
+
 test('local dev sign-in succeeds when the local-dev provider is available', async ({ page }) => {
   await page.goto('/login');
 

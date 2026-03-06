@@ -11,7 +11,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | Framework | Next.js 16 (App Router, server components, server actions) |
 | Language | TypeScript (strict mode) |
 | Database | Vercel Postgres (Neon) via Drizzle ORM |
-| Auth | Auth.js v5 — Google OAuth + dev-only local login fallback |
+| Auth | Auth.js v5 — Google OAuth + dev-only local login fallback + app-level access controls |
 | Styling | Tailwind CSS v4 |
 | Lint / Format | Biome v2 |
 | Unit tests | Vitest |
@@ -55,9 +55,11 @@ In local development, you can always use a one-click **Sign in locally (dev)** b
 without configuring Google OAuth. The **Sign in with Google** button only appears when
 `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set to real (non-placeholder) values.
 
-On first sign-in, users are automatically provisioned with a personal workspace
-organization so they can start planning immediately. Trip visibility and editing
-are scoped to the currently selected organization.
+When self-registration is enabled, first sign-in users are automatically
+approved and provisioned with a personal workspace organization. When
+self-registration is disabled, only app-approved users (or configured admin
+emails) can complete sign-in. Trip visibility and editing are scoped to the
+currently selected organization.
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
@@ -73,6 +75,8 @@ AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true      # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false
+AUTH_SELF_REGISTRATION_ENABLED=false  # true = auto-approve new users
+AUTH_ADMIN_EMAILS=admin@example.com   # comma-separated bootstrap admins
 ```
 
 Open [http://localhost:3000](http://localhost:3000).

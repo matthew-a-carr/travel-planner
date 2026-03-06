@@ -7,6 +7,8 @@ neon_api_key     = "replace-with-neon-api-key"
 # neon_org_id    = "org-xxxxx"
 
 preview_auth_secret = "replace-with-openssl-rand-base64-32"
+preview_self_registration_enabled = true
+preview_auth_admin_emails         = "admin@example.com"
 
 # open_previews is normally provided by automation, but can be tested manually.
 # open_previews = {

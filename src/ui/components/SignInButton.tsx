@@ -5,19 +5,32 @@ import { signIn } from 'next-auth/react';
 type SignInButtonProps = {
   showGoogle: boolean;
   showLocalDev: boolean;
+  errorMessage?: string | null;
 };
 
-export function SignInButton({ showGoogle, showLocalDev }: SignInButtonProps) {
+export function SignInButton({ showGoogle, showLocalDev, errorMessage = null }: SignInButtonProps) {
   if (!showGoogle && !showLocalDev) {
     return (
-      <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Sign-in is unavailable. Configure Google OAuth credentials to continue.
-      </p>
+      <div className="space-y-3">
+        {errorMessage && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </p>
+        )}
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Sign-in is unavailable. Configure Google OAuth credentials to continue.
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col items-center gap-3">
+      {errorMessage && (
+        <p className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage}
+        </p>
+      )}
       {showLocalDev && (
         <button
           type="button"

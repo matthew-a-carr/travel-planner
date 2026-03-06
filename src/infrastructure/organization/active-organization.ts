@@ -3,6 +3,10 @@ import { ensureUserOrganization } from '@/application/use-cases/ensure-user-orga
 import { getUserOrganizations } from '@/application/use-cases/get-user-organizations';
 import type { OrganizationWithRole } from '@/domain/organization/types';
 import { auth } from '@/infrastructure/auth';
+import {
+  isUserAllowedForApp,
+  syncSeedAdminAccessByUserId,
+} from '@/infrastructure/auth/access-policy';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { resolveAuthenticatedUserId } from './resolve-authenticated-user';
@@ -23,6 +27,9 @@ export async function getActiveOrganizationContext(): Promise<ActiveOrganization
     name: session?.user?.name ?? null,
   });
   if (!userId) return null;
+  const isAllowed = await isUserAllowedForApp(db, userId);
+  if (!isAllowed) return null;
+  await syncSeedAdminAccessByUserId(db, userId);
 
   const repository = new DrizzleOrganizationRepository(db);
   await ensureUserOrganization(repository, {

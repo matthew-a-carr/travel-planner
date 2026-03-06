@@ -6,6 +6,7 @@ import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { OrganizationManagementPanel } from '@/ui/components/OrganizationManagementPanel';
+import { SettingsNav } from '@/ui/components/SettingsNav';
 
 export default async function OrganizationSettingsPage() {
   const session = await auth();
@@ -35,6 +36,7 @@ export default async function OrganizationSettingsPage() {
       />
 
       <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8">
+        <SettingsNav active="organization" />
         <OrganizationManagementPanel
           activeOrganizationId={context.activeOrganization.organization.id}
           activeOrganizationName={context.activeOrganization.organization.name}

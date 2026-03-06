@@ -39,6 +39,9 @@ src/domain/
     organization.ts       ← personal workspace naming + permission helpers
     organization.test.ts
     organization-repository.ts ← OrganizationRepository interface
+  user-access/
+    types.ts              ← app-level user access views (approval/admin/idp/org links)
+    user-access-repository.ts ← UserAccessRepository interface
 ```
 
 ## Testing

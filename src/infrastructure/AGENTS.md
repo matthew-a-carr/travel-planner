@@ -20,6 +20,7 @@ src/infrastructure/
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
     index.ts             ← full NextAuth with DrizzleAdapter (imports db from client.ts)
+    access-policy.ts     ← signup/approval/admin policy helpers
     provider-availability.ts ← env-aware auth provider visibility helpers (UI + provider wiring)
   organization/
     active-organization.ts ← auth/session + cookie-aware active organization resolver
@@ -34,6 +35,7 @@ src/infrastructure/
       drizzle-trip-fixed-cost-repository.ts
       drizzle-country-reference-repository.ts
       drizzle-organization-repository.ts
+      drizzle-user-access-repository.ts
     seed/
       country-reference-seed.ts  ← seed data for 33 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
@@ -59,11 +61,14 @@ Each repository:
 
 `auth.config.ts` has no DB access — safe to import in `middleware.ts`.
 `provider-availability.ts` centralises environment checks for which sign-in providers are shown.
+`access-policy.ts` owns app-level access policy checks (self-registration, admin allowlist,
+approval checks, seeded-admin sync).
 `index.ts` imports the Drizzle adapter — only import in server-side code, never in middleware.
 `index.ts` uses the shared `db` from `client.ts` (not its own connection). Do not create
 a separate drizzle instance inside `auth/`.
 `AUTH_ENABLE_LOCAL_DEV=true` can explicitly enable local-dev credentials outside
 `NODE_ENV=development` (used for preview deployments); production should keep it false.
+`AUTH_SELF_REGISTRATION_ENABLED` and `AUTH_ADMIN_EMAILS` control production signup access.
 
 ## Build-time database requirement
 
@@ -89,7 +94,7 @@ pnpm test:integration -- src/infrastructure/db/repositories/drizzle-trip-reposit
 pnpm db:check:migrations # enforce deploy-safe transactional migration SQL
 ```
 
-There are currently 6 integration test files in `db/repositories/`, one per repository.
+There are currently 7 integration test files in `db/repositories/`, one per repository.
 
 Do not use in-memory fakes or mock `db` in repository tests. The Testcontainers
 container is shared across all integration test files in a single run — start-up cost

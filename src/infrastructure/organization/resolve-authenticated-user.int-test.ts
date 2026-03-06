@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { users } from '@/infrastructure/db/schema';
 import {
   createTestDb,
   type Db,
@@ -58,25 +56,14 @@ describe('resolveAuthenticatedUserId', () => {
     expect(resolved).toBe(seeded.id);
   });
 
-  it('creates a user with the session id when no matching user exists', async () => {
+  it('returns null when no matching user exists', async () => {
     const resolved = await resolveAuthenticatedUserId(db, {
       id: 'new-session-id',
       email: 'fresh@example.com',
       name: 'Fresh User',
     });
 
-    expect(resolved).toBe('new-session-id');
-
-    const inserted = await db
-      .select({ id: users.id, email: users.email })
-      .from(users)
-      .where(eq(users.id, 'new-session-id'))
-      .limit(1);
-
-    expect(inserted[0]).toEqual({
-      id: 'new-session-id',
-      email: 'fresh@example.com',
-    });
+    expect(resolved).toBeNull();
   });
 
   it('returns null when no user id and no email are available', async () => {

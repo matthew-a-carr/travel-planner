@@ -26,7 +26,11 @@ test('authenticated user falls back to initials when avatar image cannot be load
   await db.insert(users).values({
     id: userId,
     name: userName,
+    firstName: 'Fallback',
+    lastName: 'Avatar',
     email: userEmail,
+    isApproved: true,
+    isAdmin: false,
     emailVerified: null,
     image: FALLBACK_IMAGE_URL,
   });

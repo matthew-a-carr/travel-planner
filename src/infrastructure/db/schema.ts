@@ -1,4 +1,13 @@
-import { date, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  integer,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 // ─── Auth.js tables ───────────────────────────────────────────────────────────
 
@@ -7,7 +16,11 @@ export const users = pgTable('users', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text('name'),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
   email: text('email').notNull().unique(),
+  isApproved: boolean('is_approved').notNull().default(false),
+  isAdmin: boolean('is_admin').notNull().default(false),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   image: text('image'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

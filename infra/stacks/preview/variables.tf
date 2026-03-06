@@ -46,6 +46,18 @@ variable "preview_auth_url" {
   default     = ""
 }
 
+variable "preview_self_registration_enabled" {
+  description = "Whether preview deployments auto-approve first-time sign-ins."
+  type        = bool
+  default     = true
+}
+
+variable "preview_auth_admin_emails" {
+  description = "Comma-separated bootstrap admin emails for preview deployments."
+  type        = string
+  default     = ""
+}
+
 variable "neon_region_id" {
   description = "Optional Neon region for preview project."
   type        = string

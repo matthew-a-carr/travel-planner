@@ -91,7 +91,11 @@ export default async function globalSetup(): Promise<void> {
   await db.insert(users).values({
     id: userId,
     name: 'E2E Test User',
+    firstName: 'E2E',
+    lastName: 'Test User',
     email: 'e2e@travelplanner.test',
+    isApproved: true,
+    isAdmin: true,
     emailVerified: null,
     image: null,
   });

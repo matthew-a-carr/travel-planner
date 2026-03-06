@@ -54,7 +54,11 @@ async function ensureUser(email: string, name: string): Promise<AuthUser> {
     await db.insert(users).values({
       id: userId,
       name,
+      firstName: name.split(' ')[0] ?? null,
+      lastName: name.split(' ').slice(1).join(' ') || null,
       email,
+      isApproved: true,
+      isAdmin: false,
       emailVerified: null,
       image: null,
     });

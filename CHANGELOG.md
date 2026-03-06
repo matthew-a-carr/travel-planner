@@ -73,6 +73,16 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ## [Unreleased]
 
 ### Added
+- App-level signup controls with `AUTH_SELF_REGISTRATION_ENABLED` and
+  `AUTH_ADMIN_EMAILS` for controlled access in production.
+- New admin-only `/settings/access` page to manage:
+  - user approval/revocation
+  - app admin role assignment
+  - linked identity providers
+  - organization memberships per user
+- User access data model fields on `users`:
+  - `first_name`, `last_name`, `is_approved`, `is_admin`
+- New ADR 025 documenting controlled signup and admin access management.
 - Moved the user Avatar and Sign out button to the far right side of the application header.
 - Organization-scoped collaboration model:
   - New `organizations` and `organization_memberships` tables
@@ -116,6 +126,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   (ADR 022).
 
 ### Changed
+- Sign-in is now gated before user creation:
+  - self-registration ON: first-time users are auto-approved
+  - self-registration OFF: only approved users or configured admin emails can sign in
+- Authenticated request context now enforces access policy checks so revoked users
+  lose app access on the next request.
+- Settings now include section tabs for organization management and app-level access
+  management.
 
 - Vercel build command is now intended to run migrations in deployment:
   `pnpm build && pnpm db:migrate:deploy`.
