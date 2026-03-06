@@ -29,7 +29,7 @@ export async function resolveAuthenticatedUserId(
     const existingByEmail = await db
       .select({ id: users.id })
       .from(users)
-      .where(sql`lower(${users.email}) = ${normalizedEmail}`)
+      .where(sql`lower(trim(${users.email})) = ${normalizedEmail}`)
       .limit(1);
     if (existingByEmail[0]) return existingByEmail[0].id;
   }

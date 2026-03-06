@@ -28,6 +28,15 @@ describe('access-policy helpers', () => {
     expect(isConfiguredAdminEmail('other@example.com', env)).toBe(false);
   });
 
+  it('matches gmail aliases against configured admin emails', () => {
+    const env = {
+      AUTH_ADMIN_EMAILS: 'carr.matty@gmail.com',
+    };
+
+    expect(isConfiguredAdminEmail('CarrMatty@googlemail.com', env)).toBe(true);
+    expect(isConfiguredAdminEmail('c.a.r.r.m.a.t.t.y+alias@gmail.com', env)).toBe(true);
+  });
+
   it('supports truthy self-registration flag values', () => {
     expect(isSelfRegistrationEnabled({ AUTH_SELF_REGISTRATION_ENABLED: 'true' })).toBe(true);
     expect(isSelfRegistrationEnabled({ AUTH_SELF_REGISTRATION_ENABLED: '1' })).toBe(true);
@@ -37,6 +46,7 @@ describe('access-policy helpers', () => {
 
   it('normalizes emails safely', () => {
     expect(normalizeEmail('  Test@Example.Com ')).toBe('test@example.com');
+    expect(normalizeEmail('Carr.Matty+travel@GoogleMail.com')).toBe('carrmatty@gmail.com');
     expect(normalizeEmail('   ')).toBeNull();
     expect(normalizeEmail(null)).toBeNull();
   });

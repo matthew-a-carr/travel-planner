@@ -3,6 +3,7 @@ import type { Db } from '@/infrastructure/db/client';
 import { users } from '@/infrastructure/db/schema';
 
 const TRUE_VALUES = ['1', 'true', 'yes', 'on'] as const;
+const GMAIL_DOMAINS = new Set(['gmail.com', 'googlemail.com']);
 
 function isTruthy(value: string | undefined): boolean {
   if (!value) return false;
@@ -14,7 +15,19 @@ function isTruthy(value: string | undefined): boolean {
 export function normalizeEmail(email: string | null | undefined): string | null {
   const trimmed = email?.trim();
   if (!trimmed) return null;
-  return trimmed.toLowerCase();
+
+  const lowered = trimmed.toLowerCase();
+  const atIndex = lowered.lastIndexOf('@');
+  if (atIndex <= 0 || atIndex === lowered.length - 1) return lowered;
+
+  const localPart = lowered.slice(0, atIndex);
+  const domainPart = lowered.slice(atIndex + 1);
+
+  if (!GMAIL_DOMAINS.has(domainPart)) return lowered;
+
+  // Gmail treats dots as insignificant and supports plus aliases.
+  const canonicalLocalPart = localPart.split('+')[0]?.replaceAll('.', '') ?? localPart;
+  return `${canonicalLocalPart}@gmail.com`;
 }
 
 export function isSelfRegistrationEnabled(env: Partial<NodeJS.ProcessEnv> = process.env): boolean {
@@ -70,7 +83,7 @@ export async function decideSignInAccess(
   const existingUser = await db
     .select({ isApproved: users.isApproved })
     .from(users)
-    .where(sql`lower(${users.email}) = ${normalizedEmail}`)
+    .where(sql`lower(trim(${users.email})) = ${normalizedEmail}`)
     .limit(1);
 
   return {
@@ -202,5 +215,5 @@ export async function syncUserAccessOnSignIn(
   await db
     .update(users)
     .set(updates)
-    .where(and(eq(users.id, input.userId), sql`lower(${users.email}) = ${normalizedEmail}`));
+    .where(and(eq(users.id, input.userId), sql`lower(trim(${users.email})) = ${normalizedEmail}`));
 }

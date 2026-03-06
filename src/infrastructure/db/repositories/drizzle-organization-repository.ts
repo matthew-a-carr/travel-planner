@@ -112,7 +112,7 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
         email: users.email,
       })
       .from(users)
-      .where(sql`lower(${users.email}) = ${normalized}`)
+      .where(sql`lower(trim(${users.email})) = ${normalized}`)
       .limit(1);
 
     const row = rows[0];

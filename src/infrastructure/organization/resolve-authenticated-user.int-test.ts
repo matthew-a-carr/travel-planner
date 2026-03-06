@@ -56,6 +56,22 @@ describe('resolveAuthenticatedUserId', () => {
     expect(resolved).toBe(seeded.id);
   });
 
+  it('finds existing user when stored email contains surrounding whitespace', async () => {
+    const seeded = await seedUser(db, {
+      id: 'canonical-id-with-spaces',
+      email: '  local-dev@travel-planner.local  ',
+      name: 'Local Dev User',
+    });
+
+    const resolved = await resolveAuthenticatedUserId(db, {
+      id: 'stale-session-id',
+      email: 'LOCAL-DEV@TRAVEL-PLANNER.LOCAL',
+      name: 'Local Dev User',
+    });
+
+    expect(resolved).toBe(seeded.id);
+  });
+
   it('returns null when no matching user exists', async () => {
     const resolved = await resolveAuthenticatedUserId(db, {
       id: 'new-session-id',

@@ -169,6 +169,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Auth access checks now normalize and compare email addresses more robustly
+  (trim + lowercase, Gmail alias canonicalization) to prevent false
+  `AccessDenied` responses for allowed users.
+- Added one-time migration backfill to set `is_approved=true` for existing
+  admin users and trim whitespace from stored user emails.
 - Local development no longer crashes on startup when an existing auth session
   references a user ID not present in the current database (for example after
   local DB reset/rebootstrap); the app now resolves or recreates the session user

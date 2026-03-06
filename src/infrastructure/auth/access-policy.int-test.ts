@@ -56,6 +56,22 @@ describe('access-policy integration', () => {
     expect(decision.autoApprove).toBe(false);
   });
 
+  it('allows approved users even when stored email contains surrounding whitespace', async () => {
+    await seedUser(db, {
+      email: '  approved@example.com  ',
+      isApproved: true,
+      isAdmin: false,
+    });
+
+    const decision = await decideSignInAccess(db, 'approved@example.com', {
+      AUTH_SELF_REGISTRATION_ENABLED: 'false',
+      AUTH_ADMIN_EMAILS: '',
+    });
+
+    expect(decision.allowed).toBe(true);
+    expect(decision.autoApprove).toBe(false);
+  });
+
   it('allows configured admin emails and syncs admin flags', async () => {
     const admin = await seedUser(db, {
       email: 'admin@example.com',
@@ -80,6 +96,19 @@ describe('access-policy integration', () => {
       AUTH_ADMIN_EMAILS: 'admin@example.com',
     });
     expect(allowed).toBe(true);
+  });
+
+  it('allows configured gmail admin aliases', async () => {
+    const decision = await decideSignInAccess(db, 'c.a.r.r.m.a.t.t.y+login@googlemail.com', {
+      AUTH_SELF_REGISTRATION_ENABLED: 'false',
+      AUTH_ADMIN_EMAILS: 'carr.matty@gmail.com',
+    });
+
+    expect(decision).toEqual({
+      allowed: true,
+      seededAdmin: true,
+      autoApprove: true,
+    });
   });
 
   it('cuts off revoked users on next request when self-registration is disabled', async () => {
