@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.4.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.3.0...v1.4.0) (2026-03-06)
+
+
+### Features
+
+* **auth:** implement controlled signup and admin access management ([08bc734](https://github.com/matthew-a-carr/travel-planner/commit/08bc734a88cbf1c45832bed396682e1446c47b62))
+
+
+### Bug Fixes
+
+* **auth:** grant local-dev bootstrap admin in preview auth mode ([c7708c7](https://github.com/matthew-a-carr/travel-planner/commit/c7708c7522bd7e3d3e0d958d99042fe70b317c3c))
+* **auth:** load admin allowlist from github secrets ([e240835](https://github.com/matthew-a-carr/travel-planner/commit/e240835e3467d81a5416a75a31219464b50aece6))
+* **auth:** normalize email matching and backfill admin approvals ([b6182cb](https://github.com/matthew-a-carr/travel-planner/commit/b6182cb4411dcb81c3636a1634199d0e4ff917f1))
+
 ## [1.3.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.2.0...v1.3.0) (2026-03-06)
 
 
