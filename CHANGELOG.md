@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.5.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.4.0...v1.5.0) (2026-03-06)
+
+
+### Features
+
+* **organization:** add searchable user picker for member assignment ([eeb5ebd](https://github.com/matthew-a-carr/travel-planner/commit/eeb5ebdfefff30b608b6080435126e9a644ccc52))
+
+
+### Bug Fixes
+
+* **auth:** canonicalize db email lookups for google aliases ([2ddb000](https://github.com/matthew-a-carr/travel-planner/commit/2ddb000dab378ba77ff929255f850ae2be7762b5))
+* **auth:** harden admin allowlist parsing and google email verification ([c511f71](https://github.com/matthew-a-carr/travel-planner/commit/c511f710374fb986e18416b1401df2e57a92be25))
+* **auth:** log explicit sign-in denial reason ([962a533](https://github.com/matthew-a-carr/travel-planner/commit/962a5336810464c7e1d6bad20c8ddf2bc82a8b51))
+
 ## [1.4.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.3.0...v1.4.0) (2026-03-06)
 
 
