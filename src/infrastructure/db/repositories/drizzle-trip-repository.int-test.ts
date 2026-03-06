@@ -4,10 +4,17 @@ import {
   createTestDb,
   type Db,
   type Sql,
+  seedDestination,
+  seedFixedCost,
   seedOrganization,
+  seedSpendEntry,
+  seedTrip,
   seedUser,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
+import { DrizzleDestinationRepository } from './drizzle-destination-repository';
+import { DrizzleSpendEntryRepository } from './drizzle-spend-entry-repository';
+import { DrizzleTripFixedCostRepository } from './drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from './drizzle-trip-repository';
 
 let db: Db;
@@ -186,6 +193,43 @@ describe('DrizzleTripRepository', () => {
       expect(updated.id).toBe(original.id);
       expect(updated.name).toBe('New Name');
       expect(updated.totalBudget.amountPence).toBe(2_000_000);
+    });
+  });
+
+  describe('delete', () => {
+    it('deletes an existing trip', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const trip = await seedTrip(db, ownerId);
+      const repo = new DrizzleTripRepository(db);
+
+      await repo.delete(trip.id);
+
+      expect(await repo.findById(trip.id)).toBeNull();
+    });
+
+    it('is a no-op for a non-existent id', async () => {
+      const repo = new DrizzleTripRepository(db);
+      await expect(repo.delete(crypto.randomUUID())).resolves.toBeUndefined();
+    });
+
+    it('cascades delete to fixed costs, destinations, and spend entries', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const trip = await seedTrip(db, ownerId);
+      const destination = await seedDestination(db, trip.id);
+      await seedFixedCost(db, trip.id);
+      await seedSpendEntry(db, destination.id);
+
+      const tripRepo = new DrizzleTripRepository(db);
+      const destinationRepo = new DrizzleDestinationRepository(db);
+      const spendRepo = new DrizzleSpendEntryRepository(db);
+      const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+
+      await tripRepo.delete(trip.id);
+
+      expect(await tripRepo.findById(trip.id)).toBeNull();
+      expect(await fixedCostRepo.findByTrip(trip.id)).toEqual([]);
+      expect(await destinationRepo.findByTrip(trip.id)).toEqual([]);
+      expect(await spendRepo.findByTrip(trip.id)).toEqual([]);
     });
   });
 });

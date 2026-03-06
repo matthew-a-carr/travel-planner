@@ -189,6 +189,7 @@ test('owner can share trips with partner, member can edit, and owner can move tr
   await expect(page.getByRole('link').filter({ hasText: sharedTripName }).first()).toBeVisible();
 
   await page.getByRole('link').filter({ hasText: sharedTripName }).first().click();
+  await expect(page.getByRole('button', { name: /delete trip/i })).toHaveCount(0);
   await page.getByRole('button', { name: /edit trip/i }).click();
   const editedTripName = `${sharedTripName} Edited`;
   await page.getByLabel('Trip name').fill(editedTripName);

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { sortDestinations } from '@/domain/destination/destination';
+import { canDeleteTrips } from '@/domain/organization/organization';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
@@ -15,6 +16,7 @@ import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { ChartsSection } from '@/ui/components/ChartsSection';
+import { DeleteTripButton } from '@/ui/components/DeleteTripModal';
 import { DestinationSection } from '@/ui/components/DestinationSection';
 import { EditTripButton } from '@/ui/components/EditTripModal';
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
@@ -125,6 +127,7 @@ export default async function TripDetailPage({ params }: Props) {
           <div className="space-y-2 text-right">
             <EditTripButton trip={trip} />
             <MoveTripForm tripId={trip.id} targets={moveTargets} />
+            {canDeleteTrips(membership.role) && <DeleteTripButton tripId={trip.id} />}
           </div>
         </header>
 

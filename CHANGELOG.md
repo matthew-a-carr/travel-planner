@@ -100,6 +100,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   path is now available for manual testing without configuring Google OAuth. The
   local flow provisions/reuses a stable test user so trip ownership remains
   consistent across sessions.
+- Owner-only trip deletion: organization owners can now permanently delete a trip
+  from the trip detail page via a confirmation modal. Deleting a trip hard-deletes
+  associated fixed costs, destinations, and spend entries via database cascades
+  (ADR 022).
 
 ### Changed
 
