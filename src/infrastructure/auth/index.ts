@@ -10,6 +10,7 @@ import { DrizzleOrganizationRepository } from '../db/repositories/drizzle-organi
 import * as schema from '../db/schema';
 import { decideSignInAccess, syncUserAccessOnSignIn } from './access-policy';
 import { authConfig } from './auth.config';
+import { isGoogleEmailVerified } from './google-email-verification';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
 
 const LOCAL_DEV_USER_EMAIL = 'local-dev@travel-planner.local';
@@ -17,16 +18,6 @@ const LOCAL_DEV_USER_NAME = 'Local Dev User';
 const LOCAL_DEV_USER_IMAGE = null;
 const LOCAL_DEV_FIRST_NAME = 'Local';
 const LOCAL_DEV_LAST_NAME = 'Dev User';
-
-function isGoogleEmailVerified(
-  account: { provider?: string | null } | null | undefined,
-  profile: unknown,
-): boolean {
-  if (account?.provider !== 'google') return true;
-  if (!profile || typeof profile !== 'object') return false;
-  const emailVerified = (profile as { email_verified?: boolean }).email_verified;
-  return emailVerified === true;
-}
 
 async function upsertLocalDevUser() {
   const existing = await db

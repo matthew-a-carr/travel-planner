@@ -40,7 +40,7 @@ export function getAdminEmailSet(env: Partial<NodeJS.ProcessEnv> = process.env):
   if (!configured) return new Set();
 
   const emails = configured
-    .split(',')
+    .split(/[,\n;]+/)
     .map((part) => normalizeEmail(part))
     .filter((value): value is string => value !== null);
 

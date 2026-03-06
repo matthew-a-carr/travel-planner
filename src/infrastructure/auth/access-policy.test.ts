@@ -19,6 +19,17 @@ describe('access-policy helpers', () => {
     expect(admins.size).toBe(2);
   });
 
+  it('parses newline and semicolon separated admin emails', () => {
+    const env = {
+      AUTH_ADMIN_EMAILS: 'admin@example.com;\nsecond@example.com',
+    };
+
+    const admins = getAdminEmailSet(env);
+    expect(admins.has('admin@example.com')).toBe(true);
+    expect(admins.has('second@example.com')).toBe(true);
+    expect(admins.size).toBe(2);
+  });
+
   it('detects configured admin email regardless of case', () => {
     const env = {
       AUTH_ADMIN_EMAILS: 'admin@example.com',

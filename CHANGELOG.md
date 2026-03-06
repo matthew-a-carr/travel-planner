@@ -193,6 +193,9 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - Preview/local-dev credentials sign-ins now receive bootstrap admin access
   when `AUTH_ENABLE_LOCAL_DEV=true`, so `/settings/access` remains reachable
   in preview environments that expose local-dev login.
+- Admin allowlist parsing now supports comma, newline, and semicolon separators,
+  and Google `email_verified` checks accept common truthy payload variants to
+  reduce false `AccessDenied` failures during OAuth callbacks.
 - Local development no longer crashes on startup when an existing auth session
   references a user ID not present in the current database (for example after
   local DB reset/rebootstrap); the app now resolves or recreates the session user
