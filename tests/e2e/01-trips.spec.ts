@@ -119,3 +119,29 @@ test.describe('Trip editing', () => {
     await expect(tripLink(page, 'Big Adventure')).toBeVisible();
   });
 });
+
+test.describe('Trip deletion', () => {
+  test('owner can delete a trip from trip detail', async ({ page }) => {
+    const tripName = `Trip To Delete ${Date.now()}`;
+
+    await page.goto('/');
+    await page.getByRole('button', { name: /create trip/i }).first().click();
+    await page.getByLabel('Trip name').fill(tripName);
+    await page.getByLabel('Total budget').fill('5000');
+    await page.locator('form').getByRole('button', { name: /create trip/i }).click();
+
+    await expect(page.getByRole('heading', { name: tripName })).toBeVisible();
+    const tripUrl = page.url();
+
+    await page.getByRole('button', { name: /delete trip/i }).click();
+    await expect(page.getByRole('heading', { name: /delete trip/i })).toBeVisible();
+    await page.getByRole('button', { name: /delete permanently/i }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(tripLink(page, tripName)).toHaveCount(0);
+
+    const response = await page.goto(tripUrl);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByText(/could not be found/i)).toBeVisible();
+  });
+});

@@ -39,3 +39,7 @@ export function canManageOrganizationMembers(role: OrganizationRole): boolean {
 export function canMoveTripsBetweenOrganizations(role: OrganizationRole): boolean {
   return role === 'owner';
 }
+
+export function canDeleteTrips(role: OrganizationRole): boolean {
+  return role === 'owner';
+}

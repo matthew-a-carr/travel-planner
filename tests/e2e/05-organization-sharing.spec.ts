@@ -119,49 +119,42 @@ async function selectDropdownOption(
   await select.selectOption(optionValue);
 }
 
-async function openOrganizationMenu(page: Page): Promise<void> {
-  const organizationSelect = page.getByLabel('Active organization');
-  if (await organizationSelect.isVisible()) return;
-  await page.getByRole('button', { name: 'Open organization menu' }).click();
-}
-
 async function switchActiveOrganization(page: Page, organizationName: string): Promise<void> {
-  await openOrganizationMenu(page);
   await selectDropdownOption(page, 'Active organization', organizationName);
   await page.waitForTimeout(400);
   await page.reload();
 }
 
-test('first authenticated visit bootstraps a personal organization and is idempotent', async ({
+test('first authenticated visit bootstraps workspace and dashboard keeps management off-page', async ({
   page,
 }) => {
   await page.goto('/');
-  await openOrganizationMenu(page);
+
+  await expect(page.getByRole('link', { name: 'Trips' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
+  await expect(page.getByLabel('Create organization')).toHaveCount(0);
+  await expect(page.getByLabel('Add member by email')).toHaveCount(0);
+
   const organizationSelect = page.getByLabel('Active organization');
   await expect(organizationSelect).toBeVisible();
   await expect(organizationSelect).toContainText("E2E Test User's Workspace");
   await expect(organizationSelect.locator('option')).toHaveCount(1);
 
   await page.reload();
-  await openOrganizationMenu(page);
   await expect(organizationSelect.locator('option')).toHaveCount(1);
 });
 
-test('owner can share trips with partner, member can edit, and owner can move trip', async ({
+test('owner manages sharing in settings, member is restricted, and owner can remove member', async ({
   page,
   context,
   baseURL,
 }) => {
   const owner = await ensureUser(OWNER_EMAIL, OWNER_NAME);
-  const partner = await ensureUser(
-    `partner-${Date.now()}@travelplanner.test`,
-    'Partner E2E',
-  );
+  const partner = await ensureUser(`partner-${Date.now()}@travelplanner.test`, 'Partner E2E');
 
   await signInAsUser(context, baseURL, owner);
-  await page.goto('/');
-  await openOrganizationMenu(page);
-  await page.getByRole('button', { name: /manage organization/i }).click();
+  await page.goto('/settings/organization');
+  await expect(page.getByRole('heading', { name: /organization settings/i })).toBeVisible();
 
   const sharedOrganizationName = `Shared Partner Workspace ${Date.now()}`;
   await page.getByLabel('Create organization').fill(sharedOrganizationName);
@@ -169,14 +162,13 @@ test('owner can share trips with partner, member can edit, and owner can move tr
   await page.waitForTimeout(400);
   await page.reload();
 
-  await openOrganizationMenu(page);
   await expect(page.getByLabel('Active organization')).toContainText(sharedOrganizationName);
-  await page.getByRole('button', { name: /manage organization/i }).click();
   await page.getByLabel('Add member by email').fill(partner.email);
   await page.getByRole('button', { name: /^Add$/ }).click();
   await expect(page.getByText(/Partner E2E \(member\)/)).toBeVisible();
 
   const sharedTripName = `Shared Org Trip ${Date.now()}`;
+  await page.goto('/');
   await page.getByRole('button', { name: /create trip/i }).first().click();
   await page.getByLabel('Trip name').fill(sharedTripName);
   await page.getByLabel('Total budget').fill('10000');
@@ -195,10 +187,12 @@ test('owner can share trips with partner, member can edit, and owner can move tr
   await page.getByRole('button', { name: /save changes/i }).click();
   await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
 
-  await page.goto('/');
-  await openOrganizationMenu(page);
-  await page.getByRole('button', { name: /manage organization/i }).click();
-  await expect(page.getByText('Only organization owners can manage members.')).toBeVisible();
+  await page.goto('/settings/organization');
+  await expect(
+    page.getByText('Only organization owners can create organizations and manage members.'),
+  ).toBeVisible();
+  await expect(page.getByLabel('Create organization')).toHaveCount(0);
+  await expect(page.getByLabel('Add member by email')).toHaveCount(0);
 
   await signInAsUser(context, baseURL, owner);
   await page.goto('/');
@@ -213,4 +207,14 @@ test('owner can share trips with partner, member can edit, and owner can move tr
 
   await switchActiveOrganization(page, "E2E Test User's Workspace");
   await expect(page.getByRole('link').filter({ hasText: editedTripName }).first()).toBeVisible();
+
+  await page.goto('/settings/organization');
+  await switchActiveOrganization(page, sharedOrganizationName);
+  const partnerMemberRow = page.locator('li').filter({ hasText: 'Partner E2E (member)' });
+  await partnerMemberRow.getByRole('button', { name: 'Remove' }).click();
+  await expect(page.getByText(/Partner E2E \(member\)/)).toHaveCount(0);
+
+  await signInAsUser(context, baseURL, partner);
+  await page.goto('/');
+  await expect(page.getByLabel('Active organization')).not.toContainText(sharedOrganizationName);
 });

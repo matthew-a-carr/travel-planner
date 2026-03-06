@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canDeleteTrips,
   canManageOrganizationMembers,
   canMoveTripsBetweenOrganizations,
   derivePersonalOrganizationName,
@@ -68,5 +69,13 @@ describe('organization role permissions', () => {
 
   it('members cannot move trips between organizations', () => {
     expect(canMoveTripsBetweenOrganizations('member')).toBe(false);
+  });
+
+  it('owners can delete trips', () => {
+    expect(canDeleteTrips('owner')).toBe(true);
+  });
+
+  it('members cannot delete trips', () => {
+    expect(canDeleteTrips('member')).toBe(false);
   });
 });

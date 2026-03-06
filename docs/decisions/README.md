@@ -30,3 +30,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [019](019-preview-local-dev-auth-override.md) | Preview Local-Dev Auth Override via AUTH_ENABLE_LOCAL_DEV | 2026-03-06 | Accepted |
 | [020](020-vercel-web-analytics.md) | Vercel Web Analytics Integration | 2026-03-06 | Accepted |
 | [021](021-organization-scoped-trip-sharing-and-first-sign-in-bootstrap.md) | Organization-Scoped Trip Sharing and First-Sign-In Bootstrap | 2026-03-06 | Accepted |
+| [022](022-trip-hard-delete-owner-only.md) | Owner-Only Hard Delete for Trips | 2026-03-06 | Accepted |
+| [023](023-shared-header-and-settings-route-for-organization-management.md) | Shared Header and Settings Route for Organization Management | 2026-03-06 | Accepted |

@@ -70,4 +70,8 @@ export class DrizzleTripRepository implements TripRepository {
     if (!result[0]) throw new Error('Failed to save trip');
     return toTrip(result[0]);
   }
+
+  async delete(id: string): Promise<void> {
+    await this.db.delete(trips).where(eq(trips.id, id));
+  }
 }

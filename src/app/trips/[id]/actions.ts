@@ -1,9 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { addDestination } from '@/application/use-cases/add-destination';
 import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
 import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
+import { deleteTrip } from '@/application/use-cases/delete-trip';
 import { editDestination } from '@/application/use-cases/edit-destination';
 import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
 import { editTrip } from '@/application/use-cases/edit-trip';
@@ -441,6 +443,29 @@ export async function editSpendEntryAction(
 }
 
 export type MoveTripState = { error: string | null };
+
+export type DeleteTripState = { error: string | null };
+
+export async function deleteTripAction(
+  tripId: string,
+  _prev: DeleteTripState,
+  _formData: FormData,
+): Promise<DeleteTripState> {
+  const userId = await getVerifiedUserId();
+
+  const result = await deleteTrip(
+    new DrizzleTripRepository(db),
+    new DrizzleOrganizationRepository(db),
+    {
+      actorUserId: userId,
+      tripId,
+    },
+  );
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath('/');
+  redirect('/');
+}
 
 export async function moveTripToOrganizationAction(
   tripId: string,

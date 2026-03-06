@@ -32,6 +32,7 @@ export async function setActiveOrganizationAction(organizationId: string): Promi
   });
 
   revalidatePath('/');
+  revalidatePath('/settings/organization');
 }
 
 export async function setActiveOrganizationFromFormAction(formData: FormData): Promise<void> {
@@ -66,6 +67,7 @@ export async function createOrganizationAction(
   });
 
   revalidatePath('/');
+  revalidatePath('/settings/organization');
   return { error: null };
 }
 
@@ -91,6 +93,7 @@ export async function addOrganizationMemberAction(
 
   if (!result.ok) return { error: result.error };
   revalidatePath('/');
+  revalidatePath('/settings/organization');
   return { error: null };
 }
 
@@ -110,4 +113,5 @@ export async function removeOrganizationMemberAction(
 
   if (!result.ok) throw new Error(result.error);
   revalidatePath('/');
+  revalidatePath('/settings/organization');
 }
