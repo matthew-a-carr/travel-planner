@@ -63,7 +63,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ## [Unreleased]
 
 ### Added
-
+- Moved the user Avatar and Sign out button to the far right side of the application header.
 - Organization-scoped collaboration model:
   - New `organizations` and `organization_memberships` tables
   - `trips.organization_id` scope for trip visibility and mutations

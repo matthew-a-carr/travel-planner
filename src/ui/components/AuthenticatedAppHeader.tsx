@@ -43,7 +43,7 @@ export function AuthenticatedAppHeader({
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-4">
           <Link
             href="/"
-            className="inline-flex w-fit items-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100"
+            className="inline-flex w-fit items-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 md:col-start-1 md:row-start-1"
           >
             Travel Planner
           </Link>
@@ -72,7 +72,7 @@ export function AuthenticatedAppHeader({
 
           <div
             data-testid="app-header-utility-row"
-            className="order-2 flex min-w-0 flex-wrap items-center gap-2 md:order-none md:row-start-1 md:justify-self-end"
+            className="order-2 flex min-w-0 flex-wrap items-center gap-2 md:order-none md:col-start-2 md:row-start-1"
           >
             <div className="min-w-0 basis-full md:w-[22rem] md:flex-none">
               <OrganizationSwitcher
