@@ -1,19 +1,15 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getOrganizationMembers } from '@/application/use-cases/get-organization-members';
 import type { Trip } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { getVisibleSignInProviders } from '@/infrastructure/auth/provider-availability';
 import { db } from '@/infrastructure/db/client';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { CreateTripButton } from '@/ui/components/CreateTripModal';
-import { OrganizationWorkspacePanel } from '@/ui/components/OrganizationWorkspacePanel';
 import { SignInButton } from '@/ui/components/SignInButton';
-import { SignOutButton } from '@/ui/components/SignOutButton';
-import { UserAvatar } from '@/ui/components/UserAvatar';
 
 export default async function HomePage() {
   const session = await auth();
@@ -44,36 +40,21 @@ export default async function HomePage() {
   const trips = await repo.findAllByOrganization(
     organizationContext.activeOrganization.organization.id,
   );
-  const organizationRepository = new DrizzleOrganizationRepository(db);
-  const membersResult = await getOrganizationMembers(
-    organizationRepository,
-    organizationContext.activeOrganization.organization.id,
-    organizationContext.userId,
-  );
-  const members = membersResult.ok ? membersResult.value.members : [];
 
   return (
     <main className="min-h-screen px-4 py-12">
       <div className="mx-auto w-full max-w-2xl space-y-8">
-        <header className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Travel Planner</h1>
-            <div className="flex items-center gap-4">
-              <UserAvatar image={session.user.image} name={session.user.name} />
-              <SignOutButton />
-            </div>
-          </div>
-          <OrganizationWorkspacePanel
-            organizations={organizationContext.organizations.map((organization) => ({
-              id: organization.organization.id,
-              name: organization.organization.name,
-              role: organization.role,
-            }))}
-            activeOrganizationId={organizationContext.activeOrganization.organization.id}
-            currentUserId={organizationContext.userId}
-            members={members}
-          />
-        </header>
+        <AuthenticatedAppHeader
+          activeNav="trips"
+          organizations={organizationContext.organizations.map((organization) => ({
+            id: organization.organization.id,
+            name: organization.organization.name,
+            role: organization.role,
+          }))}
+          activeOrganizationId={organizationContext.activeOrganization.organization.id}
+          userImage={session.user.image}
+          userName={session.user.name}
+        />
 
         <section>
           <div className="mb-4 flex items-center justify-between">

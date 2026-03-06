@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { sortDestinations } from '@/domain/destination/destination';
@@ -7,6 +6,7 @@ import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
+import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
@@ -15,6 +15,7 @@ import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/dr
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DeleteTripButton } from '@/ui/components/DeleteTripModal';
 import { DestinationSection } from '@/ui/components/DestinationSection';
@@ -26,8 +27,10 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function TripDetailPage({ params }: Props) {
   const { id } = await params;
+  const session = await auth();
   const context = await getActiveOrganizationContext();
   if (!context) redirect('/login');
+  if (!session?.user) redirect('/login');
 
   const tripRepo = new DrizzleTripRepository(db);
   const trip = await tripRepo.findById(id);
@@ -107,12 +110,17 @@ export default async function TripDetailPage({ params }: Props) {
   return (
     <main className="min-h-screen px-4 py-12">
       <div className="mx-auto w-full max-w-2xl space-y-8">
-        <nav className="text-sm text-zinc-500 dark:text-zinc-400">
-          <Link href="/" className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">
-            Dashboard
-          </Link>{' '}
-          / <span className="text-zinc-900 dark:text-zinc-100">{trip.name}</span>
-        </nav>
+        <AuthenticatedAppHeader
+          activeNav="trips"
+          organizations={context.organizations.map((organization) => ({
+            id: organization.organization.id,
+            name: organization.organization.name,
+            role: organization.role,
+          }))}
+          activeOrganizationId={context.activeOrganization.organization.id}
+          userImage={session.user.image}
+          userName={session.user.name}
+        />
 
         <header className="flex items-start justify-between gap-4">
           <div>

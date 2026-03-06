@@ -133,12 +133,70 @@ test.describe('Dashboard — accessibility & responsive', () => {
     await expect(page.getByRole('button', { name: /create trip/i }).first()).toBeVisible();
   });
 
+  test('primary nav and organization switcher are reachable at 375px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+
+    await expect(page.getByRole('link', { name: 'Trips' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
+    await expect(page.getByLabel('Active organization')).toBeVisible();
+  });
+
+  test('header nav and organization switcher are keyboard focusable', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const tripsLink = page.getByRole('link', { name: 'Trips' });
+    const settingsLink = page.getByRole('link', { name: 'Settings' });
+    const orgSwitcher = page.getByLabel('Active organization');
+
+    await tripsLink.focus();
+    await expect(tripsLink).toBeFocused();
+    await settingsLink.focus();
+    await expect(settingsLink).toBeFocused();
+    await orgSwitcher.focus();
+    await expect(orgSwitcher).toBeFocused();
+  });
+
   test('passes axe audit in dark mode with create trip modal open', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto('/');
     await page.getByRole('button', { name: /create trip/i }).first().click();
     await expect(page.getByRole('heading', { name: /new trip/i })).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+
+    expect(
+      results.violations,
+      formatViolations(results.violations),
+    ).toEqual([]);
+  });
+});
+
+test.describe('Organization settings page — accessibility', () => {
+  for (const vp of VIEWPORTS) {
+    test(`passes axe audit at ${vp.label}`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/settings/organization');
+
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+
+      expect(
+        results.violations,
+        formatViolations(results.violations),
+      ).toEqual([]);
+    });
+  }
+
+  test('passes axe audit in dark mode', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/settings/organization');
 
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
