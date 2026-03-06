@@ -3,6 +3,7 @@ name: Infra Preview Apply
 on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
+  workflow_dispatch:
 
 jobs:
   apply:

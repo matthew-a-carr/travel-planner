@@ -59,6 +59,16 @@ resource "vercel_project_environment_variable" "preview_auth_url" {
   comment    = "Managed by Terraform: preview auth URL"
 }
 
+resource "vercel_project_environment_variable" "preview_default_postgres" {
+  team_id    = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_id = data.vercel_project.this.id
+  key        = "POSTGRES_URL"
+  value      = module.neon.connection_uri
+  target     = ["preview"]
+  sensitive  = true
+  comment    = "Managed by Terraform: default Neon DB URL for non-PR preview branches"
+}
+
 resource "vercel_project_environment_variable" "preview_postgres" {
   for_each = local.preview_postgres_urls
 
