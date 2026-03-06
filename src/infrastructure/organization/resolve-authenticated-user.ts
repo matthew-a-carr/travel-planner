@@ -1,4 +1,5 @@
 import { eq, sql } from 'drizzle-orm';
+import { normalizeEmail } from '@/infrastructure/auth/access-policy';
 import type { Db } from '@/infrastructure/db/client';
 import { users } from '@/infrastructure/db/schema';
 
@@ -8,13 +9,22 @@ type AuthenticatedSessionUser = {
   readonly name: string | null | undefined;
 };
 
+function canonicalEmailSql(column: typeof users.email) {
+  return sql<string>`
+    case
+      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
+        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
+      else lower(trim(${column}))
+    end
+  `;
+}
+
 export async function resolveAuthenticatedUserId(
   db: Db,
   input: AuthenticatedSessionUser,
 ): Promise<string | null> {
   const sessionUserId = input.id ?? null;
-  const trimmedEmail = input.email?.trim() ?? null;
-  const normalizedEmail = trimmedEmail?.toLowerCase() ?? null;
+  const normalizedEmail = normalizeEmail(input.email);
 
   if (sessionUserId) {
     const existingById = await db
@@ -29,11 +39,10 @@ export async function resolveAuthenticatedUserId(
     const existingByEmail = await db
       .select({ id: users.id })
       .from(users)
-      .where(sql`lower(trim(${users.email})) = ${normalizedEmail}`)
+      .where(sql`${canonicalEmailSql(users.email)} = ${normalizedEmail}`)
       .limit(1);
     if (existingByEmail[0]) return existingByEmail[0].id;
   }
 
-  if (!trimmedEmail) return null;
   return null;
 }

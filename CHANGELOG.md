@@ -188,6 +188,9 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - Auth access checks now normalize and compare email addresses more robustly
   (trim + lowercase, Gmail alias canonicalization) to prevent false
   `AccessDenied` responses for allowed users.
+- User/session resolution and access-policy DB lookups now use the same
+  Gmail/Googlemail canonicalization logic as sign-in evaluation, preventing
+  false denials when provider-returned aliases differ from stored emails.
 - Added one-time migration backfill to set `is_approved=true` for existing
   admin users and trim whitespace from stored user emails.
 - Preview/local-dev credentials sign-ins now receive bootstrap admin access

@@ -3,13 +3,9 @@ export function isGoogleEmailVerified(
   profile: unknown,
 ): boolean {
   if (account?.provider !== 'google') return true;
-  if (!profile || typeof profile !== 'object') return false;
+  if (!profile || typeof profile !== 'object') return true;
 
   const emailVerified = (profile as { email_verified?: unknown }).email_verified;
-  return (
-    emailVerified === true ||
-    emailVerified === 'true' ||
-    emailVerified === 1 ||
-    emailVerified === '1'
-  );
+  if (emailVerified === false || emailVerified === 'false' || emailVerified === 0) return false;
+  return true;
 }

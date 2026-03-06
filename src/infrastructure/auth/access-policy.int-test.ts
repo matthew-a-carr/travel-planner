@@ -57,6 +57,23 @@ describe('access-policy integration', () => {
     expect(decision.autoApprove).toBe(false);
   });
 
+  it('allows approved gmail users when googlemail alias is used at sign-in', async () => {
+    await seedUser(db, {
+      email: 'carr.matty@gmail.com',
+      isApproved: true,
+      isAdmin: false,
+    });
+
+    const decision = await decideSignInAccess(db, 'carrmatty@googlemail.com', {
+      AUTH_SELF_REGISTRATION_ENABLED: 'false',
+      AUTH_ADMIN_EMAILS: '',
+    });
+
+    expect(decision.allowed).toBe(true);
+    expect(decision.seededAdmin).toBe(false);
+    expect(decision.autoApprove).toBe(false);
+  });
+
   it('allows approved users even when stored email contains surrounding whitespace', async () => {
     await seedUser(db, {
       email: '  approved@example.com  ',

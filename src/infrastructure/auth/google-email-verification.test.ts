@@ -14,12 +14,13 @@ describe('google-email-verification', () => {
     expect(isGoogleEmailVerified({ provider: 'google' }, { email_verified: '1' })).toBe(true);
   });
 
-  it('rejects google profiles without verified email', () => {
+  it('rejects google profiles only when explicitly unverified', () => {
     expect(isGoogleEmailVerified({ provider: 'google' }, { email_verified: false })).toBe(false);
     expect(isGoogleEmailVerified({ provider: 'google' }, { email_verified: 'false' })).toBe(
       false,
     );
-    expect(isGoogleEmailVerified({ provider: 'google' }, {})).toBe(false);
-    expect(isGoogleEmailVerified({ provider: 'google' }, null)).toBe(false);
+    expect(isGoogleEmailVerified({ provider: 'google' }, { email_verified: 0 })).toBe(false);
+    expect(isGoogleEmailVerified({ provider: 'google' }, {})).toBe(true);
+    expect(isGoogleEmailVerified({ provider: 'google' }, null)).toBe(true);
   });
 });

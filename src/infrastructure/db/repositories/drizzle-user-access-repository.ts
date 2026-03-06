@@ -1,6 +1,7 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import type { UserAccessListItem, UserAccessSummary } from '@/domain/user-access/types';
 import type { UserAccessRepository } from '@/domain/user-access/user-access-repository';
+import { normalizeEmail } from '@/infrastructure/auth/access-policy';
 import type { Db } from '../client';
 import { accounts, organizationMemberships, organizations, users } from '../schema';
 
@@ -17,6 +18,16 @@ function toSummary(row: typeof users.$inferSelect): UserAccessSummary {
   };
 }
 
+function canonicalEmailSql(column: typeof users.email) {
+  return sql<string>`
+    case
+      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
+        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
+      else lower(trim(${column}))
+    end
+  `;
+}
+
 export class DrizzleUserAccessRepository implements UserAccessRepository {
   constructor(private readonly db: Db) {}
 
@@ -27,11 +38,12 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
   }
 
   async findByEmail(email: string): Promise<UserAccessSummary | null> {
-    const normalized = email.trim().toLowerCase();
+    const normalized = normalizeEmail(email);
+    if (!normalized) return null;
     const rows = await this.db
       .select()
       .from(users)
-      .where(sql`lower(trim(${users.email})) = ${normalized}`)
+      .where(sql`${canonicalEmailSql(users.email)} = ${normalized}`)
       .limit(1);
     const row = rows[0];
     return row ? toSummary(row) : null;

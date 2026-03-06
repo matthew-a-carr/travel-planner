@@ -14,6 +14,7 @@ import type {
   OrganizationUser,
   OrganizationWithRole,
 } from '@/domain/organization/types';
+import { normalizeEmail } from '@/infrastructure/auth/access-policy';
 import type { Db } from '../client';
 import { organizationMemberships, organizations, users } from '../schema';
 
@@ -34,6 +35,16 @@ function toMembership(row: typeof organizationMemberships.$inferSelect): Organiz
     role: row.role as OrganizationRole,
     createdAt: row.createdAt,
   };
+}
+
+function canonicalEmailSql(column: typeof users.email) {
+  return sql<string>`
+    case
+      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
+        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
+      else lower(trim(${column}))
+    end
+  `;
 }
 
 export class DrizzleOrganizationRepository implements OrganizationRepository {
@@ -127,7 +138,8 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
   }
 
   async findUserByEmail(email: string): Promise<OrganizationUser | null> {
-    const normalized = email.trim().toLowerCase();
+    const normalized = normalizeEmail(email);
+    if (!normalized) return null;
     const rows = await this.db
       .select({
         id: users.id,
@@ -135,7 +147,7 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
         email: users.email,
       })
       .from(users)
-      .where(sql`lower(trim(${users.email})) = ${normalized}`)
+      .where(sql`${canonicalEmailSql(users.email)} = ${normalized}`)
       .limit(1);
 
     const row = rows[0];

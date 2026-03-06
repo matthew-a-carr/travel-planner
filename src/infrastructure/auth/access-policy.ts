@@ -31,6 +31,16 @@ export function normalizeEmail(email: string | null | undefined): string | null 
   return `${canonicalLocalPart}@gmail.com`;
 }
 
+function canonicalEmailSql(column: typeof users.email) {
+  return sql<string>`
+    case
+      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
+        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
+      else lower(trim(${column}))
+    end
+  `;
+}
+
 export function isSelfRegistrationEnabled(env: Partial<NodeJS.ProcessEnv> = process.env): boolean {
   return isTruthy(env.AUTH_SELF_REGISTRATION_ENABLED);
 }
@@ -98,7 +108,7 @@ export async function decideSignInAccess(
   const existingUser = await db
     .select({ isApproved: users.isApproved })
     .from(users)
-    .where(sql`lower(trim(${users.email})) = ${normalizedEmail}`)
+    .where(sql`${canonicalEmailSql(users.email)} = ${normalizedEmail}`)
     .limit(1);
 
   return {
@@ -230,5 +240,7 @@ export async function syncUserAccessOnSignIn(
   await db
     .update(users)
     .set(updates)
-    .where(and(eq(users.id, input.userId), sql`lower(trim(${users.email})) = ${normalizedEmail}`));
+    .where(
+      and(eq(users.id, input.userId), sql`${canonicalEmailSql(users.email)} = ${normalizedEmail}`),
+    );
 }

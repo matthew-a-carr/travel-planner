@@ -72,6 +72,22 @@ describe('resolveAuthenticatedUserId', () => {
     expect(resolved).toBe(seeded.id);
   });
 
+  it('finds existing gmail user when session email uses googlemail alias', async () => {
+    const seeded = await seedUser(db, {
+      id: 'canonical-gmail-id',
+      email: 'carr.matty@gmail.com',
+      name: 'Carr Matty',
+    });
+
+    const resolved = await resolveAuthenticatedUserId(db, {
+      id: 'stale-session-id',
+      email: 'carrmatty@googlemail.com',
+      name: 'Carr Matty',
+    });
+
+    expect(resolved).toBe(seeded.id);
+  });
+
   it('returns null when no matching user exists', async () => {
     const resolved = await resolveAuthenticatedUserId(db, {
       id: 'new-session-id',
