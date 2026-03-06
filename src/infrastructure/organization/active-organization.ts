@@ -1,0 +1,49 @@
+import { cookies } from 'next/headers';
+import { ensureUserOrganization } from '@/application/use-cases/ensure-user-organization';
+import { getUserOrganizations } from '@/application/use-cases/get-user-organizations';
+import type { OrganizationWithRole } from '@/domain/organization/types';
+import { auth } from '@/infrastructure/auth';
+import { db } from '@/infrastructure/db/client';
+import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
+import { resolveAuthenticatedUserId } from './resolve-authenticated-user';
+
+export const ACTIVE_ORGANIZATION_COOKIE = 'travel-planner-active-organization-id';
+
+export type ActiveOrganizationContext = {
+  readonly userId: string;
+  readonly organizations: OrganizationWithRole[];
+  readonly activeOrganization: OrganizationWithRole;
+};
+
+export async function getActiveOrganizationContext(): Promise<ActiveOrganizationContext | null> {
+  const session = await auth();
+  const userId = await resolveAuthenticatedUserId(db, {
+    id: session?.user?.id,
+    email: session?.user?.email ?? null,
+    name: session?.user?.name ?? null,
+  });
+  if (!userId) return null;
+
+  const repository = new DrizzleOrganizationRepository(db);
+  await ensureUserOrganization(repository, {
+    userId,
+    userName: session?.user?.name ?? null,
+    email: session?.user?.email ?? null,
+  });
+
+  const organizations = await getUserOrganizations(repository, userId);
+  const firstOrganization = organizations[0];
+  if (!firstOrganization) return null;
+
+  const cookieStore = await cookies();
+  const activeOrganizationId = cookieStore.get(ACTIVE_ORGANIZATION_COOKIE)?.value;
+  const activeOrganization =
+    organizations.find((organization) => organization.organization.id === activeOrganizationId) ??
+    firstOrganization;
+
+  return {
+    userId,
+    organizations,
+    activeOrganization,
+  };
+}

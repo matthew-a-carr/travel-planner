@@ -54,8 +54,36 @@ export const verificationTokens = pgTable(
 
 // ─── Application tables ───────────────────────────────────────────────────────
 
+export const organizations = pgTable('organizations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  createdByUserId: text('created_by_user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const organizationMemberships = pgTable(
+  'organization_memberships',
+  {
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('member'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (membership) => [primaryKey({ columns: [membership.organizationId, membership.userId] })],
+);
+
 export const trips = pgTable('trips', {
   id: uuid('id').primaryKey().defaultRandom(),
+  organizationId: uuid('organization_id')
+    .notNull()
+    .references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   totalBudgetAmount: integer('total_budget_amount').notNull(),
   totalBudgetCurrency: text('total_budget_currency').notNull().default('GBP'),

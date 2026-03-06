@@ -4,6 +4,7 @@ import {
   createTestDb,
   type Db,
   type Sql,
+  seedOrganization,
   seedUser,
   truncateAll,
 } from '../../../infrastructure/testing/helpers';
@@ -34,10 +35,12 @@ describe('DrizzleTripRepository', () => {
 
     it('returns the mapped Trip for an existing id', async () => {
       const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
       const now = new Date();
       const repo = new DrizzleTripRepository(db);
       const saved = await repo.save({
         id: crypto.randomUUID(),
+        organizationId,
         ownerId,
         name: 'Tokyo Express',
         totalBudget: money(2_000_000, 'GBP'),
@@ -52,26 +55,31 @@ describe('DrizzleTripRepository', () => {
       expect(found?.totalBudget.amountPence).toBe(2_000_000);
       expect(found?.totalBudget.currency).toBe('GBP');
       expect(found?.status).toBe('planning');
+      expect(found?.organizationId).toBe(organizationId);
       expect(found?.ownerId).toBe(ownerId);
     });
   });
 
-  describe('findAllByOwner', () => {
-    it('returns an empty array when the owner has no trips', async () => {
+  describe('findAllByOrganization', () => {
+    it('returns an empty array when the organization has no trips', async () => {
       const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
       const repo = new DrizzleTripRepository(db);
-      const result = await repo.findAllByOwner(ownerId);
+      const result = await repo.findAllByOrganization(organizationId);
       expect(result).toEqual([]);
     });
 
-    it('returns only trips belonging to the given owner', async () => {
+    it('returns only trips belonging to the given organization', async () => {
       const { id: owner1 } = await seedUser(db);
       const { id: owner2 } = await seedUser(db);
+      const { id: organization1 } = await seedOrganization(db, owner1);
+      const { id: organization2 } = await seedOrganization(db, owner2);
       const repo = new DrizzleTripRepository(db);
       const now = new Date();
 
       await repo.save({
         id: crypto.randomUUID(),
+        organizationId: organization1,
         ownerId: owner1,
         name: 'Trip A',
         totalBudget: money(1_000_000, 'GBP'),
@@ -81,6 +89,7 @@ describe('DrizzleTripRepository', () => {
       });
       await repo.save({
         id: crypto.randomUUID(),
+        organizationId: organization2,
         ownerId: owner2,
         name: 'Trip B',
         totalBudget: money(1_000_000, 'GBP'),
@@ -89,18 +98,20 @@ describe('DrizzleTripRepository', () => {
         updatedAt: now,
       });
 
-      const result = await repo.findAllByOwner(owner1);
+      const result = await repo.findAllByOrganization(organization1);
       expect(result).toHaveLength(1);
       expect(result[0]?.name).toBe('Trip A');
     });
 
-    it('returns multiple trips for the same owner', async () => {
+    it('returns multiple trips for the same organization', async () => {
       const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
       const repo = new DrizzleTripRepository(db);
       const now = new Date();
 
       await repo.save({
         id: crypto.randomUUID(),
+        organizationId,
         ownerId,
         name: 'Trip 1',
         totalBudget: money(1_000_000, 'GBP'),
@@ -110,6 +121,7 @@ describe('DrizzleTripRepository', () => {
       });
       await repo.save({
         id: crypto.randomUUID(),
+        organizationId,
         ownerId,
         name: 'Trip 2',
         totalBudget: money(2_000_000, 'GBP'),
@@ -118,7 +130,7 @@ describe('DrizzleTripRepository', () => {
         updatedAt: now,
       });
 
-      const result = await repo.findAllByOwner(ownerId);
+      const result = await repo.findAllByOrganization(organizationId);
       expect(result).toHaveLength(2);
     });
   });
@@ -126,12 +138,14 @@ describe('DrizzleTripRepository', () => {
   describe('save', () => {
     it('inserts a new trip and returns it with all fields', async () => {
       const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
       const repo = new DrizzleTripRepository(db);
       const id = crypto.randomUUID();
       const now = new Date();
 
       const trip = await repo.save({
         id,
+        organizationId,
         ownerId,
         name: 'Round the World',
         totalBudget: money(5_000_000, 'GBP'),
@@ -147,11 +161,13 @@ describe('DrizzleTripRepository', () => {
 
     it('upserts an existing trip — name and budget are updated', async () => {
       const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
       const repo = new DrizzleTripRepository(db);
       const now = new Date();
 
       const original = await repo.save({
         id: crypto.randomUUID(),
+        organizationId,
         ownerId,
         name: 'Old Name',
         totalBudget: money(1_000_000, 'GBP'),

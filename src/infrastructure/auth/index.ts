@@ -4,7 +4,9 @@ import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { ensureUserOrganization } from '@/application/use-cases/ensure-user-organization';
 import { db } from '../db/client';
+import { DrizzleOrganizationRepository } from '../db/repositories/drizzle-organization-repository';
 import * as schema from '../db/schema';
 import { authConfig } from './auth.config';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
@@ -113,6 +115,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     sessionsTable: schema.sessions,
     verificationTokensTable: schema.verificationTokens,
   }),
+  events: {
+    async signIn({ user }) {
+      if (!user.id) return;
+      await ensureUserOrganization(new DrizzleOrganizationRepository(db), {
+        userId: user.id,
+        userName: user.name ?? null,
+        email: user.email ?? null,
+      });
+    },
+  },
   session: { strategy: 'jwt' },
   callbacks: {
     ...authConfig.callbacks,

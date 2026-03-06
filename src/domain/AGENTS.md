@@ -34,6 +34,11 @@ src/domain/
     country-reference.ts  ← findReference, suggestBudget (budget suggestion engine)
     country-reference.test.ts
     types.ts              ← CountryReference type
+  organization/
+    types.ts              ← Organization, Membership, role, and listing types
+    organization.ts       ← personal workspace naming + permission helpers
+    organization.test.ts
+    organization-repository.ts ← OrganizationRepository interface
 ```
 
 ## Testing

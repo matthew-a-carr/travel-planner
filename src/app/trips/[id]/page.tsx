@@ -6,28 +6,49 @@ import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
-import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
+import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DestinationSection } from '@/ui/components/DestinationSection';
 import { EditTripButton } from '@/ui/components/EditTripModal';
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
+import { MoveTripForm } from '@/ui/components/MoveTripForm';
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function TripDetailPage({ params }: Props) {
   const { id } = await params;
-  const session = await auth();
-  if (!session?.user?.id) redirect('/login');
+  const context = await getActiveOrganizationContext();
+  if (!context) redirect('/login');
 
   const tripRepo = new DrizzleTripRepository(db);
   const trip = await tripRepo.findById(id);
-  if (!trip || trip.ownerId !== session.user.id) notFound();
+  if (!trip) notFound();
+
+  const organizationRepository = new DrizzleOrganizationRepository(db);
+  const membership = await organizationRepository.findMembership(
+    trip.organizationId,
+    context.userId,
+  );
+  if (!membership) notFound();
+  const moveTargets =
+    membership.role === 'owner'
+      ? context.organizations
+          .filter(
+            (organization) =>
+              organization.role === 'owner' && organization.organization.id !== trip.organizationId,
+          )
+          .map((organization) => ({
+            id: organization.organization.id,
+            name: organization.organization.name,
+          }))
+      : [];
 
   const destRepo = new DrizzleDestinationRepository(db);
   const spendRepo = new DrizzleSpendEntryRepository(db);
@@ -95,8 +116,16 @@ export default async function TripDetailPage({ params }: Props) {
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{trip.name}</h1>
             <StatusBadge status={trip.status} />
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-300">
+              {context.organizations.find(
+                (organization) => organization.organization.id === trip.organizationId,
+              )?.organization.name ?? 'Organization'}
+            </p>
           </div>
-          <EditTripButton trip={trip} />
+          <div className="space-y-2 text-right">
+            <EditTripButton trip={trip} />
+            <MoveTripForm tripId={trip.id} targets={moveTargets} />
+          </div>
         </header>
 
         <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />

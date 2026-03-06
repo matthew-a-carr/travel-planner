@@ -21,6 +21,8 @@ src/infrastructure/
     auth.config.ts       ← provider config (no DB, used in middleware)
     index.ts             ← full NextAuth with DrizzleAdapter (imports db from client.ts)
     provider-availability.ts ← env-aware auth provider visibility helpers (UI + provider wiring)
+  organization/
+    active-organization.ts ← auth/session + cookie-aware active organization resolver
   db/
     schema.ts            ← Drizzle schema (source of truth for all tables)
     client.ts            ← singleton db instance (see note below)
@@ -31,6 +33,7 @@ src/infrastructure/
       drizzle-spend-entry-repository.ts
       drizzle-trip-fixed-cost-repository.ts
       drizzle-country-reference-repository.ts
+      drizzle-organization-repository.ts
     seed/
       country-reference-seed.ts  ← seed data for 33 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
@@ -86,7 +89,7 @@ pnpm test:integration -- src/infrastructure/db/repositories/drizzle-trip-reposit
 pnpm db:check:migrations # enforce deploy-safe transactional migration SQL
 ```
 
-There are currently 5 integration test files in `db/repositories/`, one per repository.
+There are currently 6 integration test files in `db/repositories/`, one per repository.
 
 Do not use in-memory fakes or mock `db` in repository tests. The Testcontainers
 container is shared across all integration test files in a single run — start-up cost

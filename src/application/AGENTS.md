@@ -21,6 +21,7 @@ src/application/
   use-cases/
     create-trip.ts                + create-trip.int-test.ts
     edit-trip.ts                  + edit-trip.int-test.ts
+    move-trip-to-organization.ts  + move-trip-to-organization.int-test.ts
     add-destination.ts            + add-destination.int-test.ts
     edit-destination.ts           + edit-destination.int-test.ts
     remove-destination.ts         + remove-destination.int-test.ts
@@ -30,6 +31,12 @@ src/application/
     edit-spend-entry.ts           + edit-spend-entry.int-test.ts
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
     get-country-references.ts     + get-country-references.int-test.ts
+    ensure-user-organization.ts   + ensure-user-organization.int-test.ts
+    create-organization.ts        + create-organization.int-test.ts
+    get-user-organizations.ts     + get-user-organizations.int-test.ts
+    get-organization-members.ts   + get-organization-members.int-test.ts
+    add-organization-member.ts    + add-organization-member.int-test.ts
+    remove-organization-member.ts + remove-organization-member.int-test.ts
 ```
 
 ## Use case shape
@@ -62,5 +69,5 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 11 integration test files in `use-cases/`, **one per use case**.
+There are currently 18 integration test files in `use-cases/`, **one per use case**.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.

@@ -1,6 +1,6 @@
 # Travel Planner
 
-A personal travel budget planning app for multi-destination round-the-world trips. Create trips, allocate budgets per destination, log spending, and track what you have left — with a ringfenced reserve for fixed costs like visas.
+A collaborative travel budget planning app for multi-destination round-the-world trips. Create trips, allocate budgets per destination, log spending, and track what you have left — with a ringfenced reserve for fixed costs like visas.
 
 Built as a portfolio piece demonstrating production-quality Next.js architecture, DDD-inspired layered design, and AI-assisted development practices.
 
@@ -54,6 +54,10 @@ If `POSTGRES_URL` is missing, `pnpm dev` will:
 In local development, you can always use a one-click **Sign in locally (dev)** button
 without configuring Google OAuth. The **Sign in with Google** button only appears when
 `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set to real (non-placeholder) values.
+
+On first sign-in, users are automatically provisioned with a personal workspace
+organization so they can start planning immediately. Trip visibility and editing
+are scoped to the currently selected organization.
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
@@ -116,6 +120,7 @@ Key domain decisions:
 - **Money as integers in pence** — never floats
 - **Result types** — `{ ok: true; value }` or `{ ok: false; error }` — no exceptions from domain
 - **Named fixed costs** — a `Trip` has a list of `TripFixedCost` items (flights, insurance, etc.) each deducted from the total before destination allocations
+- **Organization scoping** — trips belong to organizations; owners manage membership and members collaborate inside shared organizations
 
 See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
 See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.

@@ -15,6 +15,7 @@ import type { Destination, Trip, TripFixedCost } from '../trip/types';
 function makeTrip(overrides: Partial<Trip> = {}): Trip {
   return {
     id: 'trip-1',
+    organizationId: 'org-1',
     ownerId: 'user-1',
     name: 'Round the World 2026',
     totalBudget: money(5_000_000, 'GBP'),

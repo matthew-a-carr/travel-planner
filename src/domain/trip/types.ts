@@ -55,6 +55,7 @@ export type SpendCategory =
 
 export type Trip = {
   readonly id: string;
+  readonly organizationId: string;
   readonly ownerId: string;
   readonly name: string;
   readonly totalBudget: Money;

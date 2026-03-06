@@ -64,6 +64,8 @@ export async function truncateAll(db: Db): Promise<void> {
   await db.delete(schema.destinations);
   await db.delete(schema.tripFixedCosts);
   await db.delete(schema.trips);
+  await db.delete(schema.organizationMemberships);
+  await db.delete(schema.organizations);
   await db.delete(schema.sessions);
   await db.delete(schema.accounts);
   await db.delete(schema.users);
@@ -100,6 +102,7 @@ export async function seedTrip(
   ownerId: string,
   overrides: {
     id?: string;
+    organizationId?: string;
     name?: string;
     totalBudgetPence?: number;
     currency?: string;
@@ -107,6 +110,13 @@ export async function seedTrip(
   } = {},
 ): Promise<Trip> {
   const id = overrides.id ?? crypto.randomUUID();
+  const organizationId =
+    overrides.organizationId ??
+    (
+      await seedOrganization(db, ownerId, {
+        name: 'Test Workspace',
+      })
+    ).id;
   const name = overrides.name ?? 'Test Trip';
   const totalBudgetPence = overrides.totalBudgetPence ?? 5_000_000; // £50,000
   const currency = overrides.currency ?? 'GBP';
@@ -117,6 +127,7 @@ export async function seedTrip(
     .insert(schema.trips)
     .values({
       id,
+      organizationId,
       ownerId,
       name,
       totalBudgetAmount: totalBudgetPence,
@@ -130,6 +141,7 @@ export async function seedTrip(
   const row = requireFirstRow(rows, 'seedTrip');
   return {
     id: row.id,
+    organizationId: row.organizationId,
     ownerId: row.ownerId,
     name: row.name,
     totalBudget: money(row.totalBudgetAmount, row.totalBudgetCurrency as 'GBP'),
@@ -137,6 +149,51 @@ export async function seedTrip(
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
+}
+
+export async function seedOrganization(
+  db: Db,
+  ownerUserId: string,
+  overrides: { id?: string; name?: string } = {},
+): Promise<{ id: string; name: string; createdByUserId: string }> {
+  const id = overrides.id ?? crypto.randomUUID();
+  const name = overrides.name ?? "Owner's Workspace";
+  const now = new Date();
+
+  await db.insert(schema.organizations).values({
+    id,
+    name,
+    createdByUserId: ownerUserId,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  await db.insert(schema.organizationMemberships).values({
+    organizationId: id,
+    userId: ownerUserId,
+    role: 'owner',
+    createdAt: now,
+  });
+
+  return {
+    id,
+    name,
+    createdByUserId: ownerUserId,
+  };
+}
+
+export async function seedOrganizationMember(
+  db: Db,
+  organizationId: string,
+  userId: string,
+  role: 'owner' | 'member' = 'member',
+): Promise<void> {
+  await db.insert(schema.organizationMemberships).values({
+    organizationId,
+    userId,
+    role,
+    createdAt: new Date(),
+  });
 }
 
 export async function seedDestination(

@@ -7,10 +7,11 @@ import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
 import { editDestination } from '@/application/use-cases/edit-destination';
 import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
 import { editTrip } from '@/application/use-cases/edit-trip';
+import { moveTripToOrganization } from '@/application/use-cases/move-trip-to-organization';
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
-import type { ComfortLevel, SpendCategory, TripStatus } from '@/domain/trip/types';
+import type { ComfortLevel, SpendCategory, Trip, TripStatus } from '@/domain/trip/types';
 
 const TRIP_STATUSES: readonly TripStatus[] = ['planning', 'active', 'completed'];
 
@@ -37,17 +38,32 @@ function toComfortLevel(v: string): ComfortLevel | null {
   return (COMFORT_LEVELS as readonly string[]).includes(v) ? (v as ComfortLevel) : null;
 }
 
-import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
+import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 
 async function getVerifiedUserId(): Promise<string> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Unauthorized');
-  return session.user.id;
+  const context = await getActiveOrganizationContext();
+  if (!context?.userId) throw new Error('Unauthorized');
+  return context.userId;
+}
+
+async function getAccessibleTrip(
+  tripRepo: DrizzleTripRepository,
+  organizationRepo: DrizzleOrganizationRepository,
+  tripId: string,
+  userId: string,
+): Promise<Trip | null> {
+  const trip = await tripRepo.findById(tripId);
+  if (!trip) return null;
+
+  const membership = await organizationRepo.findMembership(trip.organizationId, userId);
+  if (!membership) return null;
+  return trip;
 }
 
 /** Parses an optional ISO date string (YYYY-MM-DD) from a form field. Returns null if absent. */
@@ -69,8 +85,9 @@ export async function editTripAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const name = formData.get('name');
   const totalBudgetPounds = formData.get('totalBudgetPounds');
@@ -121,8 +138,9 @@ export async function addFixedCostAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const label = formData.get('label');
   const amountPounds = formData.get('amountPounds');
@@ -154,8 +172,9 @@ export async function removeFixedCostAction(tripId: string, fixedCostId: string)
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) throw new Error('Forbidden');
 
   const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   await removeFixedCost(fixedCostRepo, fixedCostId);
@@ -175,8 +194,9 @@ export async function addDestinationAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const name = formData.get('name');
   const country = formData.get('country');
@@ -232,8 +252,9 @@ export async function editDestinationAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const name = formData.get('name');
   const country = formData.get('country');
@@ -288,8 +309,9 @@ export async function removeDestinationAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) throw new Error('Forbidden');
 
   const destRepo = new DrizzleDestinationRepository(db);
   await removeDestination(destRepo, destinationId);
@@ -310,8 +332,9 @@ export async function recordSpendAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const amountPounds = formData.get('amountPounds');
   const category = formData.get('category');
@@ -356,8 +379,9 @@ export async function deleteSpendEntryAction(tripId: string, entryId: string): P
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) throw new Error('Forbidden');
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) throw new Error('Forbidden');
 
   const spendRepo = new DrizzleSpendEntryRepository(db);
   await deleteSpendEntry(spendRepo, entryId);
@@ -376,8 +400,9 @@ export async function editSpendEntryAction(
   const userId = await getVerifiedUserId();
 
   const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(tripId);
-  if (!trip || trip.ownerId !== userId) return { error: 'Trip not found' };
+  const organizationRepo = new DrizzleOrganizationRepository(db);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
 
   const amountPounds = formData.get('amountPounds');
   const category = formData.get('category');
@@ -412,5 +437,32 @@ export async function editSpendEntryAction(
 
   if (!result.ok) return { error: result.error };
   revalidatePath(`/trips/${tripId}`);
+  return { error: null };
+}
+
+export type MoveTripState = { error: string | null };
+
+export async function moveTripToOrganizationAction(
+  tripId: string,
+  _prev: MoveTripState,
+  formData: FormData,
+): Promise<MoveTripState> {
+  const userId = await getVerifiedUserId();
+  const targetOrganizationId = formData.get('targetOrganizationId');
+  if (typeof targetOrganizationId !== 'string') return { error: 'Invalid form data' };
+
+  const result = await moveTripToOrganization(
+    new DrizzleTripRepository(db),
+    new DrizzleOrganizationRepository(db),
+    {
+      actorUserId: userId,
+      tripId,
+      targetOrganizationId,
+    },
+  );
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  revalidatePath('/');
   return { error: null };
 }

@@ -4,6 +4,7 @@ import {
   createTestDb,
   type Db,
   type Sql,
+  seedOrganization,
   seedUser,
   truncateAll,
 } from '@/infrastructure/testing/helpers';
@@ -27,9 +28,11 @@ beforeEach(async () => {
 describe('createTrip', () => {
   it('creates a trip with status planning', async () => {
     const { id: ownerId } = await seedUser(db);
+    const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
     const trip = await createTrip(repo, {
+      organizationId,
       ownerId,
       name: 'Round the World',
       totalBudgetPence: 5_000_000,
@@ -41,9 +44,11 @@ describe('createTrip', () => {
 
   it('persists the trip and returns it with a generated id', async () => {
     const { id: ownerId } = await seedUser(db);
+    const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
     const trip = await createTrip(repo, {
+      organizationId,
       ownerId,
       name: 'Asia Tour',
       totalBudgetPence: 3_000_000,
@@ -54,14 +59,17 @@ describe('createTrip', () => {
     expect(trip.name).toBe('Asia Tour');
     expect(trip.totalBudget.amountPence).toBe(3_000_000);
     expect(trip.totalBudget.currency).toBe('GBP');
+    expect(trip.organizationId).toBe(organizationId);
     expect(trip.ownerId).toBe(ownerId);
   });
 
   it('is readable by findById after creation', async () => {
     const { id: ownerId } = await seedUser(db);
+    const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
     const trip = await createTrip(repo, {
+      organizationId,
       ownerId,
       name: 'Persisted Trip',
       totalBudgetPence: 1_000_000,

@@ -47,6 +47,20 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- Organization-scoped collaboration model:
+  - New `organizations` and `organization_memberships` tables
+  - `trips.organization_id` scope for trip visibility and mutations
+  - Active organization switcher on the dashboard
+  - Owner-managed member assignment by existing user email
+  - Owner-only trip move between organizations
+- First-sign-in organization bootstrap:
+  - Users with no memberships now get a personal workspace automatically
+  - Personal workspace naming convention:
+    - `"<user.name>'s Workspace"` when a name exists
+    - `"<email-local-part>'s Workspace"` when no name exists
+    - `Local Dev Workspace` for local-dev auth user
+- New e2e acceptance coverage for organization sharing, first-login bootstrap,
+  owner/member permissions, and trip reassignment between organizations.
 - Terraform infrastructure under `infra/` with split stacks for production and
   preview environments (`infra/stacks/prod`, `infra/stacks/preview`) and reusable
   modules for Vercel and Neon resources.
@@ -98,6 +112,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Local development no longer crashes on startup when an existing auth session
+  references a user ID not present in the current database (for example after
+  local DB reset/rebootstrap); the app now resolves or recreates the session user
+  before organization bootstrap.
 - Preview deployments for non-PR branches no longer fail with missing
   `POSTGRES_URL`; Terraform now sets a default preview database URL while
   PR-specific preview branches continue to receive branch-scoped DB URLs.

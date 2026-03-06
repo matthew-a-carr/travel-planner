@@ -8,6 +8,7 @@ import { trips } from '../schema';
 function toTrip(row: typeof trips.$inferSelect): Trip {
   return {
     id: row.id,
+    organizationId: row.organizationId,
     ownerId: row.ownerId,
     name: row.name,
     totalBudget: money(row.totalBudgetAmount, row.totalBudgetCurrency as Currency),
@@ -20,6 +21,7 @@ function toTrip(row: typeof trips.$inferSelect): Trip {
 function toRow(trip: Trip): typeof trips.$inferInsert {
   return {
     id: trip.id,
+    organizationId: trip.organizationId,
     ownerId: trip.ownerId,
     name: trip.name,
     totalBudgetAmount: trip.totalBudget.amountPence,
@@ -38,11 +40,11 @@ export class DrizzleTripRepository implements TripRepository {
     return rows[0] ? toTrip(rows[0]) : null;
   }
 
-  async findAllByOwner(ownerId: string): Promise<Trip[]> {
+  async findAllByOrganization(organizationId: string): Promise<Trip[]> {
     const rows = await this.db
       .select()
       .from(trips)
-      .where(eq(trips.ownerId, ownerId))
+      .where(eq(trips.organizationId, organizationId))
       .orderBy(trips.createdAt);
     return rows.map(toTrip);
   }
@@ -55,6 +57,7 @@ export class DrizzleTripRepository implements TripRepository {
       .onConflictDoUpdate({
         target: trips.id,
         set: {
+          organizationId: row.organizationId,
           name: row.name,
           totalBudgetAmount: row.totalBudgetAmount,
           totalBudgetCurrency: row.totalBudgetCurrency,

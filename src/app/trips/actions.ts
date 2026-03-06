@@ -3,9 +3,9 @@
 import { redirect } from 'next/navigation';
 import { createTrip } from '@/application/use-cases/create-trip';
 import type { Currency } from '@/domain/trip/types';
-import { auth } from '@/infrastructure/auth';
 import { db } from '@/infrastructure/db/client';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 
 export type CreateTripState = { error: string | null };
 
@@ -13,8 +13,8 @@ export async function createTripAction(
   _prev: CreateTripState,
   formData: FormData,
 ): Promise<CreateTripState> {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
+  const context = await getActiveOrganizationContext();
+  if (!context) return { error: 'Unauthorized' };
 
   const name = formData.get('name');
   const totalBudgetPounds = formData.get('totalBudgetPounds');
@@ -31,7 +31,8 @@ export async function createTripAction(
 
   const repo = new DrizzleTripRepository(db);
   const trip = await createTrip(repo, {
-    ownerId: session.user.id,
+    organizationId: context.activeOrganization.organization.id,
+    ownerId: context.userId,
     name: name.trim(),
     totalBudgetPence,
     currency: 'GBP' as Currency, // GBP-only: see ADR 011
