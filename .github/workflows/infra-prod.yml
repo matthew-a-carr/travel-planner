@@ -26,6 +26,7 @@ jobs:
       TF_VAR_auth_secret: ${{ secrets.AUTH_SECRET_PRODUCTION }}
       TF_VAR_auth_google_id: ${{ secrets.AUTH_GOOGLE_ID_PRODUCTION }}
       TF_VAR_auth_google_secret: ${{ secrets.AUTH_GOOGLE_SECRET_PRODUCTION }}
+      TF_VAR_auth_admin_emails: ${{ secrets.AUTH_ADMIN_EMAILS_PRODUCTION }}
       TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
     steps:
       - uses: actions/checkout@v6

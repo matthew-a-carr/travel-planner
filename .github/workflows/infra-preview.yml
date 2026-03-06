@@ -27,6 +27,7 @@ jobs:
       TF_VAR_project_name: travel-planner
       TF_VAR_preview_auth_secret: ${{ secrets.AUTH_SECRET_PREVIEW }}
       TF_VAR_preview_auth_url: ${{ vars.PREVIEW_AUTH_URL }}
+      TF_VAR_preview_auth_admin_emails: ${{ secrets.AUTH_ADMIN_EMAILS_PREVIEW }}
       TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
     steps:
       - uses: actions/checkout@v6

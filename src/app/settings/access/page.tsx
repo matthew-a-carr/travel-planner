@@ -35,7 +35,7 @@ export default async function AccessSettingsPage() {
         userName={session.user.name}
       />
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-8">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8">
         <SettingsNav active="access" />
         <UserAccessManagementPanel users={usersResult.value} currentUserId={context.userId} />
       </div>
