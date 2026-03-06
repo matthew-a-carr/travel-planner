@@ -8,6 +8,7 @@ import {
 } from './e2e-env';
 
 const PNPM_COMMAND = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+const E2E_DEFAULT_AUTH_SECRET = 'dev-only-not-a-real-secret';
 
 async function main(): Promise<void> {
   const serverScript = process.env.CI ? 'start' : 'dev:next';
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
       env: {
         ...process.env,
         POSTGRES_URL: postgresUrl,
+        AUTH_SECRET: process.env.AUTH_SECRET ?? E2E_DEFAULT_AUTH_SECRET,
       },
       stdio: 'inherit',
     });

@@ -98,6 +98,9 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Production Google SSO avatars now render correctly by allowing Google-hosted
+  profile image domains in Next.js image configuration and falling back to
+  initials if an avatar URL cannot be loaded.
 - Dark mode accessibility across dashboard and trip detail pages: low-contrast
   text, cards, forms, and modal surfaces now use explicit dark-theme colors;
   create/edit trip modals no longer render as bright white overlays in dark mode.
