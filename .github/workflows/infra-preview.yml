@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
   workflow_dispatch:
+    inputs:
+      open_previews_json:
+        description: 'Optional JSON map of open previews: {"123":"branch-name"}'
+        required: false
+        default: ""
 
 jobs:
   apply:
@@ -35,11 +40,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          open_previews="$(gh api \
-            repos/${{ github.repository }}/pulls \
-            --paginate \
-            -f state=open \
-            --jq 'map({(.number|tostring): .head.ref}) | add // {}')"
+          manual_open_previews='${{ inputs.open_previews_json }}'
+          if [[ -n "$manual_open_previews" ]]; then
+            open_previews="$manual_open_previews"
+          else
+            open_previews="$(gh api \
+              -X GET \
+              repos/${{ github.repository }}/pulls \
+              --paginate \
+              -f state=open \
+              --jq 'map({(.number|tostring): .head.ref}) | add // {}')"
+          fi
           echo "open_previews=${open_previews}" >> "$GITHUB_OUTPUT"
 
       - name: Configure backend
