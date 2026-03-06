@@ -19,12 +19,11 @@ resource "neon_branch" "preview" {
 resource "neon_endpoint" "preview" {
   for_each = local.previews
 
-  project_id              = var.project_id
-  branch_id               = neon_branch.preview[each.key].id
-  type                    = var.endpoint_type
-  pooler_enabled          = true
-  pooler_mode             = "transaction"
-  suspend_timeout_seconds = 300
+  project_id     = var.project_id
+  branch_id      = neon_branch.preview[each.key].id
+  type           = var.endpoint_type
+  pooler_enabled = true
+  pooler_mode    = "transaction"
 }
 
 resource "neon_role" "preview" {

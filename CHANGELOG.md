@@ -101,6 +101,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - Preview deployments for non-PR branches no longer fail with missing
   `POSTGRES_URL`; Terraform now sets a default preview database URL while
   PR-specific preview branches continue to receive branch-scoped DB URLs.
+- Preview Terraform apply now avoids Neon account-tier endpoint errors by not
+  forcing a suspend interval on preview branch endpoints.
 - Production Google SSO avatars now render correctly by allowing Google-hosted
   profile image domains in Next.js image configuration and falling back to
   initials if an avatar URL cannot be loaded.
