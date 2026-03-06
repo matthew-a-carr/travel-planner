@@ -34,3 +34,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [023](023-shared-header-and-settings-route-for-organization-management.md) | Shared Header and Settings Route for Organization Management | 2026-03-06 | Superseded by ADR 024 |
 | [024](024-two-row-sticky-header-for-authenticated-navigation.md) | Two-Row Sticky Header for Authenticated Navigation | 2026-03-06 | Accepted |
 | [025](025-controlled-signup-and-admin-access-management.md) | Controlled Signup and Admin Access Management | 2026-03-06 | Accepted |
+| [026](026-searchable-organization-member-assignment-from-user-directory.md) | Searchable Organization Member Assignment from User Directory | 2026-03-06 | Accepted |

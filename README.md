@@ -61,6 +61,10 @@ self-registration is disabled, only app-approved users (or configured admin
 emails) can complete sign-in. Trip visibility and editing are scoped to the
 currently selected organization.
 
+Organization owners manage member access in `/settings/organization` using a
+searchable user picker backed by the `users` table (existing signed-up users
+only; no invite-before-signup flow in v1).
+
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
 ```bash
@@ -124,7 +128,7 @@ Key domain decisions:
 - **Money as integers in pence** — never floats
 - **Result types** — `{ ok: true; value }` or `{ ok: false; error }` — no exceptions from domain
 - **Named fixed costs** — a `Trip` has a list of `TripFixedCost` items (flights, insurance, etc.) each deducted from the total before destination allocations
-- **Organization scoping** — trips belong to organizations; owners manage membership and members collaborate inside shared organizations
+- **Organization scoping** — trips belong to organizations; owners manage membership with searchable existing-user assignment and members collaborate inside shared organizations
 
 See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
 See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.

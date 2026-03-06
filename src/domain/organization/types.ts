@@ -33,3 +33,9 @@ export type OrganizationUser = {
   readonly name: string | null;
   readonly email: string;
 };
+
+export type OrganizationMemberCandidate = {
+  readonly id: string;
+  readonly name: string | null;
+  readonly email: string;
+};

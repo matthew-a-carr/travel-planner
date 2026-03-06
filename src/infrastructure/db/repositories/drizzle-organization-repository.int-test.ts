@@ -78,6 +78,14 @@ describe('DrizzleOrganizationRepository', () => {
     expect(user?.email).toBe('Partner@Example.com');
   });
 
+  it('finds users by id', async () => {
+    const seeded = await seedUser(db, { email: 'partner@example.com' });
+    const repo = new DrizzleOrganizationRepository(db);
+
+    const user = await repo.findUserById(seeded.id);
+    expect(user?.email).toBe('partner@example.com');
+  });
+
   it('adds and lists organization members', async () => {
     const { id: ownerUserId } = await seedUser(db, { email: 'owner@example.com' });
     const { id: memberUserId } = await seedUser(db, { email: 'member@example.com' });
@@ -127,5 +135,65 @@ describe('DrizzleOrganizationRepository', () => {
 
     const members = await repo.listMembers(organization.id);
     expect(members.map((member) => member.userId)).toEqual([ownerUserId]);
+  });
+
+  it('searches member candidates alphabetically and excludes existing members', async () => {
+    const owner = await seedUser(db, { email: 'owner@example.com', name: 'Owner User' });
+    const alpha = await seedUser(db, { email: 'alpha@example.com', name: 'Alpha User' });
+    await seedUser(db, { email: 'zed@example.com', name: 'Zed User' });
+    const repo = new DrizzleOrganizationRepository(db);
+    const now = new Date();
+    const organization = await repo.createOrganizationWithOwner({
+      organizationId: crypto.randomUUID(),
+      name: 'Shared Planning',
+      ownerUserId: owner.id,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await repo.addMember({
+      organizationId: organization.id,
+      userId: alpha.id,
+      role: 'member',
+      createdAt: new Date(now.getTime() + 20),
+    });
+
+    const result = await repo.searchMemberCandidates({
+      organizationId: organization.id,
+      query: '',
+      limit: 20,
+    });
+
+    expect(result.map((candidate) => candidate.email)).toEqual(['zed@example.com']);
+    expect(result.find((candidate) => candidate.id === alpha.id)).toBeUndefined();
+  });
+
+  it('searches member candidates by case-insensitive name or email contains', async () => {
+    const owner = await seedUser(db, { email: 'owner@example.com', name: 'Owner User' });
+    await seedUser(db, { email: 'carr.matty@gmail.com', name: 'Matty Carr' });
+    await seedUser(db, { email: 'partner@example.com', name: 'Partner User' });
+    const repo = new DrizzleOrganizationRepository(db);
+    const now = new Date();
+    const organization = await repo.createOrganizationWithOwner({
+      organizationId: crypto.randomUUID(),
+      name: 'Shared Planning',
+      ownerUserId: owner.id,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const byEmail = await repo.searchMemberCandidates({
+      organizationId: organization.id,
+      query: 'CARR.MATTY',
+      limit: 20,
+    });
+    expect(byEmail.map((candidate) => candidate.email)).toEqual(['carr.matty@gmail.com']);
+
+    const byName = await repo.searchMemberCandidates({
+      organizationId: organization.id,
+      query: 'partner',
+      limit: 20,
+    });
+    expect(byName.map((candidate) => candidate.email)).toEqual(['partner@example.com']);
   });
 });

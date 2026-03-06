@@ -97,12 +97,14 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - User access data model fields on `users`:
   - `first_name`, `last_name`, `is_approved`, `is_admin`
 - New ADR 025 documenting controlled signup and admin access management.
+- New ADR 026 documenting searchable organization member assignment from the
+  existing user directory, PII visibility decisions, and unchanged signup policy.
 - Moved the user Avatar and Sign out button to the far right side of the application header.
 - Organization-scoped collaboration model:
   - New `organizations` and `organization_memberships` tables
   - `trips.organization_id` scope for trip visibility and mutations
   - Active organization switcher on the dashboard
-  - Owner-managed member assignment by existing user email
+  - Owner-managed member assignment via searchable existing-user directory
   - Owner-only trip move between organizations
 - First-sign-in organization bootstrap:
   - Users with no memberships now get a personal workspace automatically

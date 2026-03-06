@@ -141,7 +141,7 @@ test('first authenticated visit bootstraps workspace and dashboard keeps managem
   await expect(page.getByRole('link', { name: 'Trips' })).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('link', { name: 'Settings' })).not.toHaveAttribute('aria-current');
   await expect(page.getByLabel('Create organization')).toHaveCount(0);
-  await expect(page.getByLabel('Add member by email')).toHaveCount(0);
+  await expect(page.getByLabel('Search users to add')).toHaveCount(0);
 
   const organizationSelect = page.getByLabel('Active organization');
   await expect(organizationSelect).toBeVisible();
@@ -159,6 +159,11 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
 }) => {
   const owner = await ensureUser(OWNER_EMAIL, OWNER_NAME);
   const partner = await ensureUser(`partner-${Date.now()}@travelplanner.test`, 'Partner E2E');
+  const alphaCandidate = await ensureUser(
+    `alpha-${Date.now()}@travelplanner.test`,
+    'Alpha Candidate',
+  );
+  const zuluCandidate = await ensureUser(`zulu-${Date.now()}@travelplanner.test`, 'Zulu Candidate');
 
   await signInAsUser(context, baseURL, owner);
   await page.goto('/settings/organization');
@@ -175,9 +180,25 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.reload();
 
   await expect(page.getByLabel('Active organization')).toContainText(sharedOrganizationName);
-  await page.getByLabel('Add member by email').fill(partner.email);
+  const memberSearch = page.getByLabel('Search users to add');
+  await memberSearch.click();
+  await expect(page.locator('[role="option"]').filter({ hasText: alphaCandidate.email })).toBeVisible();
+  await expect(page.locator('[role="option"]').filter({ hasText: zuluCandidate.email })).toBeVisible();
+  await expect(page.locator('[role="option"]').filter({ hasText: partner.email })).toBeVisible();
+  const optionTexts = await page.getByRole('option').allInnerTexts();
+  const alphaIndex = optionTexts.findIndex((text) => text.includes(alphaCandidate.email));
+  const zuluIndex = optionTexts.findIndex((text) => text.includes(zuluCandidate.email));
+  expect(alphaIndex).toBeGreaterThanOrEqual(0);
+  expect(zuluIndex).toBeGreaterThanOrEqual(0);
+  expect(alphaIndex).toBeLessThan(zuluIndex);
+
+  await memberSearch.fill(partner.email.slice(0, 10));
+  await expect(page.locator('[role="option"]').filter({ hasText: partner.email })).toBeVisible();
+  await page.locator('[role="option"]').filter({ hasText: partner.email }).first().click();
   await page.getByRole('button', { name: /^Add$/ }).click();
   await expect(page.getByText(/Partner E2E \(member\)/)).toBeVisible();
+  await memberSearch.click();
+  await expect(page.locator('[role="option"]').filter({ hasText: partner.email })).toHaveCount(0);
 
   await page.setViewportSize({ width: 375, height: 812 });
   const utilityRow = page.getByTestId('app-header-utility-row');
@@ -216,7 +237,7 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
     page.getByText('Only organization owners can create organizations and manage members.'),
   ).toBeVisible();
   await expect(page.getByLabel('Create organization')).toHaveCount(0);
-  await expect(page.getByLabel('Add member by email')).toHaveCount(0);
+  await expect(page.getByLabel('Search users to add')).toHaveCount(0);
 
   await signInAsUser(context, baseURL, owner);
   await page.goto('/');

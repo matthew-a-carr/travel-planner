@@ -241,6 +241,17 @@ test.describe('Organization settings page — accessibility', () => {
     );
     await expect(page.getByRole('link', { name: 'Trips' })).not.toHaveAttribute('aria-current');
   });
+
+  test('member search combobox is keyboard reachable', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings/organization');
+
+    const memberSearch = page.getByLabel('Search users to add');
+    await expect(memberSearch).toBeVisible();
+    await memberSearch.focus();
+    await expect(memberSearch).toBeFocused();
+    await expect(page.getByRole('listbox')).toBeVisible();
+  });
 });
 
 // ─── Trip detail page ─────────────────────────────────────────────────────────

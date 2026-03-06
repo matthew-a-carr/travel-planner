@@ -35,7 +35,7 @@ describe('addOrganizationMember', () => {
     const result = await addOrganizationMember(repo, {
       actorUserId: ownerUserId,
       organizationId: organization.id,
-      email: 'partner@example.com',
+      targetUserId,
     });
 
     expect(result.ok).toBe(true);
@@ -45,7 +45,7 @@ describe('addOrganizationMember', () => {
     expect(membership?.role).toBe('member');
   });
 
-  it('rejects when target email has not signed in', async () => {
+  it('rejects when target user has not signed in', async () => {
     const { id: ownerUserId } = await seedUser(db, { email: 'owner@example.com' });
     const organization = await seedOrganization(db, ownerUserId, { name: 'Shared Planning' });
     const repo = new DrizzleOrganizationRepository(db);
@@ -53,7 +53,7 @@ describe('addOrganizationMember', () => {
     const result = await addOrganizationMember(repo, {
       actorUserId: ownerUserId,
       organizationId: organization.id,
-      email: 'missing@example.com',
+      targetUserId: crypto.randomUUID(),
     });
 
     expect(result.ok).toBe(false);
@@ -76,7 +76,7 @@ describe('addOrganizationMember', () => {
     const result = await addOrganizationMember(repo, {
       actorUserId: memberUserId,
       organizationId: organization.id,
-      email: 'target@example.com',
+      targetUserId,
     });
 
     expect(result.ok).toBe(false);

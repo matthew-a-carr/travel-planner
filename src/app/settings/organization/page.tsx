@@ -38,6 +38,7 @@ export default async function OrganizationSettingsPage() {
       <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8">
         <SettingsNav active="organization" />
         <OrganizationManagementPanel
+          key={context.activeOrganization.organization.id}
           activeOrganizationId={context.activeOrganization.organization.id}
           activeOrganizationName={context.activeOrganization.organization.name}
           activeOrganizationRole={context.activeOrganization.role}

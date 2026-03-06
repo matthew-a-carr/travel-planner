@@ -7,7 +7,7 @@ import { err, ok } from '@/domain/trip/types';
 export type AddOrganizationMemberInput = {
   readonly actorUserId: string;
   readonly organizationId: string;
-  readonly email: string;
+  readonly targetUserId: string;
 };
 
 export async function addOrganizationMember(
@@ -18,18 +18,21 @@ export async function addOrganizationMember(
   if (!actorMembership) return err('Organization not found');
   if (!canManageOrganizationMembers(actorMembership.role)) return err('Forbidden');
 
-  const normalizedEmail = input.email.trim();
-  if (normalizedEmail.length === 0) return err('Email is required');
+  const normalizedTargetUserId = input.targetUserId.trim();
+  if (normalizedTargetUserId.length === 0) return err('User is required');
 
-  const targetUser = await repository.findUserByEmail(normalizedEmail);
-  if (!targetUser) return err('User has not signed in yet');
+  const targetUserExists = await repository.findUserById(normalizedTargetUserId);
+  if (!targetUserExists) return err('User has not signed in yet');
 
-  const existingMembership = await repository.findMembership(input.organizationId, targetUser.id);
+  const existingMembership = await repository.findMembership(
+    input.organizationId,
+    normalizedTargetUserId,
+  );
   if (existingMembership) return err('User is already a member');
 
   const membership = await repository.addMember({
     organizationId: input.organizationId,
-    userId: targetUser.id,
+    userId: normalizedTargetUserId,
     role: 'member',
     createdAt: new Date(),
   });

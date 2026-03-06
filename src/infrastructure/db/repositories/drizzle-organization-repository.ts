@@ -3,10 +3,12 @@ import type {
   AddOrganizationMemberInput,
   CreateOrganizationWithOwnerInput,
   OrganizationRepository,
+  SearchMemberCandidatesInput,
 } from '@/domain/organization/organization-repository';
 import type {
   Organization,
   OrganizationMember,
+  OrganizationMemberCandidate,
   OrganizationMembership,
   OrganizationRole,
   OrganizationUser,
@@ -103,6 +105,27 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
     }));
   }
 
+  async findUserById(userId: string): Promise<OrganizationUser | null> {
+    const rows = await this.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+    };
+  }
+
   async findUserByEmail(email: string): Promise<OrganizationUser | null> {
     const normalized = email.trim().toLowerCase();
     const rows = await this.db
@@ -123,6 +146,52 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
       name: row.name,
       email: row.email,
     };
+  }
+
+  async searchMemberCandidates(
+    input: SearchMemberCandidatesInput,
+  ): Promise<OrganizationMemberCandidate[]> {
+    const normalizedQuery = input.query.trim().toLowerCase();
+    const containsPattern = `%${normalizedQuery}%`;
+
+    const filters = [
+      sql`not exists (
+        select 1
+        from ${organizationMemberships}
+        where ${organizationMemberships.organizationId} = ${input.organizationId}
+          and ${organizationMemberships.userId} = ${users.id}
+      )`,
+    ];
+
+    if (normalizedQuery.length > 0) {
+      filters.push(
+        sql`(
+          lower(${users.email}) like ${containsPattern}
+          or lower(coalesce(${users.name}, '')) like ${containsPattern}
+        )`,
+      );
+    }
+
+    const rows = await this.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+      })
+      .from(users)
+      .where(and(...filters))
+      .orderBy(
+        sql`lower(coalesce(${users.name}, ${users.email}))`,
+        sql`lower(${users.email})`,
+        asc(users.id),
+      )
+      .limit(input.limit);
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+    }));
   }
 
   async createOrganizationWithOwner(
