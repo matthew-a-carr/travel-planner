@@ -4,12 +4,10 @@ import { useActionState, useCallback, useEffect, useRef, useState, useTransition
 import {
   type AddOrganizationMemberState,
   addOrganizationMemberAction,
-  type CreateOrganizationState,
-  createOrganizationAction,
   type OrganizationMemberCandidateState,
   removeOrganizationMemberAction,
   searchOrganizationMemberCandidatesAction,
-} from '@/app/organizations/actions';
+} from '@/app/settings/organization/actions';
 
 type OrganizationMemberView = {
   readonly userId: string;
@@ -18,7 +16,6 @@ type OrganizationMemberView = {
   readonly role: 'owner' | 'member';
 };
 
-const INITIAL_CREATE_STATE: CreateOrganizationState = { error: null };
 const INITIAL_ADD_MEMBER_STATE: AddOrganizationMemberState = { error: null };
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -27,7 +24,7 @@ function describeCandidate(candidate: OrganizationMemberCandidateState): string 
   return trimmedName.length > 0 ? `${trimmedName} (${candidate.email})` : candidate.email;
 }
 
-export function OrganizationManagementPanel({
+export function OrganizationMembersPanel({
   activeOrganizationId,
   activeOrganizationName,
   activeOrganizationRole,
@@ -40,10 +37,6 @@ export function OrganizationManagementPanel({
   currentUserId: string;
   members: OrganizationMemberView[];
 }) {
-  const [createState, createDispatch, isCreating] = useActionState(
-    createOrganizationAction,
-    INITIAL_CREATE_STATE,
-  );
   const [addMemberState, addMemberDispatch, isAddingMember] = useActionState(
     addOrganizationMemberAction,
     INITIAL_ADD_MEMBER_STATE,
@@ -90,53 +83,15 @@ export function OrganizationManagementPanel({
   return (
     <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
       <div className="space-y-1">
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          Organization settings
-        </h2>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Members</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
-          Managing <span className="font-medium">{activeOrganizationName}</span> (
+          Managing members for <span className="font-medium">{activeOrganizationName}</span> (
           {activeOrganizationRole})
         </p>
       </div>
 
-      {canManageMembers ? (
-        <form
-          action={createDispatch}
-          className="space-y-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700"
-        >
-          <label
-            htmlFor="organization-name"
-            className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
-          >
-            Create organization
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              id="organization-name"
-              name="name"
-              type="text"
-              required
-              placeholder="Summer Planning Team"
-              className="block min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
-            />
-            <button
-              type="submit"
-              disabled={isCreating}
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              {isCreating ? 'Creating…' : 'Create'}
-            </button>
-          </div>
-          {createState.error && <p className="text-sm text-red-600">{createState.error}</p>}
-        </form>
-      ) : (
-        <p className="rounded-lg border border-zinc-200 p-3 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-          Only organization owners can create organizations and manage members.
-        </p>
-      )}
-
       <div className="space-y-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Members</h3>
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Current members</h3>
         <ul className="space-y-1">
           {members.map((member) => {
             const canRemove =
@@ -268,7 +223,7 @@ export function OrganizationManagementPanel({
           </form>
         ) : (
           <p className="border-t border-zinc-200 pt-3 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-300">
-            You can view members, but only organization owners can change membership.
+            You can view members, but only owners can change membership.
           </p>
         )}
       </div>

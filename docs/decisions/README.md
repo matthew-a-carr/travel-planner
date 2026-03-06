@@ -35,3 +35,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [024](024-two-row-sticky-header-for-authenticated-navigation.md) | Two-Row Sticky Header for Authenticated Navigation | 2026-03-06 | Accepted |
 | [025](025-controlled-signup-and-admin-access-management.md) | Controlled Signup and Admin Access Management | 2026-03-06 | Accepted |
 | [026](026-searchable-organization-member-assignment-from-user-directory.md) | Searchable Organization Member Assignment from User Directory | 2026-03-06 | Accepted |
+| [027](027-separate-organization-creation-from-member-management.md) | Separate Organization Creation from Member Management | 2026-03-06 | Accepted |

@@ -113,6 +113,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - New ADR 025 documenting controlled signup and admin access management.
 - New ADR 026 documenting searchable organization member assignment from the
   existing user directory, PII visibility decisions, and unchanged signup policy.
+- New ADR 027 documenting the split between organization creation and active
+  organization member management settings flows.
 - Moved the user Avatar and Sign out button to the far right side of the application header.
 - Organization-scoped collaboration model:
   - New `organizations` and `organization_memberships` tables
@@ -187,10 +189,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   - Development: Google login is shown only when `AUTH_GOOGLE_ID` and
     `AUTH_GOOGLE_SECRET` are non-placeholder values.
   - Production: local dev login is hidden.
-- Organization management moved out of the trips dashboard into
-  `/settings/organization`, with a shared authenticated header that provides
-  top-level `Trips`/`Settings` navigation and a compact active-organization
-  switcher on dashboard, trip detail, and settings pages.
+- Settings organization management is now split by intent:
+  - `/settings/organizations` handles organization creation and organization list
+  - `/settings/organization` handles member management for the active organization
+  - top-level `Settings` navigation now targets `/settings/organizations`
 - Authenticated navigation now uses a full-width sticky two-row header:
   - utility row for organization context and account controls
   - section row for `Trips`/`Settings` tabs with active-route state

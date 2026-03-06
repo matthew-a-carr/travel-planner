@@ -34,8 +34,9 @@ Layout behavior:
 
 - Header is sticky at `top: 0` with backdrop and border treatment for scroll
   contrast.
-- Authenticated pages (`/`, `/trips/[id]`, `/settings/organization`) share a
-  consistent shell with content rendered below the header.
+- Authenticated pages (`/`, `/trips/[id]`, `/settings/organizations`,
+  `/settings/organization`) share a consistent shell with content rendered
+  below the header.
 - Mobile keeps both rows visible (no drawer/bottom-nav switch), with safe
   wrapping/truncation behavior for organization switching.
 

@@ -197,7 +197,54 @@ test.describe('Dashboard — accessibility & responsive', () => {
   });
 });
 
-test.describe('Organization settings page — accessibility', () => {
+test.describe('Organizations settings page — accessibility', () => {
+  for (const vp of VIEWPORTS) {
+    test(`passes axe audit at ${vp.label}`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/settings/organizations');
+
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+
+      expect(
+        results.violations,
+        formatViolations(results.violations),
+      ).toEqual([]);
+    });
+  }
+
+  test('passes axe audit in dark mode', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.goto('/settings/organizations');
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .analyze();
+
+    expect(
+      results.violations,
+      formatViolations(results.violations),
+    ).toEqual([]);
+  });
+
+  test('settings tab is active and header rows are visible', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings/organizations');
+
+    await expect(page.getByTestId('app-header-utility-row')).toBeVisible();
+    await expect(page.getByTestId('app-header-section-row')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await expect(page.getByRole('link', { name: 'Trips' })).not.toHaveAttribute('aria-current');
+  });
+
+});
+
+test.describe('Organization members page — accessibility', () => {
   for (const vp of VIEWPORTS) {
     test(`passes axe audit at ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
@@ -227,19 +274,6 @@ test.describe('Organization settings page — accessibility', () => {
       results.violations,
       formatViolations(results.violations),
     ).toEqual([]);
-  });
-
-  test('settings tab is active and header rows are visible', async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/settings/organization');
-
-    await expect(page.getByTestId('app-header-utility-row')).toBeVisible();
-    await expect(page.getByTestId('app-header-section-row')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    await expect(page.getByRole('link', { name: 'Trips' })).not.toHaveAttribute('aria-current');
   });
 
   test('member search combobox is keyboard reachable', async ({ page }) => {

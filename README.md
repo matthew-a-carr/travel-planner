@@ -61,9 +61,14 @@ self-registration is disabled, only app-approved users (or configured admin
 emails) can complete sign-in. Trip visibility and editing are scoped to the
 currently selected organization.
 
-Organization owners manage member access in `/settings/organization` using a
-searchable user picker backed by the `users` table (existing signed-up users
-only; no invite-before-signup flow in v1).
+Organization creation and membership management are split in Settings:
+- `/settings/organizations` for creating organizations and reviewing organizations
+  you belong to
+- `/settings/organization` for managing members of the currently active
+  organization (owner-only mutations, member-visible read access)
+
+Member assignment uses a searchable picker backed by the `users` table
+(existing signed-up users only; no invite-before-signup flow in v1).
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 

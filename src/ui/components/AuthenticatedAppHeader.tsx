@@ -61,7 +61,7 @@ export function AuthenticatedAppHeader({
                 Trips
               </Link>
               <Link
-                href="/settings/organization"
+                href="/settings/organizations"
                 aria-current={activeNav === 'settings' ? 'page' : undefined}
                 className={navLinkClasses(activeNav === 'settings')}
               >

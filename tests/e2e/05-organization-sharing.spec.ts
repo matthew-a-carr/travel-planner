@@ -166,8 +166,8 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   const zuluCandidate = await ensureUser(`zulu-${Date.now()}@travelplanner.test`, 'Zulu Candidate');
 
   await signInAsUser(context, baseURL, owner);
-  await page.goto('/settings/organization');
-  await expect(page.getByRole('heading', { name: /organization settings/i })).toBeVisible();
+  await page.goto('/settings/organizations');
+  await expect(page.getByRole('heading', { name: 'Organizations', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute(
     'aria-current',
     'page',
@@ -180,6 +180,7 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.reload();
 
   await expect(page.getByLabel('Active organization')).toContainText(sharedOrganizationName);
+  await page.goto('/settings/organization');
   const memberSearch = page.getByLabel('Search users to add');
   await memberSearch.click();
   await expect(page.locator('[role="option"]').filter({ hasText: alphaCandidate.email })).toBeVisible();
@@ -234,10 +235,16 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
 
   await page.goto('/settings/organization');
   await expect(
-    page.getByText('Only organization owners can create organizations and manage members.'),
+    page.getByText('You can view members, but only owners can change membership.'),
   ).toBeVisible();
-  await expect(page.getByLabel('Create organization')).toHaveCount(0);
   await expect(page.getByLabel('Search users to add')).toHaveCount(0);
+  await page.goto('/settings/organizations');
+  const partnerOrganizationName = `Partner Workspace ${Date.now()}`;
+  await page.getByLabel('Create organization').fill(partnerOrganizationName);
+  await page.getByRole('button', { name: /^Create$/ }).click();
+  await page.waitForTimeout(400);
+  await page.reload();
+  await expect(page.getByLabel('Active organization')).toContainText(partnerOrganizationName);
 
   await signInAsUser(context, baseURL, owner);
   await page.goto('/');

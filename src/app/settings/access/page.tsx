@@ -15,11 +15,11 @@ export default async function AccessSettingsPage() {
   if (!context || !session?.user) redirect('/login');
 
   const isAdmin = await isUserAccessAdmin(db, context.userId);
-  if (!isAdmin) redirect('/settings/organization');
+  if (!isAdmin) redirect('/settings/organizations');
 
   const repository = new DrizzleUserAccessRepository(db);
   const usersResult = await getUserAccessList(repository, context.userId);
-  if (!usersResult.ok) redirect('/settings/organization');
+  if (!usersResult.ok) redirect('/settings/organizations');
 
   return (
     <main className="min-h-screen">

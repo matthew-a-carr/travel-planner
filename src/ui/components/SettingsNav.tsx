@@ -7,11 +7,14 @@ function navClass(isActive: boolean): string {
   return 'rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100';
 }
 
-export function SettingsNav({ active }: { active: 'organization' | 'access' }) {
+export function SettingsNav({ active }: { active: 'organizations' | 'members' | 'access' }) {
   return (
     <nav aria-label="Settings sections" className="mb-5 flex flex-wrap items-center gap-2">
-      <Link href="/settings/organization" className={navClass(active === 'organization')}>
-        Organization
+      <Link href="/settings/organizations" className={navClass(active === 'organizations')}>
+        Organizations
+      </Link>
+      <Link href="/settings/organization" className={navClass(active === 'members')}>
+        Members
       </Link>
       <Link href="/settings/access" className={navClass(active === 'access')}>
         Access
