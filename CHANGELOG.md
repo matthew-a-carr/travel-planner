@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.6.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.5.0...v1.6.0) (2026-03-06)
+
+
+### Features
+
+* **settings:** separate organization creation from member management ([1ca13c8](https://github.com/matthew-a-carr/travel-planner/commit/1ca13c892ac31d30c96bacdef25f203f75765b58))
+
+
+### Bug Fixes
+
+* **ui:** enlarge organization member search input ([175454d](https://github.com/matthew-a-carr/travel-planner/commit/175454dc2206741dc10144d0fa87438f76aee6b6))
+* **ui:** match member search input size to organization input ([9503c2f](https://github.com/matthew-a-carr/travel-planner/commit/9503c2f511360e4402320f25aab548adca6091ee))
+
 ## [1.5.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.4.0...v1.5.0) (2026-03-06)
 
 
