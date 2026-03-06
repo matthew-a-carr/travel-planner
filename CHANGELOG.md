@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.2.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.1.0...v1.2.0) (2026-03-06)
+
+
+### Features
+
+* **infra:** manage vercel and neon with terraform ([c23f288](https://github.com/matthew-a-carr/travel-planner/commit/c23f2889d5c4d9be9444a9746f695fd7628886a5))
+
+
+### Bug Fixes
+
+* **auth:** harden google avatar rendering and add e2e regression ([7b166bc](https://github.com/matthew-a-carr/travel-planner/commit/7b166bc09b35130cd1042839ceeaa73f75b01e86))
+* **auth:** trust preview hosts for authjs login ([a8b2099](https://github.com/matthew-a-carr/travel-planner/commit/a8b2099d9c823bb1a680fede049882fc9d604e18))
+* **ci:** support manual preview apply with explicit pr map ([33810c9](https://github.com/matthew-a-carr/travel-planner/commit/33810c9aa1d87dbc8037b7446c45ab2708187ef6))
+* **infra:** prevent non-pr preview deploy failures ([a2304ec](https://github.com/matthew-a-carr/travel-planner/commit/a2304ec0db36af3e8652b5738314602367f677d4))
+* **infra:** remove unsupported neon endpoint suspend timeout ([ccc786c](https://github.com/matthew-a-carr/travel-planner/commit/ccc786cccbcde3ece4b4fca56a0af82f38fb6d5a))
+* **infra:** serialize neon preview role creation ([93357a4](https://github.com/matthew-a-carr/travel-planner/commit/93357a4c9f6cee3ff9bf86e22f77811732a65873))
+
 ## [1.1.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.0.0...v1.1.0) (2026-03-01)
 
 
