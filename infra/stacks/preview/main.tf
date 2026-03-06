@@ -25,6 +25,11 @@ locals {
       sensitive = true
       comment   = "Managed by Terraform: preview Auth.js secret"
     }
+    "AUTH_TRUST_HOST" = {
+      value     = "true"
+      sensitive = false
+      comment   = "Managed by Terraform: trust dynamic preview hosts for Auth.js"
+    }
     "AUTH_ENABLE_LOCAL_DEV" = {
       value     = "true"
       sensitive = false

@@ -44,6 +44,13 @@ locals {
       comment   = "Managed by Terraform: canonical production auth URL"
     },
     {
+      key       = "AUTH_TRUST_HOST"
+      value     = "true"
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: trust production host for Auth.js"
+    },
+    {
       key       = "AUTH_ENABLE_LOCAL_DEV"
       value     = "false"
       target    = toset(["production"])

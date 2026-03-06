@@ -105,6 +105,9 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   forcing a suspend interval on preview branch endpoints.
 - Preview Terraform apply now waits for Neon branch endpoints before creating
   branch roles, reducing branch bootstrap races during apply.
+- Preview Auth.js login no longer fails with `UntrustedHost` on Vercel preview
+  domains; host trust is now explicitly enabled in auth config and Terraform-managed
+  env vars for preview and production.
 - Production Google SSO avatars now render correctly by allowing Google-hosted
   profile image domains in Next.js image configuration and falling back to
   initials if an avatar URL cannot be loaded.

@@ -4,6 +4,8 @@ export const authConfig: NextAuthConfig = {
   // Providers are configured in auth/index.ts. Middleware only needs
   // route protection callbacks and custom page paths.
   providers: [],
+  // Required for Vercel preview hosts where AUTH_URL is not static.
+  trustHost: true,
   pages: {
     signIn: '/login',
   },

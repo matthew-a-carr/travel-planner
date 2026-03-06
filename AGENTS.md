@@ -144,6 +144,7 @@ AUTH_SECRET=             # next-auth secret (openssl rand -base64 32)
 AUTH_GOOGLE_ID=          # Google OAuth client ID
 AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 AUTH_URL=http://localhost:3000
+AUTH_TRUST_HOST=true     # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside NODE_ENV=development
 ```
 
