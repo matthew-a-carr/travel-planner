@@ -57,7 +57,7 @@ export function DestinationSection({ tripId, destinations, allSpend, countryRefe
       {destinations.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-8 text-center">
           <p className="text-zinc-500 dark:text-zinc-400">No destinations added yet.</p>
-          <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
             Add destinations to start allocating your budget.
           </p>
         </div>

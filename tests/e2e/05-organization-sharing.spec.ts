@@ -130,8 +130,12 @@ test('first authenticated visit bootstraps workspace and dashboard keeps managem
 }) => {
   await page.goto('/');
 
+  await expect(page.getByTestId('app-header-utility-row')).toBeVisible();
+  await expect(page.getByTestId('app-header-section-row')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Trips' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Trips' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('link', { name: 'Settings' })).not.toHaveAttribute('aria-current');
   await expect(page.getByLabel('Create organization')).toHaveCount(0);
   await expect(page.getByLabel('Add member by email')).toHaveCount(0);
 
@@ -155,8 +159,12 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await signInAsUser(context, baseURL, owner);
   await page.goto('/settings/organization');
   await expect(page.getByRole('heading', { name: /organization settings/i })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
 
-  const sharedOrganizationName = `Shared Partner Workspace ${Date.now()}`;
+  const sharedOrganizationName = `Shared Workspace For Mobile Header Truncation Coverage ${Date.now()}`;
   await page.getByLabel('Create organization').fill(sharedOrganizationName);
   await page.getByRole('button', { name: /^Create$/ }).click();
   await page.waitForTimeout(400);
@@ -166,6 +174,18 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.getByLabel('Add member by email').fill(partner.email);
   await page.getByRole('button', { name: /^Add$/ }).click();
   await expect(page.getByText(/Partner E2E \(member\)/)).toBeVisible();
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  const utilityRow = page.getByTestId('app-header-utility-row');
+  const sectionRow = page.getByTestId('app-header-section-row');
+  await expect(utilityRow).toBeVisible();
+  await expect(sectionRow).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Trips' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
+  const orgSwitcherBox = await page.getByLabel('Active organization').boundingBox();
+  expect(orgSwitcherBox).not.toBeNull();
+  expect(orgSwitcherBox!.width).toBeLessThanOrEqual(375);
+  await page.setViewportSize({ width: 1280, height: 800 });
 
   const sharedTripName = `Shared Org Trip ${Date.now()}`;
   await page.goto('/');

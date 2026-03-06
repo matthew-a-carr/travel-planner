@@ -21,20 +21,20 @@ export default async function OrganizationSettingsPage() {
   const members = membersResult.ok ? membersResult.value.members : [];
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        <AuthenticatedAppHeader
-          activeNav="settings"
-          organizations={context.organizations.map((organization) => ({
-            id: organization.organization.id,
-            name: organization.organization.name,
-            role: organization.role,
-          }))}
-          activeOrganizationId={context.activeOrganization.organization.id}
-          userImage={session.user.image}
-          userName={session.user.name}
-        />
+    <main className="min-h-screen">
+      <AuthenticatedAppHeader
+        activeNav="settings"
+        organizations={context.organizations.map((organization) => ({
+          id: organization.organization.id,
+          name: organization.organization.name,
+          role: organization.role,
+        }))}
+        activeOrganizationId={context.activeOrganization.organization.id}
+        userImage={session.user.image}
+        userName={session.user.name}
+      />
 
+      <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8">
         <OrganizationManagementPanel
           activeOrganizationId={context.activeOrganization.organization.id}
           activeOrganizationName={context.activeOrganization.organization.name}

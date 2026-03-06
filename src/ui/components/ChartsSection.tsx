@@ -39,7 +39,7 @@ export function ChartsSection({ budgetBreakdown, estimatedVsActual, spendByCateg
       )}
 
       {!hasDestinations && !hasSpend && (
-        <p className="text-sm text-zinc-400 dark:text-zinc-500">
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">
           Add destinations and record spend to see charts here.
         </p>
       )}

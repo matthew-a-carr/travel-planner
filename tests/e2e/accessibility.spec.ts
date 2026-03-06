@@ -137,25 +137,46 @@ test.describe('Dashboard — accessibility & responsive', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
 
+    const utilityRow = page.getByTestId('app-header-utility-row');
+    const sectionRow = page.getByTestId('app-header-section-row');
+    await expect(utilityRow).toBeVisible();
+    await expect(sectionRow).toBeVisible();
+
     await expect(page.getByRole('link', { name: 'Trips' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Settings' })).toBeVisible();
     await expect(page.getByLabel('Active organization')).toBeVisible();
+
+    const utilityBox = await utilityRow.boundingBox();
+    const sectionBox = await sectionRow.boundingBox();
+    expect(utilityBox).not.toBeNull();
+    expect(sectionBox).not.toBeNull();
+    expect(sectionBox!.y).toBeGreaterThanOrEqual(utilityBox!.y + utilityBox!.height - 1);
+
+    const organizationSwitcherBox = await page.getByLabel('Active organization').boundingBox();
+    expect(organizationSwitcherBox).not.toBeNull();
+    expect(organizationSwitcherBox!.width).toBeLessThanOrEqual(375);
   });
 
   test('header nav and organization switcher are keyboard focusable', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
 
+    const brandLink = page.getByRole('link', { name: 'Travel Planner' });
     const tripsLink = page.getByRole('link', { name: 'Trips' });
     const settingsLink = page.getByRole('link', { name: 'Settings' });
     const orgSwitcher = page.getByLabel('Active organization');
+    const signOutButton = page.getByRole('button', { name: /sign out/i });
 
+    await brandLink.focus();
+    await expect(brandLink).toBeFocused();
     await tripsLink.focus();
     await expect(tripsLink).toBeFocused();
     await settingsLink.focus();
     await expect(settingsLink).toBeFocused();
     await orgSwitcher.focus();
     await expect(orgSwitcher).toBeFocused();
+    await signOutButton.focus();
+    await expect(signOutButton).toBeFocused();
   });
 
   test('passes axe audit in dark mode with create trip modal open', async ({ page }) => {
@@ -207,6 +228,19 @@ test.describe('Organization settings page — accessibility', () => {
       formatViolations(results.violations),
     ).toEqual([]);
   });
+
+  test('settings tab is active and header rows are visible', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings/organization');
+
+    await expect(page.getByTestId('app-header-utility-row')).toBeVisible();
+    await expect(page.getByTestId('app-header-section-row')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Settings' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await expect(page.getByRole('link', { name: 'Trips' })).not.toHaveAttribute('aria-current');
+  });
 });
 
 // ─── Trip detail page ─────────────────────────────────────────────────────────
@@ -248,6 +282,33 @@ test.describe('Trip detail page — accessibility', () => {
       results.violations,
       formatViolations(results.violations),
     ).toEqual([]);
+  });
+
+  test('sticky header stays pinned while scrolling', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
+    await page.waitForURL(/\/trips\//);
+
+    const header = page.getByTestId('app-header');
+    const headerBoxBeforeScroll = await header.boundingBox();
+    expect(headerBoxBeforeScroll).not.toBeNull();
+
+    const contentTop = page.getByRole('heading', { level: 1 }).first();
+    const contentTopBox = await contentTop.boundingBox();
+    expect(contentTopBox).not.toBeNull();
+    expect(contentTopBox!.y).toBeGreaterThanOrEqual(headerBoxBeforeScroll!.height - 1);
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.waitForTimeout(100);
+
+    const yOffset = await page.evaluate(() => window.scrollY);
+    expect(yOffset).toBeGreaterThan(0);
+
+    const headerBoxAfterScroll = await header.boundingBox();
+    expect(headerBoxAfterScroll).not.toBeNull();
+    expect(headerBoxAfterScroll!.y).toBeGreaterThanOrEqual(-1);
+    expect(headerBoxAfterScroll!.y).toBeLessThanOrEqual(1);
   });
 });
 

@@ -42,28 +42,28 @@ export default async function HomePage() {
   );
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        <AuthenticatedAppHeader
-          activeNav="trips"
-          organizations={organizationContext.organizations.map((organization) => ({
-            id: organization.organization.id,
-            name: organization.organization.name,
-            role: organization.role,
-          }))}
-          activeOrganizationId={organizationContext.activeOrganization.organization.id}
-          userImage={session.user.image}
-          userName={session.user.name}
-        />
+    <main className="min-h-screen">
+      <AuthenticatedAppHeader
+        activeNav="trips"
+        organizations={organizationContext.organizations.map((organization) => ({
+          id: organization.organization.id,
+          name: organization.organization.name,
+          role: organization.role,
+        }))}
+        activeOrganizationId={organizationContext.activeOrganization.organization.id}
+        userImage={session.user.image}
+        userName={session.user.name}
+      />
 
+      <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-8">
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Your trips</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Your trips</h1>
             <CreateTripButton />
           </div>
 
           {trips.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 p-10 text-center">
+            <div className="rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-600">
               <p className="text-zinc-500 dark:text-zinc-400">
                 Welcome, {session.user.name ?? session.user.email}. This organization has no trips
                 yet.

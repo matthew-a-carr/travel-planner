@@ -108,20 +108,20 @@ export default async function TripDetailPage({ params }: Props) {
   })();
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        <AuthenticatedAppHeader
-          activeNav="trips"
-          organizations={context.organizations.map((organization) => ({
-            id: organization.organization.id,
-            name: organization.organization.name,
-            role: organization.role,
-          }))}
-          activeOrganizationId={context.activeOrganization.organization.id}
-          userImage={session.user.image}
-          userName={session.user.name}
-        />
+    <main className="min-h-screen">
+      <AuthenticatedAppHeader
+        activeNav="trips"
+        organizations={context.organizations.map((organization) => ({
+          id: organization.organization.id,
+          name: organization.organization.name,
+          role: organization.role,
+        }))}
+        activeOrganizationId={context.activeOrganization.organization.id}
+        userImage={session.user.image}
+        userName={session.user.name}
+      />
 
+      <div className="mx-auto w-full max-w-5xl space-y-8 px-4 pb-12 pt-8">
         <header className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{trip.name}</h1>
@@ -211,8 +211,8 @@ function BudgetOverviewCard({
 
         {fixedCosts.length === 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400 dark:text-zinc-500 italic">No fixed costs yet</span>
-            <span className="text-zinc-400 dark:text-zinc-500">−£0.00</span>
+            <span className="italic text-zinc-600 dark:text-zinc-300">No fixed costs yet</span>
+            <span className="text-zinc-600 dark:text-zinc-300">−£0.00</span>
           </div>
         )}
 

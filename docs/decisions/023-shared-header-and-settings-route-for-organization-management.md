@@ -1,7 +1,7 @@
 # ADR 023: Shared Header and Settings Route for Organization Management
 
 **Date:** 2026-03-06
-**Status:** Accepted
+**Status:** Superseded by ADR 024
 
 ## Context
 

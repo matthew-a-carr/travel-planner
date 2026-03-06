@@ -134,6 +134,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   `/settings/organization`, with a shared authenticated header that provides
   top-level `Trips`/`Settings` navigation and a compact active-organization
   switcher on dashboard, trip detail, and settings pages.
+- Authenticated navigation now uses a full-width sticky two-row header:
+  - utility row for organization context and account controls
+  - section row for `Trips`/`Settings` tabs with active-route state
+  This replaces the compact boxed header and improves scalability for future
+  global controls across desktop and mobile layouts.
 
 ### Fixed
 
