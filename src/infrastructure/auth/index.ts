@@ -8,7 +8,12 @@ import { ensureUserOrganization } from '@/application/use-cases/ensure-user-orga
 import { db } from '../db/client';
 import { DrizzleOrganizationRepository } from '../db/repositories/drizzle-organization-repository';
 import * as schema from '../db/schema';
-import { decideSignInAccess, syncUserAccessOnSignIn } from './access-policy';
+import {
+  decideSignInAccess,
+  isConfiguredAdminEmail,
+  isSelfRegistrationEnabled,
+  syncUserAccessOnSignIn,
+} from './access-policy';
 import { authConfig } from './auth.config';
 import { isGoogleEmailVerified } from './google-email-verification';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
@@ -146,8 +151,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account, profile }) {
-      if (!isGoogleEmailVerified(account, profile)) return false;
+      if (!isGoogleEmailVerified(account, profile)) {
+        const emailVerified =
+          profile && typeof profile === 'object'
+            ? ((profile as { email_verified?: unknown }).email_verified ?? null)
+            : null;
+
+        console.error('[auth] signIn denied: unverified_google_email', {
+          provider: account?.provider ?? null,
+          email: user.email ?? null,
+          emailVerified,
+        });
+
+        return false;
+      }
+
       const decision = await decideSignInAccess(db, user.email ?? null);
+      if (!decision.allowed) {
+        console.error('[auth] signIn denied: access_policy', {
+          provider: account?.provider ?? null,
+          email: user.email ?? null,
+          selfRegistrationEnabled: isSelfRegistrationEnabled(),
+          isConfiguredAdminEmail: isConfiguredAdminEmail(user.email ?? null),
+          seededAdmin: decision.seededAdmin,
+          autoApprove: decision.autoApprove,
+        });
+      }
       return decision.allowed;
     },
     async jwt({ token, user }) {
