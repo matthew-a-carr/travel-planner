@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.3.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.2.0...v1.3.0) (2026-03-06)
+
+
+### Features
+
+* **organization:** add org-scoped trip sharing and workspace management ([e108ded](https://github.com/matthew-a-carr/travel-planner/commit/e108ded464714fd67f6446da60b7d39a1dfd541a))
+* **trip:** add owner-only hard delete for trips ([7d06f25](https://github.com/matthew-a-carr/travel-planner/commit/7d06f25a91808b466e164000c9eb54d87f5c175d))
+* **ui:** move organization management to settings with shared app header ([08f5174](https://github.com/matthew-a-carr/travel-planner/commit/08f5174e71bbab5839641d62487c38b2b99856b1))
+* update sticky header and global nav ([f351617](https://github.com/matthew-a-carr/travel-planner/commit/f3516176c12beb2f9f8abbb06632c5eff6ca493f))
+
 ## [1.2.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.1.0...v1.2.0) (2026-03-06)
 
 
