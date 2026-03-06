@@ -145,3 +145,7 @@ pnpm build && pnpm db:migrate:deploy
 ```
 
 Migrations run inside deployment. If migration fails, deployment fails and transaction-scoped migration changes roll back.
+
+If you want to keep this stack strictly on free tiers, see
+[`docs/free-tier-guardrails.md`](./docs/free-tier-guardrails.md) for provider limits,
+payment-risk triggers, and direct login links.
