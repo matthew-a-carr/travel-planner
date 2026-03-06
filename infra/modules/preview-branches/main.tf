@@ -32,6 +32,8 @@ resource "neon_role" "preview" {
   project_id = var.project_id
   branch_id  = neon_branch.preview[each.key].id
   name       = each.value.role_name
+
+  depends_on = [neon_endpoint.preview]
 }
 
 resource "neon_database" "preview" {
