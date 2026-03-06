@@ -59,6 +59,8 @@ Each repository:
 `index.ts` imports the Drizzle adapter — only import in server-side code, never in middleware.
 `index.ts` uses the shared `db` from `client.ts` (not its own connection). Do not create
 a separate drizzle instance inside `auth/`.
+`AUTH_ENABLE_LOCAL_DEV=true` can explicitly enable local-dev credentials outside
+`NODE_ENV=development` (used for preview deployments); production should keep it false.
 
 ## Build-time database requirement
 
@@ -81,6 +83,7 @@ instance — never mock the database in repository tests.
 ```bash
 pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/infrastructure/db/repositories/drizzle-trip-repository.int-test.ts  # single file
+pnpm db:check:migrations # enforce deploy-safe transactional migration SQL
 ```
 
 There are currently 5 integration test files in `db/repositories/`, one per repository.

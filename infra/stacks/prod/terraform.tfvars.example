@@ -1,0 +1,12 @@
+# Provider auth
+vercel_api_token = "replace-with-vercel-api-token"
+neon_api_key     = "replace-with-neon-api-key"
+
+# Optional IDs for team/org scoping
+# vercel_team_id = "team_xxxxx"
+# neon_org_id    = "org-xxxxx"
+
+# Runtime secrets
+auth_secret        = "replace-with-openssl-rand-base64-32"
+auth_google_id     = "replace-with-google-client-id"
+auth_google_secret = "replace-with-google-client-secret"

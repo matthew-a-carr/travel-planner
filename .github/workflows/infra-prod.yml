@@ -1,0 +1,53 @@
+name: Infra Prod Apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra-*.yml'
+  workflow_dispatch:
+
+jobs:
+  apply:
+    name: Apply prod stack
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: true
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
+      TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+      TF_VAR_neon_api_key: ${{ secrets.NEON_API_KEY }}
+      TF_VAR_vercel_team_id: ${{ vars.VERCEL_TEAM_ID }}
+      TF_VAR_neon_org_id: ${{ vars.NEON_ORG_ID }}
+      TF_VAR_project_name: travel-planner
+      TF_VAR_github_repository: ${{ github.repository }}
+      TF_VAR_production_branch: main
+      TF_VAR_production_domain: travel.matthewcarr.dev
+      TF_VAR_auth_secret: ${{ secrets.AUTH_SECRET_PRODUCTION }}
+      TF_VAR_auth_google_id: ${{ secrets.AUTH_GOOGLE_ID_PRODUCTION }}
+      TF_VAR_auth_google_secret: ${{ secrets.AUTH_GOOGLE_SECRET_PRODUCTION }}
+      TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - name: Configure backend
+        run: |
+          cat > infra/stacks/prod/backend.hcl <<'BACKEND'
+          organization = "${{ vars.TFC_ORGANIZATION }}"
+          workspaces {
+            name = "travel-planner-prod"
+          }
+          BACKEND
+
+      - name: Init
+        run: terraform -chdir=infra/stacks/prod init -input=false -backend-config=backend.hcl
+
+      - name: Plan
+        run: terraform -chdir=infra/stacks/prod plan -input=false
+
+      - name: Apply
+        run: terraform -chdir=infra/stacks/prod apply -auto-approve -input=false

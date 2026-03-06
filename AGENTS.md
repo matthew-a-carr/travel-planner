@@ -9,12 +9,13 @@
 
 ```bash
 pnpm lint               # Biome: lint + import ordering (src/ only)
+pnpm db:check:migrations # reject non-transactional SQL in deploy migrations
 pnpm type-check         # tsc --noEmit
 pnpm test:unit          # Vitest unit tests (~1 s, no Docker)
 pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
 ```
 
-All four must exit 0. Do not push with failures. The pre-push hook runs these
+All five must exit 0. Do not push with failures. The pre-push hook runs these
 automatically, but run them manually to verify mid-task.
 
 Before pushing, also verify the production build:
@@ -143,6 +144,7 @@ AUTH_SECRET=             # next-auth secret (openssl rand -base64 32)
 AUTH_GOOGLE_ID=          # Google OAuth client ID
 AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 AUTH_URL=http://localhost:3000
+AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside NODE_ENV=development
 ```
 
 ---
@@ -152,6 +154,7 @@ AUTH_URL=http://localhost:3000
 All five jobs run in parallel on every push and PR:
 
 - `lint` (`pnpm lint`)
+  - also runs `pnpm db:check:migrations` to enforce transactional migration policy
 - `type-check` (`pnpm type-check`)
 - `unit-test` (`pnpm test:unit`)
 - `integration-test` (`pnpm test:integration`) — runs repository and use-case tests
@@ -170,6 +173,16 @@ Actions updates. Dev tooling is grouped into a single PR to reduce noise.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
 the build-time dummy POSTGRES_URL pattern.
+
+## Infra automation workflows
+
+Terraform orchestration lives in dedicated workflows:
+
+- `.github/workflows/infra-validate.yml` — fmt/validate for `infra/stacks/prod` and `infra/stacks/preview` plus migration policy check
+- `.github/workflows/infra-prod.yml` — applies `infra/stacks/prod` with Terraform Cloud remote state workspace `travel-planner-prod`
+- `.github/workflows/infra-preview.yml` — applies `infra/stacks/preview` per PR lifecycle with Terraform Cloud remote state workspace `travel-planner-preview`
+
+Drizzle migrations are intentionally **not** run in GitHub Actions. They run in Vercel deploys via `pnpm build && pnpm db:migrate:deploy`.
 
 ---
 

@@ -1,0 +1,56 @@
+name: Infra Validate
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - 'drizzle/**'
+      - 'scripts/check-migrations-transactional.ts'
+      - 'src/infrastructure/db/migrate-deploy.ts'
+      - '.github/workflows/infra-*.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - 'drizzle/**'
+      - 'scripts/check-migrations-transactional.ts'
+      - 'src/infrastructure/db/migrate-deploy.ts'
+      - '.github/workflows/infra-*.yml'
+
+jobs:
+  validate:
+    name: Validate Terraform + migration policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check migration transactional safety
+        run: pnpm db:check:migrations
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive infra
+
+      - name: Validate prod stack
+        run: |
+          terraform -chdir=infra/stacks/prod init -backend=false -input=false
+          terraform -chdir=infra/stacks/prod validate
+
+      - name: Validate preview stack
+        run: |
+          terraform -chdir=infra/stacks/preview init -backend=false -input=false
+          terraform -chdir=infra/stacks/preview validate

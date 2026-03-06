@@ -4,9 +4,10 @@
 #
 # Checks (in order):
 #   1. pnpm lint          — Biome, zero errors required
-#   2. pnpm type-check    — TypeScript strict, zero errors required
-#   3. pnpm test:unit     — Unit tests, no Docker required
-#   4. pnpm test:integration — Real-DB tests via Testcontainers (skipped if Docker unavailable)
+#   2. pnpm db:check:migrations — migration transactional safety
+#   3. pnpm type-check    — TypeScript strict, zero errors required
+#   4. pnpm test:unit     — Unit tests, no Docker required
+#   5. pnpm test:integration — Real-DB tests via Testcontainers (skipped if Docker unavailable)
 #
 # Activated automatically by the `prepare` npm script (pnpm install).
 # Bypass in an emergency with: git push --no-verify
@@ -15,6 +16,9 @@ set -euo pipefail
 
 echo "pre-push: running lint…"
 pnpm lint
+
+echo "pre-push: checking migration SQL safety…"
+pnpm db:check:migrations
 
 echo "pre-push: running type-check…"
 pnpm type-check

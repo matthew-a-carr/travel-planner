@@ -47,6 +47,17 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- Terraform infrastructure under `infra/` with split stacks for production and
+  preview environments (`infra/stacks/prod`, `infra/stacks/preview`) and reusable
+  modules for Vercel and Neon resources.
+- New infrastructure GitHub workflows:
+  - `infra-validate.yml` for Terraform fmt/validate and migration SQL policy checks
+  - `infra-prod.yml` for production stack apply
+  - `infra-preview.yml` for per-PR preview stack apply/cleanup
+- Deployment migration command `pnpm db:migrate:deploy` with PostgreSQL advisory
+  locking for safer concurrent deploy behavior.
+- Transaction-safety guard `pnpm db:check:migrations` to reject migration SQL
+  statements that cannot run safely in transaction-scoped deploy migrations.
 - Edit trip: users can now update a trip's name, total budget, and status
   (planning / active / completed) via an Edit trip button on the trip detail page.
   Reducing the budget below existing fixed costs + destination allocations is
@@ -61,6 +72,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Changed
 
+- Vercel build command is now intended to run migrations in deployment:
+  `pnpm build && pnpm db:migrate:deploy`.
+- Preview auth configuration now supports `AUTH_ENABLE_LOCAL_DEV=true` to allow
+  local-dev credentials in preview deployments while production remains SSO-only.
 - Integration test files renamed from `.test.ts` to `.int-test.ts` suffix; Vitest config
   now uses file-suffix globs (`src/**/*.int-test.ts`) so new integration tests are
   auto-discovered without updating the config (ADR 012)

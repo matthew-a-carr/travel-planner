@@ -1,0 +1,64 @@
+name: Infra Preview Apply
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  apply:
+    name: Apply preview stack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      TF_IN_AUTOMATION: true
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN_APP_TERRAFORM_IO }}
+      TF_VAR_vercel_api_token: ${{ secrets.VERCEL_API_TOKEN }}
+      TF_VAR_neon_api_key: ${{ secrets.NEON_API_KEY }}
+      TF_VAR_vercel_team_id: ${{ vars.VERCEL_TEAM_ID }}
+      TF_VAR_neon_org_id: ${{ vars.NEON_ORG_ID }}
+      TF_VAR_project_name: travel-planner
+      TF_VAR_preview_auth_secret: ${{ secrets.AUTH_SECRET_PREVIEW }}
+      TF_VAR_preview_auth_url: ${{ vars.PREVIEW_AUTH_URL }}
+      TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
+      - name: Build open preview map
+        id: open_previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open_previews="$(gh api \
+            repos/${{ github.repository }}/pulls \
+            --paginate \
+            -f state=open \
+            --jq 'map({(.number|tostring): .head.ref}) | add // {}')"
+          echo "open_previews=${open_previews}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure backend
+        run: |
+          cat > infra/stacks/preview/backend.hcl <<'BACKEND'
+          organization = "${{ vars.TFC_ORGANIZATION }}"
+          workspaces {
+            name = "travel-planner-preview"
+          }
+          BACKEND
+
+      - name: Init
+        run: terraform -chdir=infra/stacks/preview init -input=false -backend-config=backend.hcl
+
+      - name: Plan
+        env:
+          TF_VAR_open_previews: ${{ steps.open_previews.outputs.open_previews }}
+        run: terraform -chdir=infra/stacks/preview plan -input=false
+
+      - name: Apply
+        env:
+          TF_VAR_open_previews: ${{ steps.open_previews.outputs.open_previews }}
+        run: terraform -chdir=infra/stacks/preview apply -auto-approve -input=false

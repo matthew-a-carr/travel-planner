@@ -24,3 +24,7 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [013](013-trip-status-transition-model.md) | Trip Status Transition Model | 2026-02-26 | Accepted |
 | [014](014-development-local-auth-fallback.md) | Development Local Auth Fallback | 2026-03-01 | Accepted |
 | [015](015-native-git-hooks-via-core-hookspath.md) | Native Git Hooks via `core.hooksPath` | 2026-03-01 | Accepted |
+| [016](016-terraform-cloud-split-state-no-cli-workspaces.md) | Terraform Cloud Split State with No CLI Workspaces | 2026-03-06 | Accepted |
+| [017](017-neon-community-terraform-provider.md) | Use Community Terraform Provider for Neon | 2026-03-06 | Accepted |
+| [018](018-vercel-deployment-migration-gate.md) | Run Drizzle Migrations in Vercel Deployment with Transactional Safety Gate | 2026-03-06 | Accepted |
+| [019](019-preview-local-dev-auth-override.md) | Preview Local-Dev Auth Override via AUTH_ENABLE_LOCAL_DEV | 2026-03-06 | Accepted |

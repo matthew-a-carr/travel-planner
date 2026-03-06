@@ -38,7 +38,7 @@ tests (when Docker is available) in sequence on every `git push`.
 
 If you need to run checks manually (e.g. mid-task to verify progress):
 ```bash
-pnpm lint && pnpm type-check && pnpm test:unit && pnpm test:integration
+pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
 ```
 If any fail, fix them before proceeding — do not move on.
 
@@ -90,7 +90,7 @@ No production code is written without a failing test that describes the expected
    (.int-test.ts alongside the source file; Docker + Testcontainers required).
 4. Implement the minimum code to make tests pass.
 5. Refactor if needed, keeping all tests green.
-6. pnpm lint && pnpm type-check && pnpm test:unit && pnpm test:integration must all
+6. pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration must all
    pass before pushing.
 ```
 

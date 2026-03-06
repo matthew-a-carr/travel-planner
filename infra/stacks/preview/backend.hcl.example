@@ -1,0 +1,4 @@
+organization = "replace-with-tfc-organization"
+workspaces {
+  name = "travel-planner-preview"
+}

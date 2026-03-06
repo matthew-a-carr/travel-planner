@@ -1,0 +1,14 @@
+# Provider auth
+vercel_api_token = "replace-with-vercel-api-token"
+neon_api_key     = "replace-with-neon-api-key"
+
+# Optional IDs for team/org scoping
+# vercel_team_id = "team_xxxxx"
+# neon_org_id    = "org-xxxxx"
+
+preview_auth_secret = "replace-with-openssl-rand-base64-32"
+
+# open_previews is normally provided by automation, but can be tested manually.
+# open_previews = {
+#   "123" = "feature/example"
+# }

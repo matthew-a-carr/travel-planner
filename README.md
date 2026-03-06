@@ -67,6 +67,7 @@ AUTH_SECRET=              # generate with: openssl rand -base64 32
 AUTH_GOOGLE_ID=           # Google OAuth client ID
 AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 AUTH_URL=http://localhost:3000
+AUTH_ENABLE_LOCAL_DEV=false
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -80,6 +81,7 @@ To run checks mid-task:
 
 ```bash
 pnpm lint               # Biome lint + import ordering
+pnpm db:check:migrations # block non-transactional SQL in deploy migrations
 pnpm type-check         # TypeScript strict type check
 pnpm test:unit          # Vitest unit tests (no Docker required)
 pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
@@ -129,4 +131,16 @@ pnpm db:seed       # seed country reference data (idempotent upsert)
 
 ## Deployment
 
-Deploys to Vercel. Connect the GitHub repository in the Vercel dashboard, set the environment variables, and deployments happen automatically on push to `main`.
+Infrastructure and deployment wiring are Terraform-managed under [`infra/`](./infra):
+
+- `infra/stacks/prod` manages production Vercel + Neon
+- `infra/stacks/preview` manages per-PR preview Neon branches and preview env vars
+- Terraform Cloud stores separate state for `travel-planner-prod` and `travel-planner-preview`
+
+Vercel runs this build command (managed via Terraform):
+
+```bash
+pnpm build && pnpm db:migrate:deploy
+```
+
+Migrations run inside deployment. If migration fails, deployment fails and transaction-scoped migration changes roll back.

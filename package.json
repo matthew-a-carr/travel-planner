@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "scripts": {
-    "prepare": "git config core.hooksPath .githooks",
+    "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "dev": "tsx scripts/dev.ts",
     "dev:next": "next dev",
     "build": "next build",
@@ -20,6 +20,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx src/infrastructure/db/migrate.ts",
+    "db:migrate:deploy": "pnpm db:check:migrations && tsx src/infrastructure/db/migrate-deploy.ts",
+    "db:check:migrations": "tsx scripts/check-migrations-transactional.ts",
     "db:seed": "tsx src/infrastructure/db/seed/seed.ts"
   },
   "dependencies": {

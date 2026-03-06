@@ -47,6 +47,21 @@ describe('provider-availability', () => {
     });
   });
 
+  it('shows local dev in production only when explicitly enabled', () => {
+    const env: NodeJS.ProcessEnv = {
+      NODE_ENV: 'production',
+      AUTH_ENABLE_LOCAL_DEV: 'true',
+      AUTH_GOOGLE_ID: 'real-google-client-id',
+      AUTH_GOOGLE_SECRET: 'real-google-client-secret',
+    };
+
+    expect(isDevLocalLoginEnabled(env)).toBe(true);
+    expect(getVisibleSignInProviders(env)).toEqual({
+      showGoogle: true,
+      showLocalDev: true,
+    });
+  });
+
   it('hides both providers in production when Google is missing or placeholders are used', () => {
     const envMissing: NodeJS.ProcessEnv = {
       NODE_ENV: 'production',
@@ -77,5 +92,18 @@ describe('provider-availability', () => {
     };
 
     expect(isGoogleConfigured(env)).toBe(true);
+  });
+
+  it('treats common truthy values as enabled for AUTH_ENABLE_LOCAL_DEV', () => {
+    const baseEnv: NodeJS.ProcessEnv = {
+      NODE_ENV: 'production',
+      AUTH_GOOGLE_ID: '',
+      AUTH_GOOGLE_SECRET: '',
+    };
+
+    expect(isDevLocalLoginEnabled({ ...baseEnv, AUTH_ENABLE_LOCAL_DEV: '1' })).toBe(true);
+    expect(isDevLocalLoginEnabled({ ...baseEnv, AUTH_ENABLE_LOCAL_DEV: 'yes' })).toBe(true);
+    expect(isDevLocalLoginEnabled({ ...baseEnv, AUTH_ENABLE_LOCAL_DEV: 'on' })).toBe(true);
+    expect(isDevLocalLoginEnabled({ ...baseEnv, AUTH_ENABLE_LOCAL_DEV: 'false' })).toBe(false);
   });
 });
