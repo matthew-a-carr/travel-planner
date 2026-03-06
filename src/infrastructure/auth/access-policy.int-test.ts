@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   decideSignInAccess,
+  isUserAccessAdmin,
   isUserAllowedForApp,
   syncSeedAdminAccessByUserId,
 } from '@/infrastructure/auth/access-policy';
@@ -109,6 +110,41 @@ describe('access-policy integration', () => {
       seededAdmin: true,
       autoApprove: true,
     });
+  });
+
+  it('treats local-dev credentials user as bootstrap admin when local dev auth is enabled', async () => {
+    const localDevUser = await seedUser(db, {
+      email: 'local-dev@travel-planner.local',
+      isApproved: false,
+      isAdmin: false,
+    });
+
+    const decision = await decideSignInAccess(db, localDevUser.email, {
+      NODE_ENV: 'production',
+      AUTH_ENABLE_LOCAL_DEV: 'true',
+      AUTH_SELF_REGISTRATION_ENABLED: 'false',
+      AUTH_ADMIN_EMAILS: '',
+    });
+
+    expect(decision).toEqual({
+      allowed: true,
+      seededAdmin: true,
+      autoApprove: true,
+    });
+
+    await syncSeedAdminAccessByUserId(db, localDevUser.id, {
+      NODE_ENV: 'production',
+      AUTH_ENABLE_LOCAL_DEV: 'true',
+      AUTH_SELF_REGISTRATION_ENABLED: 'false',
+      AUTH_ADMIN_EMAILS: '',
+    });
+
+    const isAdmin = await isUserAccessAdmin(db, localDevUser.id, {
+      NODE_ENV: 'production',
+      AUTH_ENABLE_LOCAL_DEV: 'true',
+      AUTH_ADMIN_EMAILS: '',
+    });
+    expect(isAdmin).toBe(true);
   });
 
   it('cuts off revoked users on next request when self-registration is disabled', async () => {

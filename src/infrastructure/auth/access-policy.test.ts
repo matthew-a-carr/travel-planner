@@ -28,6 +28,16 @@ describe('access-policy helpers', () => {
     expect(isConfiguredAdminEmail('other@example.com', env)).toBe(false);
   });
 
+  it('does not treat local-dev user as configured admin without explicit allowlist', () => {
+    const env = {
+      AUTH_ADMIN_EMAILS: 'admin@example.com',
+      AUTH_ENABLE_LOCAL_DEV: 'true',
+      NODE_ENV: 'production',
+    } as const;
+
+    expect(isConfiguredAdminEmail('local-dev@travel-planner.local', env)).toBe(false);
+  });
+
   it('matches gmail aliases against configured admin emails', () => {
     const env = {
       AUTH_ADMIN_EMAILS: 'carr.matty@gmail.com',

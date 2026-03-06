@@ -4,6 +4,7 @@ import { users } from '@/infrastructure/db/schema';
 
 const TRUE_VALUES = ['1', 'true', 'yes', 'on'] as const;
 const GMAIL_DOMAINS = new Set(['gmail.com', 'googlemail.com']);
+const LOCAL_DEV_BOOTSTRAP_ADMIN_EMAIL = 'local-dev@travel-planner.local';
 
 function isTruthy(value: string | undefined): boolean {
   if (!value) return false;
@@ -55,6 +56,20 @@ export function isConfiguredAdminEmail(
   return getAdminEmailSet(env).has(normalizedEmail);
 }
 
+function isLocalDevLoginEnabled(env: Partial<NodeJS.ProcessEnv>): boolean {
+  if (env.NODE_ENV === 'development') return true;
+  return isTruthy(env.AUTH_ENABLE_LOCAL_DEV);
+}
+
+function isBootstrapAdminEmail(
+  email: string | null | undefined,
+  env: Partial<NodeJS.ProcessEnv> = process.env,
+): boolean {
+  if (isConfiguredAdminEmail(email, env)) return true;
+  if (!isLocalDevLoginEnabled(env)) return false;
+  return normalizeEmail(email) === LOCAL_DEV_BOOTSTRAP_ADMIN_EMAIL;
+}
+
 export type SignInDecision = {
   readonly allowed: boolean;
   readonly seededAdmin: boolean;
@@ -71,7 +86,7 @@ export async function decideSignInAccess(
     return { allowed: false, seededAdmin: false, autoApprove: false };
   }
 
-  const seededAdmin = isConfiguredAdminEmail(normalizedEmail, env);
+  const seededAdmin = isBootstrapAdminEmail(normalizedEmail, env);
   if (seededAdmin) {
     return { allowed: true, seededAdmin: true, autoApprove: true };
   }
@@ -109,7 +124,7 @@ export async function isUserAllowedForApp(
 
   const user = rows[0];
   if (!user) return false;
-  if (isConfiguredAdminEmail(user.email, env)) return true;
+  if (isBootstrapAdminEmail(user.email, env)) return true;
   if (isSelfRegistrationEnabled(env)) return true;
   return user.isApproved;
 }
@@ -130,7 +145,7 @@ export async function isUserAccessAdmin(
 
   const user = rows[0];
   if (!user) return false;
-  return user.isAdmin || isConfiguredAdminEmail(user.email, env);
+  return user.isAdmin || isBootstrapAdminEmail(user.email, env);
 }
 
 export async function syncSeedAdminAccessByUserId(
@@ -150,7 +165,7 @@ export async function syncSeedAdminAccessByUserId(
 
   const user = rows[0];
   if (!user) return;
-  if (!isConfiguredAdminEmail(user.email, env)) return;
+  if (!isBootstrapAdminEmail(user.email, env)) return;
   if (user.isAdmin && user.isApproved) return;
 
   await db
