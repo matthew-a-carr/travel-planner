@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { setUserAdmin } from '@/application/use-cases/set-user-admin';
 import { setUserApproval } from '@/application/use-cases/set-user-approval';
 import { isUserAccessAdmin } from '@/infrastructure/auth/access-policy';
+import { getAppContainer } from '@/infrastructure/container';
 import { db } from '@/infrastructure/db/client';
-import { DrizzleUserAccessRepository } from '@/infrastructure/db/repositories/drizzle-user-access-repository';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 
 export type UpdateUserAccessState = {
@@ -34,8 +34,8 @@ export async function updateUserApprovalAction(
   const nextValue = parseBoolean(formData, 'nextValue');
   if (typeof targetUserId !== 'string' || nextValue === null) return { error: 'Invalid form data' };
 
-  const repository = new DrizzleUserAccessRepository(db);
-  const result = await setUserApproval(repository, {
+  const { userAccessRepository } = getAppContainer();
+  const result = await setUserApproval(userAccessRepository, {
     actorUserId: context.userId,
     targetUserId,
     isApproved: nextValue,
@@ -60,8 +60,8 @@ export async function updateUserAdminAction(
   const nextValue = parseBoolean(formData, 'nextValue');
   if (typeof targetUserId !== 'string' || nextValue === null) return { error: 'Invalid form data' };
 
-  const repository = new DrizzleUserAccessRepository(db);
-  const result = await setUserAdmin(repository, {
+  const { userAccessRepository } = getAppContainer();
+  const result = await setUserAdmin(userAccessRepository, {
     actorUserId: context.userId,
     targetUserId,
     isAdmin: nextValue,

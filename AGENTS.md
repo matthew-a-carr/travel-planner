@@ -57,6 +57,18 @@ src/app/           → any layer (Next.js App Router).
 Violations **break CI**. Enforcement lives in `src/__tests__/architecture.test.ts`.
 Each layer has its own `AGENTS.md` with local rules.
 
+### Dependency composition root (runtime DI)
+
+- Runtime dependency construction lives in `src/infrastructure/container/`.
+- `src/infrastructure/container/create-app-container.ts` is the only runtime file
+  allowed to construct `new Drizzle*Repository(...)`.
+- `src/app/**` runtime code must resolve dependencies via `getAppContainer()`.
+- Guard enforcement:
+  - `src/__tests__/app-construction-guard.test.ts`
+  - `src/__tests__/composition-root-boundary.test.ts`
+- Integration tests still use real Drizzle repositories + real Postgres via
+  Testcontainers (no DB/repository mocks).
+
 ---
 
 ## Key commands
@@ -177,7 +189,7 @@ Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
 Actions updates. Dev tooling is grouped into a single PR to reduce noise.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
-the build-time dummy POSTGRES_URL pattern.
+the build-time dummy POSTGRES_URL pattern, and ADR 028 for runtime composition-root DI.
 
 ## Infra automation workflows
 
@@ -206,6 +218,7 @@ the code change.
 | Domain functions or types (`src/domain/`) | `src/domain/AGENTS.md` structure |
 | Infrastructure repos or auth (`src/infrastructure/`) | `src/infrastructure/AGENTS.md` structure |
 | Environment variables | `AGENTS.md` env section, `README.md` setup section |
+| Runtime dependency wiring / DI container | `CONSTITUTION.md` enforcement map, `src/infrastructure/AGENTS.md`, ADR 028 |
 | Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
 | A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |

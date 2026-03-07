@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { createOrganization } from '@/application/use-cases/create-organization';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import {
   ACTIVE_ORGANIZATION_COOKIE,
   getActiveOrganizationContext,
@@ -22,8 +21,8 @@ export async function createOrganizationAction(
   const name = formData.get('name');
   if (typeof name !== 'string') return { error: 'Invalid form data' };
 
-  const repository = new DrizzleOrganizationRepository(db);
-  const result = await createOrganization(repository, {
+  const { organizationRepository } = getAppContainer();
+  const result = await createOrganization(organizationRepository, {
     actorUserId: context.userId,
     name,
   });

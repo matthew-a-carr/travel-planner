@@ -17,6 +17,11 @@ May import from `domain/` and `application/`. Must NOT import from `ui/` or `src
 
 ```
 src/infrastructure/
+  container/
+    types.ts                    ← typed app runtime dependencies
+    create-app-container.ts     ← composition root for concrete repo construction
+    create-test-app-container.ts ← test helper to build real container + overrides
+    index.ts                    ← runtime singleton accessor (`getAppContainer`)
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
     index.ts             ← full NextAuth with DrizzleAdapter (imports db from client.ts)
@@ -48,6 +53,15 @@ Each repository:
 2. Maps between DB rows and domain types in private mapper functions.
 3. Uses `onConflictDoUpdate` for upsert (save = insert or update by id).
 4. Never leaks Drizzle types or SQL into the return type.
+
+## Runtime composition root
+
+- Construct runtime repositories only in
+  `src/infrastructure/container/create-app-container.ts`.
+- App/auth/organization runtime paths resolve dependencies with
+  `getAppContainer()` and do not instantiate project classes directly.
+- `new Drizzle*Repository(...)` outside the composition root is a policy
+  violation and is blocked by `src/__tests__/composition-root-boundary.test.ts`.
 
 ## Schema changes
 
@@ -87,6 +101,8 @@ The `postgres` library is lazy — no TCP connection is made until the first que
 Repository implementations are tested with integration tests (`.int-test.ts` files
 co-located in `db/repositories/`). These run against a real Testcontainers PostgreSQL
 instance — never mock the database in repository tests.
+Integration tests for use cases/repositories must use real Drizzle implementations
+and real Postgres (no repository doubles).
 
 ```bash
 pnpm test:integration   # runs all *.int-test.ts files (Docker required)

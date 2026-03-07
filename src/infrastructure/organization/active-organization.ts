@@ -7,8 +7,8 @@ import {
   isUserAllowedForApp,
   syncSeedAdminAccessByUserId,
 } from '@/infrastructure/auth/access-policy';
+import { getAppContainer } from '@/infrastructure/container';
 import { db } from '@/infrastructure/db/client';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { resolveAuthenticatedUserId } from './resolve-authenticated-user';
 
 export const ACTIVE_ORGANIZATION_COOKIE = 'travel-planner-active-organization-id';
@@ -31,14 +31,14 @@ export async function getActiveOrganizationContext(): Promise<ActiveOrganization
   if (!isAllowed) return null;
   await syncSeedAdminAccessByUserId(db, userId);
 
-  const repository = new DrizzleOrganizationRepository(db);
-  await ensureUserOrganization(repository, {
+  const { organizationRepository } = getAppContainer();
+  await ensureUserOrganization(organizationRepository, {
     userId,
     userName: session?.user?.name ?? null,
     email: session?.user?.email ?? null,
   });
 
-  const organizations = await getUserOrganizations(repository, userId);
+  const organizations = await getUserOrganizations(organizationRepository, userId);
   const firstOrganization = organizations[0];
   if (!firstOrganization) return null;
 

@@ -3,8 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createTrip } from '@/application/use-cases/create-trip';
 import type { Currency } from '@/domain/trip/types';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 
 export type CreateTripState = { error: string | null };
@@ -29,8 +28,8 @@ export async function createTripAction(
     return { error: 'Invalid budget value' };
   }
 
-  const repo = new DrizzleTripRepository(db);
-  const trip = await createTrip(repo, {
+  const { tripRepository } = getAppContainer();
+  const trip = await createTrip(tripRepository, {
     organizationId: context.activeOrganization.organization.id,
     ownerId: context.userId,
     name: name.trim(),

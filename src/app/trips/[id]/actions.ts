@@ -13,7 +13,19 @@ import { moveTripToOrganization } from '@/application/use-cases/move-trip-to-org
 import { recordSpend } from '@/application/use-cases/record-spend';
 import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
+import type { OrganizationRepository } from '@/domain/organization/organization-repository';
+import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { ComfortLevel, SpendCategory, Trip, TripStatus } from '@/domain/trip/types';
+import { getAppContainer } from '@/infrastructure/container';
+import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+
+const {
+  tripRepository: tripRepo,
+  organizationRepository: organizationRepo,
+  destinationRepository: destRepo,
+  tripFixedCostRepository: fixedCostRepo,
+  spendEntryRepository: spendRepo,
+} = getAppContainer();
 
 const TRIP_STATUSES: readonly TripStatus[] = ['planning', 'active', 'completed'];
 
@@ -40,14 +52,6 @@ function toComfortLevel(v: string): ComfortLevel | null {
   return (COMFORT_LEVELS as readonly string[]).includes(v) ? (v as ComfortLevel) : null;
 }
 
-import { db } from '@/infrastructure/db/client';
-import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
-import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
-import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
-import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
-
 async function getVerifiedUserId(): Promise<string> {
   const context = await getActiveOrganizationContext();
   if (!context?.userId) throw new Error('Unauthorized');
@@ -55,8 +59,8 @@ async function getVerifiedUserId(): Promise<string> {
 }
 
 async function getAccessibleTrip(
-  tripRepo: DrizzleTripRepository,
-  organizationRepo: DrizzleOrganizationRepository,
+  tripRepo: TripRepository,
+  organizationRepo: OrganizationRepository,
   tripId: string,
   userId: string,
 ): Promise<Trip | null> {
@@ -86,8 +90,6 @@ export async function editTripAction(
 ): Promise<EditTripState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -112,8 +114,6 @@ export async function editTripAction(
   const status = toTripStatus(statusRaw);
   if (!status) return { error: 'Invalid status' };
 
-  const destRepo = new DrizzleDestinationRepository(db);
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const result = await editTrip(tripRepo, destRepo, fixedCostRepo, {
     tripId,
     name: name.trim(),
@@ -139,8 +139,6 @@ export async function addFixedCostAction(
 ): Promise<FixedCostState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -157,7 +155,6 @@ export async function addFixedCostAction(
     return { error: 'Invalid amount' };
   }
 
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const result = await addFixedCost(tripRepo, fixedCostRepo, {
     tripId,
     label: label.trim(),
@@ -173,12 +170,9 @@ export async function addFixedCostAction(
 export async function removeFixedCostAction(tripId: string, fixedCostId: string): Promise<void> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) throw new Error('Forbidden');
 
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   await removeFixedCost(fixedCostRepo, fixedCostId);
 
   revalidatePath(`/trips/${tripId}`);
@@ -195,8 +189,6 @@ export async function addDestinationAction(
 ): Promise<AddDestinationState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -225,8 +217,6 @@ export async function addDestinationAction(
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
-  const destRepo = new DrizzleDestinationRepository(db);
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const result = await addDestination(tripRepo, destRepo, fixedCostRepo, {
     tripId,
     name: name.trim(),
@@ -253,8 +243,6 @@ export async function editDestinationAction(
 ): Promise<EditDestinationState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -285,8 +273,6 @@ export async function editDestinationAction(
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
-  const destRepo = new DrizzleDestinationRepository(db);
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
   const result = await editDestination(tripRepo, destRepo, fixedCostRepo, {
     destinationId,
     tripId,
@@ -310,12 +296,9 @@ export async function removeDestinationAction(
 ): Promise<void> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) throw new Error('Forbidden');
 
-  const destRepo = new DrizzleDestinationRepository(db);
   await removeDestination(destRepo, destinationId);
 
   revalidatePath(`/trips/${tripId}`);
@@ -333,8 +316,6 @@ export async function recordSpendAction(
 ): Promise<RecordSpendState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -359,8 +340,6 @@ export async function recordSpendAction(
   const spendCategory = toSpendCategory(category);
   if (!spendCategory) return { error: 'Invalid category' };
 
-  const destRepo = new DrizzleDestinationRepository(db);
-  const spendRepo = new DrizzleSpendEntryRepository(db);
   const result = await recordSpend(destRepo, spendRepo, {
     destinationId,
     amountPence,
@@ -380,12 +359,9 @@ export async function recordSpendAction(
 export async function deleteSpendEntryAction(tripId: string, entryId: string): Promise<void> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) throw new Error('Forbidden');
 
-  const spendRepo = new DrizzleSpendEntryRepository(db);
   await deleteSpendEntry(spendRepo, entryId);
 
   revalidatePath(`/trips/${tripId}`);
@@ -401,8 +377,6 @@ export async function editSpendEntryAction(
 ): Promise<EditSpendEntryState> {
   const userId = await getVerifiedUserId();
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const organizationRepo = new DrizzleOrganizationRepository(db);
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
 
@@ -427,7 +401,6 @@ export async function editSpendEntryAction(
   const spendCategory = toSpendCategory(category);
   if (!spendCategory) return { error: 'Invalid category' };
 
-  const spendRepo = new DrizzleSpendEntryRepository(db);
   const result = await editSpendEntry(spendRepo, {
     entryId,
     amountPence,
@@ -453,14 +426,10 @@ export async function deleteTripAction(
 ): Promise<DeleteTripState> {
   const userId = await getVerifiedUserId();
 
-  const result = await deleteTrip(
-    new DrizzleTripRepository(db),
-    new DrizzleOrganizationRepository(db),
-    {
-      actorUserId: userId,
-      tripId,
-    },
-  );
+  const result = await deleteTrip(tripRepo, organizationRepo, {
+    actorUserId: userId,
+    tripId,
+  });
 
   if (!result.ok) return { error: result.error };
   revalidatePath('/');
@@ -476,15 +445,11 @@ export async function moveTripToOrganizationAction(
   const targetOrganizationId = formData.get('targetOrganizationId');
   if (typeof targetOrganizationId !== 'string') return { error: 'Invalid form data' };
 
-  const result = await moveTripToOrganization(
-    new DrizzleTripRepository(db),
-    new DrizzleOrganizationRepository(db),
-    {
-      actorUserId: userId,
-      tripId,
-      targetOrganizationId,
-    },
-  );
+  const result = await moveTripToOrganization(tripRepo, organizationRepo, {
+    actorUserId: userId,
+    tripId,
+    targetOrganizationId,
+  });
 
   if (!result.ok) return { error: result.error };
   revalidatePath(`/trips/${tripId}`);

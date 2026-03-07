@@ -4,8 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { addOrganizationMember } from '@/application/use-cases/add-organization-member';
 import { removeOrganizationMember } from '@/application/use-cases/remove-organization-member';
 import { searchOrganizationMemberCandidates } from '@/application/use-cases/search-organization-member-candidates';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 
 export type AddOrganizationMemberState = { error: string | null };
@@ -28,8 +27,8 @@ export async function addOrganizationMemberAction(
     return { error: 'Invalid form data' };
   }
 
-  const repository = new DrizzleOrganizationRepository(db);
-  const result = await addOrganizationMember(repository, {
+  const { organizationRepository } = getAppContainer();
+  const result = await addOrganizationMember(organizationRepository, {
     actorUserId: context.userId,
     organizationId,
     targetUserId,
@@ -51,8 +50,8 @@ export async function searchOrganizationMemberCandidatesAction(input: {
   const organizationId = input.organizationId.trim();
   if (organizationId.length === 0) return [];
 
-  const repository = new DrizzleOrganizationRepository(db);
-  const result = await searchOrganizationMemberCandidates(repository, {
+  const { organizationRepository } = getAppContainer();
+  const result = await searchOrganizationMemberCandidates(organizationRepository, {
     actorUserId: context.userId,
     organizationId,
     query: input.query,
@@ -70,8 +69,8 @@ export async function removeOrganizationMemberAction(
   const context = await getActiveOrganizationContext();
   if (!context) throw new Error('Unauthorized');
 
-  const repository = new DrizzleOrganizationRepository(db);
-  const result = await removeOrganizationMember(repository, {
+  const { organizationRepository } = getAppContainer();
+  const result = await removeOrganizationMember(organizationRepository, {
     actorUserId: context.userId,
     organizationId,
     memberUserId,

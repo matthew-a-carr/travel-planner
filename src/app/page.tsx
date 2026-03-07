@@ -4,8 +4,7 @@ import type { Trip } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { getVisibleSignInProviders } from '@/infrastructure/auth/provider-availability';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { CreateTripButton } from '@/ui/components/CreateTripModal';
@@ -36,8 +35,8 @@ export default async function HomePage() {
 
   if (!session.user.id) redirect('/login');
 
-  const repo = new DrizzleTripRepository(db);
-  const trips = await repo.findAllByOrganization(
+  const { tripRepository } = getAppContainer();
+  const trips = await tripRepository.findAllByOrganization(
     organizationContext.activeOrganization.organization.id,
   );
 

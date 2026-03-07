@@ -7,13 +7,7 @@ import { getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
-import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
-import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/drizzle-spend-entry-repository';
-import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
-import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { ChartsSection } from '@/ui/components/ChartsSection';
@@ -32,11 +26,17 @@ export default async function TripDetailPage({ params }: Props) {
   if (!context) redirect('/login');
   if (!session?.user) redirect('/login');
 
-  const tripRepo = new DrizzleTripRepository(db);
-  const trip = await tripRepo.findById(id);
+  const {
+    countryReferenceRepository,
+    destinationRepository,
+    organizationRepository,
+    spendEntryRepository,
+    tripFixedCostRepository,
+    tripRepository,
+  } = getAppContainer();
+  const trip = await tripRepository.findById(id);
   if (!trip) notFound();
 
-  const organizationRepository = new DrizzleOrganizationRepository(db);
   const membership = await organizationRepository.findMembership(
     trip.organizationId,
     context.userId,
@@ -55,16 +55,11 @@ export default async function TripDetailPage({ params }: Props) {
           }))
       : [];
 
-  const destRepo = new DrizzleDestinationRepository(db);
-  const spendRepo = new DrizzleSpendEntryRepository(db);
-  const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
-  const refRepo = new DrizzleCountryReferenceRepository(db);
-
   const [destinations, allSpend, fixedCosts, countryReferences] = await Promise.all([
-    destRepo.findByTrip(id),
-    spendRepo.findByTrip(id),
-    fixedCostRepo.findByTrip(id),
-    getCountryReferences(refRepo),
+    destinationRepository.findByTrip(id),
+    spendEntryRepository.findByTrip(id),
+    tripFixedCostRepository.findByTrip(id),
+    getCountryReferences(countryReferenceRepository),
   ]);
 
   const sorted = sortDestinations(destinations);

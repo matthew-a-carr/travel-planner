@@ -2,8 +2,8 @@ import { redirect } from 'next/navigation';
 import { getUserAccessList } from '@/application/use-cases/get-user-access-list';
 import { auth } from '@/infrastructure/auth';
 import { isUserAccessAdmin } from '@/infrastructure/auth/access-policy';
+import { getAppContainer } from '@/infrastructure/container';
 import { db } from '@/infrastructure/db/client';
-import { DrizzleUserAccessRepository } from '@/infrastructure/db/repositories/drizzle-user-access-repository';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { SettingsNav } from '@/ui/components/SettingsNav';
@@ -17,8 +17,8 @@ export default async function AccessSettingsPage() {
   const isAdmin = await isUserAccessAdmin(db, context.userId);
   if (!isAdmin) redirect('/settings/organizations');
 
-  const repository = new DrizzleUserAccessRepository(db);
-  const usersResult = await getUserAccessList(repository, context.userId);
+  const { userAccessRepository } = getAppContainer();
+  const usersResult = await getUserAccessList(userAccessRepository, context.userId);
   if (!usersResult.ok) redirect('/settings/organizations');
 
   return (

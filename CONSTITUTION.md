@@ -19,6 +19,8 @@ The engineering harness consists of three things:
 | What | Where | Run via |
 |---|---|---|
 | Layer import boundaries | `src/__tests__/architecture.test.ts` | `pnpm test:unit` |
+| Runtime construction guard (`src/app/**`) | `src/__tests__/app-construction-guard.test.ts` | `pnpm test:unit` |
+| Composition-root boundary (`Drizzle*Repository` construction) | `src/__tests__/composition-root-boundary.test.ts` | `pnpm test:unit` |
 | TypeScript correctness | `tsconfig.json` (strict) | `pnpm type-check` |
 | Code style + lint | `biome.json` | `pnpm lint` |
 | Repository + use-case correctness | `src/**/*.int-test.ts` | `pnpm test:integration` |
@@ -58,6 +60,17 @@ src/app/           Next.js App Router (pages, layouts, server actions). May impo
 
 These rules are **mechanically enforced** by `src/__tests__/architecture.test.ts`.
 Breaking them causes test failures. Do not use `// @ts-ignore` or similar to silence them.
+
+### Runtime dependency composition rule
+
+- Runtime dependency wiring is centralized in
+  `src/infrastructure/container/create-app-container.ts`.
+- `src/app/**` runtime files must resolve dependencies through
+  `getAppContainer()` instead of constructing project classes directly.
+- `new Drizzle*Repository(...)` is only allowed in the composition root.
+- These constraints are enforced by:
+  - `src/__tests__/app-construction-guard.test.ts`
+  - `src/__tests__/composition-root-boundary.test.ts`
 
 ### Domain design rules
 
@@ -109,6 +122,8 @@ A feature is not done until its e2e test passes against a running application.
 - Repository implementations and use cases MUST have integration tests (`.int-test.ts`).
 - Tests co-located with source: `create-trip.ts` → `create-trip.int-test.ts`.
 - Use a real Testcontainers PostgreSQL instance — never mock the database in integration tests.
+- Use real repository implementations in integration tests; do not replace runtime
+  repositories with test doubles.
 - The container is shared across all integration test files in a single `pnpm test:integration` run.
 - Docker is required. If Docker is unavailable locally, the pre-push hook skips integration
   tests with a WARNING and CI runs them instead.

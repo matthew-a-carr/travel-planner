@@ -5,8 +5,8 @@ import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { ensureUserOrganization } from '@/application/use-cases/ensure-user-organization';
+import { getAppContainer } from '@/infrastructure/container';
 import { db } from '../db/client';
-import { DrizzleOrganizationRepository } from '../db/repositories/drizzle-organization-repository';
 import * as schema from '../db/schema';
 import {
   decideSignInAccess,
@@ -140,7 +140,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         shouldAutoApprove: decision.autoApprove,
       });
 
-      await ensureUserOrganization(new DrizzleOrganizationRepository(db), {
+      const { organizationRepository } = getAppContainer();
+      await ensureUserOrganization(organizationRepository, {
         userId: user.id,
         userName: user.name ?? null,
         email: user.email ?? null,

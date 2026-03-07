@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getOrganizationMembers } from '@/application/use-cases/get-organization-members';
 import { auth } from '@/infrastructure/auth';
-import { db } from '@/infrastructure/db/client';
-import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
+import { getAppContainer } from '@/infrastructure/container';
 import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { OrganizationMembersPanel } from '@/ui/components/OrganizationMembersPanel';
@@ -13,7 +12,7 @@ export default async function OrganizationSettingsPage() {
   const context = await getActiveOrganizationContext();
   if (!context || !session?.user) redirect('/login');
 
-  const organizationRepository = new DrizzleOrganizationRepository(db);
+  const { organizationRepository } = getAppContainer();
   const membersResult = await getOrganizationMembers(
     organizationRepository,
     context.activeOrganization.organization.id,

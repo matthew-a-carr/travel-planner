@@ -114,6 +114,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ## [Unreleased]
 
 ### Added
+- New DI guardrails and tests:
+  - `src/__tests__/app-construction-guard.test.ts` to block direct project-class
+    construction in `src/app/**`.
+  - `src/__tests__/composition-root-boundary.test.ts` to enforce repository
+    construction only in the composition root.
+  - `src/infrastructure/container/create-test-app-container.ts` for test-time
+    container construction with optional overrides.
 - App-level signup controls with `AUTH_SELF_REGISTRATION_ENABLED` and
   `AUTH_ADMIN_EMAILS` for controlled access in production.
 - New admin-only `/settings/access` page to manage:
@@ -171,6 +178,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   (ADR 022).
 
 ### Changed
+- Runtime dependency wiring now uses a composition-root container in
+  `src/infrastructure/container/`; app/auth/organization runtime entrypoints
+  resolve repositories via `getAppContainer()` instead of constructing Drizzle
+  repositories directly.
 - Sign-in is now gated before user creation:
   - self-registration ON: first-time users are auto-approved
   - self-registration OFF: only approved users or configured admin emails can sign in
