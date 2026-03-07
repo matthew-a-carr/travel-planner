@@ -65,9 +65,15 @@ Breaking them causes test failures. Do not use `// @ts-ignore` or similar to sil
 
 - Runtime dependency wiring is centralized in
   `src/infrastructure/container/create-app-container.ts`.
+- Runtime external-provider wiring (for example invite email providers) is
+  centralized in dedicated infrastructure composition factories.
+- Outbound email template rendering lives in `src/application/email/`; provider
+  adapters in `src/infrastructure/email/` handle delivery only.
 - `src/app/**` runtime files must resolve dependencies through
   `getAppContainer()` instead of constructing project classes directly.
 - `new Drizzle*Repository(...)` is only allowed in the composition root.
+- `new LoggingEmailService(...)` and `new ResendEmailService(...)` are only
+  allowed in the invite email provider composition factory.
 - These constraints are enforced by:
   - `src/__tests__/app-construction-guard.test.ts`
   - `src/__tests__/composition-root-boundary.test.ts`
@@ -79,6 +85,8 @@ Breaking them causes test failures. Do not use `// @ts-ignore` or similar to sil
   - do not use environment-variable allowlists or self-registration toggles
 - Authentication must not auto-create organizations on first sign-in.
 - Organization creation is admin-only; membership assignment must not create users implicitly.
+- Invite email delivery is side-effect-only: user approval must not be rolled back
+  when provider delivery fails.
 
 ### Domain design rules
 

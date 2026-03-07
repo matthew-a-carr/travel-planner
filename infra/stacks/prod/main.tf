@@ -57,6 +57,27 @@ locals {
       sensitive = false
       comment   = "Managed by Terraform: disable local-dev auth in production"
     },
+    {
+      key       = "RESEND_API_KEY"
+      value     = var.resend_api_key
+      target    = toset(["production"])
+      sensitive = true
+      comment   = "Managed by Terraform: production Resend API key"
+    },
+    {
+      key       = "EMAIL_FROM_ADDRESS"
+      value     = var.email_from_address
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: invite email sender address"
+    },
+    {
+      key       = "EMAIL_FROM_NAME"
+      value     = var.email_from_name
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: invite email sender display name"
+    },
   ]
 }
 

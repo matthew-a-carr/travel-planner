@@ -99,11 +99,12 @@ describe('DrizzleUserAccessRepository', () => {
       isAdmin: false,
     });
 
-    expect(created.email).toBe('preprov@gmail.com');
-    expect(created.isApproved).toBe(true);
-    expect(created.isAdmin).toBe(false);
-    expect(created.firstName).toBe('Pre');
-    expect(created.lastName).toBe('Provisioned');
+    expect(created.user.email).toBe('preprov@gmail.com');
+    expect(created.user.isApproved).toBe(true);
+    expect(created.user.isAdmin).toBe(false);
+    expect(created.user.firstName).toBe('Pre');
+    expect(created.user.lastName).toBe('Provisioned');
+    expect(created.approvalTransition).toBe('approved_now');
   });
 
   it('updates existing canonical email users idempotently', async () => {
@@ -122,9 +123,30 @@ describe('DrizzleUserAccessRepository', () => {
       isAdmin: false,
     });
 
-    expect(updated.id).toBe(existing.id);
-    expect(updated.email).toBe('existinguser@gmail.com');
-    expect(updated.name).toBe('Updated Name');
-    expect(updated.isApproved).toBe(true);
+    expect(updated.user.id).toBe(existing.id);
+    expect(updated.user.email).toBe('existinguser@gmail.com');
+    expect(updated.user.name).toBe('Updated Name');
+    expect(updated.user.isApproved).toBe(true);
+    expect(updated.approvalTransition).toBe('approved_now');
+  });
+
+  it('returns already_approved transition when canonical user is already approved', async () => {
+    await seedUser(db, {
+      email: 'already.approved@gmail.com',
+      name: 'Already Approved',
+      isApproved: true,
+      isAdmin: false,
+    });
+    const repository = new DrizzleUserAccessRepository(db);
+
+    const updated = await repository.createOrApproveByEmail({
+      email: 'alreadyapproved+alias@googlemail.com',
+      name: 'Already Approved',
+      isApproved: true,
+      isAdmin: false,
+    });
+
+    expect(updated.user.isApproved).toBe(true);
+    expect(updated.approvalTransition).toBe('already_approved');
   });
 });

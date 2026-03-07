@@ -3,9 +3,13 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const NEW_DRIZZLE_REPO_REGEX = /new\s+Drizzle[A-Za-z0-9_]*Repository\s*\(/;
+const NEW_INVITE_PROVIDER_REGEX = /new\s+(LoggingEmailService|ResendEmailService)\s*\(/;
 
-const ALLOWED_CONSTRUCTION_FILES = new Set([
+const ALLOWED_REPOSITORY_CONSTRUCTION_FILES = new Set([
   path.resolve('src/infrastructure/container/create-app-container.ts'),
+]);
+const ALLOWED_EMAIL_PROVIDER_CONSTRUCTION_FILES = new Set([
+  path.resolve('src/infrastructure/email/create-invite-email-service.ts'),
 ]);
 
 function getAllRuntimeTsFiles(dir: string): string[] {
@@ -36,10 +40,15 @@ describe('Composition root boundary guard', () => {
 
     for (const filePath of sourceFiles) {
       const normalizedPath = path.resolve(filePath);
-      if (ALLOWED_CONSTRUCTION_FILES.has(normalizedPath)) continue;
+      if (
+        ALLOWED_REPOSITORY_CONSTRUCTION_FILES.has(normalizedPath) ||
+        ALLOWED_EMAIL_PROVIDER_CONSTRUCTION_FILES.has(normalizedPath)
+      ) {
+        continue;
+      }
 
       const content = fs.readFileSync(filePath, 'utf8');
-      if (NEW_DRIZZLE_REPO_REGEX.test(content)) {
+      if (NEW_DRIZZLE_REPO_REGEX.test(content) || NEW_INVITE_PROVIDER_REGEX.test(content)) {
         violations.push(filePath);
       }
     }

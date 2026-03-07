@@ -59,6 +59,10 @@ Production access is closed by default:
 - users must be pre-provisioned and approved before Google sign-in is allowed
 - users with no organization memberships are routed to `/settings/organizations`
 - only app admins can create organizations
+- invite emails use Resend in `VERCEL_ENV=production`; development/preview/test
+  use a logging-only provider
+- shared transactional email setup + template standards are documented in
+  [`docs/email-delivery.md`](./docs/email-delivery.md)
 
 Bootstrap the first admin in each environment before cutover:
 
@@ -73,7 +77,8 @@ Organization creation and membership management are split in Settings:
   organization (owner-only mutations, member-visible read access)
 
 Member assignment uses a searchable picker backed by the `users` table
-(pre-provisioned users only; no email invite flow in this phase).
+(pre-provisioned users only). First-time pre-provision approval sends a warm
+invite email; explicit resend is available from access settings.
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
@@ -89,6 +94,9 @@ AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true      # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false
+RESEND_API_KEY=           # Resend API key (required in Vercel production)
+EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
+EMAIL_FROM_NAME=Travel Planner
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -141,6 +149,8 @@ Key domain decisions:
 See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
 See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.
 See [`docs/decisions/`](./docs/decisions/) for architecture decision records.
+See [`docs/email-delivery.md`](./docs/email-delivery.md) for email integration
+runbook and template standards.
 
 ## Database
 

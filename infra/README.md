@@ -48,3 +48,8 @@ terraform -chdir=infra/stacks/preview validate
 
 Store provider credentials and runtime secrets in Terraform Cloud sensitive variables.
 Do not commit real tokens or connection strings.
+
+Production stack additionally manages invite email runtime variables:
+- `RESEND_API_KEY` (sensitive)
+- `EMAIL_FROM_ADDRESS`
+- `EMAIL_FROM_NAME`

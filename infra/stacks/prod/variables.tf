@@ -64,6 +64,24 @@ variable "auth_google_secret" {
   sensitive   = true
 }
 
+variable "resend_api_key" {
+  description = "Resend API key used for production invite email delivery."
+  type        = string
+  sensitive   = true
+}
+
+variable "email_from_address" {
+  description = "From email address used for invite emails."
+  type        = string
+  default     = "hello@mail.matthewcarr.dev"
+}
+
+variable "email_from_name" {
+  description = "From display name used for invite emails."
+  type        = string
+  default     = "Travel Planner"
+}
+
 variable "neon_region_id" {
   description = "Optional Neon region for production project."
   type        = string

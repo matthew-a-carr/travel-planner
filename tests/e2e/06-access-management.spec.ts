@@ -212,11 +212,20 @@ test('admin can pre-provision users from access settings', async ({ page, contex
   await page.getByPlaceholder('teammate@example.com').fill(provisionedEmail);
   await page.getByPlaceholder('Optional display name').fill('Provisioned User');
   await page.getByRole('button', { name: /pre-provision/i }).click();
+  await expect(page.getByText('User pre-provisioned and invite email sent.')).toBeVisible();
 
   const provisionedRow = accessRowByEmail(page, provisionedEmail);
   await expect(provisionedRow).toContainText('Provisioned User');
   await expect(provisionedRow).toContainText('approved');
   await expect(provisionedRow).toContainText('user');
+  await expect(provisionedRow.getByRole('button', { name: /resend invite/i })).toBeVisible();
+
+  await page.getByPlaceholder('teammate@example.com').fill(provisionedEmail);
+  await page.getByRole('button', { name: /pre-provision/i }).click();
+  await expect(page.getByText('User already approved. Invite email was not re-sent.')).toBeVisible();
+
+  await provisionedRow.getByRole('button', { name: /resend invite/i }).click();
+  await expect(page.getByText(`Invite email sent to ${provisionedEmail}.`)).toBeVisible();
 });
 
 test('approved users without memberships are routed to organization settings', async ({

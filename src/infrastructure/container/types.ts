@@ -1,3 +1,4 @@
+import type { InviteEmailService } from '@/application/ports/invite-email-service';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
@@ -14,4 +15,5 @@ export type AppContainer = {
   readonly countryReferenceRepository: CountryReferenceRepository;
   readonly organizationRepository: OrganizationRepository;
   readonly userAccessRepository: UserAccessRepository;
+  readonly inviteEmailService: InviteEmailService;
 };

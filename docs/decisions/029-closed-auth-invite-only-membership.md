@@ -51,6 +51,5 @@ onboarding, without email invite delivery in this phase.
 ### Trade-offs
 
 - Requires an initial admin bootstrap step per environment.
-- No email invite delivery yet; onboarding remains manual.
+- Invite delivery was out of scope for this ADR phase and is handled by ADR 030.
 - Admins must pre-provision users before their first sign-in.
-

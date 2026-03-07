@@ -2,6 +2,7 @@ import { asc, eq, sql } from 'drizzle-orm';
 import type { UserAccessListItem, UserAccessSummary } from '@/domain/user-access/types';
 import type {
   CreateOrApproveUserByEmailInput,
+  CreateOrApproveUserByEmailResult,
   UserAccessRepository,
 } from '@/domain/user-access/user-access-repository';
 import { normalizeEmail } from '@/infrastructure/auth/access-policy';
@@ -122,7 +123,9 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
     }));
   }
 
-  async createOrApproveByEmail(input: CreateOrApproveUserByEmailInput): Promise<UserAccessSummary> {
+  async createOrApproveByEmail(
+    input: CreateOrApproveUserByEmailInput,
+  ): Promise<CreateOrApproveUserByEmailResult> {
     const normalizedEmail = normalizeEmail(input.email);
     if (!normalizedEmail) throw new Error('Email is required');
 
@@ -139,6 +142,8 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
     if (existing) {
       const nextName = normalizedName ?? existing.name;
       const split = splitName(nextName);
+      const wasApproved = existing.isApproved;
+      const nextApproved = existing.isApproved || input.isApproved;
       const updatedRows = await this.db
         .update(users)
         .set({
@@ -146,7 +151,7 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
           name: nextName,
           firstName: split.firstName,
           lastName: split.lastName,
-          isApproved: existing.isApproved || input.isApproved,
+          isApproved: nextApproved,
           isAdmin: existing.isAdmin || input.isAdmin,
           updatedAt: now,
         })
@@ -155,10 +160,14 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
 
       const updated = updatedRows[0];
       if (!updated) throw new Error('Failed to update user access');
-      return toSummary(updated);
+      return {
+        user: toSummary(updated),
+        approvalTransition: !wasApproved && nextApproved ? 'approved_now' : 'already_approved',
+      };
     }
 
     const split = splitName(normalizedName);
+    const nextApproved = input.isApproved;
     const insertedRows = await this.db
       .insert(users)
       .values({
@@ -175,7 +184,10 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
 
     const inserted = insertedRows[0];
     if (!inserted) throw new Error('Failed to create user access');
-    return toSummary(inserted);
+    return {
+      user: toSummary(inserted),
+      approvalTransition: nextApproved ? 'approved_now' : 'already_approved',
+    };
   }
 
   async updateApproval(userId: string, isApproved: boolean): Promise<void> {

@@ -126,6 +126,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ## [Unreleased]
 
 ### Added
+- Transactional invite email delivery for access onboarding:
+  - auto-send on first-time approval during pre-provision
+  - admin-only explicit resend invite action in `/settings/access`
+  - warm invite template linking users to `/login`
+- Resend email provider integration via DI with logging-only provider in
+  dev/preview/test.
+- New ADR 030 documenting invite email delivery and provider routing decisions.
 - Closed-auth onboarding architecture:
   - admin pre-provision flow in `/settings/access` to create/approve users by email
   - first-admin bootstrap command: `pnpm auth:bootstrap-admin -- <email> [name]`
@@ -195,6 +202,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   (ADR 022).
 
 ### Changed
+- Invite emails now render through a shared branded base template
+  (`src/application/email/base-email-template.ts`) to standardize layout and
+  styling across future notification email types.
+- User pre-provision repository contract now returns approval transition metadata
+  (`approved_now` vs `already_approved`) to support deterministic invite send rules.
+- Terraform production stack now manages email runtime env vars
+  (`RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME`).
 - Sign-in policy is now DB-driven only (`user exists && is_approved`) with no
   environment-variable signup toggles.
 - Organization creation is now admin-only.

@@ -35,6 +35,16 @@ locals {
       sensitive = false
       comment   = "Managed by Terraform: enable local-dev auth in preview"
     }
+    "EMAIL_FROM_ADDRESS" = {
+      value     = "hello@mail.matthewcarr.dev"
+      sensitive = false
+      comment   = "Managed by Terraform: preview invite sender address (logging provider)"
+    }
+    "EMAIL_FROM_NAME" = {
+      value     = "Travel Planner"
+      sensitive = false
+      comment   = "Managed by Terraform: preview invite sender name (logging provider)"
+    }
   }
 
   preview_postgres_urls = nonsensitive(module.preview_branches.postgres_urls)

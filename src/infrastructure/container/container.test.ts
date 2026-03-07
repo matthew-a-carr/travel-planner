@@ -13,6 +13,7 @@ function createFakeContainer(): AppContainer {
     countryReferenceRepository: {} as AppContainer['countryReferenceRepository'],
     organizationRepository: {} as AppContainer['organizationRepository'],
     userAccessRepository: {} as AppContainer['userAccessRepository'],
+    inviteEmailService: {} as AppContainer['inviteEmailService'],
   };
 }
 
@@ -31,6 +32,7 @@ describe('createAppContainer', () => {
     expect(container.tripRepository).toBe(fakeTripRepository);
     expect(container.organizationRepository).toBeDefined();
     expect(container.userAccessRepository).toBeDefined();
+    expect(container.inviteEmailService).toBeDefined();
   });
 });
 
@@ -49,6 +51,7 @@ describe('createTestAppContainer', () => {
     expect(container.organizationRepository).toBe(fakeOrganizationRepository);
     expect(container.tripRepository).toBeDefined();
     expect(container.destinationRepository).toBeDefined();
+    expect(container.inviteEmailService).toBeDefined();
   });
 });
 

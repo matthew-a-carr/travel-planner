@@ -148,6 +148,10 @@ In `NODE_ENV=development`, local manual testing can sign in via a dev-only
 shown only when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are real values (not
 placeholder defaults). Production access is closed by default: users must be
 pre-provisioned and approved in the database before sign-in is allowed.
+Invite emails are sent via Resend only in `VERCEL_ENV=production`; dev/preview/test
+use a logging-only provider.
+Email integration DNS/env setup and template standards are documented in
+`docs/email-delivery.md`.
 
 Use `.env.local` when you want to target your own database/OAuth credentials:
 
@@ -159,6 +163,9 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true     # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside NODE_ENV=development
+RESEND_API_KEY=          # Resend API key (required in production)
+EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
+EMAIL_FROM_NAME=Travel Planner
 ```
 
 Bootstrap the first admin user in each environment:
@@ -166,6 +173,11 @@ Bootstrap the first admin user in each environment:
 ```bash
 POSTGRES_URL=... pnpm auth:bootstrap-admin -- admin@example.com \"Admin User\"
 ```
+
+Email template rule:
+- Keep message layout/copy rendering in `src/application/email/`.
+- Reuse `src/application/email/base-email-template.ts` for all new outbound
+  notification templates so branding stays consistent.
 
 ---
 

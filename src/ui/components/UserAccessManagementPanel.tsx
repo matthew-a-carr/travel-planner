@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import {
   preProvisionUserAction,
+  resendUserInviteAction,
   type UpdateUserAccessState,
   updateUserAdminAction,
   updateUserApprovalAction,
@@ -35,7 +36,7 @@ export function UserAccessManagementPanel({
   users: readonly UserAccessListItem[];
   currentUserId: string;
 }) {
-  const initialState: UpdateUserAccessState = { error: null };
+  const initialState: UpdateUserAccessState = { error: null, warning: null, notice: null };
   const [approvalState, approvalDispatch, isSavingApproval] = useActionState(
     updateUserApprovalAction,
     initialState,
@@ -46,6 +47,10 @@ export function UserAccessManagementPanel({
   );
   const [preProvisionState, preProvisionDispatch, isPreProvisioning] = useActionState(
     preProvisionUserAction,
+    initialState,
+  );
+  const [resendInviteState, resendInviteDispatch, isResendingInvite] = useActionState(
+    resendUserInviteAction,
     initialState,
   );
 
@@ -158,6 +163,19 @@ export function UserAccessManagementPanel({
                         </button>
                       </form>
 
+                      {user.isApproved && (
+                        <form action={resendInviteDispatch}>
+                          <input type="hidden" name="targetUserId" value={user.id} />
+                          <button
+                            type="submit"
+                            disabled={isResendingInvite}
+                            className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium text-zinc-800 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                          >
+                            Resend invite
+                          </button>
+                        </form>
+                      )}
+
                       <form action={adminDispatch}>
                         <input type="hidden" name="targetUserId" value={user.id} />
                         <input type="hidden" name="nextValue" value={nextAdmin} />
@@ -180,7 +198,20 @@ export function UserAccessManagementPanel({
 
       {approvalState.error && <p className="text-sm text-red-600">{approvalState.error}</p>}
       {adminState.error && <p className="text-sm text-red-600">{adminState.error}</p>}
-      {(isSavingApproval || isSavingAdmin || isPreProvisioning) && (
+      {resendInviteState.error && <p className="text-sm text-red-600">{resendInviteState.error}</p>}
+      {preProvisionState.warning && (
+        <p className="text-sm text-amber-700 dark:text-amber-400">{preProvisionState.warning}</p>
+      )}
+      {resendInviteState.warning && (
+        <p className="text-sm text-amber-700 dark:text-amber-400">{resendInviteState.warning}</p>
+      )}
+      {preProvisionState.notice && (
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">{preProvisionState.notice}</p>
+      )}
+      {resendInviteState.notice && (
+        <p className="text-sm text-emerald-700 dark:text-emerald-400">{resendInviteState.notice}</p>
+      )}
+      {(isSavingApproval || isSavingAdmin || isPreProvisioning || isResendingInvite) && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Saving changes…</p>
       )}
     </section>

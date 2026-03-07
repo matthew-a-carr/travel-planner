@@ -10,3 +10,8 @@ neon_api_key     = "replace-with-neon-api-key"
 auth_secret        = "replace-with-openssl-rand-base64-32"
 auth_google_id     = "replace-with-google-client-id"
 auth_google_secret = "replace-with-google-client-secret"
+resend_api_key     = "replace-with-resend-api-key"
+
+# Optional email sender overrides
+# email_from_address = "hello@mail.matthewcarr.dev"
+# email_from_name    = "Travel Planner"

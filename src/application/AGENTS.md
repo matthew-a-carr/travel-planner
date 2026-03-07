@@ -18,6 +18,9 @@ and by code review / CI for the integration test requirement.
 
 ```
 src/application/
+  email/
+    base-email-template.ts         + base-email-template.test.ts
+    user-added-invite-template.ts  + user-added-invite-template.test.ts
   use-cases/
     create-trip.ts                + create-trip.int-test.ts
     edit-trip.ts                  + edit-trip.int-test.ts
@@ -42,7 +45,14 @@ src/application/
     set-user-approval.ts          + set-user-approval.int-test.ts
     set-user-admin.ts             + set-user-admin.int-test.ts
     pre-provision-user-access.ts  + pre-provision-user-access.int-test.ts
+    send-user-access-invite.ts    + send-user-access-invite.int-test.ts
 ```
+
+## Email templates
+
+- Keep all outbound email copy/layout rendering in `src/application/email/`.
+- Use `renderBaseEmailTemplate(...)` as the common shell so all notifications
+  share consistent branding and structure.
 
 ## Use case shape
 
@@ -74,5 +84,5 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 23 integration test files in `use-cases/`, **one per use case**.
+There are currently 24 integration test files in `use-cases/`, **one per use case**.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.

@@ -7,7 +7,7 @@
 - DB schema and Drizzle ORM configuration (`db/`)
 - Repository implementations (`db/repositories/`)
 - Auth.js configuration and adapters (`auth/`)
-- Any external API clients (future: currency conversion, AI SDK)
+- External API clients and adapters (for example Resend invite email delivery)
 
 ## Import rules
 
@@ -29,6 +29,10 @@ src/infrastructure/
     provider-availability.ts ← env-aware auth provider visibility helpers (UI + provider wiring)
   organization/
     active-organization.ts ← auth/session + cookie-aware active organization resolver
+  email/
+    create-invite-email-service.ts ← env-aware provider selection (Resend vs logging)
+    resend-email-service.ts         ← production invite delivery via Resend API
+    logging-email-service.ts        ← dev/preview/test log-only delivery
   db/
     schema.ts            ← Drizzle schema (source of truth for all tables)
     client.ts            ← singleton db instance (see note below)
@@ -58,10 +62,16 @@ Each repository:
 
 - Construct runtime repositories only in
   `src/infrastructure/container/create-app-container.ts`.
+- Construct runtime invite email providers only in
+  `src/infrastructure/email/create-invite-email-service.ts`.
+- Keep provider adapters focused on delivery only; do not inline email copy or
+  layout in infrastructure. Template rendering belongs in
+  `src/application/email/`.
 - App/auth/organization runtime paths resolve dependencies with
   `getAppContainer()` and do not instantiate project classes directly.
-- `new Drizzle*Repository(...)` outside the composition root is a policy
-  violation and is blocked by `src/__tests__/composition-root-boundary.test.ts`.
+- `new Drizzle*Repository(...)`, `new LoggingEmailService(...)`, and
+  `new ResendEmailService(...)` outside approved composition root files are
+  policy violations blocked by `src/__tests__/composition-root-boundary.test.ts`.
 
 ## Schema changes
 
@@ -102,6 +112,9 @@ co-located in `db/repositories/`). These run against a real Testcontainers Postg
 instance — never mock the database in repository tests.
 Integration tests for use cases/repositories must use real Drizzle implementations
 and real Postgres (no repository doubles).
+
+Email integration runbook (DNS/env/provider routing) lives in
+`docs/email-delivery.md`.
 
 ```bash
 pnpm test:integration   # runs all *.int-test.ts files (Docker required)
