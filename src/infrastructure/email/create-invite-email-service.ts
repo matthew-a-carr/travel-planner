@@ -23,6 +23,12 @@ function resolveFromName(env: Partial<NodeJS.ProcessEnv>): string {
   return isConfiguredValue(env.EMAIL_FROM_NAME) ? env.EMAIL_FROM_NAME : DEFAULT_EMAIL_FROM_NAME;
 }
 
+function resolveResendApiKey(env: Partial<NodeJS.ProcessEnv>): string | null {
+  if (isConfiguredValue(env.RESEND_API_KEY)) return env.RESEND_API_KEY;
+  if (isConfiguredValue(env.RESEND_API_KEY_PRODUCTION)) return env.RESEND_API_KEY_PRODUCTION;
+  return null;
+}
+
 export function createInviteEmailService(
   env: Partial<NodeJS.ProcessEnv> = process.env,
 ): InviteEmailService {
@@ -30,12 +36,21 @@ export function createInviteEmailService(
   const fromName = resolveFromName(env);
   const environment = env.VERCEL_ENV ?? env.NODE_ENV ?? 'unknown';
   const isVercelProduction = env.VERCEL_ENV === 'production';
+  const resendApiKey = resolveResendApiKey(env);
 
-  if (isVercelProduction && isConfiguredValue(env.RESEND_API_KEY)) {
+  if (isVercelProduction && resendApiKey) {
     return new ResendEmailService({
-      apiKey: env.RESEND_API_KEY,
+      apiKey: resendApiKey,
       fromAddress,
       fromName,
+    });
+  }
+
+  if (isVercelProduction) {
+    console.error('email_provider_misconfigured', {
+      provider: 'resend',
+      environment,
+      error: 'Production invite emails require RESEND_API_KEY.',
     });
   }
 
@@ -43,5 +58,6 @@ export function createInviteEmailService(
     environment,
     fromAddress,
     fromName,
+    isProductionFallback: isVercelProduction,
   });
 }

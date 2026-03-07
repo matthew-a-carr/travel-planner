@@ -35,4 +35,16 @@ describe('createInviteEmailService', () => {
 
     expect(service).toBeInstanceOf(ResendEmailService);
   });
+
+  it('accepts RESEND_API_KEY_PRODUCTION as a fallback source', () => {
+    const service = createInviteEmailService({
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'production',
+      RESEND_API_KEY_PRODUCTION: 're_prod_fallback_123',
+      EMAIL_FROM_ADDRESS: 'hello@mail.matthewcarr.dev',
+      EMAIL_FROM_NAME: 'Travel Planner',
+    });
+
+    expect(service).toBeInstanceOf(ResendEmailService);
+  });
 });

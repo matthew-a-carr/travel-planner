@@ -53,6 +53,8 @@ dig TXT _dmarc.matthewcarr.dev +short
 ## Environment Variables
 
 - `RESEND_API_KEY` (required only for production sending)
+- `RESEND_API_KEY_PRODUCTION` (compatibility fallback read by app runtime if
+  `RESEND_API_KEY` is absent; prefer `RESEND_API_KEY`)
 - `EMAIL_FROM_ADDRESS` (default `hello@mail.matthewcarr.dev`)
 - `EMAIL_FROM_NAME` (default `Travel Planner`)
 
@@ -103,6 +105,7 @@ Structured logs emitted by providers:
 
 - `email_invite_send_success`
 - `email_invite_send_failed`
+- `email_provider_misconfigured` (production fallback path)
 
 Primary triage:
 

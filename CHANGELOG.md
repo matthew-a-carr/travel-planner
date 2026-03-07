@@ -269,6 +269,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Invite email provider misconfiguration is now explicit in production:
+  - `LoggingEmailService` no longer reports false success when used as a
+    production fallback
+  - runtime now emits `email_provider_misconfigured` and returns invite send
+    failure to the calling use case
+  - `RESEND_API_KEY_PRODUCTION` is accepted as a compatibility fallback when
+    `RESEND_API_KEY` is missing
 - Auth access checks now normalize and compare email addresses more robustly
   (trim + lowercase, Gmail alias canonicalization) to prevent false
   `AccessDenied` responses for allowed users.
