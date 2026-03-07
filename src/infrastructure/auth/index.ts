@@ -42,6 +42,7 @@ async function upsertLocalDevUser() {
         updatedAt: new Date(),
       })
       .where(eq(schema.users.id, existingUser.id));
+
     return {
       ...existingUser,
       name: LOCAL_DEV_USER_NAME,

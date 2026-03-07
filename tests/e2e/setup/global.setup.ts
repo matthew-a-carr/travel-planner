@@ -21,7 +21,12 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { encode } from 'next-auth/jwt';
 import postgres from 'postgres';
-import { countryReferenceData, users } from '../../../src/infrastructure/db/schema';
+import {
+  countryReferenceData,
+  organizationMemberships,
+  organizations,
+  users,
+} from '../../../src/infrastructure/db/schema';
 import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/country-reference-seed';
 import {
   E2E_AUTH_STATE_FILE,
@@ -98,6 +103,21 @@ export default async function globalSetup(): Promise<void> {
     isAdmin: true,
     emailVerified: null,
     image: null,
+  });
+  const organizationId = crypto.randomUUID();
+  const now = new Date();
+  await db.insert(organizations).values({
+    id: organizationId,
+    name: 'E2E Test User Org',
+    createdByUserId: userId,
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.insert(organizationMemberships).values({
+    organizationId,
+    userId,
+    role: 'owner',
+    createdAt: now,
   });
 
   await sql.end();

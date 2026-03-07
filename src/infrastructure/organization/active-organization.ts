@@ -32,8 +32,10 @@ export async function getAuthenticatedAccessContext(): Promise<AuthenticatedAcce
     name: session?.user?.name ?? null,
   });
   if (!userId) return null;
+
   const isAllowed = await isUserAllowedForApp(db, userId);
   if (!isAllowed) return null;
+
   await syncSeedAdminAccessByUserId(db, userId);
 
   const { organizationRepository } = getAppContainer();

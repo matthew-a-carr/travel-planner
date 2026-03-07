@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { createTrip } from '@/application/use-cases/create-trip';
 import type { Currency } from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
 export type CreateTripState = { error: string | null };
 
@@ -12,8 +12,9 @@ export async function createTripAction(
   _prev: CreateTripState,
   formData: FormData,
 ): Promise<CreateTripState> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context) return { error: 'Unauthorized' };
+  if (!context.activeOrganization) return { error: 'Join an organization first' };
 
   const name = formData.get('name');
   const totalBudgetPounds = formData.get('totalBudgetPounds');

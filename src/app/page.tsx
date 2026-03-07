@@ -5,17 +5,17 @@ import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
 import { getVisibleSignInProviders } from '@/infrastructure/auth/provider-availability';
 import { getAppContainer } from '@/infrastructure/container';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { CreateTripButton } from '@/ui/components/CreateTripModal';
 import { SignInButton } from '@/ui/components/SignInButton';
 
 export default async function HomePage() {
   const session = await auth();
-  const organizationContext = await getActiveOrganizationContext();
+  const accessContext = await getAuthenticatedAccessContext();
   const { showGoogle, showLocalDev } = getVisibleSignInProviders();
 
-  if (!session?.user || !organizationContext) {
+  if (!session?.user || !accessContext) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8 text-center">
@@ -34,22 +34,23 @@ export default async function HomePage() {
   }
 
   if (!session.user.id) redirect('/login');
+  if (!accessContext.activeOrganization) redirect('/settings/organizations');
 
   const { tripRepository } = getAppContainer();
   const trips = await tripRepository.findAllByOrganization(
-    organizationContext.activeOrganization.organization.id,
+    accessContext.activeOrganization.organization.id,
   );
 
   return (
     <main className="min-h-screen">
       <AuthenticatedAppHeader
         activeNav="trips"
-        organizations={organizationContext.organizations.map((organization) => ({
+        organizations={accessContext.organizations.map((organization) => ({
           id: organization.organization.id,
           name: organization.organization.name,
           role: organization.role,
         }))}
-        activeOrganizationId={organizationContext.activeOrganization.organization.id}
+        activeOrganizationId={accessContext.activeOrganization.organization.id}
         userImage={session.user.image}
         userName={session.user.name}
       />

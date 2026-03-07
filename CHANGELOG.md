@@ -114,6 +114,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ## [Unreleased]
 
 ### Added
+- Closed-auth onboarding architecture:
+  - admin pre-provision flow in `/settings/access` to create/approve users by email
+  - first-admin bootstrap command: `pnpm auth:bootstrap-admin -- <email> [name]`
+  - explicit no-membership authenticated state routed to `/settings/organizations`
+- New ADR 029 documenting closed auth + invite-only membership model.
 - New DI guardrails and tests:
   - `src/__tests__/app-construction-guard.test.ts` to block direct project-class
     construction in `src/app/**`.
@@ -178,13 +183,14 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   (ADR 022).
 
 ### Changed
+- Sign-in policy is now DB-driven only (`user exists && is_approved`) with no
+  environment-variable signup toggles.
+- Organization creation is now admin-only.
+- First-sign-in personal workspace bootstrap has been removed.
 - Runtime dependency wiring now uses a composition-root container in
   `src/infrastructure/container/`; app/auth/organization runtime entrypoints
   resolve repositories via `getAppContainer()` instead of constructing Drizzle
   repositories directly.
-- Sign-in is now gated before user creation:
-  - self-registration ON: first-time users are auto-approved
-  - self-registration OFF: only approved users or configured admin emails can sign in
 - Authenticated request context now enforces access policy checks so revoked users
   lose app access on the next request.
 - Settings now include section tabs for organization management and app-level access
@@ -222,6 +228,12 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   - section row for `Trips`/`Settings` tabs with active-route state
   This replaces the compact boxed header and improves scalability for future
   global controls across desktop and mobile layouts.
+
+### Removed
+
+- `AUTH_SELF_REGISTRATION_ENABLED` and `AUTH_ADMIN_EMAILS` from runtime and infra configuration
+  (app config, dev bootstrap, e2e web-server bootstrap, Terraform, and infra workflows).
+- Automatic personal organization creation during auth/request context.
 
 ### Fixed
 

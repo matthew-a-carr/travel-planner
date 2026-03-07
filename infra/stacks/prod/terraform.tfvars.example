@@ -10,5 +10,3 @@ neon_api_key     = "replace-with-neon-api-key"
 auth_secret        = "replace-with-openssl-rand-base64-32"
 auth_google_id     = "replace-with-google-client-id"
 auth_google_secret = "replace-with-google-client-secret"
-auth_self_registration_enabled = false
-auth_admin_emails              = "admin@example.com"

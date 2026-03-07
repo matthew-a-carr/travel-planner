@@ -57,20 +57,6 @@ locals {
       sensitive = false
       comment   = "Managed by Terraform: disable local-dev auth in production"
     },
-    {
-      key       = "AUTH_SELF_REGISTRATION_ENABLED"
-      value     = var.auth_self_registration_enabled ? "true" : "false"
-      target    = toset(["production"])
-      sensitive = false
-      comment   = "Managed by Terraform: controls auto-approval of new users in production"
-    },
-    {
-      key       = "AUTH_ADMIN_EMAILS"
-      value     = var.auth_admin_emails
-      target    = toset(["production"])
-      sensitive = true
-      comment   = "Managed by Terraform: bootstrap app admin emails"
-    },
   ]
 }
 

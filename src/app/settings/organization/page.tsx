@@ -2,15 +2,16 @@ import { redirect } from 'next/navigation';
 import { getOrganizationMembers } from '@/application/use-cases/get-organization-members';
 import { auth } from '@/infrastructure/auth';
 import { getAppContainer } from '@/infrastructure/container';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { OrganizationMembersPanel } from '@/ui/components/OrganizationMembersPanel';
 import { SettingsNav } from '@/ui/components/SettingsNav';
 
 export default async function OrganizationSettingsPage() {
   const session = await auth();
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context || !session?.user) redirect('/login');
+  if (!context.activeOrganization) redirect('/settings/organizations');
 
   const { organizationRepository } = getAppContainer();
   const membersResult = await getOrganizationMembers(

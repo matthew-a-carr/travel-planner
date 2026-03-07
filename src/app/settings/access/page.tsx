@@ -4,14 +4,14 @@ import { auth } from '@/infrastructure/auth';
 import { isUserAccessAdmin } from '@/infrastructure/auth/access-policy';
 import { getAppContainer } from '@/infrastructure/container';
 import { db } from '@/infrastructure/db/client';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { SettingsNav } from '@/ui/components/SettingsNav';
 import { UserAccessManagementPanel } from '@/ui/components/UserAccessManagementPanel';
 
 export default async function AccessSettingsPage() {
   const session = await auth();
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context || !session?.user) redirect('/login');
 
   const isAdmin = await isUserAccessAdmin(db, context.userId);
@@ -30,7 +30,7 @@ export default async function AccessSettingsPage() {
           name: organization.organization.name,
           role: organization.role,
         }))}
-        activeOrganizationId={context.activeOrganization.organization.id}
+        activeOrganizationId={context.activeOrganization?.organization.id ?? null}
         userImage={session.user.image}
         userName={session.user.name}
       />

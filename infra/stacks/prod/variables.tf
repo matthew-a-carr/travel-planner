@@ -64,18 +64,6 @@ variable "auth_google_secret" {
   sensitive   = true
 }
 
-variable "auth_self_registration_enabled" {
-  description = "Whether production auto-approves first-time sign-ins."
-  type        = bool
-  default     = false
-}
-
-variable "auth_admin_emails" {
-  description = "Comma-separated app admin emails for production bootstrap."
-  type        = string
-  default     = ""
-}
-
 variable "neon_region_id" {
   description = "Optional Neon region for production project."
   type        = string

@@ -146,9 +146,8 @@ and injects safe local defaults for auth vars.
 In `NODE_ENV=development`, local manual testing can sign in via a dev-only
 `local-dev` credentials provider (no Google setup required). Google sign-in is
 shown only when `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are real values (not
-placeholder defaults).
-Application signup policy is controlled via `AUTH_SELF_REGISTRATION_ENABLED`
-and `AUTH_ADMIN_EMAILS`.
+placeholder defaults). Production access is closed by default: users must be
+pre-provisioned and approved in the database before sign-in is allowed.
 
 Use `.env.local` when you want to target your own database/OAuth credentials:
 
@@ -160,8 +159,12 @@ AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true     # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside NODE_ENV=development
-AUTH_SELF_REGISTRATION_ENABLED=false  # true = auto-approve first-time sign-ins
-AUTH_ADMIN_EMAILS=admin@example.com   # comma-separated bootstrap app admins
+```
+
+Bootstrap the first admin user in each environment:
+
+```bash
+POSTGRES_URL=... pnpm auth:bootstrap-admin -- admin@example.com \"Admin User\"
 ```
 
 ---

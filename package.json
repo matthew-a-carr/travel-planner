@@ -22,7 +22,8 @@
     "db:migrate": "tsx src/infrastructure/db/migrate.ts",
     "db:migrate:deploy": "pnpm db:check:migrations && tsx src/infrastructure/db/migrate-deploy.ts",
     "db:check:migrations": "tsx scripts/check-migrations-transactional.ts",
-    "db:seed": "tsx src/infrastructure/db/seed/seed.ts"
+    "db:seed": "tsx src/infrastructure/db/seed/seed.ts",
+    "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",

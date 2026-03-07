@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { encode } from 'next-auth/jwt';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
-import { users } from '../../src/infrastructure/db/schema';
+import { organizationMemberships, organizations, users } from '../../src/infrastructure/db/schema';
 import { E2E_POSTGRES_URL_FILE } from './setup/e2e-env';
 
 const SESSION_COOKIE_NAME = 'authjs.session-token';
@@ -130,6 +130,40 @@ function accessRowByEmail(page: Page, email: string) {
   return emailCell.locator('xpath=ancestor::tr');
 }
 
+async function ensureOrganizationMembership(ownerUserId: string, memberUserId: string): Promise<void> {
+  await withDatabase(async (db) => {
+    const existingOrganization = await db
+      .select({ id: organizations.id })
+      .from(organizations)
+      .where(eq(organizations.createdByUserId, ownerUserId))
+      .limit(1);
+
+    const organizationId = existingOrganization[0]?.id ?? crypto.randomUUID();
+    if (!existingOrganization[0]) {
+      const now = new Date();
+      await db.insert(organizations).values({
+        id: organizationId,
+        name: 'Access Management Org',
+        createdByUserId: ownerUserId,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await db.insert(organizationMemberships).values({
+        organizationId,
+        userId: ownerUserId,
+        role: 'owner',
+        createdAt: now,
+      });
+    }
+
+    await db.execute(sql`
+      insert into organization_memberships (organization_id, user_id, role, created_at)
+      values (${organizationId}, ${memberUserId}, 'member', now())
+      on conflict (organization_id, user_id) do nothing
+    `);
+  });
+}
+
 test('admin can approve and promote users from settings access page', async ({
   page,
   context,
@@ -163,6 +197,48 @@ test('admin can approve and promote users from settings access page', async ({
   await expect(pendingRow.getByRole('button', { name: /remove admin/i })).toBeVisible();
 });
 
+test('admin can pre-provision users from access settings', async ({ page, context, baseURL }) => {
+  const admin = await ensureUser({
+    email: 'e2e@travelplanner.test',
+    name: 'E2E Test User',
+    isApproved: true,
+    isAdmin: true,
+  });
+  const provisionedEmail = `provisioned-${Date.now()}@travelplanner.test`;
+
+  await signInAsUser(context, baseURL, admin);
+  await page.goto('/settings/access');
+
+  await page.getByPlaceholder('teammate@example.com').fill(provisionedEmail);
+  await page.getByPlaceholder('Optional display name').fill('Provisioned User');
+  await page.getByRole('button', { name: /pre-provision/i }).click();
+
+  const provisionedRow = accessRowByEmail(page, provisionedEmail);
+  await expect(provisionedRow).toContainText('Provisioned User');
+  await expect(provisionedRow).toContainText('approved');
+  await expect(provisionedRow).toContainText('user');
+});
+
+test('approved users without memberships are routed to organization settings', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  const unassigned = await ensureUser({
+    email: `unassigned-${Date.now()}@travelplanner.test`,
+    name: 'Unassigned User',
+    isApproved: true,
+    isAdmin: false,
+  });
+
+  await signInAsUser(context, baseURL, unassigned);
+  await page.goto('/');
+
+  await expect(page).toHaveURL(/\/settings\/organizations/);
+  await expect(page.getByText('You do not belong to any organizations yet.')).toBeVisible();
+  await expect(page.getByLabel('Create organization')).toHaveCount(0);
+});
+
 test('revoked users lose access on the next request', async ({ page, context, baseURL }) => {
   const admin = await ensureUser({
     email: 'e2e@travelplanner.test',
@@ -176,6 +252,7 @@ test('revoked users lose access on the next request', async ({ page, context, ba
     isApproved: true,
     isAdmin: false,
   });
+  await ensureOrganizationMembership(admin.id, member.id);
 
   await signInAsUser(context, baseURL, member);
   await page.goto('/');

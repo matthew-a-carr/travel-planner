@@ -32,8 +32,6 @@ async function main(): Promise<void> {
         ...process.env,
         POSTGRES_URL: postgresUrl,
         AUTH_SECRET: process.env.AUTH_SECRET ?? E2E_DEFAULT_AUTH_SECRET,
-        AUTH_SELF_REGISTRATION_ENABLED: process.env.AUTH_SELF_REGISTRATION_ENABLED ?? 'false',
-        AUTH_ADMIN_EMAILS: process.env.AUTH_ADMIN_EMAILS ?? 'e2e@travelplanner.test',
       },
       stdio: 'inherit',
     });

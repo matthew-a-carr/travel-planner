@@ -1,7 +1,7 @@
 # ADR 025: Controlled Signup and Admin Access Management
 
 **Date:** 2026-03-06
-**Status:** Accepted
+**Status:** Superseded by ADR 029
 
 ## Context
 

@@ -13,8 +13,6 @@ const DEV_DEFAULTS = {
   AUTH_GOOGLE_ID: 'dev-placeholder-client-id',
   AUTH_GOOGLE_SECRET: 'dev-placeholder-client-secret',
   AUTH_URL: 'http://localhost:3000',
-  AUTH_SELF_REGISTRATION_ENABLED: 'true',
-  AUTH_ADMIN_EMAILS: 'local-dev@travel-planner.local',
 } as const;
 
 function parseEnvFile(contents: string): Record<string, string> {
@@ -219,9 +217,6 @@ function buildDevEnv(postgresUrl: string): NodeJS.ProcessEnv {
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID ?? DEV_DEFAULTS.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET ?? DEV_DEFAULTS.AUTH_GOOGLE_SECRET,
     AUTH_URL: process.env.AUTH_URL ?? DEV_DEFAULTS.AUTH_URL,
-    AUTH_SELF_REGISTRATION_ENABLED:
-      process.env.AUTH_SELF_REGISTRATION_ENABLED ?? DEV_DEFAULTS.AUTH_SELF_REGISTRATION_ENABLED,
-    AUTH_ADMIN_EMAILS: process.env.AUTH_ADMIN_EMAILS ?? DEV_DEFAULTS.AUTH_ADMIN_EMAILS,
   };
 }
 

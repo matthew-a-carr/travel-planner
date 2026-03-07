@@ -31,7 +31,6 @@ src/application/
     edit-spend-entry.ts           + edit-spend-entry.int-test.ts
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
     get-country-references.ts     + get-country-references.int-test.ts
-    ensure-user-organization.ts   + ensure-user-organization.int-test.ts
     create-organization.ts        + create-organization.int-test.ts
     get-user-organizations.ts     + get-user-organizations.int-test.ts
     get-organization-members.ts   + get-organization-members.int-test.ts
@@ -42,6 +41,7 @@ src/application/
     get-user-access-list.ts       + get-user-access-list.int-test.ts
     set-user-approval.ts          + set-user-approval.int-test.ts
     set-user-admin.ts             + set-user-admin.int-test.ts
+    pre-provision-user-access.ts  + pre-provision-user-access.int-test.ts
 ```
 
 ## Use case shape

@@ -17,7 +17,7 @@ import type { OrganizationRepository } from '@/domain/organization/organization-
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { ComfortLevel, SpendCategory, Trip, TripStatus } from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
 const {
   tripRepository: tripRepo,
@@ -53,8 +53,9 @@ function toComfortLevel(v: string): ComfortLevel | null {
 }
 
 async function getVerifiedUserId(): Promise<string> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context?.userId) throw new Error('Unauthorized');
+  if (!context.activeOrganization) throw new Error('No organization membership');
   return context.userId;
 }
 

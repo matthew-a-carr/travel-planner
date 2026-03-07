@@ -55,11 +55,16 @@ In local development, you can always use a one-click **Sign in locally (dev)** b
 without configuring Google OAuth. The **Sign in with Google** button only appears when
 `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set to real (non-placeholder) values.
 
-When self-registration is enabled, first sign-in users are automatically
-approved and provisioned with a personal workspace organization. When
-self-registration is disabled, only app-approved users (or configured admin
-emails) can complete sign-in. Trip visibility and editing are scoped to the
-currently selected organization.
+Production access is closed by default:
+- users must be pre-provisioned and approved before Google sign-in is allowed
+- users with no organization memberships are routed to `/settings/organizations`
+- only app admins can create organizations
+
+Bootstrap the first admin in each environment before cutover:
+
+```bash
+POSTGRES_URL=... pnpm auth:bootstrap-admin -- admin@example.com \"Admin User\"
+```
 
 Organization creation and membership management are split in Settings:
 - `/settings/organizations` for creating organizations and reviewing organizations
@@ -68,7 +73,7 @@ Organization creation and membership management are split in Settings:
   organization (owner-only mutations, member-visible read access)
 
 Member assignment uses a searchable picker backed by the `users` table
-(existing signed-up users only; no invite-before-signup flow in v1).
+(pre-provisioned users only; no email invite flow in this phase).
 
 If you want to use your own database and OAuth credentials, copy the template and fill in your values:
 
@@ -84,8 +89,6 @@ AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true      # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false
-AUTH_SELF_REGISTRATION_ENABLED=false  # true = auto-approve new users
-AUTH_ADMIN_EMAILS=admin@example.com   # comma-separated bootstrap admins
 ```
 
 Open [http://localhost:3000](http://localhost:3000).

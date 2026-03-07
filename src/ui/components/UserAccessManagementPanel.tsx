@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import {
+  preProvisionUserAction,
   type UpdateUserAccessState,
   updateUserAdminAction,
   updateUserApprovalAction,
@@ -43,6 +44,10 @@ export function UserAccessManagementPanel({
     updateUserAdminAction,
     initialState,
   );
+  const [preProvisionState, preProvisionDispatch, isPreProvisioning] = useActionState(
+    preProvisionUserAction,
+    initialState,
+  );
 
   return (
     <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
@@ -54,6 +59,44 @@ export function UserAccessManagementPanel({
           Manage who can sign in and who can administer access.
         </p>
       </div>
+
+      <form
+        action={preProvisionDispatch}
+        className="space-y-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700"
+      >
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          Pre-provision user
+        </h3>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          Create or approve a user before they sign in. Organization assignment is managed
+          separately.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            name="email"
+            type="email"
+            required
+            placeholder="teammate@example.com"
+            className="block min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          />
+          <input
+            name="name"
+            type="text"
+            placeholder="Optional display name"
+            className="block min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          />
+          <button
+            type="submit"
+            disabled={isPreProvisioning}
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            {isPreProvisioning ? 'Saving…' : 'Pre-provision'}
+          </button>
+        </div>
+        {preProvisionState.error && (
+          <p className="text-sm text-red-600">{preProvisionState.error}</p>
+        )}
+      </form>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-700">
@@ -137,7 +180,7 @@ export function UserAccessManagementPanel({
 
       {approvalState.error && <p className="text-sm text-red-600">{approvalState.error}</p>}
       {adminState.error && <p className="text-sm text-red-600">{adminState.error}</p>}
-      {(isSavingApproval || isSavingAdmin) && (
+      {(isSavingApproval || isSavingAdmin || isPreProvisioning) && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Saving changes…</p>
       )}
     </section>

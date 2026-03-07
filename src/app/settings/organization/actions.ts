@@ -5,7 +5,7 @@ import { addOrganizationMember } from '@/application/use-cases/add-organization-
 import { removeOrganizationMember } from '@/application/use-cases/remove-organization-member';
 import { searchOrganizationMemberCandidates } from '@/application/use-cases/search-organization-member-candidates';
 import { getAppContainer } from '@/infrastructure/container';
-import { getActiveOrganizationContext } from '@/infrastructure/organization/active-organization';
+import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
 export type AddOrganizationMemberState = { error: string | null };
 export type OrganizationMemberCandidateState = {
@@ -18,8 +18,9 @@ export async function addOrganizationMemberAction(
   _prev: AddOrganizationMemberState,
   formData: FormData,
 ): Promise<AddOrganizationMemberState> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context) return { error: 'Unauthorized' };
+  if (!context.activeOrganization) return { error: 'Join an organization first' };
 
   const organizationId = formData.get('organizationId');
   const targetUserId = formData.get('targetUserId');
@@ -44,8 +45,9 @@ export async function searchOrganizationMemberCandidatesAction(input: {
   organizationId: string;
   query: string;
 }): Promise<readonly OrganizationMemberCandidateState[]> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context) return [];
+  if (!context.activeOrganization) return [];
 
   const organizationId = input.organizationId.trim();
   if (organizationId.length === 0) return [];
@@ -66,8 +68,9 @@ export async function removeOrganizationMemberAction(
   organizationId: string,
   memberUserId: string,
 ): Promise<void> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context) throw new Error('Unauthorized');
+  if (!context.activeOrganization) throw new Error('No organization membership');
 
   const { organizationRepository } = getAppContainer();
   const result = await removeOrganizationMember(organizationRepository, {

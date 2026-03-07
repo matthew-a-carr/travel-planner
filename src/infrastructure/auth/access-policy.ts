@@ -13,6 +13,11 @@ function isTruthy(value: string | undefined): boolean {
   return TRUE_VALUES.includes(normalized as (typeof TRUE_VALUES)[number]);
 }
 
+function isLocalDevLoginEnabled(env: Partial<NodeJS.ProcessEnv>): boolean {
+  if (env.NODE_ENV === 'development') return true;
+  return isTruthy(env.AUTH_ENABLE_LOCAL_DEV);
+}
+
 export function normalizeEmail(email: string | null | undefined): string | null {
   const trimmed = email?.trim();
   if (!trimmed) return null;
@@ -39,11 +44,6 @@ function canonicalEmailSql(column: typeof users.email) {
       else lower(trim(${column}))
     end
   `;
-}
-
-function isLocalDevLoginEnabled(env: Partial<NodeJS.ProcessEnv>): boolean {
-  if (env.NODE_ENV === 'development') return true;
-  return isTruthy(env.AUTH_ENABLE_LOCAL_DEV);
 }
 
 function isBootstrapAdminEmail(

@@ -72,6 +72,14 @@ Breaking them causes test failures. Do not use `// @ts-ignore` or similar to sil
   - `src/__tests__/app-construction-guard.test.ts`
   - `src/__tests__/composition-root-boundary.test.ts`
 
+### Auth access invariants
+
+- Production access is closed by default:
+  - sign-in is allowed only for users that already exist in the DB and are approved
+  - do not use environment-variable allowlists or self-registration toggles
+- Authentication must not auto-create organizations on first sign-in.
+- Organization creation is admin-only; membership assignment must not create users implicitly.
+
 ### Domain design rules
 
 - **No exceptions from domain logic.** Return `Result<T, E>`:

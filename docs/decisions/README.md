@@ -29,11 +29,12 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [018](018-vercel-deployment-migration-gate.md) | Run Drizzle Migrations in Vercel Deployment with Transactional Safety Gate | 2026-03-06 | Accepted |
 | [019](019-preview-local-dev-auth-override.md) | Preview Local-Dev Auth Override via AUTH_ENABLE_LOCAL_DEV | 2026-03-06 | Accepted |
 | [020](020-vercel-web-analytics.md) | Vercel Web Analytics Integration | 2026-03-06 | Accepted |
-| [021](021-organization-scoped-trip-sharing-and-first-sign-in-bootstrap.md) | Organization-Scoped Trip Sharing and First-Sign-In Bootstrap | 2026-03-06 | Accepted |
+| [021](021-organization-scoped-trip-sharing-and-first-sign-in-bootstrap.md) | Organization-Scoped Trip Sharing and First-Sign-In Bootstrap | 2026-03-06 | Superseded by ADR 029 |
 | [022](022-trip-hard-delete-owner-only.md) | Owner-Only Hard Delete for Trips | 2026-03-06 | Accepted |
 | [023](023-shared-header-and-settings-route-for-organization-management.md) | Shared Header and Settings Route for Organization Management | 2026-03-06 | Superseded by ADR 024 |
 | [024](024-two-row-sticky-header-for-authenticated-navigation.md) | Two-Row Sticky Header for Authenticated Navigation | 2026-03-06 | Accepted |
-| [025](025-controlled-signup-and-admin-access-management.md) | Controlled Signup and Admin Access Management | 2026-03-06 | Accepted |
+| [025](025-controlled-signup-and-admin-access-management.md) | Controlled Signup and Admin Access Management | 2026-03-06 | Superseded by ADR 029 |
 | [026](026-searchable-organization-member-assignment-from-user-directory.md) | Searchable Organization Member Assignment from User Directory | 2026-03-06 | Accepted |
 | [027](027-separate-organization-creation-from-member-management.md) | Separate Organization Creation from Member Management | 2026-03-06 | Accepted |
 | [028](028-composition-root-di-container-for-runtime-dependencies.md) | Composition Root DI Container for Runtime Dependencies | 2026-03-07 | Accepted |
+| [029](029-closed-auth-invite-only-membership.md) | Closed Auth with Admin Pre-Provisioned Membership | 2026-03-07 | Accepted |

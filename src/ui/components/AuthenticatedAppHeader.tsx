@@ -28,7 +28,7 @@ export function AuthenticatedAppHeader({
 }: {
   activeNav: 'trips' | 'settings';
   organizations: OrganizationOption[];
-  activeOrganizationId: string;
+  activeOrganizationId: string | null;
   userImage: string | null | undefined;
   userName: string | null | undefined;
   utilityLeadingSlot?: ReactNode;
@@ -75,10 +75,16 @@ export function AuthenticatedAppHeader({
             className="order-2 flex min-w-0 flex-wrap items-center gap-2 md:order-none md:col-start-2 md:row-start-1"
           >
             <div className="min-w-0 basis-full md:w-[22rem] md:flex-none">
-              <OrganizationSwitcher
-                organizations={organizations}
-                activeOrganizationId={activeOrganizationId}
-              />
+              {organizations.length > 0 && activeOrganizationId ? (
+                <OrganizationSwitcher
+                  organizations={organizations}
+                  activeOrganizationId={activeOrganizationId}
+                />
+              ) : (
+                <p className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-300">
+                  No organization membership
+                </p>
+              )}
             </div>
             <div className="ml-auto flex items-center gap-2">
               {utilityLeadingSlot}

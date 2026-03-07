@@ -88,4 +88,43 @@ describe('DrizzleUserAccessRepository', () => {
     expect(updated?.isApproved).toBe(true);
     expect(updated?.isAdmin).toBe(true);
   });
+
+  it('creates a new user when pre-provisioning by email', async () => {
+    const repository = new DrizzleUserAccessRepository(db);
+
+    const created = await repository.createOrApproveByEmail({
+      email: 'Pre.Prov+alias@GoogleMail.com',
+      name: 'Pre Provisioned',
+      isApproved: true,
+      isAdmin: false,
+    });
+
+    expect(created.email).toBe('preprov@gmail.com');
+    expect(created.isApproved).toBe(true);
+    expect(created.isAdmin).toBe(false);
+    expect(created.firstName).toBe('Pre');
+    expect(created.lastName).toBe('Provisioned');
+  });
+
+  it('updates existing canonical email users idempotently', async () => {
+    const existing = await seedUser(db, {
+      email: 'existing.user@gmail.com',
+      name: 'Existing User',
+      isApproved: false,
+      isAdmin: false,
+    });
+    const repository = new DrizzleUserAccessRepository(db);
+
+    const updated = await repository.createOrApproveByEmail({
+      email: 'existinguser+alias@googlemail.com',
+      name: 'Updated Name',
+      isApproved: true,
+      isAdmin: false,
+    });
+
+    expect(updated.id).toBe(existing.id);
+    expect(updated.email).toBe('existinguser@gmail.com');
+    expect(updated.name).toBe('Updated Name');
+    expect(updated.isApproved).toBe(true);
+  });
 });

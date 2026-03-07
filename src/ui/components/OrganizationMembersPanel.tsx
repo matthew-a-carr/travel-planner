@@ -175,7 +175,7 @@ export function OrganizationMembersPanel({
                     <p className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">Searching…</p>
                   ) : candidateResults.length === 0 ? (
                     <p className="px-2 py-1 text-sm text-zinc-500 dark:text-zinc-400">
-                      No matching signed-up users.
+                      No matching provisioned users.
                     </p>
                   ) : (
                     <ul className="space-y-1">
@@ -216,7 +216,7 @@ export function OrganizationMembersPanel({
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {selectedCandidate
                   ? `Selected: ${describeCandidate(selectedCandidate)}`
-                  : 'Select a signed-up user before adding.'}
+                  : 'Select a provisioned user before adding.'}
               </p>
             </div>
             {addMemberState.error && <p className="text-sm text-red-600">{addMemberState.error}</p>}

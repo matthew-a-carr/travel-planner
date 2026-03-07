@@ -35,16 +35,6 @@ locals {
       sensitive = false
       comment   = "Managed by Terraform: enable local-dev auth in preview"
     }
-    "AUTH_SELF_REGISTRATION_ENABLED" = {
-      value     = var.preview_self_registration_enabled ? "true" : "false"
-      sensitive = false
-      comment   = "Managed by Terraform: controls auto-approval for preview sign-ins"
-    }
-    "AUTH_ADMIN_EMAILS" = {
-      value     = var.preview_auth_admin_emails
-      sensitive = true
-      comment   = "Managed by Terraform: bootstrap app admin emails in preview"
-    }
   }
 
   preview_postgres_urls = nonsensitive(module.preview_branches.postgres_urls)

@@ -3,10 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { createOrganization } from '@/application/use-cases/create-organization';
+import { isUserAccessAdmin } from '@/infrastructure/auth/access-policy';
 import { getAppContainer } from '@/infrastructure/container';
+import { db } from '@/infrastructure/db/client';
 import {
   ACTIVE_ORGANIZATION_COOKIE,
-  getActiveOrganizationContext,
+  getAuthenticatedAccessContext,
 } from '@/infrastructure/organization/active-organization';
 
 export type CreateOrganizationState = { error: string | null };
@@ -15,14 +17,16 @@ export async function createOrganizationAction(
   _prev: CreateOrganizationState,
   formData: FormData,
 ): Promise<CreateOrganizationState> {
-  const context = await getActiveOrganizationContext();
+  const context = await getAuthenticatedAccessContext();
   if (!context) return { error: 'Unauthorized' };
+  const isAdmin = await isUserAccessAdmin(db, context.userId);
+  if (!isAdmin) return { error: 'Forbidden' };
 
   const name = formData.get('name');
   if (typeof name !== 'string') return { error: 'Invalid form data' };
 
-  const { organizationRepository } = getAppContainer();
-  const result = await createOrganization(organizationRepository, {
+  const { organizationRepository, userAccessRepository } = getAppContainer();
+  const result = await createOrganization(organizationRepository, userAccessRepository, {
     actorUserId: context.userId,
     name,
   });

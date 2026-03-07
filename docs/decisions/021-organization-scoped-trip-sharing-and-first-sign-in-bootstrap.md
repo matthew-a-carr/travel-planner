@@ -1,7 +1,7 @@
 # ADR 021: Organization-Scoped Trip Sharing and First-Sign-In Bootstrap
 
 **Date:** 2026-03-06
-**Status:** Accepted
+**Status:** Superseded by ADR 029
 
 ## Context
 
