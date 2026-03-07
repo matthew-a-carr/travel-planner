@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers';
-import { ensureUserOrganization } from '@/application/use-cases/ensure-user-organization';
 import { getUserOrganizations } from '@/application/use-cases/get-user-organizations';
 import type { OrganizationWithRole } from '@/domain/organization/types';
 import { auth } from '@/infrastructure/auth';
@@ -19,7 +18,13 @@ export type ActiveOrganizationContext = {
   readonly activeOrganization: OrganizationWithRole;
 };
 
-export async function getActiveOrganizationContext(): Promise<ActiveOrganizationContext | null> {
+export type AuthenticatedAccessContext = {
+  readonly userId: string;
+  readonly organizations: OrganizationWithRole[];
+  readonly activeOrganization: OrganizationWithRole | null;
+};
+
+export async function getAuthenticatedAccessContext(): Promise<AuthenticatedAccessContext | null> {
   const session = await auth();
   const userId = await resolveAuthenticatedUserId(db, {
     id: session?.user?.id,
@@ -32,25 +37,30 @@ export async function getActiveOrganizationContext(): Promise<ActiveOrganization
   await syncSeedAdminAccessByUserId(db, userId);
 
   const { organizationRepository } = getAppContainer();
-  await ensureUserOrganization(organizationRepository, {
-    userId,
-    userName: session?.user?.name ?? null,
-    email: session?.user?.email ?? null,
-  });
-
   const organizations = await getUserOrganizations(organizationRepository, userId);
-  const firstOrganization = organizations[0];
-  if (!firstOrganization) return null;
+  const firstOrganization = organizations[0] ?? null;
 
   const cookieStore = await cookies();
   const activeOrganizationId = cookieStore.get(ACTIVE_ORGANIZATION_COOKIE)?.value;
   const activeOrganization =
     organizations.find((organization) => organization.organization.id === activeOrganizationId) ??
-    firstOrganization;
+    firstOrganization ??
+    null;
 
   return {
     userId,
     organizations,
     activeOrganization,
+  };
+}
+
+export async function getActiveOrganizationContext(): Promise<ActiveOrganizationContext | null> {
+  const context = await getAuthenticatedAccessContext();
+  if (!context?.activeOrganization) return null;
+
+  return {
+    userId: context.userId,
+    organizations: context.organizations,
+    activeOrganization: context.activeOrganization,
   };
 }

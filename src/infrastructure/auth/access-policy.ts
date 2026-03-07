@@ -41,31 +41,6 @@ function canonicalEmailSql(column: typeof users.email) {
   `;
 }
 
-export function isSelfRegistrationEnabled(env: Partial<NodeJS.ProcessEnv> = process.env): boolean {
-  return isTruthy(env.AUTH_SELF_REGISTRATION_ENABLED);
-}
-
-export function getAdminEmailSet(env: Partial<NodeJS.ProcessEnv> = process.env): Set<string> {
-  const configured = env.AUTH_ADMIN_EMAILS;
-  if (!configured) return new Set();
-
-  const emails = configured
-    .split(/[,\n;]+/)
-    .map((part) => normalizeEmail(part))
-    .filter((value): value is string => value !== null);
-
-  return new Set(emails);
-}
-
-export function isConfiguredAdminEmail(
-  email: string | null | undefined,
-  env: Partial<NodeJS.ProcessEnv> = process.env,
-): boolean {
-  const normalizedEmail = normalizeEmail(email);
-  if (!normalizedEmail) return false;
-  return getAdminEmailSet(env).has(normalizedEmail);
-}
-
 function isLocalDevLoginEnabled(env: Partial<NodeJS.ProcessEnv>): boolean {
   if (env.NODE_ENV === 'development') return true;
   return isTruthy(env.AUTH_ENABLE_LOCAL_DEV);
@@ -75,15 +50,12 @@ function isBootstrapAdminEmail(
   email: string | null | undefined,
   env: Partial<NodeJS.ProcessEnv> = process.env,
 ): boolean {
-  if (isConfiguredAdminEmail(email, env)) return true;
-  if (!isLocalDevLoginEnabled(env)) return false;
-  return normalizeEmail(email) === LOCAL_DEV_BOOTSTRAP_ADMIN_EMAIL;
+  return isLocalDevLoginEnabled(env) && normalizeEmail(email) === LOCAL_DEV_BOOTSTRAP_ADMIN_EMAIL;
 }
 
 export type SignInDecision = {
   readonly allowed: boolean;
   readonly seededAdmin: boolean;
-  readonly autoApprove: boolean;
 };
 
 export async function decideSignInAccess(
@@ -93,28 +65,23 @@ export async function decideSignInAccess(
 ): Promise<SignInDecision> {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) {
-    return { allowed: false, seededAdmin: false, autoApprove: false };
+    return { allowed: false, seededAdmin: false };
   }
 
-  const seededAdmin = isBootstrapAdminEmail(normalizedEmail, env);
-  if (seededAdmin) {
-    return { allowed: true, seededAdmin: true, autoApprove: true };
-  }
-
-  if (isSelfRegistrationEnabled(env)) {
-    return { allowed: true, seededAdmin: false, autoApprove: true };
-  }
-
-  const existingUser = await db
-    .select({ isApproved: users.isApproved })
+  const existingUsers = await db
+    .select({
+      email: users.email,
+      isApproved: users.isApproved,
+    })
     .from(users)
     .where(sql`${canonicalEmailSql(users.email)} = ${normalizedEmail}`)
     .limit(1);
+  const existingUser = existingUsers[0];
+  const seededAdmin = isBootstrapAdminEmail(existingUser?.email ?? normalizedEmail, env);
 
   return {
-    allowed: existingUser[0]?.isApproved ?? false,
-    seededAdmin: false,
-    autoApprove: false,
+    allowed: Boolean(existingUser?.isApproved || seededAdmin),
+    seededAdmin,
   };
 }
 
@@ -135,7 +102,6 @@ export async function isUserAllowedForApp(
   const user = rows[0];
   if (!user) return false;
   if (isBootstrapAdminEmail(user.email, env)) return true;
-  if (isSelfRegistrationEnabled(env)) return true;
   return user.isApproved;
 }
 
@@ -193,7 +159,6 @@ export type SyncUserAccessOnSignInInput = {
   readonly email: string | null | undefined;
   readonly name: string | null | undefined;
   readonly isSeededAdmin: boolean;
-  readonly shouldAutoApprove: boolean;
 };
 
 export type SplitName = {
@@ -232,8 +197,6 @@ export async function syncUserAccessOnSignIn(
 
   if (input.isSeededAdmin) {
     updates.isAdmin = true;
-    updates.isApproved = true;
-  } else if (input.shouldAutoApprove) {
     updates.isApproved = true;
   }
 

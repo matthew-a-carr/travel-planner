@@ -256,11 +256,15 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.getByRole('link').filter({ hasText: editedTripName }).first().click();
   await page.waitForURL(/\/trips\/[^/]+$/);
   await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
-  const moveToSelect = page.getByLabel('Move to');
-  if ((await moveToSelect.count()) === 0) {
+  // The "Move to" dropdown only renders when the server knows the owner has
+  // another organization to move the trip into. On slow CI runners the
+  // server-action cookie write / revalidation from switchActiveOrganization
+  // may not have settled by the time this page first renders, so we retry
+  // with a reload until the dropdown appears.
+  await expect(async () => {
     await page.reload();
-  }
-  await expect(moveToSelect).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByLabel('Move to')).toBeVisible();
+  }).toPass({ timeout: 15_000, intervals: [1_000, 2_000, 3_000] });
 
   await selectDropdownOption(page, 'Move to', "E2E Test User's Workspace");
   await page.getByRole('button', { name: /^Move$/ }).click();

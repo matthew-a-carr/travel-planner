@@ -4,16 +4,9 @@ import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import { ensureUserOrganization } from '@/application/use-cases/ensure-user-organization';
-import { getAppContainer } from '@/infrastructure/container';
 import { db } from '../db/client';
 import * as schema from '../db/schema';
-import {
-  decideSignInAccess,
-  isConfiguredAdminEmail,
-  isSelfRegistrationEnabled,
-  syncUserAccessOnSignIn,
-} from './access-policy';
+import { decideSignInAccess, syncUserAccessOnSignIn } from './access-policy';
 import { authConfig } from './auth.config';
 import { isGoogleEmailVerified } from './google-email-verification';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
@@ -37,7 +30,23 @@ async function upsertLocalDevUser() {
     .limit(1);
 
   const existingUser = existing[0];
-  if (existingUser) return existingUser;
+  if (existingUser) {
+    await db
+      .update(schema.users)
+      .set({
+        name: LOCAL_DEV_USER_NAME,
+        firstName: LOCAL_DEV_FIRST_NAME,
+        lastName: LOCAL_DEV_LAST_NAME,
+        isApproved: true,
+        isAdmin: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.users.id, existingUser.id));
+    return {
+      ...existingUser,
+      name: LOCAL_DEV_USER_NAME,
+    };
+  }
 
   try {
     const inserted = await db
@@ -49,7 +58,7 @@ async function upsertLocalDevUser() {
         email: LOCAL_DEV_USER_EMAIL,
         image: LOCAL_DEV_USER_IMAGE,
         isApproved: true,
-        isAdmin: false,
+        isAdmin: true,
         emailVerified: null,
       })
       .returning({
@@ -137,14 +146,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: user.email ?? null,
         name: user.name ?? null,
         isSeededAdmin: decision.seededAdmin,
-        shouldAutoApprove: decision.autoApprove,
-      });
-
-      const { organizationRepository } = getAppContainer();
-      await ensureUserOrganization(organizationRepository, {
-        userId: user.id,
-        userName: user.name ?? null,
-        email: user.email ?? null,
       });
     },
   },
@@ -172,10 +173,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.error('[auth] signIn denied: access_policy', {
           provider: account?.provider ?? null,
           email: user.email ?? null,
-          selfRegistrationEnabled: isSelfRegistrationEnabled(),
-          isConfiguredAdminEmail: isConfiguredAdminEmail(user.email ?? null),
           seededAdmin: decision.seededAdmin,
-          autoApprove: decision.autoApprove,
         });
       }
       return decision.allowed;
