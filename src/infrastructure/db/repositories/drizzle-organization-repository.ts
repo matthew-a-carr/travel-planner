@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, like, not, sql } from 'drizzle-orm';
 import type {
   AddOrganizationMemberInput,
   CreateOrganizationWithOwnerInput,
@@ -173,6 +173,7 @@ export class DrizzleOrganizationRepository implements OrganizationRepository {
         where ${organizationMemberships.organizationId} = ${input.organizationId}
           and ${organizationMemberships.userId} = ${users.id}
       )`,
+      not(like(users.email, 'deleted-%@anonymized.local')),
     ];
 
     if (normalizedQuery.length > 0) {

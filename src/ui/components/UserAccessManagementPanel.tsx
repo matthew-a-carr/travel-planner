@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import {
+  deleteUserAction,
   preProvisionUserAction,
   resendUserInviteAction,
   type UpdateUserAccessState,
@@ -53,6 +54,7 @@ export function UserAccessManagementPanel({
     resendUserInviteAction,
     initialState,
   );
+  const [deleteState, deleteDispatch, isDeleting] = useActionState(deleteUserAction, initialState);
 
   return (
     <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
@@ -187,6 +189,32 @@ export function UserAccessManagementPanel({
                           {user.isAdmin ? 'Remove admin' : 'Make admin'}
                         </button>
                       </form>
+
+                      {!isSelf && (
+                        <form
+                          action={deleteDispatch}
+                          onSubmit={(e) => {
+                            if (!confirm(`Delete ${describeName(user)}? This cannot be undone.`)) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          <input type="hidden" name="targetUserId" value={user.id} />
+                          <button
+                            type="submit"
+                            disabled={
+                              isDeleting ||
+                              isSavingApproval ||
+                              isSavingAdmin ||
+                              isPreProvisioning ||
+                              isResendingInvite
+                            }
+                            className="rounded-lg border border-red-300 px-2.5 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950"
+                          >
+                            {isDeleting ? 'Deleting...' : 'Delete user'}
+                          </button>
+                        </form>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -199,6 +227,7 @@ export function UserAccessManagementPanel({
       {approvalState.error && <p className="text-sm text-red-600">{approvalState.error}</p>}
       {adminState.error && <p className="text-sm text-red-600">{adminState.error}</p>}
       {resendInviteState.error && <p className="text-sm text-red-600">{resendInviteState.error}</p>}
+      {deleteState.error && <p className="text-sm text-red-600">{deleteState.error}</p>}
       {preProvisionState.warning && (
         <p className="text-sm text-amber-700 dark:text-amber-400">{preProvisionState.warning}</p>
       )}
@@ -211,9 +240,11 @@ export function UserAccessManagementPanel({
       {resendInviteState.notice && (
         <p className="text-sm text-emerald-700 dark:text-emerald-400">{resendInviteState.notice}</p>
       )}
-      {(isSavingApproval || isSavingAdmin || isPreProvisioning || isResendingInvite) && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Saving changes…</p>
-      )}
+      {(isSavingApproval ||
+        isSavingAdmin ||
+        isPreProvisioning ||
+        isResendingInvite ||
+        isDeleting) && <p className="text-sm text-zinc-500 dark:text-zinc-400">Saving changes…</p>}
     </section>
   );
 }

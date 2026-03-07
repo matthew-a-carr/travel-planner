@@ -11,6 +11,8 @@ function createRepositoryMock(): UserAccessRepository {
     createOrApproveByEmail: vi.fn(),
     updateApproval: vi.fn(),
     updateAdmin: vi.fn(),
+    findSoleOwnerOrganizations: vi.fn(),
+    deleteUser: vi.fn(),
   };
 }
 

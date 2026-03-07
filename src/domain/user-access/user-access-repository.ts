@@ -23,4 +23,8 @@ export interface UserAccessRepository {
   ): Promise<CreateOrApproveUserByEmailResult>;
   updateApproval(userId: string, isApproved: boolean): Promise<void>;
   updateAdmin(userId: string, isAdmin: boolean): Promise<void>;
+  findSoleOwnerOrganizations(
+    userId: string,
+  ): Promise<readonly { organizationId: string; organizationName: string }[]>;
+  deleteUser(userId: string): Promise<void>;
 }

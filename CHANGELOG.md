@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+* **auth:** Admins can delete users (soft delete with anonymization, preserving organization data)
+
 ## [1.7.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.6.0...v1.7.0) (2026-03-07)
 
 

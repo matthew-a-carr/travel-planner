@@ -248,6 +248,111 @@ test('approved users without memberships are routed to organization settings', a
   await expect(page.getByLabel('Create organization')).toHaveCount(0);
 });
 
+test('admin can delete a non-admin user', async ({ page, context, baseURL }) => {
+  const admin = await ensureUser({
+    email: 'e2e@travelplanner.test',
+    name: 'E2E Test User',
+    isApproved: true,
+    isAdmin: true,
+  });
+  const deletable = await ensureUser({
+    email: `deletable-${Date.now()}@travelplanner.test`,
+    name: 'Deletable User',
+    isApproved: true,
+    isAdmin: false,
+  });
+
+  await signInAsUser(context, baseURL, admin);
+  await page.goto('/settings/access');
+
+  const deletableRow = accessRowByEmail(page, deletable.email);
+  await expect(deletableRow).toBeVisible();
+
+  page.on('dialog', (dialog) => dialog.accept());
+  await deletableRow.getByRole('button', { name: /delete user/i }).click();
+
+  await expect(deletableRow).toHaveCount(0, { timeout: 10_000 });
+});
+
+test('admin cannot delete a sole owner of an organization', async ({ page, context, baseURL }) => {
+  const admin = await ensureUser({
+    email: 'e2e@travelplanner.test',
+    name: 'E2E Test User',
+    isApproved: true,
+    isAdmin: true,
+  });
+  const soleOwner = await ensureUser({
+    email: `sole-owner-${Date.now()}@travelplanner.test`,
+    name: 'Sole Owner',
+    isApproved: true,
+    isAdmin: false,
+  });
+
+  await withDatabase(async (db) => {
+    const orgId = crypto.randomUUID();
+    const now = new Date();
+    await db.insert(organizations).values({
+      id: orgId,
+      name: 'Owned Org',
+      createdByUserId: soleOwner.id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.insert(organizationMemberships).values({
+      organizationId: orgId,
+      userId: soleOwner.id,
+      role: 'owner',
+      createdAt: now,
+    });
+  });
+
+  await signInAsUser(context, baseURL, admin);
+  await page.goto('/settings/access');
+
+  const ownerRow = accessRowByEmail(page, soleOwner.email);
+  page.on('dialog', (dialog) => dialog.accept());
+  await ownerRow.getByRole('button', { name: /delete user/i }).click();
+
+  await expect(page.getByText(/sole owner of/i)).toBeVisible({ timeout: 10_000 });
+  await expect(ownerRow).toBeVisible();
+});
+
+test('deleted user cannot sign in', async ({ page, context, baseURL }) => {
+  const admin = await ensureUser({
+    email: 'e2e@travelplanner.test',
+    name: 'E2E Test User',
+    isApproved: true,
+    isAdmin: true,
+  });
+  const victim = await ensureUser({
+    email: `victim-${Date.now()}@travelplanner.test`,
+    name: 'Victim User',
+    isApproved: true,
+    isAdmin: false,
+  });
+  await ensureOrganizationMembership(admin.id, victim.id);
+
+  // Verify victim can access app first
+  await signInAsUser(context, baseURL, victim);
+  await page.goto('/');
+  await expect(page.getByTestId('app-header')).toBeVisible();
+
+  // Delete the user
+  await signInAsUser(context, baseURL, admin);
+  await page.goto('/settings/access');
+
+  const victimRow = accessRowByEmail(page, victim.email);
+  page.on('dialog', (dialog) => dialog.accept());
+  await victimRow.getByRole('button', { name: /delete user/i }).click();
+  await expect(victimRow).toHaveCount(0, { timeout: 10_000 });
+
+  // Verify victim can no longer access the app
+  await signInAsUser(context, baseURL, victim);
+  await page.goto('/');
+  await expect(page.getByTestId('app-header')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+});
+
 test('revoked users lose access on the next request', async ({ page, context, baseURL }) => {
   const admin = await ensureUser({
     email: 'e2e@travelplanner.test',

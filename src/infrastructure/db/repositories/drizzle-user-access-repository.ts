@@ -1,4 +1,4 @@
-import { asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, like, not, sql } from 'drizzle-orm';
 import type { UserAccessListItem, UserAccessSummary } from '@/domain/user-access/types';
 import type {
   CreateOrApproveUserByEmailInput,
@@ -7,7 +7,9 @@ import type {
 } from '@/domain/user-access/user-access-repository';
 import { normalizeEmail } from '@/infrastructure/auth/access-policy';
 import type { Db } from '../client';
-import { accounts, organizationMemberships, organizations, users } from '../schema';
+import { accounts, organizationMemberships, organizations, sessions, users } from '../schema';
+
+const ANONYMIZED_EMAIL_PATTERN = 'deleted-%@anonymized.local';
 
 function toSummary(row: typeof users.$inferSelect): UserAccessSummary {
   return {
@@ -70,6 +72,7 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
     const userRows = await this.db
       .select()
       .from(users)
+      .where(not(like(users.email, ANONYMIZED_EMAIL_PATTERN)))
       .orderBy(asc(users.createdAt), asc(users.email));
 
     const accountRows = await this.db
@@ -208,5 +211,58 @@ export class DrizzleUserAccessRepository implements UserAccessRepository {
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+  }
+
+  async findSoleOwnerOrganizations(
+    userId: string,
+  ): Promise<readonly { organizationId: string; organizationName: string }[]> {
+    // Find orgs where this user is an owner and no other owner exists.
+    // We join all owner memberships for orgs where this user is an owner,
+    // then keep only those with exactly 1 owner total.
+    const ownerMemberships = this.db.$with('owner_memberships').as(
+      this.db
+        .select({
+          organizationId: organizationMemberships.organizationId,
+          userId: organizationMemberships.userId,
+        })
+        .from(organizationMemberships)
+        .where(eq(organizationMemberships.role, 'owner')),
+    );
+
+    const rows = await this.db
+      .with(ownerMemberships)
+      .select({
+        organizationId: organizations.id,
+        organizationName: organizations.name,
+      })
+      .from(ownerMemberships)
+      .innerJoin(organizations, eq(ownerMemberships.organizationId, organizations.id))
+      .groupBy(organizations.id, organizations.name)
+      .having(and(sql`count(*) = 1`, sql`bool_or(${ownerMemberships.userId} = ${userId})`));
+
+    return rows;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          name: 'Deleted User',
+          firstName: 'Deleted',
+          lastName: 'User',
+          email: `deleted-${userId}@anonymized.local`,
+          image: null,
+          isApproved: false,
+          isAdmin: false,
+          emailVerified: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      await tx.delete(accounts).where(eq(accounts.userId, userId));
+      await tx.delete(sessions).where(eq(sessions.userId, userId));
+      await tx.delete(organizationMemberships).where(eq(organizationMemberships.userId, userId));
+    });
   }
 }

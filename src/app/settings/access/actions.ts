@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { deleteUser } from '@/application/use-cases/delete-user';
 import { preProvisionUserAccess } from '@/application/use-cases/pre-provision-user-access';
 import { sendUserAccessInvite } from '@/application/use-cases/send-user-access-invite';
 import { setUserAdmin } from '@/application/use-cases/set-user-admin';
@@ -179,4 +180,28 @@ export async function resendUserInviteAction(
   }
 
   return noticeState(`Invite email sent to ${result.value.user.email}.`);
+}
+
+export async function deleteUserAction(
+  _prev: UpdateUserAccessState,
+  formData: FormData,
+): Promise<UpdateUserAccessState> {
+  const context = await getAuthenticatedAccessContext();
+  if (!context) return errorState('Unauthorized');
+
+  const isAdmin = await isUserAccessAdmin(db, context.userId);
+  if (!isAdmin) return errorState('Forbidden');
+
+  const targetUserId = formData.get('targetUserId');
+  if (typeof targetUserId !== 'string') return errorState('Invalid form data');
+
+  const { userAccessRepository } = getAppContainer();
+  const result = await deleteUser(userAccessRepository, {
+    actorUserId: context.userId,
+    targetUserId,
+  });
+
+  if (!result.ok) return errorState(result.error);
+  revalidatePath('/settings/access');
+  return clearState();
 }
