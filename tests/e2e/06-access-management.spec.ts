@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { encode } from 'next-auth/jwt';
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
 import { users } from '../../src/infrastructure/db/schema';
 import { E2E_POSTGRES_URL_FILE } from './setup/e2e-env';
@@ -125,6 +125,11 @@ async function signInAsUser(
   ]);
 }
 
+function accessRowByEmail(page: Page, email: string) {
+  const emailCell = page.getByRole('cell', { name: email, exact: true }).first();
+  return emailCell.locator('xpath=ancestor::tr');
+}
+
 test('admin can approve and promote users from settings access page', async ({
   page,
   context,
@@ -147,17 +152,15 @@ test('admin can approve and promote users from settings access page', async ({
   await page.goto('/settings/access');
 
   await expect(page.getByRole('heading', { name: /application access/i })).toBeVisible();
-  const pendingRow = page.locator('tr').filter({ hasText: pendingUser.email });
+  const pendingRow = accessRowByEmail(page, pendingUser.email);
   await expect(pendingRow).toContainText('blocked');
   await pendingRow.getByRole('button', { name: /approve access/i }).click();
-  await page.reload();
-  const approvedRow = page.locator('tr').filter({ hasText: pendingUser.email });
-  await expect(approvedRow).toContainText('approved');
+  await expect(pendingRow).toContainText('approved', { timeout: 10_000 });
+  await expect(pendingRow.getByRole('button', { name: /revoke access/i })).toBeVisible();
 
-  await approvedRow.getByRole('button', { name: /make admin/i }).click();
-  await page.reload();
-  const adminRow = page.locator('tr').filter({ hasText: pendingUser.email });
-  await expect(adminRow).toContainText('admin');
+  await pendingRow.getByRole('button', { name: /make admin/i }).click();
+  await expect(pendingRow).toContainText('admin', { timeout: 10_000 });
+  await expect(pendingRow.getByRole('button', { name: /remove admin/i })).toBeVisible();
 });
 
 test('revoked users lose access on the next request', async ({ page, context, baseURL }) => {
@@ -180,11 +183,10 @@ test('revoked users lose access on the next request', async ({ page, context, ba
 
   await signInAsUser(context, baseURL, admin);
   await page.goto('/settings/access');
-  const memberRow = page.locator('tr').filter({ hasText: member.email });
+  const memberRow = accessRowByEmail(page, member.email);
   await memberRow.getByRole('button', { name: /revoke access/i }).click();
-  await page.reload();
-  const revokedRow = page.locator('tr').filter({ hasText: member.email });
-  await expect(revokedRow).toContainText('blocked');
+  await expect(memberRow).toContainText('blocked', { timeout: 10_000 });
+  await expect(memberRow.getByRole('button', { name: /approve access/i })).toBeVisible();
 
   await signInAsUser(context, baseURL, member);
   await page.goto('/');
