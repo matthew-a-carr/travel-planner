@@ -111,8 +111,10 @@ async function selectDropdownOption(
   page: Page,
   label: string,
   optionTextContains: string,
-): Promise<void> {
+): Promise<string> {
   const select = page.getByLabel(label);
+  await expect(select).toBeVisible({ timeout: 10_000 });
+
   const optionValue = await select.evaluate((element, text) => {
     const options = Array.from((element as HTMLSelectElement).options);
     const match = options.find((option) => option.text.includes(text));
@@ -121,11 +123,13 @@ async function selectDropdownOption(
   if (!optionValue) throw new Error(`Could not find option for "${optionTextContains}"`);
 
   await select.selectOption(optionValue);
+  return optionValue;
 }
 
 async function switchActiveOrganization(page: Page, organizationName: string): Promise<void> {
-  await selectDropdownOption(page, 'Active organization', organizationName);
-  await page.waitForTimeout(400);
+  const optionValue = await selectDropdownOption(page, 'Active organization', organizationName);
+  await expect(page.getByLabel('Active organization')).toHaveValue(optionValue);
+  await page.waitForLoadState('networkidle');
   await page.reload();
 }
 
@@ -250,6 +254,13 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.goto('/');
   await switchActiveOrganization(page, sharedOrganizationName);
   await page.getByRole('link').filter({ hasText: editedTripName }).first().click();
+  await page.waitForURL(/\/trips\/[^/]+$/);
+  await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
+  const moveToSelect = page.getByLabel('Move to');
+  if ((await moveToSelect.count()) === 0) {
+    await page.reload();
+  }
+  await expect(moveToSelect).toBeVisible({ timeout: 10_000 });
 
   await selectDropdownOption(page, 'Move to', "E2E Test User's Workspace");
   await page.getByRole('button', { name: /^Move$/ }).click();

@@ -190,6 +190,6 @@ test('revoked users lose access on the next request', async ({ page, context, ba
 
   await signInAsUser(context, baseURL, member);
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Travel Planner' })).toBeVisible();
   await expect(page.getByTestId('app-header')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
 });
