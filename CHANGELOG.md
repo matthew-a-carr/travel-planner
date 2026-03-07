@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.7.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.6.0...v1.7.0) (2026-03-07)
+
+
+### Features
+
+* **auth:** enforce closed invite-only membership flow ([bd0577c](https://github.com/matthew-a-carr/travel-planner/commit/bd0577cf8f1fd89e627f71b1490641b1d5ddebde))
+
+
+### Bug Fixes
+
+* **e2e:** harden Move to assertion with toPass retry loop ([ad57030](https://github.com/matthew-a-carr/travel-planner/commit/ad57030692b8daa034754f42368b637ee8c6c57e))
+
 ## [1.6.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.5.0...v1.6.0) (2026-03-06)
 
 
