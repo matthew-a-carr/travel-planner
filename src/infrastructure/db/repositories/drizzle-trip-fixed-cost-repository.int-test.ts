@@ -27,6 +27,32 @@ beforeEach(async () => {
 });
 
 describe('DrizzleTripFixedCostRepository', () => {
+  describe('findById', () => {
+    it('returns null for a non-existent id', async () => {
+      const repo = new DrizzleTripFixedCostRepository(db);
+      expect(await repo.findById(crypto.randomUUID())).toBeNull();
+    });
+
+    it('returns the correct fixed cost by id', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const trip = await seedTrip(db, ownerId);
+      const fc = await seedFixedCost(db, trip.id, {
+        label: 'Insurance',
+        amountPence: 30_000,
+        category: 'insurance',
+      });
+
+      const repo = new DrizzleTripFixedCostRepository(db);
+      const result = await repo.findById(fc.id);
+
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe(fc.id);
+      expect(result?.label).toBe('Insurance');
+      expect(result?.amount.amountPence).toBe(30_000);
+      expect(result?.category).toBe('insurance');
+    });
+  });
+
   describe('findByTrip', () => {
     it('returns an empty array when the trip has no fixed costs', async () => {
       const { id: ownerId } = await seedUser(db);
@@ -60,15 +86,21 @@ describe('DrizzleTripFixedCostRepository', () => {
       expect(result.map((fc) => fc.label)).toEqual(['A', 'B', 'C']);
     });
 
-    it('maps amount and currency correctly', async () => {
+    it('maps amount, currency, category, and date correctly', async () => {
       const { id: ownerId } = await seedUser(db);
       const trip = await seedTrip(db, ownerId);
-      await seedFixedCost(db, trip.id, { amountPence: 95_000 });
+      await seedFixedCost(db, trip.id, {
+        amountPence: 95_000,
+        category: 'fuel',
+        date: new Date('2026-06-15'),
+      });
 
       const repo = new DrizzleTripFixedCostRepository(db);
       const result = await repo.findByTrip(trip.id);
       expect(result[0]?.amount.amountPence).toBe(95_000);
       expect(result[0]?.amount.currency).toBe('GBP');
+      expect(result[0]?.category).toBe('fuel');
+      expect(result[0]?.date.toISOString().split('T')[0]).toBe('2026-06-15');
     });
   });
 
@@ -84,6 +116,8 @@ describe('DrizzleTripFixedCostRepository', () => {
         tripId: trip.id,
         label: 'Flights to Asia',
         amount: money(95_000, 'GBP'),
+        category: 'transport',
+        date: new Date('2026-07-01'),
         sortOrder: 0,
         createdAt: new Date(),
       });
@@ -91,24 +125,34 @@ describe('DrizzleTripFixedCostRepository', () => {
       expect(saved.id).toBe(id);
       expect(saved.label).toBe('Flights to Asia');
       expect(saved.amount.amountPence).toBe(95_000);
+      expect(saved.category).toBe('transport');
       expect(saved.tripId).toBe(trip.id);
     });
 
-    it('upserts an existing fixed cost — label and amount are updated', async () => {
+    it('upserts an existing fixed cost — label, amount, category, and date are updated', async () => {
       const { id: ownerId } = await seedUser(db);
       const trip = await seedTrip(db, ownerId);
-      const fc = await seedFixedCost(db, trip.id, { label: 'Old Label', amountPence: 50_000 });
+      const fc = await seedFixedCost(db, trip.id, {
+        label: 'Old Label',
+        amountPence: 50_000,
+        category: 'other',
+        date: new Date('2026-01-01'),
+      });
 
       const repo = new DrizzleTripFixedCostRepository(db);
       const updated = await repo.save({
         ...fc,
         label: 'New Label',
         amount: money(75_000, 'GBP'),
+        category: 'bills',
+        date: new Date('2026-08-15'),
       });
 
       expect(updated.id).toBe(fc.id);
       expect(updated.label).toBe('New Label');
       expect(updated.amount.amountPence).toBe(75_000);
+      expect(updated.category).toBe('bills');
+      expect(updated.date.toISOString().split('T')[0]).toBe('2026-08-15');
     });
   });
 

@@ -14,6 +14,7 @@ import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DeleteTripButton } from '@/ui/components/DeleteTripModal';
 import { DestinationSection } from '@/ui/components/DestinationSection';
 import { EditTripButton } from '@/ui/components/EditTripModal';
+import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBreakdown';
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
 
@@ -103,6 +104,26 @@ export default async function TripDetailPage({ params }: Props) {
     return Object.entries(totals).map(([category, amountPence]) => ({ category, amountPence }));
   })();
 
+  const fixedCostByCategoryData = (() => {
+    const totals: Record<string, { amountPence: number; count: number }> = {};
+    for (const fc of fixedCosts) {
+      const existing = totals[fc.category] ?? { amountPence: 0, count: 0 };
+      totals[fc.category] = {
+        amountPence: existing.amountPence + fc.amount.amountPence,
+        count: existing.count + 1,
+      };
+    }
+    const totalPence = fixedCosts.reduce((sum, fc) => sum + fc.amount.amountPence, 0);
+    return Object.entries(totals)
+      .map(([category, { amountPence, count }]) => ({
+        category,
+        amountPence,
+        count,
+        percentage: totalPence > 0 ? Math.round((amountPence / totalPence) * 100) : 0,
+      }))
+      .sort((a, b) => b.amountPence - a.amountPence);
+  })();
+
   return (
     <main className="min-h-screen">
       <AuthenticatedAppHeader
@@ -138,6 +159,8 @@ export default async function TripDetailPage({ params }: Props) {
         <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />
 
         <FixedCostSection tripId={id} fixedCosts={fixedCosts} />
+
+        <FixedCostCategoryBreakdown data={fixedCostByCategoryData} />
 
         <ChartsSection
           budgetBreakdown={budgetBreakdownData}

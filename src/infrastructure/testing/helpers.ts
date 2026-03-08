@@ -14,7 +14,13 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import type { Destination, SpendEntry, Trip, TripFixedCost } from '../../domain/trip/types';
+import type {
+  Destination,
+  FixedCostCategory,
+  SpendEntry,
+  Trip,
+  TripFixedCost,
+} from '../../domain/trip/types';
 import { money } from '../../domain/trip/types';
 import * as schema from '../db/schema';
 
@@ -279,12 +285,16 @@ export async function seedFixedCost(
     id?: string;
     label?: string;
     amountPence?: number;
+    category?: string;
+    date?: Date;
     sortOrder?: number;
   } = {},
 ): Promise<TripFixedCost> {
   const id = overrides.id ?? crypto.randomUUID();
   const label = overrides.label ?? 'Flights';
   const amountPence = overrides.amountPence ?? 100_000; // £1,000
+  const category = overrides.category ?? 'other';
+  const date = overrides.date ?? new Date();
   const sortOrder = overrides.sortOrder ?? 0;
   const now = new Date();
 
@@ -296,6 +306,8 @@ export async function seedFixedCost(
       label,
       amountPence,
       currency: 'GBP',
+      category,
+      date: date.toISOString().split('T')[0],
       sortOrder,
       createdAt: now,
     })
@@ -307,6 +319,8 @@ export async function seedFixedCost(
     tripId: row.tripId,
     label: row.label,
     amount: money(row.amountPence, 'GBP'),
+    category: row.category as FixedCostCategory,
+    date: new Date(row.date),
     sortOrder: row.sortOrder,
     createdAt: row.createdAt,
   };

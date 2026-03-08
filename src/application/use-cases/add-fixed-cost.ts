@@ -1,7 +1,7 @@
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
 import { nextFixedCostSortOrder } from '@/domain/trip/trip';
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Currency, Result, TripFixedCost } from '@/domain/trip/types';
+import type { Currency, FixedCostCategory, Result, TripFixedCost } from '@/domain/trip/types';
 import { err, money, ok } from '@/domain/trip/types';
 
 export type AddFixedCostInput = {
@@ -9,6 +9,8 @@ export type AddFixedCostInput = {
   label: string;
   amountPence: number;
   currency: Currency;
+  category: FixedCostCategory;
+  date: Date;
 };
 
 export async function addFixedCost(
@@ -26,6 +28,8 @@ export async function addFixedCost(
     tripId: input.tripId,
     label: input.label,
     amount: money(input.amountPence, input.currency),
+    category: input.category,
+    date: input.date,
     sortOrder: nextFixedCostSortOrder(existing),
     createdAt: new Date(),
   };

@@ -32,6 +32,8 @@ function makeFixedCost(amountPence: number): TripFixedCost {
     tripId: 'trip-1',
     label: 'Flights',
     amount: money(amountPence, 'GBP'),
+    category: 'other',
+    date: new Date('2026-01-01'),
     sortOrder: 0,
     createdAt: new Date('2026-01-01'),
   };

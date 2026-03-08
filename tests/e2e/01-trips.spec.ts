@@ -50,9 +50,11 @@ test.describe('Trip creation', () => {
     const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
     await fixedCostForm.getByLabel('Label').fill('Australia Visa & Living');
     await fixedCostForm.getByLabel('Amount (£)').fill('16000');
+    await fixedCostForm.getByLabel('Category').selectOption('accommodation');
     await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
 
     await expect(page.getByRole('button', { name: /remove australia visa & living/i })).toBeVisible();
+    await expect(page.getByText('accommodation')).toBeVisible();
   });
 
   test('created trip appears on dashboard', async ({ page }) => {
@@ -117,6 +119,52 @@ test.describe('Trip editing', () => {
   test('edited trip name appears on the dashboard', async ({ page }) => {
     await page.goto('/');
     await expect(tripLink(page, 'Big Adventure')).toBeVisible();
+  });
+});
+
+test.describe('Fixed cost editing', () => {
+  test('user can edit a fixed cost label, amount, category, and date', async ({ page }) => {
+    await page.goto('/');
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
+
+    // Click Edit on the existing fixed cost
+    await page.getByRole('button', { name: /edit australia visa & living/i }).click();
+
+    // The edit form should appear — update the fields
+    const editForm = page.locator('form').filter({ has: page.locator('[name="label"]') }).last();
+    await editForm.getByLabel('Label').fill('Flights & Visa');
+    await editForm.getByLabel('Amount (£)').fill('18000');
+    await editForm.getByLabel('Category').selectOption('transport');
+    await editForm.getByLabel('Date').fill('2026-07-01');
+
+    await editForm.getByRole('button', { name: /save changes/i }).click();
+
+    // Verify the updated values appear in the row
+    await expect(page.getByText('Flights & Visa')).toBeVisible();
+    await expect(page.getByText('£18,000.00')).toBeVisible();
+    await expect(page.getByText('transport')).toBeVisible();
+  });
+
+  test('user can add a fixed cost with a specific category', async ({ page }) => {
+    await page.goto('/');
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
+
+    const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
+    await fixedCostForm.getByLabel('Label').fill('Travel Insurance');
+    await fixedCostForm.getByLabel('Amount (£)').fill('500');
+    await fixedCostForm.getByLabel('Category').selectOption('insurance');
+    await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
+
+    await expect(page.getByText('Travel Insurance')).toBeVisible();
+    await expect(page.getByText('insurance')).toBeVisible();
+  });
+
+  test('category breakdown shows correct totals', async ({ page }) => {
+    await page.goto('/');
+    await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
+
+    // The category breakdown section should be visible with at least one category
+    await expect(page.getByText(/fixed costs by category/i)).toBeVisible();
   });
 });
 

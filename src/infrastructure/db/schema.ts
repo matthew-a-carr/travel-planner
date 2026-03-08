@@ -116,6 +116,8 @@ export const tripFixedCosts = pgTable('trip_fixed_costs', {
   label: text('label').notNull(), // e.g. "Flights to Asia", "Phone (£40/mo × 6)"
   amountPence: integer('amount_pence').notNull(),
   currency: text('currency').notNull().default('GBP'),
+  category: text('category').notNull().default('other'),
+  date: date('date').notNull().defaultNow(),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

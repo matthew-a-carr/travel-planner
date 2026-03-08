@@ -37,6 +37,8 @@ describe('addFixedCost', () => {
       label: 'Flights',
       amountPence: 95_000,
       currency: 'GBP',
+      category: 'transport',
+      date: new Date('2026-03-01'),
     });
 
     expect(result.ok).toBe(false);
@@ -54,6 +56,8 @@ describe('addFixedCost', () => {
       label: 'Flights to Asia',
       amountPence: 95_000,
       currency: 'GBP',
+      category: 'transport',
+      date: new Date('2026-06-01'),
     });
 
     expect(result.ok).toBe(true);
@@ -61,6 +65,29 @@ describe('addFixedCost', () => {
       expect(result.value.tripId).toBe(trip.id);
       expect(result.value.label).toBe('Flights to Asia');
       expect(result.value.amount.amountPence).toBe(95_000);
+      expect(result.value.category).toBe('transport');
+    }
+  });
+
+  it('saves a fixed cost with category and date correctly', async () => {
+    const { id: ownerId } = await seedUser(db);
+    const trip = await seedTrip(db, ownerId);
+    const tripRepo = new DrizzleTripRepository(db);
+    const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+
+    const result = await addFixedCost(tripRepo, fixedCostRepo, {
+      tripId: trip.id,
+      label: 'Travel Insurance',
+      amountPence: 30_000,
+      currency: 'GBP',
+      category: 'insurance',
+      date: new Date('2026-07-15'),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.category).toBe('insurance');
+      expect(result.value.date.toISOString().split('T')[0]).toBe('2026-07-15');
     }
   });
 
@@ -75,6 +102,8 @@ describe('addFixedCost', () => {
       label: 'First cost',
       amountPence: 10_000,
       currency: 'GBP',
+      category: 'other',
+      date: new Date(),
     });
 
     expect(result.ok).toBe(true);
@@ -94,6 +123,8 @@ describe('addFixedCost', () => {
       label: 'New cost',
       amountPence: 5_000,
       currency: 'GBP',
+      category: 'other',
+      date: new Date(),
     });
 
     expect(result.ok).toBe(true);

@@ -51,6 +51,17 @@ export type SpendCategory =
   | 'shopping'
   | 'other';
 
+export type FixedCostCategory =
+  | 'accommodation'
+  | 'bills'
+  | 'fuel'
+  | 'groceries'
+  | 'insurance'
+  | 'transport'
+  | 'activities'
+  | 'shopping'
+  | 'other';
+
 // ─── Entities ──────────────────────────────────────────────────────────────────
 
 export type Trip = {
@@ -74,6 +85,8 @@ export type TripFixedCost = {
   readonly tripId: string;
   readonly label: string;
   readonly amount: Money;
+  readonly category: FixedCostCategory;
+  readonly date: Date;
   readonly sortOrder: number;
   readonly createdAt: Date;
 };

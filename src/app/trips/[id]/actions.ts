@@ -7,6 +7,7 @@ import { addFixedCost } from '@/application/use-cases/add-fixed-cost';
 import { deleteSpendEntry } from '@/application/use-cases/delete-spend-entry';
 import { deleteTrip } from '@/application/use-cases/delete-trip';
 import { editDestination } from '@/application/use-cases/edit-destination';
+import { editFixedCost } from '@/application/use-cases/edit-fixed-cost';
 import { editSpendEntry } from '@/application/use-cases/edit-spend-entry';
 import { editTrip } from '@/application/use-cases/edit-trip';
 import { moveTripToOrganization } from '@/application/use-cases/move-trip-to-organization';
@@ -15,7 +16,13 @@ import { removeDestination } from '@/application/use-cases/remove-destination';
 import { removeFixedCost } from '@/application/use-cases/remove-fixed-cost';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { ComfortLevel, SpendCategory, Trip, TripStatus } from '@/domain/trip/types';
+import type {
+  ComfortLevel,
+  FixedCostCategory,
+  SpendCategory,
+  Trip,
+  TripStatus,
+} from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
@@ -43,6 +50,22 @@ const SPEND_CATEGORIES: readonly SpendCategory[] = [
 ];
 
 const COMFORT_LEVELS: readonly ComfortLevel[] = ['budget', 'mid', 'luxury'];
+
+const FIXED_COST_CATEGORIES: readonly FixedCostCategory[] = [
+  'accommodation',
+  'bills',
+  'fuel',
+  'groceries',
+  'insurance',
+  'transport',
+  'activities',
+  'shopping',
+  'other',
+];
+
+function toFixedCostCategory(v: string): FixedCostCategory | null {
+  return (FIXED_COST_CATEGORIES as readonly string[]).includes(v) ? (v as FixedCostCategory) : null;
+}
 
 function toSpendCategory(v: string): SpendCategory | null {
   return (SPEND_CATEGORIES as readonly string[]).includes(v) ? (v as SpendCategory) : null;
@@ -145,6 +168,8 @@ export async function addFixedCostAction(
 
   const label = formData.get('label');
   const amountPounds = formData.get('amountPounds');
+  const categoryRaw = formData.get('category');
+  const dateRaw = formData.get('date');
 
   if (typeof label !== 'string' || typeof amountPounds !== 'string') {
     return { error: 'Invalid form data' };
@@ -156,11 +181,18 @@ export async function addFixedCostAction(
     return { error: 'Invalid amount' };
   }
 
+  const category = typeof categoryRaw === 'string' ? toFixedCostCategory(categoryRaw) : null;
+  if (!category) return { error: 'Invalid category' };
+
+  const date = parseDateField(dateRaw) ?? new Date();
+
   const result = await addFixedCost(tripRepo, fixedCostRepo, {
     tripId,
     label: label.trim(),
     amountPence,
     currency: 'GBP', // GBP-only: see ADR 011
+    category,
+    date,
   });
 
   if (!result.ok) return { error: result.error };
@@ -177,6 +209,58 @@ export async function removeFixedCostAction(tripId: string, fixedCostId: string)
   await removeFixedCost(fixedCostRepo, fixedCostId);
 
   revalidatePath(`/trips/${tripId}`);
+}
+
+export type EditFixedCostState = { error: string | null };
+
+export async function editFixedCostAction(
+  tripId: string,
+  fixedCostId: string,
+  _prev: EditFixedCostState,
+  formData: FormData,
+): Promise<EditFixedCostState> {
+  const userId = await getVerifiedUserId();
+
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  if (!trip) return { error: 'Trip not found' };
+
+  const label = formData.get('label');
+  const amountPounds = formData.get('amountPounds');
+  const categoryRaw = formData.get('category');
+  const dateRaw = formData.get('date');
+
+  if (
+    typeof label !== 'string' ||
+    typeof amountPounds !== 'string' ||
+    typeof categoryRaw !== 'string'
+  ) {
+    return { error: 'Invalid form data' };
+  }
+  if (!label.trim()) return { error: 'Label is required' };
+
+  const amountPence = Math.round(Number.parseFloat(amountPounds) * 100);
+  if (Number.isNaN(amountPence) || amountPence <= 0) {
+    return { error: 'Invalid amount' };
+  }
+
+  const category = toFixedCostCategory(categoryRaw);
+  if (!category) return { error: 'Invalid category' };
+
+  const date = parseDateField(dateRaw);
+  if (!date) return { error: 'Date is required' };
+
+  const result = await editFixedCost(fixedCostRepo, {
+    fixedCostId,
+    label: label.trim(),
+    amountPence,
+    currency: 'GBP', // GBP-only: see ADR 011
+    category,
+    date,
+  });
+
+  if (!result.ok) return { error: result.error };
+  revalidatePath(`/trips/${tripId}`);
+  return { error: null };
 }
 
 // ─── Destination actions ──────────────────────────────────────────────────────

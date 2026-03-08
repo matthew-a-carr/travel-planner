@@ -36,6 +36,13 @@
       "when": 1772870400000,
       "tag": "0004_closed_auth_membership_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772986316372,
+      "tag": "0005_brave_ken_ellis",
+      "breakpoints": true
     }
   ]
 }
