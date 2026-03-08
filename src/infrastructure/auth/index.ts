@@ -1,16 +1,13 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
 import NextAuth from 'next-auth';
+import type { Adapter } from 'next-auth/adapters';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { db } from '../db/client';
 import * as schema from '../db/schema';
-import {
-  decideSignInAccess,
-  normalizeEmail,
-  syncUserAccessOnSignIn,
-} from './access-policy';
+import { decideSignInAccess, normalizeEmail, syncUserAccessOnSignIn } from './access-policy';
 import { authConfig } from './auth.config';
 import { isGoogleEmailVerified } from './google-email-verification';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
@@ -199,27 +196,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 });
 
+type CreateUserInput = Parameters<Adapter['createUser']>[0];
+type UpdateUserInput = Parameters<Adapter['updateUser']>[0];
+type GetUserByEmailArg = Parameters<Adapter['getUserByEmail']>[0];
+
 function createCanonicalEmailAdapter(adapter: Adapter): Adapter {
+  const getMethod = <K extends keyof Adapter>(name: K): NonNullable<Adapter[K]> => {
+    const method = adapter[name];
+    if (!method || typeof method !== 'function') {
+      throw new Error(`Adapter missing ${String(name)}`);
+    }
+    return method as NonNullable<Adapter[K]>;
+  };
+
   return {
     ...adapter,
-    async createUser(user) {
+
+    async createUser(user: CreateUserInput) {
       const normalizedEmail = normalizeEmail(user.email);
-      return adapter.createUser({
+      const createUserFn = getMethod('createUser');
+      return createUserFn({
         ...user,
         email: normalizedEmail ?? user.email,
       });
     },
-    async updateUser(user) {
+
+    async updateUser(user: UpdateUserInput) {
       const normalizedEmail = normalizeEmail(user.email);
-      return adapter.updateUser({
+      const updateUserFn = getMethod('updateUser');
+      return updateUserFn({
         ...user,
         email: normalizedEmail ?? user.email,
       });
     },
-    async getUserByEmail(email) {
+
+    async getUserByEmail(email: GetUserByEmailArg) {
       const normalizedEmail = normalizeEmail(email);
-      if (normalizedEmail) return adapter.getUserByEmail(normalizedEmail);
-      return adapter.getUserByEmail(email);
+      const getByEmailFn = getMethod('getUserByEmail');
+      if (normalizedEmail) return getByEmailFn(normalizedEmail);
+      return getByEmailFn(email);
     },
   } satisfies Adapter;
 }
