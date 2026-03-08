@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { encode } from 'next-auth/jwt';
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
 import { organizationMemberships, organizations, users } from '../../src/infrastructure/db/schema';
 import { E2E_POSTGRES_URL_FILE } from './setup/e2e-env';
@@ -115,8 +115,7 @@ async function signInAsUser(
     {
       name: SESSION_COOKIE_NAME,
       value: sessionToken,
-      domain: cookieBaseUrl.hostname,
-      path: '/',
+      url: cookieBaseUrl.origin,
       expires,
       httpOnly: true,
       secure: cookieBaseUrl.protocol === 'https:',
@@ -128,6 +127,20 @@ async function signInAsUser(
 function accessRowByEmail(page: Page, email: string) {
   const emailCell = page.getByRole('cell', { name: email, exact: true }).first();
   return emailCell.locator('xpath=ancestor::tr');
+}
+
+async function createSignedInPageForUser(
+  browser: Browser,
+  baseURL: string | undefined,
+  user: AuthUser,
+): Promise<{ context: BrowserContext; page: Page }> {
+  const context = await browser.newContext({
+    baseURL: baseURL ?? 'http://localhost:3000',
+    storageState: { cookies: [], origins: [] },
+  });
+  const page = await context.newPage();
+  await signInAsUser(context, baseURL, user);
+  return { context, page };
 }
 
 async function ensureOrganizationMembership(ownerUserId: string, memberUserId: string): Promise<void> {
@@ -317,7 +330,7 @@ test('admin cannot delete a sole owner of an organization', async ({ page, conte
   await expect(ownerRow).toBeVisible();
 });
 
-test('deleted user cannot sign in', async ({ page, context, baseURL }) => {
+test('deleted user cannot sign in', async ({ page, context, baseURL, browser }) => {
   const admin = await ensureUser({
     email: 'e2e@travelplanner.test',
     name: 'E2E Test User',
@@ -332,28 +345,40 @@ test('deleted user cannot sign in', async ({ page, context, baseURL }) => {
   });
   await ensureOrganizationMembership(admin.id, victim.id);
 
-  // Verify victim can access app first
-  await signInAsUser(context, baseURL, victim);
-  await page.goto('/');
-  await expect(page.getByTestId('app-header')).toBeVisible();
+  const { context: victimContext, page: victimPage } = await createSignedInPageForUser(
+    browser,
+    baseURL,
+    victim,
+  );
+  try {
+    // Verify victim can access app first.
+    await victimPage.goto('/');
+    await expect(victimPage.getByTestId('app-header')).toBeVisible();
 
-  // Delete the user
-  await signInAsUser(context, baseURL, admin);
-  await page.goto('/settings/access');
+    // Delete the user as admin.
+    await signInAsUser(context, baseURL, admin);
+    await page.goto('/settings/access');
+    const victimRow = accessRowByEmail(page, victim.email);
+    await expect(victimRow).toBeVisible();
+    page.on('dialog', (dialog) => dialog.accept());
+    await victimRow.getByRole('button', { name: /delete user/i }).click();
+    await expect(victimRow).toHaveCount(0, { timeout: 10_000 });
 
-  const victimRow = accessRowByEmail(page, victim.email);
-  page.on('dialog', (dialog) => dialog.accept());
-  await victimRow.getByRole('button', { name: /delete user/i }).click();
-  await expect(victimRow).toHaveCount(0, { timeout: 10_000 });
-
-  // Verify victim can no longer access the app
-  await signInAsUser(context, baseURL, victim);
-  await page.goto('/');
-  await expect(page.getByTestId('app-header')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+    // Verify victim can no longer access the app.
+    await victimPage.goto('/');
+    await expect(victimPage.getByTestId('app-header')).toHaveCount(0);
+    await expect(victimPage.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+  } finally {
+    await victimContext.close();
+  }
 });
 
-test('revoked users lose access on the next request', async ({ page, context, baseURL }) => {
+test('revoked users lose access on the next request', async ({
+  page,
+  context,
+  baseURL,
+  browser,
+}) => {
   const admin = await ensureUser({
     email: 'e2e@travelplanner.test',
     name: 'E2E Test User',
@@ -368,19 +393,27 @@ test('revoked users lose access on the next request', async ({ page, context, ba
   });
   await ensureOrganizationMembership(admin.id, member.id);
 
-  await signInAsUser(context, baseURL, member);
-  await page.goto('/');
-  await expect(page.getByTestId('app-header')).toBeVisible();
+  const { context: memberContext, page: memberPage } = await createSignedInPageForUser(
+    browser,
+    baseURL,
+    member,
+  );
+  try {
+    await memberPage.goto('/');
+    await expect(memberPage.getByTestId('app-header')).toBeVisible();
 
-  await signInAsUser(context, baseURL, admin);
-  await page.goto('/settings/access');
-  const memberRow = accessRowByEmail(page, member.email);
-  await memberRow.getByRole('button', { name: /revoke access/i }).click();
-  await expect(memberRow).toContainText('blocked', { timeout: 10_000 });
-  await expect(memberRow.getByRole('button', { name: /approve access/i })).toBeVisible();
+    await signInAsUser(context, baseURL, admin);
+    await page.goto('/settings/access');
+    const memberRow = accessRowByEmail(page, member.email);
+    await expect(memberRow).toBeVisible();
+    await memberRow.getByRole('button', { name: /revoke access/i }).click();
+    await expect(memberRow).toContainText('blocked', { timeout: 10_000 });
+    await expect(memberRow.getByRole('button', { name: /approve access/i })).toBeVisible();
 
-  await signInAsUser(context, baseURL, member);
-  await page.goto('/');
-  await expect(page.getByTestId('app-header')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+    await memberPage.goto('/');
+    await expect(memberPage.getByTestId('app-header')).toHaveCount(0);
+    await expect(memberPage.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+  } finally {
+    await memberContext.close();
+  }
 });

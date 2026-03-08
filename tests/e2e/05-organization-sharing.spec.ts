@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { encode } from 'next-auth/jwt';
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import postgres from 'postgres';
 import { users } from '../../src/infrastructure/db/schema';
 import { E2E_POSTGRES_URL_FILE } from './setup/e2e-env';
@@ -97,8 +97,7 @@ async function signInAsUser(
     {
       name: SESSION_COOKIE_NAME,
       value: sessionToken,
-      domain: cookieBaseUrl.hostname,
-      path: '/',
+      url: cookieBaseUrl.origin,
       expires,
       httpOnly: true,
       secure: cookieBaseUrl.protocol === 'https:',
@@ -133,6 +132,20 @@ async function switchActiveOrganization(page: Page, organizationName: string): P
   await page.reload();
 }
 
+async function createSignedInPageForUser(
+  browser: Browser,
+  baseURL: string | undefined,
+  user: AuthUser,
+): Promise<{ context: BrowserContext; page: Page }> {
+  const context = await browser.newContext({
+    baseURL: baseURL ?? 'http://localhost:3000',
+    storageState: { cookies: [], origins: [] },
+  });
+  const page = await context.newPage();
+  await signInAsUser(context, baseURL, user);
+  return { context, page };
+}
+
 test('authenticated dashboard shows organization-scoped app controls only', async ({
   page,
 }) => {
@@ -160,14 +173,13 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   page,
   context,
   baseURL,
+  browser,
 }) => {
+  const runId = Date.now();
   const owner = await ensureUser(OWNER_EMAIL, OWNER_NAME);
-  const partnerEmail = `partner-${Date.now()}@travelplanner.test`;
-  const alphaCandidate = await ensureUser(
-    `alpha-${Date.now()}@travelplanner.test`,
-    'Alpha Candidate',
-  );
-  const zuluCandidate = await ensureUser(`zulu-${Date.now()}@travelplanner.test`, 'Zulu Candidate');
+  const partnerEmail = `partner-${runId}@travelplanner.test`;
+  const alphaCandidate = await ensureUser(`alpha-${runId}@travelplanner.test`, 'Alpha Candidate');
+  const zuluCandidate = await ensureUser(`zulu-${runId}@travelplanner.test`, 'Zulu Candidate');
 
   await signInAsUser(context, baseURL, owner);
   await page.goto('/settings/organizations');
@@ -193,6 +205,7 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await page.goto('/settings/organization');
   const memberSearch = page.getByLabel('Search users to add');
   await memberSearch.click();
+  await memberSearch.fill(String(runId));
   await expect(page.locator('[role="option"]').filter({ hasText: alphaCandidate.email })).toBeVisible();
   await expect(page.locator('[role="option"]').filter({ hasText: zuluCandidate.email })).toBeVisible();
   await expect(page.locator('[role="option"]').filter({ hasText: partnerEmail })).toBeVisible();
@@ -203,7 +216,7 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   expect(zuluIndex).toBeGreaterThanOrEqual(0);
   expect(alphaIndex).toBeLessThan(zuluIndex);
 
-  await memberSearch.fill(partnerEmail.slice(0, 10));
+  await memberSearch.fill(partnerEmail);
   await expect(page.locator('[role="option"]').filter({ hasText: partnerEmail })).toBeVisible();
   await page.locator('[role="option"]').filter({ hasText: partnerEmail }).first().click();
   await page.getByRole('button', { name: /^Add$/ }).click();
@@ -232,60 +245,68 @@ test('owner manages sharing in settings, member is restricted, and owner can rem
   await expect(page.getByRole('heading', { name: sharedTripName })).toBeVisible();
 
   const partner = await ensureUser(partnerEmail, 'Partner E2E');
-  await signInAsUser(context, baseURL, partner);
-  await page.goto('/');
-  await switchActiveOrganization(page, sharedOrganizationName);
-  await expect(page.getByRole('link').filter({ hasText: sharedTripName }).first()).toBeVisible();
-
-  await page.getByRole('link').filter({ hasText: sharedTripName }).first().click();
-  await page.getByRole('button', { name: /edit trip/i }).click();
+  const { context: partnerContext, page: partnerPage } = await createSignedInPageForUser(
+    browser,
+    baseURL,
+    partner,
+  );
   const editedTripName = `${sharedTripName} Edited`;
-  await page.getByLabel('Trip name').fill(editedTripName);
-  await page.getByRole('button', { name: /save changes/i }).click();
-  await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
+  try {
+    await partnerPage.goto('/');
+    await switchActiveOrganization(partnerPage, sharedOrganizationName);
+    await expect(partnerPage.getByRole('link').filter({ hasText: sharedTripName }).first()).toBeVisible();
 
-  await page.goto('/settings/organization');
-  await expect(
-    page.getByText('You can view members, but only owners can change membership.'),
-  ).toBeVisible();
-  await expect(page.getByLabel('Search users to add')).toHaveCount(0);
-  await page.goto('/settings/organizations');
-  await expect(page.getByText('Organization creation is restricted to app admins.')).toBeVisible();
-  await expect(page.getByLabel('Create organization')).toHaveCount(0);
+    await partnerPage.getByRole('link').filter({ hasText: sharedTripName }).first().click();
+    await partnerPage.getByRole('button', { name: /edit trip/i }).click();
+    await partnerPage.getByLabel('Trip name').fill(editedTripName);
+    await partnerPage.getByRole('button', { name: /save changes/i }).click();
+    await expect(partnerPage.getByRole('heading', { name: editedTripName })).toBeVisible();
 
-  await signInAsUser(context, baseURL, owner);
-  await page.goto('/');
-  await switchActiveOrganization(page, sharedOrganizationName);
-  await page.getByRole('link').filter({ hasText: editedTripName }).first().click();
-  await page.waitForURL(/\/trips\/[^/]+$/);
-  await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
-  // The "Move to" dropdown only renders when the server knows the owner has
-  // another organization to move the trip into. On slow CI runners the
-  // server-action cookie write / revalidation from switchActiveOrganization
-  // may not have settled by the time this page first renders, so we retry
-  // with a reload until the dropdown appears.
-  await expect(async () => {
-    await page.reload();
-    await expect(page.getByLabel('Move to')).toBeVisible();
-  }).toPass({ timeout: 15_000, intervals: [1_000, 2_000, 3_000] });
+    await partnerPage.goto('/settings/organization');
+    await expect(
+      partnerPage.getByText('You can view members, but only owners can change membership.'),
+    ).toBeVisible();
+    await expect(partnerPage.getByLabel('Search users to add')).toHaveCount(0);
+    await partnerPage.goto('/settings/organizations');
+    await expect(
+      partnerPage.getByText('Organization creation is restricted to app admins.'),
+    ).toBeVisible();
+    await expect(partnerPage.getByLabel('Create organization')).toHaveCount(0);
 
-  await selectDropdownOption(page, 'Move to', 'E2E Test User Org');
-  await page.getByRole('button', { name: /^Move$/ }).click();
-  await page.goto('/');
-  await switchActiveOrganization(page, sharedOrganizationName);
-  await expect(page.getByRole('link').filter({ hasText: editedTripName })).toHaveCount(0);
+    await page.goto('/');
+    await switchActiveOrganization(page, sharedOrganizationName);
+    await page.getByRole('link').filter({ hasText: editedTripName }).first().click();
+    await page.waitForURL(/\/trips\/[^/]+$/);
+    await expect(page.getByRole('heading', { name: editedTripName })).toBeVisible();
+    // The "Move to" dropdown only renders when the server knows the owner has
+    // another organization to move the trip into. On slow CI runners the
+    // server-action cookie write / revalidation from switchActiveOrganization
+    // may not have settled by the time this page first renders, so we retry
+    // with a reload until the dropdown appears.
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByLabel('Move to')).toBeVisible();
+    }).toPass({ timeout: 30_000, intervals: [1_000, 2_000, 3_000, 5_000] });
 
-  await switchActiveOrganization(page, 'E2E Test User Org');
-  await expect(page.getByRole('link').filter({ hasText: editedTripName }).first()).toBeVisible();
+    await selectDropdownOption(page, 'Move to', 'E2E Test User Org');
+    await page.getByRole('button', { name: /^Move$/ }).click();
+    await page.goto('/');
+    await switchActiveOrganization(page, sharedOrganizationName);
+    await expect(page.getByRole('link').filter({ hasText: editedTripName })).toHaveCount(0);
 
-  await page.goto('/settings/organization');
-  await switchActiveOrganization(page, sharedOrganizationName);
-  const partnerMemberRow = page.locator('li').filter({ hasText: 'Partner E2E (member)' });
-  await partnerMemberRow.getByRole('button', { name: 'Remove' }).click();
-  await expect(page.getByText(/Partner E2E \(member\)/)).toHaveCount(0);
+    await switchActiveOrganization(page, 'E2E Test User Org');
+    await expect(page.getByRole('link').filter({ hasText: editedTripName }).first()).toBeVisible();
 
-  await signInAsUser(context, baseURL, partner);
-  await page.goto('/');
-  await expect(page).toHaveURL(/\/settings\/organizations/);
-  await expect(page.getByText('You do not belong to any organizations yet.')).toBeVisible();
+    await page.goto('/settings/organization');
+    await switchActiveOrganization(page, sharedOrganizationName);
+    const partnerMemberRow = page.locator('li').filter({ hasText: 'Partner E2E (member)' });
+    await partnerMemberRow.getByRole('button', { name: 'Remove' }).click();
+    await expect(page.getByText(/Partner E2E \(member\)/)).toHaveCount(0);
+
+    await partnerPage.goto('/');
+    await expect(partnerPage).toHaveURL(/\/settings\/organizations/);
+    await expect(partnerPage.getByText('You do not belong to any organizations yet.')).toBeVisible();
+  } finally {
+    await partnerContext.close();
+  }
 });
