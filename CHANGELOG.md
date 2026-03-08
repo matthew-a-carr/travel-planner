@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.8.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.7.0...v1.8.0) (2026-03-08)
+
+
+### Features
+
+* **auth:** implement admin user deletion with soft delete and anonymization ([1378b8f](https://github.com/matthew-a-carr/travel-planner/commit/1378b8f3a2eff635c014798c5a334969a8dae31d))
+* **auth:** implement closed access onboarding with resend invite delivery ([373bd73](https://github.com/matthew-a-carr/travel-planner/commit/373bd736e4d97275276814d6648acb9098e9a782))
+
+
+### Bug Fixes
+
+* **email:** enforce strict vercel env contract for resend ([391f740](https://github.com/matthew-a-carr/travel-planner/commit/391f7401ed380336285dd1f227b0fbc02696f23c))
+* **email:** fail loudly on production resend misconfiguration ([52af59b](https://github.com/matthew-a-carr/travel-planner/commit/52af59bf86e4d263c7ba1136edae69ec00af04d5))
+
 ## [Unreleased]
 
 ### Added
