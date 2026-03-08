@@ -6,7 +6,11 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { db } from '../db/client';
 import * as schema from '../db/schema';
-import { decideSignInAccess, syncUserAccessOnSignIn } from './access-policy';
+import {
+  decideSignInAccess,
+  normalizeEmail,
+  syncUserAccessOnSignIn,
+} from './access-policy';
 import { authConfig } from './auth.config';
 import { isGoogleEmailVerified } from './google-email-verification';
 import { isDevLocalLoginEnabled, isGoogleConfigured } from './provider-availability';
@@ -132,12 +136,14 @@ function buildProviders() {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   providers: buildProviders(),
-  adapter: DrizzleAdapter(db, {
-    usersTable: schema.users,
-    accountsTable: schema.accounts,
-    sessionsTable: schema.sessions,
-    verificationTokensTable: schema.verificationTokens,
-  }),
+  adapter: createCanonicalEmailAdapter(
+    DrizzleAdapter(db, {
+      usersTable: schema.users,
+      accountsTable: schema.accounts,
+      sessionsTable: schema.sessions,
+      verificationTokensTable: schema.verificationTokens,
+    }),
+  ),
   events: {
     async signIn({ user }) {
       if (!user.id) return;
@@ -192,3 +198,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
+
+function createCanonicalEmailAdapter(adapter: Adapter): Adapter {
+  return {
+    ...adapter,
+    async createUser(user) {
+      const normalizedEmail = normalizeEmail(user.email);
+      return adapter.createUser({
+        ...user,
+        email: normalizedEmail ?? user.email,
+      });
+    },
+    async updateUser(user) {
+      const normalizedEmail = normalizeEmail(user.email);
+      return adapter.updateUser({
+        ...user,
+        email: normalizedEmail ?? user.email,
+      });
+    },
+    async getUserByEmail(email) {
+      const normalizedEmail = normalizeEmail(email);
+      if (normalizedEmail) return adapter.getUserByEmail(normalizedEmail);
+      return adapter.getUserByEmail(email);
+    },
+  } satisfies Adapter;
+}
