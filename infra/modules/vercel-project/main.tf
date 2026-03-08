@@ -5,10 +5,10 @@ locals {
 }
 
 resource "vercel_project" "this" {
-  team_id       = var.team_id
-  name          = var.project_name
-  framework     = var.framework
-  build_command = var.build_command
+  team_id                                           = var.team_id
+  name                                              = var.project_name
+  framework                                         = var.framework
+  build_command                                     = var.build_command
   automatically_expose_system_environment_variables = true
 
   git_repository = {

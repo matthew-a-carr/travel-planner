@@ -14,6 +14,9 @@
 
 set -euo pipefail
 
+echo "pre-push: ensuring Terraform formatting…"
+terraform fmt -recursive
+
 echo "pre-push: running lint…"
 pnpm lint
 
