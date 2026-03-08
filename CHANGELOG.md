@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.8.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.8.0...v1.8.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* **auth:** canonicalize adapter callbacks ([663a559](https://github.com/matthew-a-carr/travel-planner/commit/663a559341242d73678046eda801f0cd5e3e2e7c))
+* **auth:** normalize emails for oauth linking ([02fe0f0](https://github.com/matthew-a-carr/travel-planner/commit/02fe0f0af7813e0975a23c3ad557990a0d7aac8e))
+* **sso:** fix sso account linking ([#27](https://github.com/matthew-a-carr/travel-planner/issues/27)) ([48ccbb2](https://github.com/matthew-a-carr/travel-planner/commit/48ccbb20ff37d3bd02227597910dd3e516a919db))
+
 ## [1.8.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.7.0...v1.8.0) (2026-03-08)
 
 
