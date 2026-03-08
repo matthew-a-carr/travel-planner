@@ -196,25 +196,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 });
 
-type CreateUserInput = Parameters<Adapter['createUser']>[0];
-type UpdateUserInput = Parameters<Adapter['updateUser']>[0];
-type GetUserByEmailArg = Parameters<Adapter['getUserByEmail']>[0];
+type CreateUserAdapterFn = NonNullable<Adapter['createUser']>;
+type UpdateUserAdapterFn = NonNullable<Adapter['updateUser']>;
+type GetUserByEmailAdapterFn = NonNullable<Adapter['getUserByEmail']>;
+type CreateUserInput = Parameters<CreateUserAdapterFn>[0];
+type UpdateUserInput = Parameters<UpdateUserAdapterFn>[0];
+type GetUserByEmailArg = Parameters<GetUserByEmailAdapterFn>[0];
 
 function createCanonicalEmailAdapter(adapter: Adapter): Adapter {
-  const getMethod = <K extends keyof Adapter>(name: K): NonNullable<Adapter[K]> => {
-    const method = adapter[name];
-    if (!method || typeof method !== 'function') {
-      throw new Error(`Adapter missing ${String(name)}`);
-    }
-    return method as NonNullable<Adapter[K]>;
-  };
-
   return {
     ...adapter,
 
     async createUser(user: CreateUserInput) {
       const normalizedEmail = normalizeEmail(user.email);
-      const createUserFn = getMethod('createUser');
+      const createUserFn = adapter.createUser;
+      if (!createUserFn) throw new Error('Adapter missing createUser');
       return createUserFn({
         ...user,
         email: normalizedEmail ?? user.email,
@@ -223,7 +219,8 @@ function createCanonicalEmailAdapter(adapter: Adapter): Adapter {
 
     async updateUser(user: UpdateUserInput) {
       const normalizedEmail = normalizeEmail(user.email);
-      const updateUserFn = getMethod('updateUser');
+      const updateUserFn = adapter.updateUser;
+      if (!updateUserFn) throw new Error('Adapter missing updateUser');
       return updateUserFn({
         ...user,
         email: normalizedEmail ?? user.email,
@@ -232,7 +229,8 @@ function createCanonicalEmailAdapter(adapter: Adapter): Adapter {
 
     async getUserByEmail(email: GetUserByEmailArg) {
       const normalizedEmail = normalizeEmail(email);
-      const getByEmailFn = getMethod('getUserByEmail');
+      const getByEmailFn = adapter.getUserByEmail;
+      if (!getByEmailFn) throw new Error('Adapter missing getUserByEmail');
       if (normalizedEmail) return getByEmailFn(normalizedEmail);
       return getByEmailFn(email);
     },
