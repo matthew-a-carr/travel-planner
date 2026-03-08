@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#
+# Git pre-commit hook — runs before every `git commit`.
+# Ensures Terraform stacks are formatted before introducing changes.
+
+set -euo pipefail
+
+echo "pre-commit: formatting Terraform..."
+terraform fmt -recursive
