@@ -64,10 +64,7 @@ async function linkOAuthAccount(
 }
 
 async function getLinkedAccounts(db: Db, userId: string) {
-  return db
-    .select()
-    .from(schema.accounts)
-    .where(eq(schema.accounts.userId, userId));
+  return db.select().from(schema.accounts).where(eq(schema.accounts.userId, userId));
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
