@@ -25,7 +25,6 @@ function resolveFromName(env: Partial<NodeJS.ProcessEnv>): string {
 
 function resolveResendApiKey(env: Partial<NodeJS.ProcessEnv>): string | null {
   if (isConfiguredValue(env.RESEND_API_KEY)) return env.RESEND_API_KEY;
-  if (isConfiguredValue(env.RESEND_API_KEY_PRODUCTION)) return env.RESEND_API_KEY_PRODUCTION;
   return null;
 }
 
@@ -34,7 +33,7 @@ export function createInviteEmailService(
 ): InviteEmailService {
   const fromAddress = resolveFromAddress(env);
   const fromName = resolveFromName(env);
-  const environment = env.VERCEL_ENV ?? env.NODE_ENV ?? 'unknown';
+  const environment = env.VERCEL_ENV ?? 'unknown';
   const isVercelProduction = env.VERCEL_ENV === 'production';
   const resendApiKey = resolveResendApiKey(env);
 

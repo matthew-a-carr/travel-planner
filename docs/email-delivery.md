@@ -52,16 +52,19 @@ dig TXT _dmarc.matthewcarr.dev +short
 
 ## Environment Variables
 
+- `VERCEL_ENV` (Vercel system environment variable; must resolve to
+  `production` for real sends)
 - `RESEND_API_KEY` (required only for production sending)
-- `RESEND_API_KEY_PRODUCTION` (compatibility fallback read by app runtime if
-  `RESEND_API_KEY` is absent; prefer `RESEND_API_KEY`)
 - `EMAIL_FROM_ADDRESS` (default `hello@mail.matthewcarr.dev`)
 - `EMAIL_FROM_NAME` (default `Travel Planner`)
 
 Terraform-managed production variables:
 
-- `RESEND_API_KEY_PRODUCTION` (GitHub secret consumed by infra workflow)
+- `RESEND_API_KEY` (GitHub secret consumed by infra workflow)
 - runtime env mappings in `infra/stacks/prod/`
+- Vercel project setting
+  `automatically_expose_system_environment_variables = true` ensures
+  `VERCEL_ENV` is available at runtime
 
 ## Template System (Consistent Base Layout)
 

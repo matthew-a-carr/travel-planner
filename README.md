@@ -95,7 +95,6 @@ AUTH_URL=http://localhost:3000
 AUTH_TRUST_HOST=true      # trust host headers (required for Vercel preview domains)
 AUTH_ENABLE_LOCAL_DEV=false
 RESEND_API_KEY=           # Resend API key (required in Vercel production)
-RESEND_API_KEY_PRODUCTION= # optional compatibility fallback; prefer RESEND_API_KEY
 EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
 EMAIL_FROM_NAME=Travel Planner
 ```

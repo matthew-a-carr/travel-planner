@@ -274,8 +274,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
     production fallback
   - runtime now emits `email_provider_misconfigured` and returns invite send
     failure to the calling use case
-  - `RESEND_API_KEY_PRODUCTION` is accepted as a compatibility fallback when
-    `RESEND_API_KEY` is missing
+  - provider routing now uses a strict Vercel contract only:
+    `VERCEL_ENV=production` + `RESEND_API_KEY`
 - Auth access checks now normalize and compare email addresses more robustly
   (trim + lowercase, Gmail alias canonicalization) to prevent false
   `AccessDenied` responses for allowed users.
