@@ -87,3 +87,19 @@ variable "neon_region_id" {
   type        = string
   default     = null
 }
+
+variable "sentry_auth_token" {
+  description = "Sentry auth token used by Terraform provider and as build-time SENTRY_AUTH_TOKEN for source map upload."
+  type        = string
+  sensitive   = true
+}
+
+variable "sentry_org" {
+  description = "Sentry organisation slug."
+  type        = string
+}
+
+variable "sentry_team" {
+  description = "Sentry team slug to assign to the project."
+  type        = string
+}

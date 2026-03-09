@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -15,4 +16,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Suppress noisy SDK logs outside CI to keep local dev output clean.
+  silent: !process.env.CI,
+
+  // Upload source maps for dependencies and Next.js internals too.
+  widenClientFileUpload: true,
+
+  // Source maps are uploaded then automatically deleted from the build
+  // output (deleteSourcemapsAfterUpload defaults to true) so they are
+  // never served to end users.
+
+  // Sentry org/project are read from SENTRY_ORG and SENTRY_PROJECT env vars
+  // automatically by the Sentry webpack plugin.
+});
+

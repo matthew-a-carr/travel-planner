@@ -28,6 +28,9 @@ jobs:
       TF_VAR_auth_google_secret: ${{ secrets.AUTH_GOOGLE_SECRET_PRODUCTION }}
       TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
       TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
+      TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      TF_VAR_sentry_org: ${{ vars.SENTRY_ORG }}
+      TF_VAR_sentry_team: ${{ vars.SENTRY_TEAM }}
     steps:
       - uses: actions/checkout@v6
 

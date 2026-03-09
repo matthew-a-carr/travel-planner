@@ -33,6 +33,15 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ### Added
 
 * **auth:** Admins can delete users (soft delete with anonymization, preserving organization data)
+* **infra:** Sentry error monitoring and performance tracing (ADR 032):
+  - `@sentry/nextjs` SDK with client, server, and edge runtime initialisation
+  - Terraform-managed Sentry project, issue alerts (new issue, regression,
+    reappeared, high error rate), and metric alert (error count threshold)
+  - Vercel env vars (`NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`,
+    `SENTRY_AUTH_TOKEN`) managed by Terraform in both prod and preview stacks
+  - New `infra/modules/sentry-project` reusable module
+  - CI workflows updated for Sentry secrets/variables
+  - Operational runbook at `docs/operations/sentry.md`
 
 ## [1.7.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.6.0...v1.7.0) (2026-03-07)
 

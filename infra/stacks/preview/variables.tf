@@ -51,3 +51,29 @@ variable "neon_region_id" {
   type        = string
   default     = null
 }
+
+variable "sentry_dsn_public" {
+  description = "Sentry public DSN to inject into preview deployments as NEXT_PUBLIC_SENTRY_DSN. Read from prod stack output after first apply."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_org" {
+  description = "Sentry organisation slug."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_project" {
+  description = "Sentry project slug."
+  type        = string
+  default     = ""
+}
+
+variable "sentry_auth_token" {
+  description = "Sentry auth token for build-time source map upload in preview deployments."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+

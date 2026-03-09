@@ -15,3 +15,9 @@ resend_api_key     = "replace-with-resend-api-key"
 # Optional email sender overrides
 # email_from_address = "hello@mail.matthewcarr.dev"
 # email_from_name    = "Travel Planner"
+
+# Sentry
+sentry_auth_token = "replace-with-sentry-auth-token" # Create at sentry.io → Settings → Auth Tokens (needs project:write + org:read)
+sentry_org        = "replace-with-sentry-org-slug"
+sentry_team       = "replace-with-sentry-team-slug"
+

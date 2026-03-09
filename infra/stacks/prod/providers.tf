@@ -11,6 +11,11 @@ terraform {
       source  = "kislerdm/neon"
       version = "= 0.13.0"
     }
+
+    sentry = {
+      source  = "jianyuan/sentry"
+      version = "~> 0.15"
+    }
   }
 
   backend "remote" {}
@@ -22,4 +27,8 @@ provider "vercel" {
 
 provider "neon" {
   api_key = var.neon_api_key
+}
+
+provider "sentry" {
+  token = var.sentry_auth_token
 }

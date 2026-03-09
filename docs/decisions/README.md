@@ -40,3 +40,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [029](029-closed-auth-invite-only-membership.md) | Closed Auth with Admin Pre-Provisioned Membership | 2026-03-07 | Accepted |
 | [030](030-resend-invite-email-delivery-via-di-provider-routing.md) | Resend Invite Email Delivery via DI Provider Routing | 2026-03-07 | Accepted |
 | [031](031-soft-delete-user-anonymization.md) | Soft Delete User with Anonymization | 2026-03-07 | Accepted |
+| [032](032-sentry-error-monitoring.md) | Sentry Error Monitoring | 2026-03-09 | Accepted |

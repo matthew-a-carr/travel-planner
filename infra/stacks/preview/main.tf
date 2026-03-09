@@ -96,3 +96,58 @@ resource "vercel_project_environment_variable" "preview_postgres" {
   git_branch = module.preview_branches.git_branch_names[each.key]
   comment    = "Managed by Terraform: Neon preview branch DB URL"
 }
+
+# ── Sentry environment variables ───────────────────────────────────────────────
+# These are only created when the Sentry variables are non-empty.
+# Run the prod stack apply first to get the DSN and project slug, then
+# set SENTRY_DSN_PUBLIC, SENTRY_ORG, SENTRY_PROJECT, SENTRY_AUTH_TOKEN
+# as GitHub variables/secrets before running the preview stack apply.
+
+resource "vercel_project_environment_variable" "preview_sentry_dsn" {
+  count = trimspace(var.sentry_dsn_public) == "" ? 0 : 1
+
+  team_id    = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_id = data.vercel_project.this.id
+  key        = "NEXT_PUBLIC_SENTRY_DSN"
+  value      = var.sentry_dsn_public
+  target     = ["preview"]
+  sensitive  = false
+  comment    = "Managed by Terraform: Sentry public DSN for preview error capture"
+}
+
+resource "vercel_project_environment_variable" "preview_sentry_org" {
+  count = trimspace(var.sentry_org) == "" ? 0 : 1
+
+  team_id    = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_id = data.vercel_project.this.id
+  key        = "SENTRY_ORG"
+  value      = var.sentry_org
+  target     = ["preview"]
+  sensitive  = false
+  comment    = "Managed by Terraform: Sentry organisation slug for preview source map upload"
+}
+
+resource "vercel_project_environment_variable" "preview_sentry_project" {
+  count = trimspace(var.sentry_project) == "" ? 0 : 1
+
+  team_id    = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_id = data.vercel_project.this.id
+  key        = "SENTRY_PROJECT"
+  value      = var.sentry_project
+  target     = ["preview"]
+  sensitive  = false
+  comment    = "Managed by Terraform: Sentry project slug for preview source map upload"
+}
+
+resource "vercel_project_environment_variable" "preview_sentry_auth_token" {
+  count = trimspace(var.sentry_auth_token) == "" ? 0 : 1
+
+  team_id    = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_id = data.vercel_project.this.id
+  key        = "SENTRY_AUTH_TOKEN"
+  value      = var.sentry_auth_token
+  target     = ["preview"]
+  sensitive  = true
+  comment    = "Managed by Terraform: Sentry auth token for build-time source map upload"
+}
+

@@ -6,6 +6,13 @@ module "neon" {
   region_id    = var.neon_region_id
 }
 
+module "sentry" {
+  source = "../../modules/sentry-project"
+
+  organization = var.sentry_org
+  team         = var.sentry_team
+}
+
 locals {
   production_environment_variables = [
     {
@@ -77,6 +84,34 @@ locals {
       target    = toset(["production"])
       sensitive = false
       comment   = "Managed by Terraform: invite email sender display name"
+    },
+    {
+      key       = "NEXT_PUBLIC_SENTRY_DSN"
+      value     = module.sentry.dsn_public
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: Sentry public DSN for client-side error capture"
+    },
+    {
+      key       = "SENTRY_ORG"
+      value     = var.sentry_org
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: Sentry organisation slug for source map upload"
+    },
+    {
+      key       = "SENTRY_PROJECT"
+      value     = module.sentry.project_slug
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: Sentry project slug for source map upload"
+    },
+    {
+      key       = "SENTRY_AUTH_TOKEN"
+      value     = var.sentry_auth_token
+      target    = toset(["production"])
+      sensitive = true
+      comment   = "Managed by Terraform: Sentry auth token for build-time source map upload"
     },
   ]
 }

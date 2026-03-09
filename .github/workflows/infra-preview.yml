@@ -28,6 +28,10 @@ jobs:
       TF_VAR_preview_auth_secret: ${{ secrets.AUTH_SECRET_PREVIEW }}
       TF_VAR_preview_auth_url: ${{ vars.PREVIEW_AUTH_URL }}
       TF_VAR_neon_region_id: ${{ vars.NEON_REGION_ID }}
+      TF_VAR_sentry_dsn_public: ${{ vars.SENTRY_DSN_PUBLIC }}
+      TF_VAR_sentry_org: ${{ vars.SENTRY_ORG }}
+      TF_VAR_sentry_project: ${{ vars.SENTRY_PROJECT }}
+      TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v6
 
