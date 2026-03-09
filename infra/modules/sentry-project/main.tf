@@ -162,14 +162,16 @@ resource "sentry_issue_alert" "high_error_rate" {
 # ── Metric Alert ──────────────────────────────────────────────────────────────
 
 # Metric alert: sustained error count threshold (50 errors in 5 minutes).
+# Note: environment scoping is done via query rather than the environment
+# attribute because Sentry environments are auto-created on first event
+# and may not exist when the project is first provisioned.
 resource "sentry_metric_alert" "error_count" {
   organization      = var.organization
   project           = sentry_project.this.slug
   name              = "Error count critical threshold - ${var.alert_environment}"
-  environment       = var.alert_environment
   dataset           = "events"
   aggregate         = "count()"
-  query             = ""
+  query             = "environment:${var.alert_environment}"
   time_window       = 5
   threshold_type    = 0
   resolve_threshold = 5
