@@ -50,6 +50,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 ### Added
 
 * **auth:** Admins can delete users (soft delete with anonymization, preserving organization data)
+* **fixed-costs:** add new fixed cost categories: eating-out, subscriptions, healthcare, visas
 * **infra:** Sentry error monitoring and performance tracing (ADR 032):
   - `@sentry/nextjs` SDK with client, server, and edge runtime initialisation
   - Terraform-managed Sentry project, issue alerts (new issue, regression,

@@ -21,6 +21,7 @@ src/infrastructure/
     types.ts                    ← typed app runtime dependencies
     create-app-container.ts     ← composition root for concrete repo construction
     create-test-app-container.ts ← test helper to build real container + overrides
+    container.test.ts           ← guards and verifications
     index.ts                    ← runtime singleton accessor (`getAppContainer`)
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
@@ -48,6 +49,9 @@ src/infrastructure/
     seed/
       country-reference-seed.ts  ← seed data for 33 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
+  testing/
+    global-setup.ts      ← global setup hook for integration tests
+    helpers.ts           ← shared setup/teardown test helpers
 ```
 
 ## Repository pattern

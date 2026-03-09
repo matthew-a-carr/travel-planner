@@ -238,6 +238,8 @@ the code change.
 | A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
+| Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
 **Signs a doc is stale:** it describes a tool, file, or behaviour that no longer
 exists; it omits a key file or command that does exist; its prerequisites or

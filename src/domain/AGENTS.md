@@ -41,6 +41,8 @@ src/domain/
     organization-repository.ts ← OrganizationRepository interface
   user-access/
     types.ts              ← app-level user access views (approval/admin/idp/org links)
+    delete-user.ts        ← domain constraints for soft-deletion
+    delete-user.test.ts
     user-access-repository.ts ← UserAccessRepository interface
 ```
 

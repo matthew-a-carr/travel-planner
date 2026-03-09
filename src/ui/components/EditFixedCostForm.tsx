@@ -7,13 +7,17 @@ import type { TripFixedCost } from '@/domain/trip/types';
 
 const FIXED_COST_CATEGORY_OPTIONS = [
   { value: 'accommodation', label: 'Accommodation' },
+  { value: 'activities', label: 'Activities' },
   { value: 'bills', label: 'Bills' },
+  { value: 'eating-out', label: 'Eating Out' },
   { value: 'fuel', label: 'Fuel' },
   { value: 'groceries', label: 'Groceries' },
+  { value: 'healthcare', label: 'Healthcare' },
   { value: 'insurance', label: 'Insurance' },
-  { value: 'transport', label: 'Transport' },
-  { value: 'activities', label: 'Activities' },
   { value: 'shopping', label: 'Shopping' },
+  { value: 'subscriptions', label: 'Subscriptions' },
+  { value: 'transport', label: 'Transport' },
+  { value: 'visas', label: 'Visas' },
   { value: 'other', label: 'Other' },
 ] as const;
 

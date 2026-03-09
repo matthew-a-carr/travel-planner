@@ -7,6 +7,7 @@ This directory manages production and preview infrastructure for Travel Planner.
 - `stacks/prod`: Production stack (state: `travel-planner-prod`)
 - `stacks/preview`: Preview stack (state: `travel-planner-preview`)
 - `modules/vercel-project`: Vercel project + domain + environment variables
+- `modules/sentry-project`: Sentry error tracking project and alerts
 - `modules/neon-project`: Neon project baseline
 - `modules/preview-branches`: Per-PR Neon branches/endpoints/roles/databases
 
