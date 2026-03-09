@@ -102,9 +102,9 @@ test.describe('Destination management', () => {
   });
 
   test('adding a destination reduces available budget', async ({ page }) => {
-    // Available was £44,000 (60,000 - 16,000 ringfenced)
-    // After adding Japan (£5,000) it should be £39,000
-    await expect(budgetOverviewCard(page)).toContainText(/£39,?000\.00/);
+    // Available was £41,500 (60,000 - 18,500 fixed costs)
+    // After adding Japan (£5,000) it should be £36,500
+    await expect(budgetOverviewCard(page)).toContainText(/£36,?500\.00/);
   });
 
   test('user cannot add a destination exceeding available budget', async ({ page }) => {
@@ -142,8 +142,8 @@ test.describe('Destination management', () => {
     await page.getByRole('button', { name: /save changes/i }).click();
 
     await expect(editDestinationButton(page, destinationName)).toBeVisible();
-    // Available budget unchanged at £39,000
-    await expect(budgetOverviewCard(page)).toContainText(/£39,?000\.00/);
+    // Available budget unchanged at £36,500
+    await expect(budgetOverviewCard(page)).toContainText(/£36,?500\.00/);
   });
 
   test('user cannot edit a destination to exceed available budget', async ({ page }) => {
@@ -171,7 +171,7 @@ test.describe('Destination management', () => {
       .click();
 
     await expect(editDestinationButton(page, destinationName)).not.toBeVisible();
-    // Available budget returns to £44,000
-    await expect(budgetOverviewCard(page)).toContainText(/£44,?000\.00/);
+    // Available budget returns to £41,500
+    await expect(budgetOverviewCard(page)).toContainText(/£41,?500\.00/);
   });
 });

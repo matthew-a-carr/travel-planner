@@ -147,9 +147,11 @@ test.describe('Fixed cost editing', () => {
     await editForm.getByRole('button', { name: /save changes/i }).click();
 
     // Verify the updated values appear in the row
-    await expect(page.getByText('Flights & Visa')).toBeVisible();
-    await expect(page.getByText('£18,000.00')).toBeVisible();
-    await expect(page.getByText('transport')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /remove fixed cost: flights & visa/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/£18,?000\.00/).first()).toBeVisible();
+    await expect(page.getByText('transport').first()).toBeVisible();
   });
 
   test('user can add a fixed cost with a specific category', async ({ page }) => {
@@ -162,7 +164,9 @@ test.describe('Fixed cost editing', () => {
     await fixedCostForm.locator('#fc-category').selectOption('insurance');
     await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
 
-    await expect(page.getByText('Travel Insurance')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /remove fixed cost: travel insurance/i }),
+    ).toBeVisible();
   });
 
   test('category breakdown shows correct totals', async ({ page }) => {
