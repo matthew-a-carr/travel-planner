@@ -128,7 +128,8 @@ export function FixedCostSection({
                 name="date"
                 type="date"
                 defaultValue={today}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+                onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                className="mt-1 block w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -179,17 +180,17 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{fixedCost.label}</p>
           <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
             <span>{formatMoney(fixedCost.amount)}</span>
-            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize dark:bg-zinc-800">
+            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs capitalize text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
               {fixedCost.category}
             </span>
-            <span className="text-xs text-zinc-400">{dateStr}</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{dateStr}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowEditForm(true)}
-            aria-label={`Edit ${fixedCost.label}`}
+            aria-label={`Edit fixed cost: ${fixedCost.label}`}
             className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             Edit
@@ -207,7 +208,7 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
                 }
               });
             }}
-            aria-label={`Remove ${fixedCost.label}`}
+            aria-label={`Remove fixed cost: ${fixedCost.label}`}
             className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-500/10"
           >
             {isPending ? '…' : 'Remove'}

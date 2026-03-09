@@ -54,7 +54,7 @@ function budgetOverviewCard(page: Page) {
 }
 
 function primaryDestinationEditButton(page: Page) {
-  return page.getByRole('button', { name: /^edit (?!trip)/i }).first();
+  return page.getByRole('button', { name: /^edit (?!trip|fixed cost:|spend entry:)/i }).first();
 }
 
 async function findExistingDestinationName(page: Page, ...candidateNames: string[]) {

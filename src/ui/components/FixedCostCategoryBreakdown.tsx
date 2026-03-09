@@ -22,10 +22,10 @@ export function FixedCostCategoryBreakdown({ data }: { data: CategoryRow[] }) {
           <li key={row.category} className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-200">
               <span className="capitalize">{row.category}</span>
-              <span className="text-xs text-zinc-400">({row.count})</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">({row.count})</span>
             </span>
             <span className="flex items-center gap-3">
-              <span className="text-xs text-zinc-500">{row.percentage}%</span>
+              <span className="text-xs text-zinc-600 dark:text-zinc-400">{row.percentage}%</span>
               <span className="font-medium text-zinc-900 dark:text-zinc-100 w-20 text-right">
                 {formatMoney({ amountPence: row.amountPence, currency: 'GBP' })}
               </span>

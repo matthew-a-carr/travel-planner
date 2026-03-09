@@ -118,7 +118,8 @@ export function EditFixedCostForm({
             type="date"
             required
             defaultValue={defaultDate}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+            onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+            className="mt-1 block w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
       </div>

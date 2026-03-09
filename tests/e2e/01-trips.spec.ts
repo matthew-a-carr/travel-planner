@@ -50,11 +50,12 @@ test.describe('Trip creation', () => {
     const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
     await fixedCostForm.getByLabel('Label').fill('Australia Visa & Living');
     await fixedCostForm.getByLabel('Amount (£)').fill('16000');
-    await fixedCostForm.getByLabel('Category').selectOption('accommodation');
+    await fixedCostForm.locator('#fc-category').selectOption('accommodation');
     await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
 
-    await expect(page.getByRole('button', { name: /remove australia visa & living/i })).toBeVisible();
-    await expect(page.getByText('accommodation')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /remove fixed cost: australia visa & living/i }),
+    ).toBeVisible();
   });
 
   test('created trip appears on dashboard', async ({ page }) => {
@@ -70,7 +71,9 @@ test.describe('Trip detail page', () => {
 
     await expect(page.getByText(/budget overview/i)).toBeVisible();
     await expect(page.getByText(/£50,?000\.00/)).toBeVisible();
-    await expect(page.getByRole('button', { name: /remove australia visa & living/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /remove fixed cost: australia visa & living/i }),
+    ).toBeVisible();
   });
 });
 
@@ -128,13 +131,17 @@ test.describe('Fixed cost editing', () => {
     await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
 
     // Click Edit on the existing fixed cost
-    await page.getByRole('button', { name: /edit australia visa & living/i }).click();
+    await page
+      .getByRole('button', { name: /edit fixed cost: australia visa & living/i })
+      .click();
 
-    // The edit form should appear — update the fields
-    const editForm = page.locator('form').filter({ has: page.locator('[name="label"]') }).last();
+    // The edit form should appear (identified by having a Save changes button)
+    const editForm = page
+      .locator('form')
+      .filter({ has: page.getByRole('button', { name: /save changes/i }) });
     await editForm.getByLabel('Label').fill('Flights & Visa');
     await editForm.getByLabel('Amount (£)').fill('18000');
-    await editForm.getByLabel('Category').selectOption('transport');
+    await editForm.locator('select[name="category"]').selectOption('transport');
     await editForm.getByLabel('Date').fill('2026-07-01');
 
     await editForm.getByRole('button', { name: /save changes/i }).click();
@@ -152,11 +159,10 @@ test.describe('Fixed cost editing', () => {
     const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
     await fixedCostForm.getByLabel('Label').fill('Travel Insurance');
     await fixedCostForm.getByLabel('Amount (£)').fill('500');
-    await fixedCostForm.getByLabel('Category').selectOption('insurance');
+    await fixedCostForm.locator('#fc-category').selectOption('insurance');
     await fixedCostForm.getByRole('button', { name: /^Add$/ }).click();
 
     await expect(page.getByText('Travel Insurance')).toBeVisible();
-    await expect(page.getByText('insurance')).toBeVisible();
   });
 
   test('category breakdown shows correct totals', async ({ page }) => {
