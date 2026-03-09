@@ -41,8 +41,8 @@ resource "sentry_issue_alert" "new_issue" {
 
   actions_v2 {
     notify_email {
-      target_type       = var.alert_notify_target_type
-      fallthrough_type  = "ActiveMembers"
+      target_type      = var.alert_notify_target_type
+      fallthrough_type = "ActiveMembers"
     }
   }
 }
@@ -71,8 +71,8 @@ resource "sentry_issue_alert" "regression" {
 
   actions_v2 {
     notify_email {
-      target_type       = var.alert_notify_target_type
-      fallthrough_type  = "ActiveMembers"
+      target_type      = var.alert_notify_target_type
+      fallthrough_type = "ActiveMembers"
     }
   }
 }
@@ -101,8 +101,8 @@ resource "sentry_issue_alert" "reappeared" {
 
   actions_v2 {
     notify_email {
-      target_type       = var.alert_notify_target_type
-      fallthrough_type  = "ActiveMembers"
+      target_type      = var.alert_notify_target_type
+      fallthrough_type = "ActiveMembers"
     }
   }
 }
@@ -135,8 +135,8 @@ resource "sentry_issue_alert" "high_error_rate" {
 
   actions_v2 {
     notify_email {
-      target_type       = var.alert_notify_target_type
-      fallthrough_type  = "ActiveMembers"
+      target_type      = var.alert_notify_target_type
+      fallthrough_type = "ActiveMembers"
     }
   }
 }
@@ -158,9 +158,9 @@ resource "sentry_metric_alert" "error_count" {
   threshold_type = 0 # 0 = above threshold (critical when count > threshold)
 
   trigger {
-    label            = "critical"
-    threshold_type   = 0 # above
-    alert_threshold  = 50
+    label             = "critical"
+    threshold_type    = 0 # above
+    alert_threshold   = 50
     resolve_threshold = 10
 
     action {
@@ -170,9 +170,9 @@ resource "sentry_metric_alert" "error_count" {
   }
 
   trigger {
-    label            = "warning"
-    threshold_type   = 0 # above
-    alert_threshold  = 20
+    label             = "warning"
+    threshold_type    = 0 # above
+    alert_threshold   = 20
     resolve_threshold = 5
 
     action {
