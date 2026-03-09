@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.9.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.8.1...v1.9.0) (2026-03-09)
+
+
+### Features
+
+* **fixed-costs:** add edit, categories, and date fields ([2ddd838](https://github.com/matthew-a-carr/travel-planner/commit/2ddd83810e9be2d4007133d43bc18600261003a0))
+* **infra:** add sentry error monitoring with terraform-managed project and alerts ([f88e38e](https://github.com/matthew-a-carr/travel-planner/commit/f88e38e3a96e633e3437426c6a759817d8769aab))
+
+
+### Bug Fixes
+
+* e2e test failures and date picker UX on Chrome desktop ([38f26c0](https://github.com/matthew-a-carr/travel-planner/commit/38f26c0e755ff7acfacbdc93cd3a14139eb228d4))
+* formatting terraform ([6b77c1c](https://github.com/matthew-a-carr/travel-planner/commit/6b77c1c0b91872a41b517056b2c92581540beb75))
+* **infra:** correct sentry provider version and resource syntax ([b0ef379](https://github.com/matthew-a-carr/travel-planner/commit/b0ef379059319b60e276bccfb1589d7a4607ba85))
+* **infra:** remove metric alert — requires team internal_id not available ([ad1df36](https://github.com/matthew-a-carr/travel-planner/commit/ad1df368975ad54dd5936e5765c5350489ffed5f))
+* **infra:** remove metric alert environment field for new sentry project ([62a289e](https://github.com/matthew-a-carr/travel-planner/commit/62a289efa2a99b9228e3b610e307d4e3d4df00b0))
+
 ## [1.8.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.8.0...v1.8.1) (2026-03-08)
 
 
