@@ -27,24 +27,28 @@ resource "sentry_issue_alert" "new_issue" {
   filter_match = "all"
   frequency    = 1440 # deduplicate per day
 
-  conditions_v2 {
-    first_seen_event {}
-  }
+  conditions_v2 = [
+    { first_seen_event = {} },
+  ]
 
-  filters_v2 {
-    tagged_event {
-      key   = "environment"
-      match = "eq"
-      value = var.alert_environment
-    }
-  }
+  filters_v2 = [
+    {
+      tagged_event = {
+        key   = "environment"
+        match = "EQUAL"
+        value = var.alert_environment
+      }
+    },
+  ]
 
-  actions_v2 {
-    notify_email {
-      target_type      = var.alert_notify_target_type
-      fallthrough_type = "ActiveMembers"
-    }
-  }
+  actions_v2 = [
+    {
+      notify_email = {
+        target_type      = var.alert_notify_target_type
+        fallthrough_type = "ActiveMembers"
+      }
+    },
+  ]
 }
 
 # Alert: a previously resolved issue has regressed in production.
@@ -57,24 +61,28 @@ resource "sentry_issue_alert" "regression" {
   filter_match = "all"
   frequency    = 60
 
-  conditions_v2 {
-    regression_event {}
-  }
+  conditions_v2 = [
+    { regression_event = {} },
+  ]
 
-  filters_v2 {
-    tagged_event {
-      key   = "environment"
-      match = "eq"
-      value = var.alert_environment
-    }
-  }
+  filters_v2 = [
+    {
+      tagged_event = {
+        key   = "environment"
+        match = "EQUAL"
+        value = var.alert_environment
+      }
+    },
+  ]
 
-  actions_v2 {
-    notify_email {
-      target_type      = var.alert_notify_target_type
-      fallthrough_type = "ActiveMembers"
-    }
-  }
+  actions_v2 = [
+    {
+      notify_email = {
+        target_type      = var.alert_notify_target_type
+        fallthrough_type = "ActiveMembers"
+      }
+    },
+  ]
 }
 
 # Alert: a previously ignored issue has reappeared in production.
@@ -87,24 +95,28 @@ resource "sentry_issue_alert" "reappeared" {
   filter_match = "all"
   frequency    = 60
 
-  conditions_v2 {
-    reappeared_event {}
-  }
+  conditions_v2 = [
+    { reappeared_event = {} },
+  ]
 
-  filters_v2 {
-    tagged_event {
-      key   = "environment"
-      match = "eq"
-      value = var.alert_environment
-    }
-  }
+  filters_v2 = [
+    {
+      tagged_event = {
+        key   = "environment"
+        match = "EQUAL"
+        value = var.alert_environment
+      }
+    },
+  ]
 
-  actions_v2 {
-    notify_email {
-      target_type      = var.alert_notify_target_type
-      fallthrough_type = "ActiveMembers"
-    }
-  }
+  actions_v2 = [
+    {
+      notify_email = {
+        target_type      = var.alert_notify_target_type
+        fallthrough_type = "ActiveMembers"
+      }
+    },
+  ]
 }
 
 # Alert: high error volume — more than 10 events in a 5-minute window.
@@ -117,68 +129,69 @@ resource "sentry_issue_alert" "high_error_rate" {
   filter_match = "all"
   frequency    = 60
 
-  conditions_v2 {
-    event_frequency {
-      comparison_type = "count"
-      value           = 10
-      interval        = "5m"
-    }
-  }
+  conditions_v2 = [
+    {
+      event_frequency = {
+        comparison_type = "count"
+        value           = 10
+        interval        = "5m"
+      }
+    },
+  ]
 
-  filters_v2 {
-    tagged_event {
-      key   = "environment"
-      match = "eq"
-      value = var.alert_environment
-    }
-  }
+  filters_v2 = [
+    {
+      tagged_event = {
+        key   = "environment"
+        match = "EQUAL"
+        value = var.alert_environment
+      }
+    },
+  ]
 
-  actions_v2 {
-    notify_email {
-      target_type      = var.alert_notify_target_type
-      fallthrough_type = "ActiveMembers"
-    }
-  }
+  actions_v2 = [
+    {
+      notify_email = {
+        target_type      = var.alert_notify_target_type
+        fallthrough_type = "ActiveMembers"
+      }
+    },
+  ]
 }
 
 # ── Metric Alert ──────────────────────────────────────────────────────────────
 
 # Metric alert: sustained error count threshold (50 errors in 5 minutes).
-# Fires when the production environment exceeds the critical threshold.
 resource "sentry_metric_alert" "error_count" {
-  organization = var.organization
-  project      = sentry_project.this.slug
-  name         = "Error count critical threshold — ${var.alert_environment}"
-  environment  = var.alert_environment
-
-  dataset        = "events"
-  aggregate      = "count()"
-  query          = "level:error"
-  time_window    = 5
-  threshold_type = 0 # 0 = above threshold (critical when count > threshold)
+  organization      = var.organization
+  project           = sentry_project.this.slug
+  name              = "Error count critical threshold - ${var.alert_environment}"
+  environment       = var.alert_environment
+  dataset           = "events"
+  aggregate         = "count()"
+  query             = ""
+  time_window       = 5
+  threshold_type    = 0
+  resolve_threshold = 5
 
   trigger {
-    label             = "critical"
-    threshold_type    = 0 # above
-    alert_threshold   = 50
-    resolve_threshold = 10
-
     action {
       type        = "email"
-      target_type = "user"
+      target_type = "team"
     }
+    alert_threshold = 50
+    label           = "critical"
+    threshold_type  = 0
   }
 
   trigger {
-    label             = "warning"
-    threshold_type    = 0 # above
-    alert_threshold   = 20
-    resolve_threshold = 5
-
     action {
       type        = "email"
-      target_type = "user"
+      target_type = "team"
     }
+    alert_threshold = 20
+    label           = "warning"
+    threshold_type  = 0
   }
 }
 
