@@ -47,6 +47,7 @@ test.describe('Trip creation', () => {
     await expect(page.getByRole('heading', { name: 'Test Round the World' })).toBeVisible();
 
     // Add a fixed cost on the trip detail page (ADR 005: fixed costs live here, not in the create form)
+    await page.getByRole('button', { name: /add fixed cost/i }).click();
     const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
     await fixedCostForm.getByLabel('Label').fill('Australia Visa & Living');
     await fixedCostForm.getByLabel('Amount (£)').fill('16000');
@@ -164,6 +165,7 @@ test.describe('Fixed cost editing', () => {
     await page.goto('/');
     await openExistingTrip(page, 'Big Adventure', 'Test Round the World');
 
+    await page.getByRole('button', { name: /add fixed cost/i }).click();
     const fixedCostForm = page.locator('form').filter({ has: page.locator('#fc-label') });
     await fixedCostForm.getByLabel('Label').fill('Travel Insurance');
     await fixedCostForm.getByLabel('Amount (£)').fill('500');
