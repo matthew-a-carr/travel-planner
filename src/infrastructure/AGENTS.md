@@ -2,16 +2,15 @@
 
 > Rules for `src/infrastructure/`. These add specificity to the root AGENTS.md.
 
-## Responsibilities
+## Hard rules
 
+- **May import from `domain/` and `application/` only.** Must NOT import from `ui/` or `src/app/`.
 - DB schema and Drizzle ORM configuration (`db/`)
 - Repository implementations (`db/repositories/`)
 - Auth.js configuration and adapters (`auth/`)
 - External API clients and adapters (for example Resend invite email delivery)
 
-## Import rules
-
-May import from `domain/` and `application/`. Must NOT import from `ui/` or `src/app/`.
+These rules are enforced by `src/__tests__/architecture.test.ts`. Violations break the test suite.
 
 ## Structure
 
@@ -21,6 +20,7 @@ src/infrastructure/
     types.ts                    ← typed app runtime dependencies
     create-app-container.ts     ← composition root for concrete repo construction
     create-test-app-container.ts ← test helper to build real container + overrides
+    container.test.ts           ← guards and verifications
     index.ts                    ← runtime singleton accessor (`getAppContainer`)
   auth/
     auth.config.ts       ← provider config (no DB, used in middleware)
@@ -46,8 +46,11 @@ src/infrastructure/
       drizzle-organization-repository.ts
       drizzle-user-access-repository.ts
     seed/
-      country-reference-seed.ts  ← seed data for 33 countries
+      country-list-seed.ts       ← generated seed data for ~200 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
+  testing/
+    global-setup.ts      ← global setup hook for integration tests
+    helpers.ts           ← shared setup/teardown test helpers
 ```
 
 ## Repository pattern

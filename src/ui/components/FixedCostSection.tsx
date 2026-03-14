@@ -9,13 +9,17 @@ import { EditFixedCostForm } from './EditFixedCostForm';
 
 const FIXED_COST_CATEGORY_OPTIONS = [
   { value: 'accommodation', label: 'Accommodation' },
+  { value: 'activities', label: 'Activities' },
   { value: 'bills', label: 'Bills' },
+  { value: 'eating-out', label: 'Eating Out' },
   { value: 'fuel', label: 'Fuel' },
   { value: 'groceries', label: 'Groceries' },
+  { value: 'healthcare', label: 'Healthcare' },
   { value: 'insurance', label: 'Insurance' },
-  { value: 'transport', label: 'Transport' },
-  { value: 'activities', label: 'Activities' },
   { value: 'shopping', label: 'Shopping' },
+  { value: 'subscriptions', label: 'Subscriptions' },
+  { value: 'transport', label: 'Transport' },
+  { value: 'visas', label: 'Visas' },
   { value: 'other', label: 'Other' },
 ] as const;
 
@@ -201,11 +205,8 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
             onClick={() => {
               setRemoveError(null);
               startTransition(async () => {
-                try {
-                  await removeFixedCostAction(tripId, fixedCost.id);
-                } catch {
-                  setRemoveError('Failed to remove. Please try again.');
-                }
+                const result = await removeFixedCostAction(tripId, fixedCost.id);
+                if (!result.ok) setRemoveError(result.error);
               });
             }}
             aria-label={`Remove fixed cost: ${fixedCost.label}`}

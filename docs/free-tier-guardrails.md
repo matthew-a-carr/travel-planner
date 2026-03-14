@@ -1,6 +1,6 @@
 # Free Tier Guardrails (No-Pay Strategy)
 
-Last reviewed: **March 6, 2026**
+Last reviewed: **March 14, 2026**
 
 Goal: keep this project running on free tiers and avoid accidental paid usage.
 

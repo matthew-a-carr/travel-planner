@@ -55,9 +55,9 @@ value never reaches a live server.
 
 - **CI** (`.github/workflows/ci.yml`): the `Build application` step sets
   `POSTGRES_URL=postgresql://build:build@localhost:5432/build` inline.
-- **Pre-push hook** (`.githooks/pre-push`): the build step uses
-  `POSTGRES_URL="${POSTGRES_URL:-postgresql://build:build@localhost:5432/build}"`,
-  falling back to the dummy only when no real URL is set.
+- **Local verification**: developers run
+  `POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build`
+  manually when validating the production build (see `AGENTS.md`).
 
 ### Important: do not remove the dummy URL
 
@@ -71,8 +71,8 @@ fails. If you see `Error: POSTGRES_URL environment variable is required` during
 
 - `next build` completes without a database, enabling CI to validate the production
   build before running the more expensive e2e suite.
-- The pre-push hook mirrors CI exactly: local pushes catch build failures before
-  they reach CI.
+- CI is the automated enforcement point for this pattern; local builds use the
+  same dummy URL via manual command.
 - Application code remains straightforward — no conditional build-time stubs or
   dynamic imports needed.
 - `auth/index.ts` uses the same `db` singleton as all repositories, eliminating a
@@ -80,10 +80,9 @@ fails. If you see `Error: POSTGRES_URL environment variable is required` during
 
 ### Negative / Trade-offs
 
-- The dummy URL must be kept in two places (CI workflow and pre-push hook). If
-  either is removed, build failures will reappear. The pre-push hook guards against
-  this locally, but there is no mechanical check that the CI workflow still has the
-  dummy URL.
+- The dummy URL must be kept in CI (and used locally when running `pnpm build`
+  manually). If the CI workflow loses the dummy URL, build failures will
+  reappear.
 - The pattern is non-obvious: a developer seeing `POSTGRES_URL=...build...` might
   think it is a mistake and remove it. This ADR exists to prevent that.
 
@@ -107,17 +106,13 @@ trade-off.
 Would remove the need for any URL but requires maintaining a separate schema
 bootstrap path. Ruled out due to complexity.
 
-## Current implementation note (2026-03-02)
+## Current implementation note (2026-03-14)
 
 The decision in this ADR remains accepted: `next build` still requires a
 syntactically-valid `POSTGRES_URL`, and CI still injects the dummy URL for the
 build step.
 
-Current operational behavior differs from some historical wording above:
-
-- The pre-push hook no longer runs `pnpm build`, so it does not apply the dummy
-  `POSTGRES_URL`.
-- Local verification of the build-time requirement is done via the manual
-  command documented in `AGENTS.md`:
+- The pre-push hook has been removed (see ADR 033). Local verification of the
+  build-time requirement is done via the manual command documented in `AGENTS.md`:
   `POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build`.
 - CI remains the automated enforcement point for this pattern.

@@ -53,13 +53,17 @@ export type SpendCategory =
 
 export type FixedCostCategory =
   | 'accommodation'
+  | 'activities'
   | 'bills'
+  | 'eating-out'
   | 'fuel'
   | 'groceries'
+  | 'healthcare'
   | 'insurance'
-  | 'transport'
-  | 'activities'
   | 'shopping'
+  | 'subscriptions'
+  | 'transport'
+  | 'visas'
   | 'other';
 
 // ─── Entities ──────────────────────────────────────────────────────────────────

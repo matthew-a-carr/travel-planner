@@ -1,7 +1,7 @@
 # ADR 004: Country Reference Data and Budget Suggestion Engine
 
 **Date:** 2026-02-23
-**Status:** Accepted
+**Status:** Partially superseded by ADR 034
 
 ## Context
 

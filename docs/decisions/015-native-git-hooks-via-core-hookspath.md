@@ -1,7 +1,10 @@
 # ADR 015: Native Git Hooks via `core.hooksPath`
 
 **Date:** 2026-03-01
-**Status:** Accepted
+**Status:** Superseded by ADR 033
+
+> **Note:** The pre-push hook described below has been removed. The `core.hooksPath`
+> mechanism and the pre-commit hook (Terraform formatting) remain active.
 
 ## Context
 

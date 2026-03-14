@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
 import { money } from '@/domain/trip/types';
@@ -45,7 +45,7 @@ export class DrizzleTripRepository implements TripRepository {
       .select()
       .from(trips)
       .where(eq(trips.organizationId, organizationId))
-      .orderBy(trips.createdAt);
+      .orderBy(desc(trips.createdAt));
     return rows.map(toTrip);
   }
 

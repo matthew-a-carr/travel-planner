@@ -6,6 +6,10 @@ import type { CountryReference } from './types';
 
 const japanRef: CountryReference = {
   country: 'Japan',
+  alpha2: 'JP',
+  alpha3: 'JPN',
+  region: 'Asia',
+  subregion: 'Eastern Asia',
   avgDailyCostPence: 8_000, // £80/day mid-range
   currency: 'GBP',
   source: 'manual',
@@ -13,6 +17,10 @@ const japanRef: CountryReference = {
 
 const thaiRef: CountryReference = {
   country: 'Thailand',
+  alpha2: 'TH',
+  alpha3: 'THA',
+  region: 'Asia',
+  subregion: 'South-Eastern Asia',
   avgDailyCostPence: 3_500, // £35/day mid-range
   currency: 'GBP',
   source: 'manual',

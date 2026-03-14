@@ -9,7 +9,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { countryReferenceData } from '../schema';
-import { COUNTRY_REFERENCE_SEED } from './country-reference-seed';
+import { COUNTRY_LIST_SEED } from './country-list-seed';
 
 async function seed() {
   const connectionString = process.env.POSTGRES_URL;
@@ -20,15 +20,29 @@ async function seed() {
   const sql = postgres(connectionString, { max: 1 });
   const db = drizzle(sql);
 
-  console.log(`Seeding ${COUNTRY_REFERENCE_SEED.length} country reference records...`);
+  console.log(`Seeding ${COUNTRY_LIST_SEED.length} country reference records...`);
 
-  for (const row of COUNTRY_REFERENCE_SEED) {
+  for (const row of COUNTRY_LIST_SEED) {
     await db
       .insert(countryReferenceData)
-      .values({ ...row, updatedAt: new Date() })
+      .values({
+        country: row.country,
+        alpha2: row.alpha2,
+        alpha3: row.alpha3,
+        region: row.region,
+        subregion: row.subregion,
+        avgDailyCostPence: row.avgDailyCostPence,
+        currency: row.currency,
+        source: row.source,
+        updatedAt: new Date(),
+      })
       .onConflictDoUpdate({
         target: countryReferenceData.country,
         set: {
+          alpha2: row.alpha2,
+          alpha3: row.alpha3,
+          region: row.region,
+          subregion: row.subregion,
           avgDailyCostPence: row.avgDailyCostPence,
           currency: row.currency,
           source: row.source,

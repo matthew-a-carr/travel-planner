@@ -15,8 +15,22 @@ pnpm test:unit          # Vitest unit tests (~1 s, no Docker)
 pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
 ```
 
-All five must exit 0. Do not push with failures. The pre-push hook runs these
-automatically, but run them manually to verify mid-task.
+All five must exit 0. Do not push with failures. CI is the hard gate — but
+running checks locally before pushing avoids unnecessary round-trips.
+
+### What to run based on what you changed
+
+| You changed… | Run before pushing |
+|---|---|
+| Anything in `src/` | `pnpm lint && pnpm type-check && pnpm test:unit` |
+| Domain logic (`src/domain/`) | `pnpm test:unit` (covers architecture tests too) |
+| Use cases or repositories | `pnpm test:unit && pnpm test:integration` |
+| DB schema or migrations | `pnpm db:check:migrations && pnpm test:integration` |
+| Terraform / infra (`infra/`) | `terraform fmt -check -recursive` |
+| CI config (`.github/workflows/`) | Verify in the PR — CI is self-testing |
+
+When in doubt, run the full suite. When making a small, scoped change, use the
+table above to run only what is relevant.
 
 Before pushing, also verify the production build:
 
@@ -204,7 +218,8 @@ Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
 Actions updates. Dev tooling is grouped into a single PR to reduce noise.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
-the build-time dummy POSTGRES_URL pattern, and ADR 028 for runtime composition-root DI.
+the build-time dummy POSTGRES_URL pattern, ADR 028 for runtime composition-root DI,
+and ADR 033 for the removal of the pre-push hook.
 
 ## Infra automation workflows
 
@@ -238,6 +253,8 @@ the code change.
 | A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
+| Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
 **Signs a doc is stale:** it describes a tool, file, or behaviour that no longer
 exists; it omits a key file or command that does exist; its prerequisites or

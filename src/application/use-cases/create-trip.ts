@@ -1,6 +1,6 @@
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
+import type { Currency, Result, Trip, TripStatus } from '@/domain/trip/types';
+import { money, ok } from '@/domain/trip/types';
 
 export type CreateTripInput = {
   organizationId: string;
@@ -10,7 +10,10 @@ export type CreateTripInput = {
   currency: Currency;
 };
 
-export async function createTrip(repo: TripRepository, input: CreateTripInput): Promise<Trip> {
+export async function createTrip(
+  repo: TripRepository,
+  input: CreateTripInput,
+): Promise<Result<Trip>> {
   const now = new Date();
   const status: TripStatus = 'planning';
 
@@ -25,5 +28,6 @@ export async function createTrip(repo: TripRepository, input: CreateTripInput): 
     updatedAt: now,
   };
 
-  return repo.save(trip);
+  const saved = await repo.save(trip);
+  return ok(saved);
 }

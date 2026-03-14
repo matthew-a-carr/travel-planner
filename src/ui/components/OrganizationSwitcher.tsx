@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { setActiveOrganizationAction } from '@/app/organizations/actions';
 
 type OrganizationOption = {
@@ -18,6 +18,7 @@ export function OrganizationSwitcher({
   activeOrganizationId: string;
 }) {
   const [isSwitching, startSwitching] = useTransition();
+  const [switchError, setSwitchError] = useState<string | null>(null);
   const router = useRouter();
 
   return (
@@ -32,8 +33,13 @@ export function OrganizationSwitcher({
         disabled={isSwitching}
         onChange={(event) => {
           const selectedOrganizationId = event.target.value;
+          setSwitchError(null);
           startSwitching(async () => {
-            await setActiveOrganizationAction(selectedOrganizationId);
+            const result = await setActiveOrganizationAction(selectedOrganizationId);
+            if (!result.ok) {
+              setSwitchError(result.error);
+              return;
+            }
             router.refresh();
           });
         }}
@@ -45,6 +51,7 @@ export function OrganizationSwitcher({
           </option>
         ))}
       </select>
+      {switchError && <p className="text-xs text-red-600">{switchError}</p>}
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { addOrganizationMember } from '@/application/use-cases/add-organization-member';
 import { removeOrganizationMember } from '@/application/use-cases/remove-organization-member';
 import { searchOrganizationMemberCandidates } from '@/application/use-cases/search-organization-member-candidates';
+import type { Result } from '@/domain/trip/types';
+import { err, ok } from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
@@ -67,10 +69,10 @@ export async function searchOrganizationMemberCandidatesAction(input: {
 export async function removeOrganizationMemberAction(
   organizationId: string,
   memberUserId: string,
-): Promise<void> {
+): Promise<Result<void>> {
   const context = await getAuthenticatedAccessContext();
-  if (!context) throw new Error('Unauthorized');
-  if (!context.activeOrganization) throw new Error('No organization membership');
+  if (!context) return err('Unauthorized');
+  if (!context.activeOrganization) return err('No organization membership');
 
   const { organizationRepository } = getAppContainer();
   const result = await removeOrganizationMember(organizationRepository, {
@@ -79,7 +81,8 @@ export async function removeOrganizationMemberAction(
     memberUserId,
   });
 
-  if (!result.ok) throw new Error(result.error);
+  if (!result.ok) return err(result.error);
   revalidatePath('/');
   revalidatePath('/settings/organization');
+  return ok(undefined);
 }

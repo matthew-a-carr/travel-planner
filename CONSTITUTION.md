@@ -34,11 +34,12 @@ The engineering harness consists of three things:
 
 ### Feedback loop for agents
 
-The pre-push hook enforces all checks automatically — you do not need to run them
-manually before pushing. The hook runs lint, type-check, unit tests, and integration
-tests (when Docker is available) in sequence on every `git push`.
+CI is the hard gate — all checks run automatically on every push and PR. Before
+pushing, run checks locally to avoid unnecessary CI round-trips. Use the
+change-aware verification table in `AGENTS.md` to determine which checks are
+relevant to your change.
 
-If you need to run checks manually (e.g. mid-task to verify progress):
+Full local verification (when in doubt):
 ```bash
 pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
 ```
@@ -97,6 +98,7 @@ Breaking them causes test failures. Do not use `// @ts-ignore` or similar to sil
 - **Domain functions are pure.** No side effects. No I/O. No `async`.
 - **Aggregates own their invariants.** A `Trip` enforces its own budget constraints.
 - **Repository interfaces live in `domain/`.** Implementations live in `infrastructure/`.
+- **Soft deleting.** Users can be soft-deleted and anonymized simultaneously.
 
 ### Sub-directory guidance
 
@@ -141,8 +143,8 @@ A feature is not done until its e2e test passes against a running application.
 - Use real repository implementations in integration tests; do not replace runtime
   repositories with test doubles.
 - The container is shared across all integration test files in a single `pnpm test:integration` run.
-- Docker is required. If Docker is unavailable locally, the pre-push hook skips integration
-  tests with a WARNING and CI runs them instead.
+- Docker is required. If Docker is unavailable locally, CI will catch integration
+  test failures on push.
 
 ### e2e test rules
 
@@ -155,7 +157,7 @@ A feature is not done until its e2e test passes against a running application.
 - Test files are numbered (`01-trips`, `02-destinations`, `03-spend`) to make the data
   dependency chain explicit. Authenticated tests use the session from `auth-state.json`;
   public tests override with `test.use({ storageState: { cookies: [], origins: [] } })`.
-- CI runs e2e in stage 2 (after lint/type-check/unit-test). Docker is available by default
+- CI runs e2e in parallel with lint, type-check, and unit tests. Docker is available by default
   on `ubuntu-latest` GitHub Actions runners — no extra service containers required.
 
 ---
@@ -247,6 +249,24 @@ When in doubt: if a real user would notice a difference, the changelog needs an 
 - `pnpm lint` must be clean before committing.
 - `pnpm run format` for auto-formatting.
 - Config in `biome.json`.
+
+### Doc review table
+
+| What changed? | Where to update? |
+|---|---|
+| CI pipeline (`.github/workflows/ci.yml`) | `AGENTS.md` CI section, relevant ADR, `CONSTITUTION.md` enforcement map |
+| Git hooks (`.githooks/`) | `AGENTS.md` verification section, `CONSTITUTION.md` feedback loop |
+| A use case (`src/application/use-cases/`) | `src/application/AGENTS.md` structure |
+| Domain functions or types (`src/domain/`) | `src/domain/AGENTS.md` structure |
+| Infrastructure repos or auth (`src/infrastructure/`) | `src/infrastructure/AGENTS.md` structure |
+| Environment variables | `AGENTS.md` env section, `README.md` setup section |
+| Runtime dependency wiring / DI container | `CONSTITUTION.md` enforcement map, `src/infrastructure/AGENTS.md`, ADR 028 |
+| Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
+| A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
+| ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
+| Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
+| Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
 ### Naming
 
@@ -348,3 +368,26 @@ Keep the context agents work with clean and signal-dense:
 - Do not leave `TODO` or `FIXME` comments in committed code — file an issue or create a task instead.
 - Keep files focused. If a file grows beyond ~200 lines, consider whether it has a single responsibility.
 - ADRs capture *decisions*, not implementation notes. Keep them concise.
+
+---
+
+## 10. Small Commits
+
+Commit early and commit often. Each commit should represent **one logical change**.
+
+### Rules
+
+- Prefer multiple small commits over one large commit.
+- Every commit must leave the codebase in a working state (tests pass, linter clean).
+- A commit that touches more than ~5 files or ~200 lines of production code is a
+  signal to split the work further.
+- Commit completed work before starting the next sub-task — do not batch unrelated
+  changes.
+- Small commits make code review, `git bisect`, cherry-picking, and rollback
+  significantly easier.
+
+### Why this matters
+
+Large commits obscure intent, make reviews cursory, and increase the blast radius
+of a revert. Frequent small pushes also give CI faster feedback and reduce merge
+conflict risk.

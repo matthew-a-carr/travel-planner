@@ -19,10 +19,12 @@ import type { TripRepository } from '@/domain/trip/trip-repository';
 import type {
   ComfortLevel,
   FixedCostCategory,
+  Result,
   SpendCategory,
   Trip,
   TripStatus,
 } from '@/domain/trip/types';
+import { err, ok } from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
@@ -32,6 +34,7 @@ const {
   destinationRepository: destRepo,
   tripFixedCostRepository: fixedCostRepo,
   spendEntryRepository: spendRepo,
+  countryReferenceRepository: countryRefRepo,
 } = getAppContainer();
 
 const TRIP_STATUSES: readonly TripStatus[] = ['planning', 'active', 'completed'];
@@ -53,13 +56,17 @@ const COMFORT_LEVELS: readonly ComfortLevel[] = ['budget', 'mid', 'luxury'];
 
 const FIXED_COST_CATEGORIES: readonly FixedCostCategory[] = [
   'accommodation',
+  'activities',
   'bills',
+  'eating-out',
   'fuel',
   'groceries',
+  'healthcare',
   'insurance',
-  'transport',
-  'activities',
   'shopping',
+  'subscriptions',
+  'transport',
+  'visas',
   'other',
 ];
 
@@ -75,11 +82,11 @@ function toComfortLevel(v: string): ComfortLevel | null {
   return (COMFORT_LEVELS as readonly string[]).includes(v) ? (v as ComfortLevel) : null;
 }
 
-async function getVerifiedUserId(): Promise<string> {
+async function getVerifiedUserId(): Promise<Result<string>> {
   const context = await getAuthenticatedAccessContext();
-  if (!context?.userId) throw new Error('Unauthorized');
-  if (!context.activeOrganization) throw new Error('No organization membership');
-  return context.userId;
+  if (!context?.userId) return err('Unauthorized');
+  if (!context.activeOrganization) return err('No organization membership');
+  return ok(context.userId);
 }
 
 async function getAccessibleTrip(
@@ -112,7 +119,9 @@ export async function editTripAction(
   _prev: EditTripState,
   formData: FormData,
 ): Promise<EditTripState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
+  const userId = userResult.value;
 
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
   if (!trip) return { error: 'Trip not found' };
@@ -161,9 +170,10 @@ export async function addFixedCostAction(
   _prev: FixedCostState,
   formData: FormData,
 ): Promise<FixedCostState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const label = formData.get('label');
@@ -200,15 +210,20 @@ export async function addFixedCostAction(
   return { error: null };
 }
 
-export async function removeFixedCostAction(tripId: string, fixedCostId: string): Promise<void> {
-  const userId = await getVerifiedUserId();
+export async function removeFixedCostAction(
+  tripId: string,
+  fixedCostId: string,
+): Promise<Result<void>> {
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return userResult;
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
-  if (!trip) throw new Error('Forbidden');
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
+  if (!trip) return err('Forbidden');
 
   await removeFixedCost(fixedCostRepo, fixedCostId);
 
   revalidatePath(`/trips/${tripId}`);
+  return ok(undefined);
 }
 
 export type EditFixedCostState = { error: string | null };
@@ -219,9 +234,10 @@ export async function editFixedCostAction(
   _prev: EditFixedCostState,
   formData: FormData,
 ): Promise<EditFixedCostState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const label = formData.get('label');
@@ -272,9 +288,10 @@ export async function addDestinationAction(
   _prev: AddDestinationState,
   formData: FormData,
 ): Promise<AddDestinationState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const name = formData.get('name');
@@ -290,6 +307,9 @@ export async function addDestinationAction(
   ) {
     return { error: 'Invalid form data' };
   }
+
+  const countryRef = await countryRefRepo.findByCountry(country.trim());
+  if (!countryRef) return { error: 'Please select a valid country from the list' };
 
   const estimatedBudgetPence = Math.round(Number.parseFloat(estimatedBudgetPounds) * 100);
   if (Number.isNaN(estimatedBudgetPence) || estimatedBudgetPence <= 0) {
@@ -326,9 +346,10 @@ export async function editDestinationAction(
   _prev: EditDestinationState,
   formData: FormData,
 ): Promise<EditDestinationState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const name = formData.get('name');
@@ -346,6 +367,9 @@ export async function editDestinationAction(
   }
   if (!name.trim()) return { error: 'Name is required' };
   if (!country.trim()) return { error: 'Country is required' };
+
+  const countryRef = await countryRefRepo.findByCountry(country.trim());
+  if (!countryRef) return { error: 'Please select a valid country from the list' };
 
   const estimatedBudgetPence = Math.round(Number.parseFloat(estimatedBudgetPounds) * 100);
   if (Number.isNaN(estimatedBudgetPence) || estimatedBudgetPence <= 0) {
@@ -378,15 +402,17 @@ export async function editDestinationAction(
 export async function removeDestinationAction(
   tripId: string,
   destinationId: string,
-): Promise<void> {
-  const userId = await getVerifiedUserId();
+): Promise<Result<void>> {
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return userResult;
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
-  if (!trip) throw new Error('Forbidden');
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
+  if (!trip) return err('Forbidden');
 
   await removeDestination(destRepo, destinationId);
 
   revalidatePath(`/trips/${tripId}`);
+  return ok(undefined);
 }
 
 // ─── Spend actions ────────────────────────────────────────────────────────────
@@ -399,9 +425,10 @@ export async function recordSpendAction(
   _prev: RecordSpendState,
   formData: FormData,
 ): Promise<RecordSpendState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const amountPounds = formData.get('amountPounds');
@@ -441,15 +468,20 @@ export async function recordSpendAction(
 
 // ─── Spend entry management actions ──────────────────────────────────────────
 
-export async function deleteSpendEntryAction(tripId: string, entryId: string): Promise<void> {
-  const userId = await getVerifiedUserId();
+export async function deleteSpendEntryAction(
+  tripId: string,
+  entryId: string,
+): Promise<Result<void>> {
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return userResult;
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
-  if (!trip) throw new Error('Forbidden');
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
+  if (!trip) return err('Forbidden');
 
   await deleteSpendEntry(spendRepo, entryId);
 
   revalidatePath(`/trips/${tripId}`);
+  return ok(undefined);
 }
 
 export type EditSpendEntryState = { error: string | null };
@@ -460,9 +492,10 @@ export async function editSpendEntryAction(
   _prev: EditSpendEntryState,
   formData: FormData,
 ): Promise<EditSpendEntryState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
 
-  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userId);
+  const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return { error: 'Trip not found' };
 
   const amountPounds = formData.get('amountPounds');
@@ -509,7 +542,9 @@ export async function deleteTripAction(
   _prev: DeleteTripState,
   _formData: FormData,
 ): Promise<DeleteTripState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
+  const userId = userResult.value;
 
   const result = await deleteTrip(tripRepo, organizationRepo, {
     actorUserId: userId,
@@ -526,7 +561,9 @@ export async function moveTripToOrganizationAction(
   _prev: MoveTripState,
   formData: FormData,
 ): Promise<MoveTripState> {
-  const userId = await getVerifiedUserId();
+  const userResult = await getVerifiedUserId();
+  if (!userResult.ok) return { error: userResult.error };
+  const userId = userResult.value;
   const targetOrganizationId = formData.get('targetOrganizationId');
   if (typeof targetOrganizationId !== 'string') return { error: 'Invalid form data' };
 

@@ -31,7 +31,7 @@ describe('createTrip', () => {
     const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
-    const trip = await createTrip(repo, {
+    const result = await createTrip(repo, {
       organizationId,
       ownerId,
       name: 'Round the World',
@@ -39,7 +39,9 @@ describe('createTrip', () => {
       currency: 'GBP',
     });
 
-    expect(trip.status).toBe('planning');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe('planning');
   });
 
   it('persists the trip and returns it with a generated id', async () => {
@@ -47,7 +49,7 @@ describe('createTrip', () => {
     const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
-    const trip = await createTrip(repo, {
+    const result = await createTrip(repo, {
       organizationId,
       ownerId,
       name: 'Asia Tour',
@@ -55,12 +57,14 @@ describe('createTrip', () => {
       currency: 'GBP',
     });
 
-    expect(trip.id).toBeTruthy();
-    expect(trip.name).toBe('Asia Tour');
-    expect(trip.totalBudget.amountPence).toBe(3_000_000);
-    expect(trip.totalBudget.currency).toBe('GBP');
-    expect(trip.organizationId).toBe(organizationId);
-    expect(trip.ownerId).toBe(ownerId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.id).toBeTruthy();
+    expect(result.value.name).toBe('Asia Tour');
+    expect(result.value.totalBudget.amountPence).toBe(3_000_000);
+    expect(result.value.totalBudget.currency).toBe('GBP');
+    expect(result.value.organizationId).toBe(organizationId);
+    expect(result.value.ownerId).toBe(ownerId);
   });
 
   it('is readable by findById after creation', async () => {
@@ -68,7 +72,7 @@ describe('createTrip', () => {
     const { id: organizationId } = await seedOrganization(db, ownerId);
     const repo = new DrizzleTripRepository(db);
 
-    const trip = await createTrip(repo, {
+    const result = await createTrip(repo, {
       organizationId,
       ownerId,
       name: 'Persisted Trip',
@@ -76,7 +80,9 @@ describe('createTrip', () => {
       currency: 'GBP',
     });
 
-    const found = await repo.findById(trip.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const found = await repo.findById(result.value.id);
     expect(found?.name).toBe('Persisted Trip');
   });
 });

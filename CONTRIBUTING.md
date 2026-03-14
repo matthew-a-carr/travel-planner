@@ -5,10 +5,10 @@ Internal team guide. See `CONSTITUTION.md` for the full engineering contract.
 ## Prerequisites
 
 | Tool | Version | Notes |
-|------|---------|-------|
+|---|---|---|
 | Node.js | 20 LTS | Use `nvm use` or `fnm use` if you have a version manager |
 | pnpm | 10 | `npm install -g pnpm@10` |
-| Docker | 24+ | Required for integration tests and E2E tests (Testcontainers) |
+| Docker | 24+ | Required for integration tests and e2e tests (Testcontainers) |
 
 ## First-time setup
 
@@ -34,7 +34,7 @@ pnpm dev
 ## Running tests
 
 | Command | What it runs | Docker required |
-|---------|-------------|-----------------|
+|---|---|---|
 | `pnpm test:unit` | Domain functions + architecture tests | No |
 | `pnpm test:integration` | Repository + use-case tests against a real Postgres DB | Yes |
 | `pnpm test` | All unit + integration tests | Yes |
@@ -50,36 +50,29 @@ container is shared across all integration test files in a single `pnpm test:int
 ### Test file naming convention
 
 | Suffix | Type | Docker | Example |
-|--------|------|--------|---------|
+|---|---|---|---|
 | `.test.ts` | Unit | No | `src/domain/trip/trip.test.ts` |
 | `.int-test.ts` | Integration | Yes | `src/application/use-cases/create-trip.int-test.ts` |
-| `.spec.ts` | E2E (Playwright) | Yes | `tests/e2e/01-trips.spec.ts` |
+| `.spec.ts` | e2e (Playwright) | Yes | `tests/e2e/01-trips.spec.ts` |
 
 The Vitest config uses file-suffix globs (`src/**/*.test.ts` / `src/**/*.int-test.ts`) so new
 integration test files are picked up automatically — no config change needed.
 See `docs/decisions/012-integration-test-naming-convention.md`.
 
-## Before pushing — pre-push hook
+## Before pushing
 
-A git pre-push hook in `.githooks/pre-push` runs automatically on every `git push` and
-blocks the push if any check fails:
+CI is the hard gate, but running relevant checks locally saves time. See the
+change-aware verification table in [`AGENTS.md`](./AGENTS.md) for which checks
+to run based on what you changed.
 
-1. `pnpm lint` — Biome, zero errors required
-2. `pnpm type-check` — TypeScript strict, zero errors required
-3. `pnpm test:unit` — unit tests, no Docker required
-4. `pnpm test:integration` — real-DB tests via Testcontainers (skipped with a warning if Docker is unavailable; CI always runs them)
-
-The hook is activated by the `prepare` npm lifecycle script, which runs on install:
+Full local verification (when in doubt):
 
 ```bash
-pnpm install   # installs deps AND runs: git config core.hooksPath .githooks
+pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
 ```
 
-**Bypass** (emergency only, requires team lead approval):
-
-```bash
-git push --no-verify
-```
+All checks must pass before pushing. CI runs the same checks (plus e2e and the
+production build) on every push and PR.
 
 ## Commit conventions
 
@@ -94,7 +87,7 @@ Every commit message on `main` must follow the format:
 [optional footer]
 ```
 
-Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`.
+Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `perf`.
 
 Breaking changes: append `!` after the type (`feat!:`) or add `BREAKING CHANGE:` in the footer.
 
@@ -108,18 +101,16 @@ Breaking changes: append `!` after the type (`feat!:`) or add `BREAKING CHANGE:`
 
 See `CONSTITUTION.md` for the full branch and review policy.
 
-## Release workflow
+## Changelog
 
-Releases are automated via [Release Please](https://github.com/googleapis/release-please).
+`CHANGELOG.md` must be updated with every commit that changes user-facing behaviour.
+The update must be part of the same commit — not a follow-up.
 
-1. Push conventional commits to `main` (via merged PRs)
-2. Release Please opens/updates a **"chore: release X.Y.Z"** PR that bumps `package.json`
-   and generates the CHANGELOG section from your commits
-3. The team reviews and merges the Release PR
-4. Release Please tags the merge commit (e.g. `v0.5.0`) and creates a GitHub Release
+- New entries go under `## [Unreleased]`.
+- Sections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Write from the user's perspective.
 
-**Do not manually edit `CHANGELOG.md`** for release notes. The `[Unreleased]` section can be used
-during development for in-progress notes; Release Please will incorporate them on next release.
+See `CONSTITUTION.md` §5 for the full changelog rules.
 
 ## Architecture overview
 
