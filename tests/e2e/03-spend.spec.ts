@@ -51,6 +51,7 @@ async function ensureJapanDestination(page: Page) {
   const form = addDestinationForm(page);
   await form.getByLabel(/name/i).fill('Japan');
   await form.getByLabel(/country/i).fill('Japan');
+  await page.getByRole('option', { name: 'Japan' }).click();
   await form.getByLabel(/estimated budget/i).fill('5000');
   await form.getByLabel(/comfort/i).selectOption('mid');
   await form.getByRole('button', { name: /add destination/i }).click();
