@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.11.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.10.0...v1.11.0) (2026-03-14)
+
+
+### Features
+
+* **trips:** order trips most-recent-first and show created date ([a5ca2f5](https://github.com/matthew-a-carr/travel-planner/commit/a5ca2f529c7f5be2747b559c242e4ee42e6ea4b0))
+
+
+### Bug Fixes
+
+* **a11y:** fix WCAG AA color-contrast violations on dashboard ([f166399](https://github.com/matthew-a-carr/travel-planner/commit/f16639906056c1f99ad068876faf5b971ff3868d))
+* regenerate pnpm-lock.yaml after duplicate @types/node entries from Dependabot merges ([a4ca792](https://github.com/matthew-a-carr/travel-planner/commit/a4ca79208613d140507d453c278db81579e0a05b))
+* **ui:** close edit trip modal on successful save ([1e6ad5d](https://github.com/matthew-a-carr/travel-planner/commit/1e6ad5d019f46e32aa972959609275efebe54306))
+
 ## [1.10.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.9.0...v1.10.0) (2026-03-14)
 
 
