@@ -68,7 +68,7 @@ export default async function HomePage() {
                 Welcome, {session.user.name ?? session.user.email}. This organization has no trips
                 yet.
               </p>
-              <p className="mt-1 text-sm text-zinc-400 dark:text-zinc-500">
+              <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                 Create your first trip to get started.
               </p>
             </div>
@@ -103,7 +103,7 @@ function TripCard({ trip }: { trip: Trip }) {
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
             Total budget: {formatMoney(trip.totalBudget)}
           </p>
-          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
             Created{' '}
             {trip.createdAt.toLocaleDateString('en-GB', {
               day: 'numeric',
