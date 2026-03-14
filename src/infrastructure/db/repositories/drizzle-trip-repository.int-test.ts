@@ -140,6 +140,41 @@ describe('DrizzleTripRepository', () => {
       const result = await repo.findAllByOrganization(organizationId);
       expect(result).toHaveLength(2);
     });
+
+    it('returns trips ordered by createdAt descending (newest first)', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const { id: organizationId } = await seedOrganization(db, ownerId);
+      const repo = new DrizzleTripRepository(db);
+
+      const older = new Date('2026-01-01T00:00:00Z');
+      const newer = new Date('2026-06-01T00:00:00Z');
+
+      await repo.save({
+        id: crypto.randomUUID(),
+        organizationId,
+        ownerId,
+        name: 'Older Trip',
+        totalBudget: money(1_000_000, 'GBP'),
+        status: 'planning',
+        createdAt: older,
+        updatedAt: older,
+      });
+      await repo.save({
+        id: crypto.randomUUID(),
+        organizationId,
+        ownerId,
+        name: 'Newer Trip',
+        totalBudget: money(2_000_000, 'GBP'),
+        status: 'planning',
+        createdAt: newer,
+        updatedAt: newer,
+      });
+
+      const result = await repo.findAllByOrganization(organizationId);
+      expect(result).toHaveLength(2);
+      expect(result[0]?.name).toBe('Newer Trip');
+      expect(result[1]?.name).toBe('Older Trip');
+    });
   });
 
   describe('save', () => {

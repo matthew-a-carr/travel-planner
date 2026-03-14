@@ -57,6 +57,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+* **trips:** display created date on trip cards in the dashboard
+
 * **destinations:** comprehensive country reference data with 200 countries (ADR 033):
   - REST Countries API + World Bank GDP PPP calibration for estimated daily costs
   - ISO 3166-1 alpha-2/alpha-3 codes, region, and subregion per country

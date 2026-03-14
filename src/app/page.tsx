@@ -103,6 +103,14 @@ function TripCard({ trip }: { trip: Trip }) {
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
             Total budget: {formatMoney(trip.totalBudget)}
           </p>
+          <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+            Created{' '}
+            {trip.createdAt.toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </p>
         </div>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColour[trip.status] ?? ''}`}
