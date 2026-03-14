@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { type EditTripState, editTripAction } from '@/app/trips/[id]/actions';
 import type { Trip } from '@/domain/trip/types';
 
@@ -10,15 +10,36 @@ const STATUSES: { value: Trip['status']; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ];
 
-function EditTripForm({ trip, onCancel }: { trip: Trip; onCancel: () => void }) {
+function EditTripForm({
+  trip,
+  onCancel,
+  onSaved,
+}: {
+  trip: Trip;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const hasSubmitted = useRef(false);
   const boundAction = editTripAction.bind(null, trip.id);
   const initialState: EditTripState = { error: null };
-  const [state, dispatch, isPending] = useActionState(boundAction, initialState);
+  const [state, formAction, isPending] = useActionState(
+    async (prev: EditTripState, formData: FormData) => {
+      hasSubmitted.current = true;
+      return boundAction(prev, formData);
+    },
+    initialState,
+  );
+
+  useEffect(() => {
+    if (hasSubmitted.current && !state.error) {
+      onSaved();
+    }
+  }, [state, onSaved]);
 
   const defaultBudget = (trip.totalBudget.amountPence / 100).toFixed(2);
 
   return (
-    <form action={dispatch} className="space-y-5">
+    <form action={formAction} className="space-y-5">
       <div>
         <label
           htmlFor="edit-trip-name"
@@ -125,7 +146,11 @@ export function EditTripButton({ trip }: { trip: Trip }) {
             <h2 className="mb-5 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               Edit trip
             </h2>
-            <EditTripForm trip={trip} onCancel={() => setOpen(false)} />
+            <EditTripForm
+              trip={trip}
+              onCancel={() => setOpen(false)}
+              onSaved={() => setOpen(false)}
+            />
           </div>
         </div>
       )}

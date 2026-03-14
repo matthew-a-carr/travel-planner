@@ -96,6 +96,9 @@ test.describe('Trip editing', () => {
 
     await page.getByRole('button', { name: /save changes/i }).click();
 
+    // Modal should close after successful save
+    await expect(page.getByRole('heading', { name: /edit trip/i })).toBeHidden();
+
     // Heading and status badge should reflect the update
     await expect(page.getByRole('heading', { name: 'Big Adventure' })).toBeVisible();
     await expect(page.getByText(/£60,?000\.00/)).toBeVisible();
@@ -117,6 +120,9 @@ test.describe('Trip editing', () => {
     await expect(
       page.getByText(/budget.*too small|reduce fixed costs/i),
     ).toBeVisible();
+
+    // Modal should remain open when there is a validation error
+    await expect(page.getByRole('heading', { name: /edit trip/i })).toBeVisible();
   });
 
   test('edited trip name appears on the dashboard', async ({ page }) => {
