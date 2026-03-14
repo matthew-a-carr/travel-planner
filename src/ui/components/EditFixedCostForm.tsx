@@ -109,7 +109,7 @@ export function EditFixedCostForm({
             ))}
           </select>
         </div>
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor={`edit-fc-date-${fixedCost.id}`}
             className="block text-xs font-medium text-zinc-700 dark:text-zinc-200"
@@ -123,7 +123,7 @@ export function EditFixedCostForm({
             required
             defaultValue={defaultDate}
             onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-            className="mt-1 block w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+            className="mt-1 block w-full max-w-full cursor-pointer rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
       </div>

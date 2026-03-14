@@ -116,7 +116,7 @@ function DestinationCard({
   return (
     <li className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm">
       {/* Header */}
-      <div className="flex items-start justify-between p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-semibold text-zinc-900 dark:text-zinc-100">{destination.name}</p>
@@ -134,7 +134,7 @@ function DestinationCard({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 pl-4">
+        <div className="flex flex-wrap items-center gap-2 pl-4">
           <button
             type="button"
             onClick={() => {
