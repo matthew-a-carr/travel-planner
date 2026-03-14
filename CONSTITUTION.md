@@ -34,11 +34,12 @@ The engineering harness consists of three things:
 
 ### Feedback loop for agents
 
-The pre-push hook enforces all checks automatically — you do not need to run them
-manually before pushing. The hook runs lint, type-check, unit tests, and integration
-tests (when Docker is available) in sequence on every `git push`.
+CI is the hard gate — all checks run automatically on every push and PR. Before
+pushing, run checks locally to avoid unnecessary CI round-trips. Use the
+change-aware verification table in `AGENTS.md` to determine which checks are
+relevant to your change.
 
-If you need to run checks manually (e.g. mid-task to verify progress):
+Full local verification (when in doubt):
 ```bash
 pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
 ```
@@ -142,8 +143,8 @@ A feature is not done until its e2e test passes against a running application.
 - Use real repository implementations in integration tests; do not replace runtime
   repositories with test doubles.
 - The container is shared across all integration test files in a single `pnpm test:integration` run.
-- Docker is required. If Docker is unavailable locally, the pre-push hook skips integration
-  tests with a WARNING and CI runs them instead.
+- Docker is required. If Docker is unavailable locally, CI will catch integration
+  test failures on push.
 
 ### e2e test rules
 
@@ -367,3 +368,26 @@ Keep the context agents work with clean and signal-dense:
 - Do not leave `TODO` or `FIXME` comments in committed code — file an issue or create a task instead.
 - Keep files focused. If a file grows beyond ~200 lines, consider whether it has a single responsibility.
 - ADRs capture *decisions*, not implementation notes. Keep them concise.
+
+---
+
+## 10. Small Commits
+
+Commit early and commit often. Each commit should represent **one logical change**.
+
+### Rules
+
+- Prefer multiple small commits over one large commit.
+- Every commit must leave the codebase in a working state (tests pass, linter clean).
+- A commit that touches more than ~5 files or ~200 lines of production code is a
+  signal to split the work further.
+- Commit completed work before starting the next sub-task — do not batch unrelated
+  changes.
+- Small commits make code review, `git bisect`, cherry-picking, and rollback
+  significantly easier.
+
+### Why this matters
+
+Large commits obscure intent, make reviews cursory, and increase the blast radius
+of a revert. Frequent small pushes also give CI faster feedback and reduce merge
+conflict risk.

@@ -23,7 +23,7 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [012](012-integration-test-naming-convention.md) | Integration Test File Naming Convention (`.int-test.ts`) | 2026-02-25 | Accepted |
 | [013](013-trip-status-transition-model.md) | Trip Status Transition Model | 2026-02-26 | Accepted |
 | [014](014-development-local-auth-fallback.md) | Development Local Auth Fallback | 2026-03-01 | Accepted |
-| [015](015-native-git-hooks-via-core-hookspath.md) | Native Git Hooks via `core.hooksPath` | 2026-03-01 | Accepted |
+| [015](015-native-git-hooks-via-core-hookspath.md) | Native Git Hooks via `core.hooksPath` | 2026-03-01 | Superseded by ADR 033 |
 | [016](016-terraform-cloud-split-state-no-cli-workspaces.md) | Terraform Cloud Split State with No CLI Workspaces | 2026-03-06 | Accepted |
 | [017](017-neon-community-terraform-provider.md) | Use Community Terraform Provider for Neon | 2026-03-06 | Accepted |
 | [018](018-vercel-deployment-migration-gate.md) | Run Drizzle Migrations in Vercel Deployment with Transactional Safety Gate | 2026-03-06 | Accepted |
@@ -41,3 +41,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [030](030-resend-invite-email-delivery-via-di-provider-routing.md) | Resend Invite Email Delivery via DI Provider Routing | 2026-03-07 | Accepted |
 | [031](031-soft-delete-user-anonymization.md) | Soft Delete User with Anonymization | 2026-03-07 | Accepted |
 | [032](032-sentry-error-monitoring.md) | Sentry Error Monitoring | 2026-03-09 | Accepted |
+| [033](033-remove-pre-push-hook-ci-gate-only.md) | Remove Pre-Push Hook — CI as the Only Hard Gate | 2026-03-14 | Accepted |

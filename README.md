@@ -104,10 +104,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running checks
 
-A pre-push hook runs `pnpm lint`, `pnpm type-check`, `pnpm test:unit`, and
-`pnpm test:integration` automatically before every `git push`.
+CI runs all checks on every push and PR. Run relevant checks locally before
+pushing to catch issues early (see [`AGENTS.md`](./AGENTS.md) for the
+change-aware verification table):
 
-To run checks mid-task:
 
 ```bash
 pnpm lint               # Biome lint + import ordering

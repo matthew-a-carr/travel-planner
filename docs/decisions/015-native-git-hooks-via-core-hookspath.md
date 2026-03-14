@@ -1,7 +1,7 @@
 # ADR 015: Native Git Hooks via `core.hooksPath`
 
 **Date:** 2026-03-01
-**Status:** Accepted
+**Status:** Superseded by ADR 033
 
 ## Context
 
