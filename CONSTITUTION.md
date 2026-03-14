@@ -97,6 +97,7 @@ Breaking them causes test failures. Do not use `// @ts-ignore` or similar to sil
 - **Domain functions are pure.** No side effects. No I/O. No `async`.
 - **Aggregates own their invariants.** A `Trip` enforces its own budget constraints.
 - **Repository interfaces live in `domain/`.** Implementations live in `infrastructure/`.
+- **Soft deleting.** Users can be soft-deleted and anonymized simultaneously.
 
 ### Sub-directory guidance
 
@@ -247,6 +248,24 @@ When in doubt: if a real user would notice a difference, the changelog needs an 
 - `pnpm lint` must be clean before committing.
 - `pnpm run format` for auto-formatting.
 - Config in `biome.json`.
+
+### Doc review table
+
+| What changed? | Where to update? |
+|---|---|
+| CI pipeline (`.github/workflows/ci.yml`) | `AGENTS.md` CI section, relevant ADR, `CONSTITUTION.md` enforcement map |
+| Git hooks (`.githooks/`) | `AGENTS.md` verification section, `CONSTITUTION.md` feedback loop |
+| A use case (`src/application/use-cases/`) | `src/application/AGENTS.md` structure |
+| Domain functions or types (`src/domain/`) | `src/domain/AGENTS.md` structure |
+| Infrastructure repos or auth (`src/infrastructure/`) | `src/infrastructure/AGENTS.md` structure |
+| Environment variables | `AGENTS.md` env section, `README.md` setup section |
+| Runtime dependency wiring / DI container | `CONSTITUTION.md` enforcement map, `src/infrastructure/AGENTS.md`, ADR 028 |
+| Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
+| A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
+| ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
+| Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
+| Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
 ### Naming
 

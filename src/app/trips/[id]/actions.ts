@@ -54,13 +54,17 @@ const COMFORT_LEVELS: readonly ComfortLevel[] = ['budget', 'mid', 'luxury'];
 
 const FIXED_COST_CATEGORIES: readonly FixedCostCategory[] = [
   'accommodation',
+  'activities',
   'bills',
+  'eating-out',
   'fuel',
   'groceries',
+  'healthcare',
   'insurance',
-  'transport',
-  'activities',
   'shopping',
+  'subscriptions',
+  'transport',
+  'visas',
   'other',
 ];
 

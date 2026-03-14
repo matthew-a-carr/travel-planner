@@ -113,4 +113,34 @@ describe('editFixedCost', () => {
       expect(result.value.createdAt.getTime()).toBe(existing.createdAt.getTime());
     }
   });
+
+  it.each([
+    { category: 'eating-out' as const },
+    { category: 'subscriptions' as const },
+    { category: 'healthcare' as const },
+    { category: 'visas' as const },
+  ])('persists updated category "$category"', async ({ category }) => {
+    const { id: ownerId } = await seedUser(db);
+    const trip = await seedTrip(db, ownerId);
+    const existing = await seedFixedCost(db, trip.id, {
+      label: 'Original',
+      amountPence: 20_000,
+      category: 'other',
+    });
+    const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+
+    const result = await editFixedCost(fixedCostRepo, {
+      fixedCostId: existing.id,
+      label: `Updated to ${category}`,
+      amountPence: 30_000,
+      currency: 'GBP',
+      category,
+      date: new Date('2026-07-01'),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.category).toBe(category);
+    }
+  });
 });

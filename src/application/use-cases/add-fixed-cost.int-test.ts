@@ -130,4 +130,31 @@ describe('addFixedCost', () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value.sortOrder).toBe(3); // max(0,2) + 1 = 3
   });
+
+  it.each([
+    { category: 'eating-out' as const, label: 'Restaurants' },
+    { category: 'subscriptions' as const, label: 'Netflix' },
+    { category: 'healthcare' as const, label: 'Vaccinations' },
+    { category: 'visas' as const, label: 'Tourist Visa' },
+  ])('saves a fixed cost with category "$category"', async ({ category, label }) => {
+    const { id: ownerId } = await seedUser(db);
+    const trip = await seedTrip(db, ownerId);
+    const tripRepo = new DrizzleTripRepository(db);
+    const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
+
+    const result = await addFixedCost(tripRepo, fixedCostRepo, {
+      tripId: trip.id,
+      label,
+      amountPence: 25_000,
+      currency: 'GBP',
+      category,
+      date: new Date('2026-06-01'),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.category).toBe(category);
+      expect(result.value.label).toBe(label);
+    }
+  });
 });
