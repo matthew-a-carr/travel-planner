@@ -68,7 +68,7 @@ describe('preProvisionUserAccess (integration)', () => {
       isAdmin: true,
     });
     const existing = await seedUser(db, {
-      email: 'carr.matty@gmail.com',
+      email: 'jane.doe@gmail.com',
       isApproved: false,
       isAdmin: false,
       name: 'Legacy Name',
@@ -78,17 +78,17 @@ describe('preProvisionUserAccess (integration)', () => {
 
     const result = await preProvisionUserAccess(repository, inviteEmailService, {
       actorUserId: admin.id,
-      email: 'c.a.r.r.m.a.t.t.y+new@googlemail.com',
-      name: 'Matt Carr',
+      email: 'j.a.n.e.d.o.e+new@googlemail.com',
+      name: 'Jane Doe',
       loginUrl: 'http://localhost:3000/login',
     });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.user.id).toBe(existing.id);
-    expect(result.value.user.email).toBe('carrmatty@gmail.com');
+    expect(result.value.user.email).toBe('janedoe@gmail.com');
     expect(result.value.user.isApproved).toBe(true);
-    expect(result.value.user.name).toBe('Matt Carr');
+    expect(result.value.user.name).toBe('Jane Doe');
     expect(result.value.approvalTransition).toBe('approved_now');
     expect(result.value.inviteDelivery.status).toBe('sent');
   });

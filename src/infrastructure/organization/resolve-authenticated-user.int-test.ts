@@ -75,14 +75,14 @@ describe('resolveAuthenticatedUserId', () => {
   it('finds existing gmail user when session email uses googlemail alias', async () => {
     const seeded = await seedUser(db, {
       id: 'canonical-gmail-id',
-      email: 'carr.matty@gmail.com',
-      name: 'Carr Matty',
+      email: 'jane.doe@gmail.com',
+      name: 'Jane Doe',
     });
 
     const resolved = await resolveAuthenticatedUserId(db, {
       id: 'stale-session-id',
-      email: 'carrmatty@googlemail.com',
-      name: 'Carr Matty',
+      email: 'janedoe@googlemail.com',
+      name: 'Jane Doe',
     });
 
     expect(resolved).toBe(seeded.id);

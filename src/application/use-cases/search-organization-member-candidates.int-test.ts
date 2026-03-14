@@ -71,8 +71,8 @@ describe('searchOrganizationMemberCandidates', () => {
       isApproved: true,
     });
     await seedUser(db, {
-      email: 'carr.matty@gmail.com',
-      name: 'Matty Carr',
+      email: 'jane.doe@gmail.com',
+      name: 'Jane Doe',
       isApproved: true,
     });
     await seedUser(db, {
@@ -86,11 +86,11 @@ describe('searchOrganizationMemberCandidates', () => {
     const byEmail = await searchOrganizationMemberCandidates(repository, {
       actorUserId: owner.id,
       organizationId: organization.id,
-      query: 'CARR.MATTY',
+      query: 'JANE.DOE',
     });
     expect(byEmail.ok).toBe(true);
     if (byEmail.ok) {
-      expect(byEmail.value.map((candidate) => candidate.email)).toEqual(['carr.matty@gmail.com']);
+      expect(byEmail.value.map((candidate) => candidate.email)).toEqual(['jane.doe@gmail.com']);
     }
 
     const byName = await searchOrganizationMemberCandidates(repository, {

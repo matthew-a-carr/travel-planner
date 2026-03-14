@@ -51,12 +51,12 @@ describe('access-policy integration', () => {
 
   it('allows approved gmail users when googlemail alias is used at sign-in', async () => {
     await seedUser(db, {
-      email: 'carr.matty@gmail.com',
+      email: 'jane.doe@gmail.com',
       isApproved: true,
       isAdmin: false,
     });
 
-    const decision = await decideSignInAccess(db, 'carrmatty@googlemail.com');
+    const decision = await decideSignInAccess(db, 'janedoe@googlemail.com');
 
     expect(decision.allowed).toBe(true);
     expect(decision.seededAdmin).toBe(false);
