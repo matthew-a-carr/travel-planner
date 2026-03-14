@@ -154,8 +154,12 @@ export const spendEntries = pgTable('spend_entries', {
 
 export const countryReferenceData = pgTable('country_reference_data', {
   country: text('country').primaryKey(), // canonical display name, e.g. "Japan"
+  alpha2: text('alpha2').notNull().unique(), // ISO 3166-1 alpha-2, e.g. "JP"
+  alpha3: text('alpha3').notNull().unique(), // ISO 3166-1 alpha-3, e.g. "JPN"
+  region: text('region'), // e.g. "Asia", "Americas"
+  subregion: text('subregion'), // e.g. "South-Eastern Asia"
   avgDailyCostPence: integer('avg_daily_cost_pence').notNull(), // mid-range GBP pence
   currency: text('currency').notNull().default('GBP'),
-  source: text('source').notNull().default('manual'), // 'manual' | 'api'
+  source: text('source').notNull().default('manual'), // 'manual' | 'estimated'
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

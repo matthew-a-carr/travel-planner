@@ -32,6 +32,7 @@ const {
   destinationRepository: destRepo,
   tripFixedCostRepository: fixedCostRepo,
   spendEntryRepository: spendRepo,
+  countryReferenceRepository: countryRefRepo,
 } = getAppContainer();
 
 const TRIP_STATUSES: readonly TripStatus[] = ['planning', 'active', 'completed'];
@@ -291,6 +292,9 @@ export async function addDestinationAction(
     return { error: 'Invalid form data' };
   }
 
+  const countryRef = await countryRefRepo.findByCountry(country.trim());
+  if (!countryRef) return { error: 'Please select a valid country from the list' };
+
   const estimatedBudgetPence = Math.round(Number.parseFloat(estimatedBudgetPounds) * 100);
   if (Number.isNaN(estimatedBudgetPence) || estimatedBudgetPence <= 0) {
     return { error: 'Invalid budget amount' };
@@ -346,6 +350,9 @@ export async function editDestinationAction(
   }
   if (!name.trim()) return { error: 'Name is required' };
   if (!country.trim()) return { error: 'Country is required' };
+
+  const countryRef = await countryRefRepo.findByCountry(country.trim());
+  if (!countryRef) return { error: 'Please select a valid country from the list' };
 
   const estimatedBudgetPence = Math.round(Number.parseFloat(estimatedBudgetPounds) * 100);
   if (Number.isNaN(estimatedBudgetPence) || estimatedBudgetPence <= 0) {
