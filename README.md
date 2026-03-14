@@ -175,7 +175,7 @@ Infrastructure and deployment wiring are Terraform-managed under [`infra/`](./in
 Vercel runs this build command (managed via Terraform):
 
 ```bash
-pnpm build && pnpm db:migrate:deploy
+pnpm build && pnpm db:migrate:deploy && pnpm db:seed
 ```
 
 Migrations run inside deployment. If migration fails, deployment fails and transaction-scoped migration changes roll back.

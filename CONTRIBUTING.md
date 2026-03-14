@@ -5,10 +5,10 @@ Internal team guide. See `CONSTITUTION.md` for the full engineering contract.
 ## Prerequisites
 
 | Tool | Version | Notes |
-|------|---------|-------|
+|---|---|---|
 | Node.js | 20 LTS | Use `nvm use` or `fnm use` if you have a version manager |
 | pnpm | 10 | `npm install -g pnpm@10` |
-| Docker | 24+ | Required for integration tests and E2E tests (Testcontainers) |
+| Docker | 24+ | Required for integration tests and e2e tests (Testcontainers) |
 
 ## First-time setup
 
@@ -34,7 +34,7 @@ pnpm dev
 ## Running tests
 
 | Command | What it runs | Docker required |
-|---------|-------------|-----------------|
+|---|---|---|
 | `pnpm test:unit` | Domain functions + architecture tests | No |
 | `pnpm test:integration` | Repository + use-case tests against a real Postgres DB | Yes |
 | `pnpm test` | All unit + integration tests | Yes |
@@ -50,10 +50,10 @@ container is shared across all integration test files in a single `pnpm test:int
 ### Test file naming convention
 
 | Suffix | Type | Docker | Example |
-|--------|------|--------|---------|
+|---|---|---|---|
 | `.test.ts` | Unit | No | `src/domain/trip/trip.test.ts` |
 | `.int-test.ts` | Integration | Yes | `src/application/use-cases/create-trip.int-test.ts` |
-| `.spec.ts` | E2E (Playwright) | Yes | `tests/e2e/01-trips.spec.ts` |
+| `.spec.ts` | e2e (Playwright) | Yes | `tests/e2e/01-trips.spec.ts` |
 
 The Vitest config uses file-suffix globs (`src/**/*.test.ts` / `src/**/*.int-test.ts`) so new
 integration test files are picked up automatically — no config change needed.
@@ -87,7 +87,7 @@ Every commit message on `main` must follow the format:
 [optional footer]
 ```
 
-Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`.
+Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`, `perf`.
 
 Breaking changes: append `!` after the type (`feat!:`) or add `BREAKING CHANGE:` in the footer.
 
@@ -101,18 +101,16 @@ Breaking changes: append `!` after the type (`feat!:`) or add `BREAKING CHANGE:`
 
 See `CONSTITUTION.md` for the full branch and review policy.
 
-## Release workflow
+## Changelog
 
-Releases are automated via [Release Please](https://github.com/googleapis/release-please).
+`CHANGELOG.md` must be updated with every commit that changes user-facing behaviour.
+The update must be part of the same commit — not a follow-up.
 
-1. Push conventional commits to `main` (via merged PRs)
-2. Release Please opens/updates a **"chore: release X.Y.Z"** PR that bumps `package.json`
-   and generates the CHANGELOG section from your commits
-3. The team reviews and merges the Release PR
-4. Release Please tags the merge commit (e.g. `v0.5.0`) and creates a GitHub Release
+- New entries go under `## [Unreleased]`.
+- Sections: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- Write from the user's perspective.
 
-**Do not manually edit `CHANGELOG.md`** for release notes. The `[Unreleased]` section can be used
-during development for in-progress notes; Release Please will incorporate them on next release.
+See `CONSTITUTION.md` §5 for the full changelog rules.
 
 ## Architecture overview
 

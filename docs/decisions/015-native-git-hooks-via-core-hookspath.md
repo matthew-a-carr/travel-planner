@@ -3,6 +3,9 @@
 **Date:** 2026-03-01
 **Status:** Superseded by ADR 033
 
+> **Note:** The pre-push hook described below has been removed. The `core.hooksPath`
+> mechanism and the pre-commit hook (Terraform formatting) remain active.
+
 ## Context
 
 The repository enforces a pre-push feedback loop (`lint`, `type-check`, unit

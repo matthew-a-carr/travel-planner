@@ -1,6 +1,6 @@
 # Domain Layer — AGENTS.md
 
-> Rules for `src/domain/`. These override nothing in the root AGENTS.md — they add specificity.
+> Rules for `src/domain/`. These add specificity to the root AGENTS.md.
 
 ## Hard rules
 

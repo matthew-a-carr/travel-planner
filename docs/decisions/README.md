@@ -12,7 +12,7 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [001](001-initial-stack.md) | Initial Technology Stack | 2026-02-22 | Accepted |
 | [002](002-biome.md) | Migrate from ESLint + TypeScript-ESLint to Biome | 2026-02-22 | Accepted |
 | [003](003-atdd-destination-spend-dashboard-approach.md) | ATDD-Driven Approach for Destination, Spend, and Budget Dashboard Features | 2026-02-22 | Accepted |
-| [004](004-country-reference-data.md) | Country Reference Data and Budget Suggestion Engine | 2026-02-23 | Accepted |
+| [004](004-country-reference-data.md) | Country Reference Data and Budget Suggestion Engine | 2026-02-23 | Partially superseded by ADR 034 |
 | [005](005-trip-fixed-costs.md) | Trip Fixed Costs — Replacing the Single Ringfenced Amount | 2026-02-23 | Accepted |
 | [006](006-charts.md) | Charts — Recharts for Trip Budget Visualisation | 2026-02-23 | Accepted |
 | [007](007-mobile-first-accessibility.md) | Mobile-First Responsive Design and WCAG 2.1 AA Accessibility | 2026-02-23 | Accepted |
@@ -42,3 +42,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [031](031-soft-delete-user-anonymization.md) | Soft Delete User with Anonymization | 2026-03-07 | Accepted |
 | [032](032-sentry-error-monitoring.md) | Sentry Error Monitoring | 2026-03-09 | Accepted |
 | [033](033-remove-pre-push-hook-ci-gate-only.md) | Remove Pre-Push Hook — CI as the Only Hard Gate | 2026-03-14 | Accepted |
+| [034](034-comprehensive-country-reference-data.md) | Comprehensive Country Reference Data with Automated Sourcing | 2026-03-14 | Accepted |

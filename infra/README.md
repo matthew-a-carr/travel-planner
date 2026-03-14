@@ -25,7 +25,7 @@ No Terraform CLI workspaces are used.
 Production deployments run:
 
 ```bash
-pnpm build && pnpm db:migrate:deploy
+pnpm build && pnpm db:migrate:deploy && pnpm db:seed
 ```
 
 `db:migrate:deploy`:

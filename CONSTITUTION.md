@@ -157,7 +157,7 @@ A feature is not done until its e2e test passes against a running application.
 - Test files are numbered (`01-trips`, `02-destinations`, `03-spend`) to make the data
   dependency chain explicit. Authenticated tests use the session from `auth-state.json`;
   public tests override with `test.use({ storageState: { cookies: [], origins: [] } })`.
-- CI runs e2e in stage 2 (after lint/type-check/unit-test). Docker is available by default
+- CI runs e2e in parallel with lint, type-check, and unit tests. Docker is available by default
   on `ubuntu-latest` GitHub Actions runners — no extra service containers required.
 
 ---
