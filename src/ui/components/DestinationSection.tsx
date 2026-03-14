@@ -108,11 +108,8 @@ function DestinationCard({
   function handleRemove() {
     setRemoveError(null);
     startTransition(async () => {
-      try {
-        await removeDestinationAction(tripId, destination.id);
-      } catch {
-        setRemoveError('Failed to remove destination. Please try again.');
-      }
+      const result = await removeDestinationAction(tripId, destination.id);
+      if (!result.ok) setRemoveError(result.error);
     });
   }
 
@@ -248,11 +245,8 @@ function SpendEntryRow({ tripId, entry }: { tripId: string; entry: SpendEntry })
   function handleDelete() {
     setDeleteError(null);
     startDeleteTransition(async () => {
-      try {
-        await deleteSpendEntryAction(tripId, entry.id);
-      } catch {
-        setDeleteError('Failed to delete. Please try again.');
-      }
+      const result = await deleteSpendEntryAction(tripId, entry.id);
+      if (!result.ok) setDeleteError(result.error);
     });
   }
 

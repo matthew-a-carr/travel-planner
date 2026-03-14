@@ -205,11 +205,8 @@ function FixedCostRow({ tripId, fixedCost }: { tripId: string; fixedCost: TripFi
             onClick={() => {
               setRemoveError(null);
               startTransition(async () => {
-                try {
-                  await removeFixedCostAction(tripId, fixedCost.id);
-                } catch {
-                  setRemoveError('Failed to remove. Please try again.');
-                }
+                const result = await removeFixedCostAction(tripId, fixedCost.id);
+                if (!result.ok) setRemoveError(result.error);
               });
             }}
             aria-label={`Remove fixed cost: ${fixedCost.label}`}
