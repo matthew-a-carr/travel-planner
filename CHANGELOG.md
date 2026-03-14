@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.10.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.9.0...v1.10.0) (2026-03-14)
+
+
+### Features
+
+* **destinations:** comprehensive country reference data with combobox selection ([#34](https://github.com/matthew-a-carr/travel-planner/issues/34)) ([d532ffb](https://github.com/matthew-a-carr/travel-planner/commit/d532ffb3f675e362766a800403a7271aa2672aff))
+* **fixed-costs:** add eating-out, subscriptions, healthcare, visas categories ([0c08921](https://github.com/matthew-a-carr/travel-planner/commit/0c08921bdf4a45ee92a7336670f56d92fa6dd484))
+
 ## [1.9.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.8.1...v1.9.0) (2026-03-09)
 
 
