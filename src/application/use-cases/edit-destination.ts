@@ -10,6 +10,9 @@ export type EditDestinationInput = {
   tripId: string;
   name: string;
   country: string;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
   estimatedBudgetPence: number;
   currency: Currency;
   comfortLevel: ComfortLevel;
@@ -39,6 +42,9 @@ export async function editDestination(
     ...existing,
     name: input.name,
     country: input.country,
+    city: input.city,
+    latitude: input.latitude,
+    longitude: input.longitude,
     estimatedBudget: money(input.estimatedBudgetPence, input.currency),
     comfortLevel: input.comfortLevel,
     startDate: input.startDate,

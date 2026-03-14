@@ -322,10 +322,22 @@ export async function addDestinationAction(
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
+  const cityRaw = formData.get('city');
+  const latitudeRaw = formData.get('latitude');
+  const longitudeRaw = formData.get('longitude');
+  const city = typeof cityRaw === 'string' && cityRaw.trim() ? cityRaw.trim() : null;
+  const latitude =
+    typeof latitudeRaw === 'string' && latitudeRaw ? Number.parseFloat(latitudeRaw) : null;
+  const longitude =
+    typeof longitudeRaw === 'string' && longitudeRaw ? Number.parseFloat(longitudeRaw) : null;
+
   const result = await addDestination(tripRepo, destRepo, fixedCostRepo, {
     tripId,
     name: name.trim(),
     country: country.trim(),
+    city,
+    latitude: latitude !== null && !Number.isNaN(latitude) ? latitude : null,
+    longitude: longitude !== null && !Number.isNaN(longitude) ? longitude : null,
     estimatedBudgetPence,
     currency: 'GBP', // GBP-only: see ADR 011
     comfortLevel: level,
@@ -382,11 +394,23 @@ export async function editDestinationAction(
   const startDate = parseDateField(formData.get('startDate'));
   const endDate = parseDateField(formData.get('endDate'));
 
+  const cityRaw = formData.get('city');
+  const latitudeRaw = formData.get('latitude');
+  const longitudeRaw = formData.get('longitude');
+  const city = typeof cityRaw === 'string' && cityRaw.trim() ? cityRaw.trim() : null;
+  const latitude =
+    typeof latitudeRaw === 'string' && latitudeRaw ? Number.parseFloat(latitudeRaw) : null;
+  const longitude =
+    typeof longitudeRaw === 'string' && longitudeRaw ? Number.parseFloat(longitudeRaw) : null;
+
   const result = await editDestination(tripRepo, destRepo, fixedCostRepo, {
     destinationId,
     tripId,
     name: name.trim(),
     country: country.trim(),
+    city,
+    latitude: latitude !== null && !Number.isNaN(latitude) ? latitude : null,
+    longitude: longitude !== null && !Number.isNaN(longitude) ? longitude : null,
     estimatedBudgetPence,
     currency: 'GBP', // GBP-only: see ADR 011
     comfortLevel: level,

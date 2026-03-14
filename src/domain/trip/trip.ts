@@ -1,4 +1,12 @@
-import type { Destination, Money, Result, Trip, TripFixedCost } from './types';
+import type {
+  BudgetWaterfall,
+  Destination,
+  Money,
+  Result,
+  Trip,
+  TripFixedCost,
+  WaterfallStop,
+} from './types';
 import { err, money, ok } from './types';
 
 /**
@@ -104,6 +112,65 @@ export function validateTripBudgetEdit(
 export function nextFixedCostSortOrder(fixedCosts: readonly TripFixedCost[]): number {
   if (fixedCosts.length === 0) return 0;
   return Math.max(...fixedCosts.map((fc) => fc.sortOrder)) + 1;
+}
+
+/**
+ * Builds a budget waterfall for the journey map timeline.
+ *
+ * The waterfall starts with the total trip budget and shows how it depletes
+ * through fixed costs and each destination in order. Each stop shows the
+ * allocated budget, actual spend, and running remaining total.
+ */
+export function buildBudgetWaterfall(
+  trip: Trip,
+  destinations: readonly Destination[],
+  fixedCosts: readonly TripFixedCost[],
+  spendByDestination: ReadonlyMap<string, number>,
+): BudgetWaterfall {
+  let running = trip.totalBudget.amountPence;
+  const stops: WaterfallStop[] = [];
+
+  const totalFixedPence = fixedCosts.reduce((sum, fc) => sum + fc.amount.amountPence, 0);
+  running -= totalFixedPence;
+  stops.push({
+    type: 'fixed-costs',
+    label: 'Fixed Costs',
+    destinationId: null,
+    allocatedPence: totalFixedPence,
+    spentPence: totalFixedPence,
+    runningTotalPence: running,
+    isOverBudget: false,
+    coordinates: null,
+    startDate: null,
+    endDate: null,
+  });
+
+  for (const dest of destinations) {
+    const allocated = dest.estimatedBudget.amountPence;
+    const spent = spendByDestination.get(dest.id) ?? 0;
+    running -= allocated;
+    stops.push({
+      type: 'destination',
+      label: dest.city ? `${dest.city}, ${dest.country}` : dest.name,
+      destinationId: dest.id,
+      allocatedPence: allocated,
+      spentPence: spent,
+      runningTotalPence: running,
+      isOverBudget: spent > allocated,
+      coordinates:
+        dest.latitude != null && dest.longitude != null
+          ? { latitude: dest.latitude, longitude: dest.longitude }
+          : null,
+      startDate: dest.startDate,
+      endDate: dest.endDate,
+    });
+  }
+
+  return {
+    startingBudgetPence: trip.totalBudget.amountPence,
+    stops,
+    unallocatedPence: Math.max(running, 0),
+  };
 }
 
 /**

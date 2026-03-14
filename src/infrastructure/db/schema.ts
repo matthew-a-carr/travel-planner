@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  doublePrecision,
   integer,
   pgTable,
   primaryKey,
@@ -129,6 +130,9 @@ export const destinations = pgTable('destinations', {
     .references(() => trips.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   country: text('country').notNull(),
+  city: text('city'),
+  latitude: doublePrecision('latitude'),
+  longitude: doublePrecision('longitude'),
   estimatedBudgetAmount: integer('estimated_budget_amount').notNull(),
   estimatedBudgetCurrency: text('estimated_budget_currency').notNull().default('GBP'),
   comfortLevel: text('comfort_level').notNull(),

@@ -7,6 +7,7 @@ import { findReference, suggestBudget } from '@/domain/country-reference/country
 import type { CountryReference } from '@/domain/country-reference/types';
 import type { ComfortLevel } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
+import { CityAutocomplete } from './CityAutocomplete';
 import { CountryCombobox } from './CountryCombobox';
 
 const COMFORT_OPTIONS: { value: ComfortLevel; label: string }[] = [
@@ -35,9 +36,16 @@ export function AddDestinationForm({
   onSuccess: () => void;
 }) {
   const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [comfortLevel, setComfortLevel] = useState<ComfortLevel>('mid');
+
+  const countryAlpha2 = country
+    ? (countryReferences.find((r) => r.country === country)?.alpha2 ?? null)
+    : null;
 
   const boundAction = addDestinationAction.bind(null, tripId);
 
@@ -96,6 +104,31 @@ export function AddDestinationForm({
           </div>
         </div>
       </div>
+
+      {/* City (optional) */}
+      <div>
+        <label
+          htmlFor="dest-city"
+          className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
+        >
+          City <span className="text-zinc-400 dark:text-zinc-500">(optional — for map pin)</span>
+        </label>
+        <div className="mt-1">
+          <CityAutocomplete
+            id="dest-city"
+            countryAlpha2={countryAlpha2}
+            value={city}
+            onChange={(c, lat, lng) => {
+              setCity(c);
+              setLatitude(lat);
+              setLongitude(lng);
+            }}
+          />
+        </div>
+      </div>
+      <input type="hidden" name="city" value={city} />
+      <input type="hidden" name="latitude" value={latitude ?? ''} />
+      <input type="hidden" name="longitude" value={longitude ?? ''} />
 
       {/* Dates */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

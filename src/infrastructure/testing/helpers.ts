@@ -225,6 +225,9 @@ export async function seedDestination(
     id?: string;
     name?: string;
     country?: string;
+    city?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
     estimatedBudgetPence?: number;
     currency?: string;
     comfortLevel?: string;
@@ -236,6 +239,9 @@ export async function seedDestination(
   const id = overrides.id ?? crypto.randomUUID();
   const name = overrides.name ?? 'Japan';
   const country = overrides.country ?? 'Japan';
+  const city = overrides.city !== undefined ? overrides.city : null;
+  const latitude = overrides.latitude !== undefined ? overrides.latitude : null;
+  const longitude = overrides.longitude !== undefined ? overrides.longitude : null;
   const estimatedBudgetPence = overrides.estimatedBudgetPence ?? 1_000_000; // £10,000
   const currency = overrides.currency ?? 'GBP';
   const comfortLevel = overrides.comfortLevel ?? 'mid';
@@ -251,6 +257,9 @@ export async function seedDestination(
       tripId,
       name,
       country,
+      city,
+      latitude,
+      longitude,
       estimatedBudgetAmount: estimatedBudgetPence,
       estimatedBudgetCurrency: currency,
       comfortLevel,
@@ -268,6 +277,9 @@ export async function seedDestination(
     tripId: row.tripId,
     name: row.name,
     country: row.country,
+    city: row.city,
+    latitude: row.latitude,
+    longitude: row.longitude,
     estimatedBudget: money(row.estimatedBudgetAmount, row.estimatedBudgetCurrency as 'GBP'),
     comfortLevel: row.comfortLevel as 'mid',
     startDate: row.startDate ? new Date(row.startDate) : null,

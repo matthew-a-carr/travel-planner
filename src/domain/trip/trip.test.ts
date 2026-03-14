@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildBudgetWaterfall,
   calculateAllocatedBudget,
   calculateAvailableBudget,
   calculateTotalFixedCosts,
@@ -35,6 +36,9 @@ function makeDestination(
     tripId: 'trip-1',
     name: 'Japan',
     country: 'Japan',
+    city: null,
+    latitude: null,
+    longitude: null,
     estimatedBudget: money(amountPence, 'GBP'),
     comfortLevel: 'mid',
     startDate: null,
@@ -320,5 +324,99 @@ describe('getTripBudgetSummary', () => {
     const destinations = [makeDestination({ amountPence: 3_000_000 })]; // 30%
     const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
     expect(summary.allocationPercentage).toBe(50);
+  });
+});
+
+// ─── buildBudgetWaterfall ───────────────────────────────────────────────────
+
+describe('buildBudgetWaterfall', () => {
+  it('should produce a waterfall with fixed costs and destinations', () => {
+    const trip = makeTrip({ totalBudget: money(1_000_000, 'GBP') }); // £10,000
+    const fixedCosts = [makeFixedCost({ amountPence: 200_000 })]; // £2,000
+    const destinations = [
+      makeDestination({ id: 'dest-1', name: 'Bangkok', amountPence: 150_000, city: 'Bangkok', latitude: 13.75, longitude: 100.5, sortOrder: 0 }),
+      makeDestination({ id: 'dest-2', name: 'Chiang Mai', amountPence: 80_000, city: 'Chiang Mai', latitude: 18.79, longitude: 98.98, sortOrder: 1 }),
+    ];
+    const spend = new Map([['dest-1', 120_000], ['dest-2', 90_000]]);
+
+    const waterfall = buildBudgetWaterfall(trip, destinations, fixedCosts, spend);
+
+    expect(waterfall.startingBudgetPence).toBe(1_000_000);
+    expect(waterfall.stops).toHaveLength(3);
+
+    // Fixed costs stop
+    expect(waterfall.stops[0]!.type).toBe('fixed-costs');
+    expect(waterfall.stops[0]!.allocatedPence).toBe(200_000);
+    expect(waterfall.stops[0]!.runningTotalPence).toBe(800_000);
+
+    // Bangkok stop
+    expect(waterfall.stops[1]!.type).toBe('destination');
+    expect(waterfall.stops[1]!.label).toBe('Bangkok, Japan');
+    expect(waterfall.stops[1]!.allocatedPence).toBe(150_000);
+    expect(waterfall.stops[1]!.spentPence).toBe(120_000);
+    expect(waterfall.stops[1]!.runningTotalPence).toBe(650_000);
+    expect(waterfall.stops[1]!.isOverBudget).toBe(false);
+    expect(waterfall.stops[1]!.coordinates).toEqual({ latitude: 13.75, longitude: 100.5 });
+
+    // Chiang Mai stop — over budget (spent 90k vs 80k allocated)
+    expect(waterfall.stops[2]!.type).toBe('destination');
+    expect(waterfall.stops[2]!.spentPence).toBe(90_000);
+    expect(waterfall.stops[2]!.isOverBudget).toBe(true);
+    expect(waterfall.stops[2]!.runningTotalPence).toBe(570_000);
+
+    expect(waterfall.unallocatedPence).toBe(570_000);
+  });
+
+  it('should handle empty destinations (only fixed costs)', () => {
+    const trip = makeTrip({ totalBudget: money(500_000, 'GBP') });
+    const fixedCosts = [makeFixedCost({ amountPence: 100_000 })];
+
+    const waterfall = buildBudgetWaterfall(trip, [], fixedCosts, new Map());
+
+    expect(waterfall.stops).toHaveLength(1);
+    expect(waterfall.stops[0]!.type).toBe('fixed-costs');
+    expect(waterfall.unallocatedPence).toBe(400_000);
+  });
+
+  it('should handle zero fixed costs', () => {
+    const trip = makeTrip({ totalBudget: money(500_000, 'GBP') });
+    const destinations = [makeDestination({ id: 'dest-1', amountPence: 300_000 })];
+
+    const waterfall = buildBudgetWaterfall(trip, destinations, [], new Map());
+
+    expect(waterfall.stops).toHaveLength(2);
+    expect(waterfall.stops[0]!.type).toBe('fixed-costs');
+    expect(waterfall.stops[0]!.allocatedPence).toBe(0);
+    expect(waterfall.stops[0]!.runningTotalPence).toBe(500_000);
+    expect(waterfall.stops[1]!.runningTotalPence).toBe(200_000);
+    expect(waterfall.unallocatedPence).toBe(200_000);
+  });
+
+  it('should use destination name when city is null', () => {
+    const trip = makeTrip({ totalBudget: money(500_000, 'GBP') });
+    const destinations = [makeDestination({ id: 'dest-1', name: 'Japan', city: null, amountPence: 100_000 })];
+
+    const waterfall = buildBudgetWaterfall(trip, destinations, [], new Map());
+
+    expect(waterfall.stops[1]!.label).toBe('Japan');
+  });
+
+  it('should set coordinates to null when destination has no lat/lng', () => {
+    const trip = makeTrip({ totalBudget: money(500_000, 'GBP') });
+    const destinations = [makeDestination({ id: 'dest-1', amountPence: 100_000, latitude: null, longitude: null })];
+
+    const waterfall = buildBudgetWaterfall(trip, destinations, [], new Map());
+
+    expect(waterfall.stops[1]!.coordinates).toBeNull();
+  });
+
+  it('should clamp unallocated to zero when over-allocated', () => {
+    const trip = makeTrip({ totalBudget: money(100_000, 'GBP') });
+    const destinations = [makeDestination({ id: 'dest-1', amountPence: 200_000 })];
+
+    const waterfall = buildBudgetWaterfall(trip, destinations, [], new Map());
+
+    expect(waterfall.stops[1]!.runningTotalPence).toBe(-100_000);
+    expect(waterfall.unallocatedPence).toBe(0);
   });
 });

@@ -3,6 +3,7 @@ import {
   destinationDays,
   nextSortOrder,
   sortDestinations,
+  validateCoordinates,
   validateDateRange,
   validateDestinationEdit,
   validateNewDestination,
@@ -48,6 +49,9 @@ function makeDestination(
     tripId: 'trip-1',
     name: 'Japan',
     country: 'Japan',
+    city: null,
+    latitude: null,
+    longitude: null,
     estimatedBudget: money(amountPence, 'GBP'),
     comfortLevel: 'mid',
     startDate: null,
@@ -328,5 +332,48 @@ describe('validateDestinationEdit', () => {
     const updated = { ...japan, estimatedBudget: money(500_001, 'GBP') };
     const result = validateDestinationEdit(trip, allDestinations, fixedCosts, japan, updated);
     expect(result.ok).toBe(false);
+  });
+});
+
+// ─── validateCoordinates ─────────────────────────────────────────────────────
+
+describe('validateCoordinates', () => {
+  it('should accept valid coordinates', () => {
+    const result = validateCoordinates(13.7563, 100.5018);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.latitude).toBe(13.7563);
+      expect(result.value.longitude).toBe(100.5018);
+    }
+  });
+
+  it('should accept boundary values', () => {
+    expect(validateCoordinates(90, 180).ok).toBe(true);
+    expect(validateCoordinates(-90, -180).ok).toBe(true);
+    expect(validateCoordinates(0, 0).ok).toBe(true);
+  });
+
+  it('should reject latitude above 90', () => {
+    const result = validateCoordinates(90.1, 0);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('Latitude');
+  });
+
+  it('should reject latitude below -90', () => {
+    const result = validateCoordinates(-90.1, 0);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('Latitude');
+  });
+
+  it('should reject longitude above 180', () => {
+    const result = validateCoordinates(0, 180.1);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('Longitude');
+  });
+
+  it('should reject longitude below -180', () => {
+    const result = validateCoordinates(0, -180.1);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toContain('Longitude');
   });
 });

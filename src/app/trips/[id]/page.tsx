@@ -3,7 +3,7 @@ import { getCountryReferences } from '@/application/use-cases/get-country-refere
 import { sortDestinations } from '@/domain/destination/destination';
 import { canDeleteTrips } from '@/domain/organization/organization';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
-import { getTripBudgetSummary } from '@/domain/trip/trip';
+import { buildBudgetWaterfall, getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { auth } from '@/infrastructure/auth';
@@ -16,6 +16,7 @@ import { DestinationSection } from '@/ui/components/DestinationSection';
 import { EditTripButton } from '@/ui/components/EditTripModal';
 import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBreakdown';
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
+import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
 
 type Props = { params: Promise<{ id: string }> };
@@ -66,6 +67,14 @@ export default async function TripDetailPage({ params }: Props) {
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
+
+  // Journey map waterfall — spend aggregated by destination
+  const spendByDestination = new Map<string, number>();
+  for (const entry of allSpend) {
+    const current = spendByDestination.get(entry.destinationId) ?? 0;
+    spendByDestination.set(entry.destinationId, current + entry.amount.amountPence);
+  }
+  const waterfall = buildBudgetWaterfall(trip, sorted, fixedCosts, spendByDestination);
 
   // Chart data — computed server-side, passed as plain serialisable props
   const budgetBreakdownData = [
@@ -167,6 +176,10 @@ export default async function TripDetailPage({ params }: Props) {
           estimatedVsActual={estimatedVsActualData}
           spendByCategory={spendByCategoryData}
         />
+
+        {sorted.length > 0 && (
+          <JourneyMapSection waterfall={waterfall} currency={trip.totalBudget.currency} />
+        )}
 
         <DestinationSection
           tripId={id}

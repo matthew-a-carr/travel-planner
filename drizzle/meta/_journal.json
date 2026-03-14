@@ -50,6 +50,13 @@
       "when": 1773099288825,
       "tag": "0006_dizzy_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773508516626,
+      "tag": "0007_quiet_blob",
+      "breakpoints": true
     }
   ]
 }

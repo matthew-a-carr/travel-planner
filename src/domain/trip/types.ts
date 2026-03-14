@@ -95,11 +95,19 @@ export type TripFixedCost = {
   readonly createdAt: Date;
 };
 
+export type Coordinates = {
+  readonly latitude: number;
+  readonly longitude: number;
+};
+
 export type Destination = {
   readonly id: string;
   readonly tripId: string;
   readonly name: string;
   readonly country: string;
+  readonly city: string | null;
+  readonly latitude: number | null;
+  readonly longitude: number | null;
   readonly estimatedBudget: Money;
   readonly comfortLevel: ComfortLevel;
   readonly startDate: Date | null;
@@ -117,6 +125,27 @@ export type SpendEntry = {
   readonly description: string | null;
   readonly spentAt: Date;
   readonly createdAt: Date;
+};
+
+// ─── Journey map types ────────────────────────────────────────────────────────
+
+export type WaterfallStop = {
+  readonly type: 'fixed-costs' | 'destination';
+  readonly label: string;
+  readonly destinationId: string | null;
+  readonly allocatedPence: number;
+  readonly spentPence: number;
+  readonly runningTotalPence: number;
+  readonly isOverBudget: boolean;
+  readonly coordinates: Coordinates | null;
+  readonly startDate: Date | null;
+  readonly endDate: Date | null;
+};
+
+export type BudgetWaterfall = {
+  readonly startingBudgetPence: number;
+  readonly stops: readonly WaterfallStop[];
+  readonly unallocatedPence: number;
 };
 
 // ─── Result type ──────────────────────────────────────────────────────────────

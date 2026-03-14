@@ -40,6 +40,9 @@ function repos(db: Db) {
 const baseInput = {
   name: 'Japan',
   country: 'Japan',
+  city: null,
+  latitude: null,
+  longitude: null,
   estimatedBudgetPence: 1_000_000,
   currency: 'GBP' as const,
   comfortLevel: 'mid' as const,

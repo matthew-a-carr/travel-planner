@@ -1,6 +1,16 @@
 import { canAllocateBudget } from '../trip/trip';
-import type { Destination, Result, Trip, TripFixedCost } from '../trip/types';
+import type { Coordinates, Destination, Result, Trip, TripFixedCost } from '../trip/types';
 import { err, money, ok } from '../trip/types';
+
+/**
+ * Validates geographic coordinates for map pinning.
+ * Latitude must be in [-90, 90], longitude in [-180, 180].
+ */
+export function validateCoordinates(lat: number, lng: number): Result<Coordinates> {
+  if (lat < -90 || lat > 90) return err('Latitude must be between -90 and 90');
+  if (lng < -180 || lng > 180) return err('Longitude must be between -180 and 180');
+  return ok({ latitude: lat, longitude: lng });
+}
 
 /**
  * Validates that a destination's date range is coherent.

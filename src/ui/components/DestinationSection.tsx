@@ -125,7 +125,7 @@ function DestinationCard({
             </span>
           </div>
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-            {destination.country}
+            {destination.city ? `${destination.city}, ${destination.country}` : destination.country}
             {days !== null && (
               <span className="ml-1 text-zinc-400 dark:text-zinc-500">
                 · {days} {days === 1 ? 'day' : 'days'}
