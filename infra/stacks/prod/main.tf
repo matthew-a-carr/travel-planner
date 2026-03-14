@@ -124,7 +124,7 @@ module "vercel_project" {
   github_repository     = var.github_repository
   production_branch     = var.production_branch
   framework             = "nextjs"
-  build_command         = "pnpm build && pnpm db:migrate:deploy"
+  build_command         = "pnpm build && pnpm db:migrate:deploy && pnpm db:seed"
   domain                = var.production_domain
   environment_variables = local.production_environment_variables
 }

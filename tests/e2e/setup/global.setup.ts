@@ -27,7 +27,7 @@ import {
   organizations,
   users,
 } from '../../../src/infrastructure/db/schema';
-import { COUNTRY_REFERENCE_SEED } from '../../../src/infrastructure/db/seed/country-reference-seed';
+import { COUNTRY_LIST_SEED } from '../../../src/infrastructure/db/seed/country-list-seed';
 import {
   E2E_AUTH_STATE_FILE,
   E2E_FIXTURES_DIR,
@@ -75,13 +75,27 @@ export default async function globalSetup(): Promise<void> {
 
   // ── 3. Seed country reference data ─────────────────────────────────────────
   console.log('[e2e] Seeding country reference data…');
-  for (const row of COUNTRY_REFERENCE_SEED) {
+  for (const row of COUNTRY_LIST_SEED) {
     await db
       .insert(countryReferenceData)
-      .values({ ...row, updatedAt: new Date() })
+      .values({
+        country: row.country,
+        alpha2: row.alpha2,
+        alpha3: row.alpha3,
+        region: row.region,
+        subregion: row.subregion,
+        avgDailyCostPence: row.avgDailyCostPence,
+        currency: row.currency,
+        source: row.source,
+        updatedAt: new Date(),
+      })
       .onConflictDoUpdate({
         target: countryReferenceData.country,
         set: {
+          alpha2: row.alpha2,
+          alpha3: row.alpha3,
+          region: row.region,
+          subregion: row.subregion,
           avgDailyCostPence: row.avgDailyCostPence,
           currency: row.currency,
           source: row.source,

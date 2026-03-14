@@ -8,9 +8,13 @@ import { countryReferenceData } from '../schema';
 function toCountryReference(row: typeof countryReferenceData.$inferSelect): CountryReference {
   return {
     country: row.country,
+    alpha2: row.alpha2,
+    alpha3: row.alpha3,
+    region: row.region,
+    subregion: row.subregion,
     avgDailyCostPence: row.avgDailyCostPence,
     currency: row.currency as Currency,
-    source: row.source as 'manual' | 'api',
+    source: row.source as 'manual' | 'estimated',
   };
 }
 
