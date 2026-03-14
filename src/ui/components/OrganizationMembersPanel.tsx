@@ -96,31 +96,14 @@ export function OrganizationMembersPanel({
           {members.map((member) => {
             const canRemove =
               canManageMembers && member.role !== 'owner' && member.userId !== currentUserId;
-            const removeAction = removeOrganizationMemberAction.bind(
-              null,
-              activeOrganizationId,
-              member.userId,
-            );
 
             return (
-              <li
+              <MemberRow
                 key={member.userId}
-                className="flex flex-wrap items-center justify-between gap-2 text-sm"
-              >
-                <span className="text-zinc-700 dark:text-zinc-200">
-                  {member.name ?? member.email} ({member.role})
-                </span>
-                {canRemove && (
-                  <form action={removeAction}>
-                    <button
-                      type="submit"
-                      className="rounded-lg px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-900/20"
-                    >
-                      Remove
-                    </button>
-                  </form>
-                )}
-              </li>
+                member={member}
+                organizationId={activeOrganizationId}
+                canRemove={canRemove}
+              />
             );
           })}
         </ul>
@@ -228,5 +211,43 @@ export function OrganizationMembersPanel({
         )}
       </div>
     </section>
+  );
+}
+
+function MemberRow({
+  member,
+  organizationId,
+  canRemove,
+}: {
+  member: OrganizationMemberView;
+  organizationId: string;
+  canRemove: boolean;
+}) {
+  const [isRemoving, startRemoveTransition] = useTransition();
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      <span className="text-zinc-700 dark:text-zinc-200">
+        {member.name ?? member.email} ({member.role})
+      </span>
+      {canRemove && (
+        <button
+          type="button"
+          disabled={isRemoving}
+          onClick={() => {
+            setRemoveError(null);
+            startRemoveTransition(async () => {
+              const result = await removeOrganizationMemberAction(organizationId, member.userId);
+              if (!result.ok) setRemoveError(result.error);
+            });
+          }}
+          className="rounded-lg px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-900/20"
+        >
+          {isRemoving ? '…' : 'Remove'}
+        </button>
+      )}
+      {removeError && <p className="w-full text-xs text-red-600">{removeError}</p>}
+    </li>
   );
 }

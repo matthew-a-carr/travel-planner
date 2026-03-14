@@ -7,6 +7,7 @@ import { findReference, suggestBudget } from '@/domain/country-reference/country
 import type { CountryReference } from '@/domain/country-reference/types';
 import type { ComfortLevel } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
+import { CountryCombobox } from './CountryCombobox';
 
 const COMFORT_OPTIONS: { value: ComfortLevel; label: string }[] = [
   { value: 'budget', label: 'Budget' },
@@ -82,16 +83,17 @@ export function AddDestinationForm({
           >
             Country
           </label>
-          <input
-            id="dest-country"
-            name="country"
-            type="text"
-            required
-            placeholder="Japan"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
-          />
+          <div className="mt-1">
+            <CountryCombobox
+              id="dest-country"
+              name="country"
+              countries={countryReferences}
+              value={country}
+              onChange={setCountry}
+              required
+              placeholder="Search countries…"
+            />
+          </div>
         </div>
       </div>
 
@@ -153,13 +155,9 @@ export function AddDestinationForm({
           />
           {suggestion && days !== null && reference && (
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Suggested {formatMoney(suggestion)} — {days} days in {reference.country} (
+              {reference.source === 'manual' ? 'Suggested' : 'Estimated'} {formatMoney(suggestion)}{' '}
+              — {days} days in {reference.country} (
               {COMFORT_OPTIONS.find((o) => o.value === comfortLevel)?.label.toLowerCase()})
-            </p>
-          )}
-          {country && !reference && (
-            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-              No reference data for &quot;{country}&quot;
             </p>
           )}
         </div>

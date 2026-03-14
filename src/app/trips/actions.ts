@@ -30,7 +30,7 @@ export async function createTripAction(
   }
 
   const { tripRepository } = getAppContainer();
-  const trip = await createTrip(tripRepository, {
+  const result = await createTrip(tripRepository, {
     organizationId: context.activeOrganization.organization.id,
     ownerId: context.userId,
     name: name.trim(),
@@ -38,5 +38,6 @@ export async function createTripAction(
     currency: 'GBP' as Currency, // GBP-only: see ADR 011
   });
 
-  redirect(`/trips/${trip.id}`);
+  if (!result.ok) return { error: result.error };
+  redirect(`/trips/${result.value.id}`);
 }

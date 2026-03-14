@@ -12,6 +12,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | Language | TypeScript (strict mode) |
 | Database | Vercel Postgres (Neon) via Drizzle ORM |
 | Auth | Auth.js v5 — Google OAuth + dev-only local login fallback + app-level access controls |
+| Observability | Sentry (Error monitoring & performance tracing) |
 | Styling | Tailwind CSS v4 |
 | Lint / Format | Biome v2 |
 | Unit tests | Vitest |
@@ -103,10 +104,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Running checks
 
-A pre-push hook runs `pnpm lint`, `pnpm type-check`, `pnpm test:unit`, and
-`pnpm test:integration` automatically before every `git push`.
+CI runs all checks on every push and PR. Run relevant checks locally before
+pushing to catch issues early (see [`AGENTS.md`](./AGENTS.md) for the
+change-aware verification table):
 
-To run checks mid-task:
 
 ```bash
 pnpm lint               # Biome lint + import ordering
@@ -145,12 +146,14 @@ Key domain decisions:
 - **Result types** — `{ ok: true; value }` or `{ ok: false; error }` — no exceptions from domain
 - **Named fixed costs** — a `Trip` has a list of `TripFixedCost` items (flights, insurance, etc.) each deducted from the total before destination allocations
 - **Organization scoping** — trips belong to organizations; owners manage membership with searchable existing-user assignment and members collaborate inside shared organizations
+- **Soft deleting** — users can be soft-deleted across all organizations simultaneously.
 
 See [`AGENTS.md`](./AGENTS.md) for agent and contributor quick-reference.
 See [`CONSTITUTION.md`](./CONSTITUTION.md) for full engineering standards.
 See [`docs/decisions/`](./docs/decisions/) for architecture decision records.
 See [`docs/email-delivery.md`](./docs/email-delivery.md) for email integration
 runbook and template standards.
+See [`docs/operations/sentry.md`](./docs/operations/sentry.md) for error monitoring and observability.
 
 ## Database
 
@@ -172,7 +175,7 @@ Infrastructure and deployment wiring are Terraform-managed under [`infra/`](./in
 Vercel runs this build command (managed via Terraform):
 
 ```bash
-pnpm build && pnpm db:migrate:deploy
+pnpm build && pnpm db:migrate:deploy && pnpm db:seed
 ```
 
 Migrations run inside deployment. If migration fails, deployment fails and transaction-scoped migration changes roll back.

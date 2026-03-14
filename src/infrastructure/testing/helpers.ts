@@ -330,18 +330,30 @@ export async function seedCountryReference(
   db: Db,
   overrides: {
     country?: string;
+    alpha2?: string;
+    alpha3?: string;
+    region?: string;
+    subregion?: string;
     avgDailyCostPence?: number;
     currency?: string;
-    source?: 'manual' | 'api';
+    source?: 'manual' | 'estimated';
   } = {},
 ): Promise<{ country: string; avgDailyCostPence: number }> {
   const country = overrides.country ?? 'Japan';
+  const alpha2 = overrides.alpha2 ?? 'JP';
+  const alpha3 = overrides.alpha3 ?? 'JPN';
+  const region = overrides.region ?? 'Asia';
+  const subregion = overrides.subregion ?? 'Eastern Asia';
   const avgDailyCostPence = overrides.avgDailyCostPence ?? 7_500; // £75/day mid-range
   const currency = overrides.currency ?? 'GBP';
   const source = overrides.source ?? 'manual';
 
   await db.insert(schema.countryReferenceData).values({
     country,
+    alpha2,
+    alpha3,
+    region,
+    subregion,
     avgDailyCostPence,
     currency,
     source,

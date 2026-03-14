@@ -90,6 +90,17 @@ describe('calculateTotalFixedCosts', () => {
     const result = calculateTotalFixedCosts([makeFixedCost({ amountPence: 1_000 })]);
     expect(result.currency).toBe('GBP');
   });
+
+  it('should sum fixed costs with new categories (eating-out, subscriptions, healthcare, visas)', () => {
+    const fixedCosts = [
+      makeFixedCost({ id: 'fc-1', label: 'Restaurants', category: 'eating-out', amountPence: 50_000 }),
+      makeFixedCost({ id: 'fc-2', label: 'Netflix', category: 'subscriptions', amountPence: 6_000 }),
+      makeFixedCost({ id: 'fc-3', label: 'Vaccinations', category: 'healthcare', amountPence: 15_000 }),
+      makeFixedCost({ id: 'fc-4', label: 'Tourist Visa', category: 'visas', amountPence: 10_000 }),
+    ];
+    const result = calculateTotalFixedCosts(fixedCosts);
+    expect(result.amountPence).toBe(81_000);
+  });
 });
 
 // ─── calculateAllocatedBudget ─────────────────────────────────────────────────

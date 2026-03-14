@@ -1,6 +1,6 @@
 # Domain Layer — AGENTS.md
 
-> Rules for `src/domain/`. These override nothing in the root AGENTS.md — they add specificity.
+> Rules for `src/domain/`. These add specificity to the root AGENTS.md.
 
 ## Hard rules
 
@@ -41,6 +41,8 @@ src/domain/
     organization-repository.ts ← OrganizationRepository interface
   user-access/
     types.ts              ← app-level user access views (approval/admin/idp/org links)
+    delete-user.ts        ← domain constraints for soft-deletion
+    delete-user.test.ts
     user-access-repository.ts ← UserAccessRepository interface
 ```
 

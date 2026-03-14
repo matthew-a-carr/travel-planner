@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.10.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.9.0...v1.10.0) (2026-03-14)
+
+
+### Features
+
+* **destinations:** comprehensive country reference data with combobox selection ([#34](https://github.com/matthew-a-carr/travel-planner/issues/34)) ([d532ffb](https://github.com/matthew-a-carr/travel-planner/commit/d532ffb3f675e362766a800403a7271aa2672aff))
+* **fixed-costs:** add eating-out, subscriptions, healthcare, visas categories ([0c08921](https://github.com/matthew-a-carr/travel-planner/commit/0c08921bdf4a45ee92a7336670f56d92fa6dd484))
+
 ## [1.9.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.8.1...v1.9.0) (2026-03-09)
 
 
@@ -49,7 +57,18 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+* **trips:** display created date on trip cards in the dashboard
+
+* **destinations:** comprehensive country reference data with 200 countries (ADR 033):
+  - REST Countries API + World Bank GDP PPP calibration for estimated daily costs
+  - ISO 3166-1 alpha-2/alpha-3 codes, region, and subregion per country
+  - `scripts/fetch-countries.ts` developer script for repeatable data refresh
+  - Accessible combobox replaces free-text country input (WAI-ARIA pattern)
+  - Server-side validation rejects invalid country values
+  - Budget suggestions labelled "Suggested" (manual data) or "Estimated" (model-derived)
+  - Deploy-time seeding via idempotent upsert in Vercel build pipeline
 * **auth:** Admins can delete users (soft delete with anonymization, preserving organization data)
+* **fixed-costs:** add new fixed cost categories: eating-out, subscriptions, healthcare, visas
 * **infra:** Sentry error monitoring and performance tracing (ADR 032):
   - `@sentry/nextjs` SDK with client, server, and edge runtime initialisation
   - Terraform-managed Sentry project, issue alerts (new issue, regression,

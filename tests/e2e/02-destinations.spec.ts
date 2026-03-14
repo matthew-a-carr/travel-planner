@@ -93,6 +93,7 @@ test.describe('Destination management', () => {
     const form = addDestinationForm(page);
     await form.getByLabel(/name/i).fill('Japan');
     await form.getByLabel(/country/i).fill('Japan');
+    await page.getByRole('option', { name: 'Japan' }).click();
     await form.getByLabel(/estimated budget/i).fill('5000');
     await form.getByLabel(/comfort/i).selectOption('mid');
 
@@ -113,6 +114,7 @@ test.describe('Destination management', () => {
     const form = addDestinationForm(page);
     await form.getByLabel(/name/i).fill('Expensive');
     await form.getByLabel(/country/i).fill('Monaco');
+    await page.getByRole('option', { name: 'Monaco' }).click();
     await form.getByLabel(/estimated budget/i).fill('999999');
     await form.getByLabel(/comfort/i).selectOption('luxury');
 
@@ -125,7 +127,9 @@ test.describe('Destination management', () => {
     await page.getByRole('button', { name: /edit japan/i }).click();
 
     await page.getByLabel(/name/i).fill('Japan (updated)');
+    // Country combobox should already have 'Japan' selected — clear and re-select
     await page.getByLabel(/country/i).fill('Japan');
+    await page.getByRole('option', { name: 'Japan' }).click();
     await page.getByRole('button', { name: /save changes/i }).click();
 
     await expect(editDestinationButton(page, 'Japan (updated)')).toBeVisible();

@@ -20,12 +20,33 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
+  isoCounter = 0;
   await truncateAll(db);
 });
 
+// Counter to generate unique ISO codes for test isolation
+let isoCounter = 0;
+
+function nextIso(): { alpha2: string; alpha3: string } {
+  isoCounter++;
+  const code = String(isoCounter).padStart(2, '0');
+  return { alpha2: `X${code[1]}`, alpha3: `X${code}` };
+}
+
+const ISO_LOOKUP: Record<string, { alpha2: string; alpha3: string }> = {
+  Japan: { alpha2: 'JP', alpha3: 'JPN' },
+  Thailand: { alpha2: 'TH', alpha3: 'THA' },
+  Australia: { alpha2: 'AU', alpha3: 'AUS' },
+};
+
 async function seedCountryRef(db: Db, country: string, avgDailyCostPence: number): Promise<void> {
+  const iso = ISO_LOOKUP[country] ?? nextIso();
   await db.insert(schema.countryReferenceData).values({
     country,
+    alpha2: iso.alpha2,
+    alpha3: iso.alpha3,
+    region: 'Asia',
+    subregion: 'Eastern Asia',
     avgDailyCostPence,
     currency: 'GBP',
     source: 'manual',

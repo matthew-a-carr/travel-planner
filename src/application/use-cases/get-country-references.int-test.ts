@@ -43,8 +43,20 @@ describe('getCountryReferences', () => {
   });
 
   it('returns multiple countries ordered alphabetically', async () => {
-    await seedCountryReference(db, { country: 'Thailand', avgDailyCostPence: 4_000 });
-    await seedCountryReference(db, { country: 'Australia', avgDailyCostPence: 10_000 });
+    await seedCountryReference(db, {
+      country: 'Thailand',
+      alpha2: 'TH',
+      alpha3: 'THA',
+      avgDailyCostPence: 4_000,
+    });
+    await seedCountryReference(db, {
+      country: 'Australia',
+      alpha2: 'AU',
+      alpha3: 'AUS',
+      region: 'Oceania',
+      subregion: 'Australia and New Zealand',
+      avgDailyCostPence: 10_000,
+    });
     await seedCountryReference(db, { country: 'Japan', avgDailyCostPence: 7_500 });
 
     const repo = new DrizzleCountryReferenceRepository(db);
