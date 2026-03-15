@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { deleteSpendEntryAction, removeDestinationAction } from '@/app/trips/[id]/actions';
-import type { CountryReference } from '@/domain/country-reference/types';
+import type { CityReference, CountryReference } from '@/domain/country-reference/types';
 import { destinationDays } from '@/domain/destination/destination';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import type { Currency, Destination, SpendEntry } from '@/domain/trip/types';
@@ -31,6 +31,7 @@ type Props = {
   destinations: Destination[];
   allSpend: SpendEntry[];
   countryReferences: CountryReference[];
+  cityReferences: CityReference[];
   burndownByDestination: Record<string, BurndownData>;
   currency: Currency;
 };
@@ -40,6 +41,7 @@ export function DestinationSection({
   destinations,
   allSpend,
   countryReferences,
+  cityReferences,
   burndownByDestination,
   currency,
 }: Props) {
@@ -66,6 +68,7 @@ export function DestinationSection({
           <AddDestinationForm
             tripId={tripId}
             countryReferences={countryReferences}
+            cityReferences={cityReferences}
             onSuccess={() => setShowAddForm(false)}
           />
         </div>

@@ -8,7 +8,8 @@
  */
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { countryReferenceData } from '../schema';
+import { cityReferenceData, countryReferenceData } from '../schema';
+import { CITY_LIST_SEED } from './city-list-seed';
 import { COUNTRY_LIST_SEED } from './country-list-seed';
 
 async function seed() {
@@ -45,6 +46,28 @@ async function seed() {
           subregion: row.subregion,
           avgDailyCostPence: row.avgDailyCostPence,
           currency: row.currency,
+          source: row.source,
+          updatedAt: new Date(),
+        },
+      });
+  }
+
+  console.log(`Seeding ${CITY_LIST_SEED.length} city reference records...`);
+
+  for (const row of CITY_LIST_SEED) {
+    await db
+      .insert(cityReferenceData)
+      .values({
+        city: row.city,
+        country: row.country,
+        costMultiplier: row.costMultiplier,
+        source: row.source,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [cityReferenceData.city, cityReferenceData.country],
+        set: {
+          costMultiplier: row.costMultiplier,
           source: row.source,
           updatedAt: new Date(),
         },

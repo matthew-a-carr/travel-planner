@@ -3,11 +3,12 @@
 import { useActionState, useState } from 'react';
 import type { AddDestinationState } from '@/app/trips/[id]/actions';
 import { addDestinationAction } from '@/app/trips/[id]/actions';
-import { findReference, suggestBudget } from '@/domain/country-reference/country-reference';
-import type { CountryReference } from '@/domain/country-reference/types';
+import { estimateCityBudget, findReference } from '@/domain/country-reference/country-reference';
+import type { CityReference, CountryReference } from '@/domain/country-reference/types';
 import type { ComfortLevel } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { CityAutocomplete } from './CityAutocomplete';
+import { CostConfidenceBadge } from './CostConfidenceBadge';
 import { CountryCombobox } from './CountryCombobox';
 
 const COMFORT_OPTIONS: { value: ComfortLevel; label: string }[] = [
@@ -26,13 +27,26 @@ function computeDays(startStr: string, endStr: string): number | null {
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+function findCityReference(
+  city: string,
+  country: string,
+  cityReferences: readonly CityReference[],
+): CityReference | null {
+  const normalised = city.toLowerCase().trim();
+  return (
+    cityReferences.find((r) => r.city.toLowerCase() === normalised && r.country === country) ?? null
+  );
+}
+
 export function AddDestinationForm({
   tripId,
   countryReferences,
+  cityReferences,
   onSuccess,
 }: {
   tripId: string;
   countryReferences: CountryReference[];
+  cityReferences: CityReference[];
   onSuccess: () => void;
 }) {
   const [country, setCountry] = useState('');
@@ -58,11 +72,14 @@ export function AddDestinationForm({
     initial,
   );
 
-  // Compute suggestion client-side — no API call needed
+  // Compute city-aware suggestion client-side
   const days = computeDays(startDate, endDate);
-  const reference = country ? findReference(country, countryReferences) : null;
-  const suggestion =
-    days !== null && reference ? suggestBudget(days, reference, comfortLevel) : null;
+  const countryRef = country ? findReference(country, countryReferences) : null;
+  const cityRef = city && country ? findCityReference(city, country, cityReferences) : null;
+  const estimate =
+    days !== null && countryRef
+      ? estimateCityBudget(days, countryRef, comfortLevel, cityRef)
+      : null;
 
   return (
     <form action={dispatch} className="space-y-4">
@@ -174,7 +191,7 @@ export function AddDestinationForm({
             htmlFor="dest-budget"
             className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
-            Estimated budget (£)
+            Estimated budget ({'\u00A3'})
           </label>
           <input
             id="dest-budget"
@@ -183,15 +200,21 @@ export function AddDestinationForm({
             required
             min="0.01"
             step="0.01"
-            placeholder={suggestion ? String(Math.round(suggestion.amountPence / 100)) : '5000'}
+            placeholder={estimate ? String(Math.round(estimate.totalPence / 100)) : '5000'}
             className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
-          {suggestion && days !== null && reference && (
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              {reference.source === 'manual' ? 'Suggested' : 'Estimated'} {formatMoney(suggestion)}{' '}
-              — {days} days in {reference.country} (
-              {COMFORT_OPTIONS.find((o) => o.value === comfortLevel)?.label.toLowerCase()})
-            </p>
+          {estimate && days !== null && countryRef && (
+            <div className="mt-1 flex items-center gap-2">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {formatMoney({ amountPence: estimate.totalPence, currency: estimate.currency })} —{' '}
+                {days} days
+                {estimate.cityName ? ` in ${estimate.cityName}` : ` in ${countryRef.country}`} (
+                {COMFORT_OPTIONS.find((o) => o.value === comfortLevel)?.label.toLowerCase()})
+                {estimate.cityName &&
+                  ` · ${formatMoney({ amountPence: estimate.dailyCostPence, currency: estimate.currency })}/day`}
+              </p>
+              <CostConfidenceBadge confidence={estimate.confidence} />
+            </div>
           )}
         </div>
         <div>
@@ -226,7 +249,7 @@ export function AddDestinationForm({
           disabled={isPending}
           className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          {isPending ? 'Saving…' : 'Add destination'}
+          {isPending ? 'Saving\u2026' : 'Add destination'}
         </button>
       </div>
     </form>

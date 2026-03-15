@@ -417,3 +417,27 @@ export async function seedSpendEntry(
     createdAt: row.createdAt,
   };
 }
+
+export async function seedCityReference(
+  db: Db,
+  overrides: {
+    city?: string;
+    country?: string;
+    costMultiplier?: number;
+    source?: 'manual' | 'estimated';
+  } = {},
+): Promise<{ city: string; country: string; costMultiplier: number }> {
+  const city = overrides.city ?? 'Tokyo';
+  const country = overrides.country ?? 'Japan';
+  const costMultiplier = overrides.costMultiplier ?? 1.5;
+  const source = overrides.source ?? 'manual';
+
+  await db.insert(schema.cityReferenceData).values({
+    city,
+    country,
+    costMultiplier,
+    source,
+  });
+
+  return { city, country, costMultiplier };
+}

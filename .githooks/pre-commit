@@ -5,5 +5,9 @@
 
 set -euo pipefail
 
-echo "pre-commit: formatting Terraform..."
-terraform fmt -recursive
+if command -v terraform &>/dev/null; then
+  echo "pre-commit: formatting Terraform..."
+  terraform fmt -recursive
+else
+  echo "pre-commit: terraform not found, skipping format (install to enable)"
+fi

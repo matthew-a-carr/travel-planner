@@ -1,4 +1,5 @@
 import type { Db } from '@/infrastructure/db/client';
+import { DrizzleCityReferenceRepository } from '@/infrastructure/db/repositories/drizzle-city-reference-repository';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
@@ -23,6 +24,7 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     spendEntryRepository: new DrizzleSpendEntryRepository(dbClient),
     tripFixedCostRepository: new DrizzleTripFixedCostRepository(dbClient),
     countryReferenceRepository: new DrizzleCountryReferenceRepository(dbClient),
+    cityReferenceRepository: new DrizzleCityReferenceRepository(dbClient),
     organizationRepository: new DrizzleOrganizationRepository(dbClient),
     userAccessRepository: new DrizzleUserAccessRepository(dbClient),
     inviteEmailService: createInviteEmailService(),

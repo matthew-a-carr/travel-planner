@@ -56,13 +56,36 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
+function buildAccessibleSummary(
+  actual: DataPoint[],
+  projected: DataPoint[],
+  currency: Currency,
+): string {
+  if (actual.length === 0) return 'No spending data available yet.';
+
+  const latest = actual[actual.length - 1];
+  const remaining = formatMoney({ amountPence: latest.amountPence, currency });
+  const latestDate = formatDate(latest.date);
+
+  const parts = [`Remaining budget ${remaining} as of ${latestDate}.`];
+
+  if (projected.length > 0) {
+    const final = projected[projected.length - 1];
+    const projectedRemaining = formatMoney({ amountPence: final.amountPence, currency });
+    parts.push(`Projected to end at ${projectedRemaining}.`);
+  }
+
+  return parts.join(' ');
+}
+
 export function BurndownChart({ idealLine, actualLine, projectedLine, currency }: Props) {
   if (idealLine.length === 0) return null;
 
   const merged = mergeLines(idealLine, actualLine, projectedLine);
+  const summary = buildAccessibleSummary(actualLine, projectedLine, currency);
 
   return (
-    <div>
+    <figure aria-label={`Budget burndown chart. ${summary}`}>
       <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
         Budget burndown
       </h3>
@@ -129,6 +152,6 @@ export function BurndownChart({ idealLine, actualLine, projectedLine, currency }
           />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </figure>
   );
 }

@@ -167,3 +167,17 @@ export const countryReferenceData = pgTable('country_reference_data', {
   source: text('source').notNull().default('manual'), // 'manual' | 'estimated'
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const cityReferenceData = pgTable(
+  'city_reference_data',
+  {
+    city: text('city').notNull(), // canonical city name, e.g. "Tokyo"
+    country: text('country')
+      .notNull()
+      .references(() => countryReferenceData.country, { onDelete: 'cascade' }),
+    costMultiplier: doublePrecision('cost_multiplier').notNull().default(1.0),
+    source: text('source').notNull().default('estimated'), // 'manual' | 'estimated'
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.city, table.country] })],
+);

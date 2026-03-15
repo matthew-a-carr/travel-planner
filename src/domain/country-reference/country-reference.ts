@@ -1,6 +1,12 @@
 import type { ComfortLevel, Money } from '../trip/types';
 import { money } from '../trip/types';
-import type { CountryReference } from './types';
+import type {
+  CategoryBreakdown,
+  CityBudgetEstimate,
+  CityReference,
+  CostConfidence,
+  CountryReference,
+} from './types';
 
 /**
  * Multipliers applied to the mid-range reference cost based on comfort preference.
@@ -11,6 +17,17 @@ export const COMFORT_MULTIPLIERS: Record<ComfortLevel, number> = {
   budget: 0.65,
   mid: 1.0,
   luxury: 1.8,
+};
+
+/**
+ * Default category breakdown percentages when no city-specific data exists.
+ * Based on typical mid-range travel patterns.
+ */
+export const DEFAULT_BREAKDOWN: CategoryBreakdown = {
+  accommodation: 40,
+  food: 25,
+  transport: 20,
+  activities: 15,
 };
 
 /**
@@ -42,4 +59,45 @@ export function suggestBudget(
   const multiplier = COMFORT_MULTIPLIERS[comfortLevel];
   const rawPence = Math.round(days * reference.avgDailyCostPence * multiplier);
   return money(rawPence, reference.currency);
+}
+
+/**
+ * Determines confidence level based on data provenance.
+ *
+ *   - high: city-specific manual data (curated research)
+ *   - medium: city-specific estimated data (model-derived)
+ *   - low: country-level fallback (no city data available)
+ */
+export function determineConfidence(cityRef: CityReference | null): CostConfidence {
+  if (!cityRef) return 'low';
+  return cityRef.source === 'manual' ? 'high' : 'medium';
+}
+
+/**
+ * Calculates a city-aware budget estimate with confidence scoring.
+ *
+ * When city data is available, scales the country baseline by the city's
+ * costMultiplier. Otherwise falls back to the country average with 'low' confidence.
+ */
+export function estimateCityBudget(
+  days: number,
+  countryRef: CountryReference,
+  comfortLevel: ComfortLevel,
+  cityRef: CityReference | null,
+): CityBudgetEstimate {
+  const comfortMultiplier = COMFORT_MULTIPLIERS[comfortLevel];
+  const cityMultiplier = cityRef?.costMultiplier ?? 1.0;
+  const dailyCostPence = Math.round(
+    countryRef.avgDailyCostPence * cityMultiplier * comfortMultiplier,
+  );
+  const totalPence = Math.round(days * dailyCostPence);
+
+  return {
+    dailyCostPence,
+    totalPence,
+    currency: countryRef.currency,
+    confidence: determineConfidence(cityRef),
+    cityName: cityRef?.city ?? null,
+    breakdown: DEFAULT_BREAKDOWN,
+  };
 }

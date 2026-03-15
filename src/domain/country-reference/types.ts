@@ -19,3 +19,40 @@ export type CountryReference = {
   readonly currency: Currency; // GBP for all seeded data
   readonly source: 'manual' | 'estimated';
 };
+
+/**
+ * City-level daily cost override.
+ *
+ * When available, provides a more accurate budget estimate than the
+ * country-level average. For example, Tokyo is ~50% more expensive
+ * than the Japan average, while Osaka is closer to the national mean.
+ *
+ * `costMultiplier` scales the country's `avgDailyCostPence`:
+ *   - 1.0 = same as country average
+ *   - 1.5 = 50% more expensive
+ *   - 0.7 = 30% cheaper
+ */
+export type CityReference = {
+  readonly city: string; // canonical city name, e.g. "Tokyo"
+  readonly country: string; // FK to CountryReference.country
+  readonly costMultiplier: number; // relative to country avgDailyCostPence
+  readonly source: 'manual' | 'estimated';
+};
+
+export type CostConfidence = 'high' | 'medium' | 'low';
+
+export type CityBudgetEstimate = {
+  readonly dailyCostPence: number;
+  readonly totalPence: number;
+  readonly currency: Currency;
+  readonly confidence: CostConfidence;
+  readonly cityName: string | null; // null when falling back to country-level
+  readonly breakdown: CategoryBreakdown;
+};
+
+export type CategoryBreakdown = {
+  readonly accommodation: number; // percentage 0-100
+  readonly food: number;
+  readonly transport: number;
+  readonly activities: number;
+};

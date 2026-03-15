@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { COMFORT_MULTIPLIERS, findReference, suggestBudget } from './country-reference';
-import type { CountryReference } from './types';
+import {
+  COMFORT_MULTIPLIERS,
+  DEFAULT_BREAKDOWN,
+  determineConfidence,
+  estimateCityBudget,
+  findReference,
+  suggestBudget,
+} from './country-reference';
+import type { CityReference, CountryReference } from './types';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -108,5 +115,81 @@ describe('suggestBudget', () => {
   it('should inherit currency from the reference', () => {
     const result = suggestBudget(1, japanRef, 'mid');
     expect(result.currency).toBe(japanRef.currency);
+  });
+});
+
+// ─── determineConfidence ─────────────────────────────────────────────────────
+
+describe('determineConfidence', () => {
+  it('should return "low" when no city reference exists', () => {
+    expect(determineConfidence(null)).toBe('low');
+  });
+
+  it('should return "high" for manual city data', () => {
+    const cityRef: CityReference = {
+      city: 'Tokyo',
+      country: 'Japan',
+      costMultiplier: 1.5,
+      source: 'manual',
+    };
+    expect(determineConfidence(cityRef)).toBe('high');
+  });
+
+  it('should return "medium" for estimated city data', () => {
+    const cityRef: CityReference = {
+      city: 'Osaka',
+      country: 'Japan',
+      costMultiplier: 1.1,
+      source: 'estimated',
+    };
+    expect(determineConfidence(cityRef)).toBe('medium');
+  });
+});
+
+// ─── estimateCityBudget ──────────────────────────────────────────────────────
+
+describe('estimateCityBudget', () => {
+  const tokyoRef: CityReference = {
+    city: 'Tokyo',
+    country: 'Japan',
+    costMultiplier: 1.5,
+    source: 'manual',
+  };
+
+  it('should apply city multiplier on top of country baseline', () => {
+    // 10 days × (£80/day × 1.5 city × 1.0 mid) = £1,200 = 120,000p
+    const result = estimateCityBudget(10, japanRef, 'mid', tokyoRef);
+    expect(result.dailyCostPence).toBe(12_000); // 8000 × 1.5
+    expect(result.totalPence).toBe(120_000);
+    expect(result.currency).toBe('GBP');
+    expect(result.confidence).toBe('high');
+    expect(result.cityName).toBe('Tokyo');
+  });
+
+  it('should compose city and comfort multipliers', () => {
+    // 10 days × (£80/day × 1.5 city × 0.65 budget)
+    const result = estimateCityBudget(10, japanRef, 'budget', tokyoRef);
+    const expected = Math.round(8_000 * 1.5 * 0.65);
+    expect(result.dailyCostPence).toBe(expected);
+    expect(result.totalPence).toBe(Math.round(10 * expected));
+  });
+
+  it('should fall back to country level when no city ref', () => {
+    const result = estimateCityBudget(10, japanRef, 'mid', null);
+    expect(result.dailyCostPence).toBe(8_000); // no city multiplier
+    expect(result.totalPence).toBe(80_000);
+    expect(result.confidence).toBe('low');
+    expect(result.cityName).toBeNull();
+  });
+
+  it('should include default category breakdown', () => {
+    const result = estimateCityBudget(1, japanRef, 'mid', tokyoRef);
+    expect(result.breakdown).toEqual(DEFAULT_BREAKDOWN);
+    expect(
+      result.breakdown.accommodation +
+        result.breakdown.food +
+        result.breakdown.transport +
+        result.breakdown.activities,
+    ).toBe(100);
   });
 });

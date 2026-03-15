@@ -59,4 +59,23 @@ describe('Architecture layer boundaries', () => {
       }
     }
   });
+
+  it('every use case must have a co-located integration test', () => {
+    const useCaseDir = path.resolve('src/application/use-cases');
+    if (!fs.existsSync(useCaseDir)) return;
+
+    const useCaseFiles = fs.readdirSync(useCaseDir).filter(
+      (f) => f.endsWith('.ts') && !f.endsWith('.test.ts') && !f.endsWith('.int-test.ts'),
+    );
+    const missing: string[] = [];
+
+    for (const file of useCaseFiles) {
+      const intTestName = file.replace(/\.ts$/, '.int-test.ts');
+      if (!fs.existsSync(path.join(useCaseDir, intTestName))) {
+        missing.push(file);
+      }
+    }
+
+    expect(missing).toEqual([]);
+  });
 });

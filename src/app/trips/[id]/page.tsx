@@ -37,6 +37,7 @@ export default async function TripDetailPage({ params }: Props) {
 
   const {
     countryReferenceRepository,
+    cityReferenceRepository,
     destinationRepository,
     organizationRepository,
     spendEntryRepository,
@@ -64,12 +65,15 @@ export default async function TripDetailPage({ params }: Props) {
           }))
       : [];
 
-  const [destinations, allSpend, fixedCosts, countryReferences] = await Promise.all([
-    destinationRepository.findByTrip(id),
-    spendEntryRepository.findByTrip(id),
-    tripFixedCostRepository.findByTrip(id),
-    getCountryReferences(countryReferenceRepository),
-  ]);
+  const [destinations, allSpend, fixedCosts, countryReferences, cityReferences] = await Promise.all(
+    [
+      destinationRepository.findByTrip(id),
+      spendEntryRepository.findByTrip(id),
+      tripFixedCostRepository.findByTrip(id),
+      getCountryReferences(countryReferenceRepository),
+      cityReferenceRepository.findAll(),
+    ],
+  );
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
@@ -267,6 +271,7 @@ export default async function TripDetailPage({ params }: Props) {
           destinations={sorted}
           allSpend={allSpend}
           countryReferences={countryReferences}
+          cityReferences={cityReferences}
           burndownByDestination={Object.fromEntries(burndownByDestination)}
           currency={trip.totalBudget.currency}
         />
