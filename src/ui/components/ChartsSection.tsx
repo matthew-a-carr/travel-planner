@@ -1,20 +1,35 @@
 'use client';
 
+import type { Currency } from '@/domain/trip/types';
 import { BudgetBreakdownChart } from './charts/BudgetBreakdownChart';
+import { BurndownChart } from './charts/BurndownChart';
 import { EstimatedVsActualChart } from './charts/EstimatedVsActualChart';
 import { SpendByCategoryChart } from './charts/SpendByCategoryChart';
 
 type BudgetSegment = { label: string; amountPence: number; fill: string };
 type DestRow = { name: string; estimated: number; actual: number };
 type CategoryRow = { category: string; amountPence: number };
+type BurndownLine = { date: string; amountPence: number }[];
 
 type Props = {
   budgetBreakdown: BudgetSegment[];
   estimatedVsActual: DestRow[];
   spendByCategory: CategoryRow[];
+  tripBurndown: {
+    idealLine: BurndownLine;
+    actualLine: BurndownLine;
+    projectedLine: BurndownLine;
+  } | null;
+  currency: Currency;
 };
 
-export function ChartsSection({ budgetBreakdown, estimatedVsActual, spendByCategory }: Props) {
+export function ChartsSection({
+  budgetBreakdown,
+  estimatedVsActual,
+  spendByCategory,
+  tripBurndown,
+  currency,
+}: Props) {
   const hasDestinations = estimatedVsActual.length > 0;
   const hasSpend = spendByCategory.length > 0;
 
@@ -28,6 +43,18 @@ export function ChartsSection({ budgetBreakdown, estimatedVsActual, spendByCateg
         <>
           <div className="border-t border-zinc-100 dark:border-zinc-800" />
           <EstimatedVsActualChart data={estimatedVsActual} />
+        </>
+      )}
+
+      {tripBurndown && (
+        <>
+          <div className="border-t border-zinc-100 dark:border-zinc-800" />
+          <BurndownChart
+            idealLine={tripBurndown.idealLine}
+            actualLine={tripBurndown.actualLine}
+            projectedLine={tripBurndown.projectedLine}
+            currency={currency}
+          />
         </>
       )}
 

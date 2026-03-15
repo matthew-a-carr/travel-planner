@@ -5,9 +5,10 @@ import { deleteSpendEntryAction, removeDestinationAction } from '@/app/trips/[id
 import type { CountryReference } from '@/domain/country-reference/types';
 import { destinationDays } from '@/domain/destination/destination';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
-import type { Destination, SpendEntry } from '@/domain/trip/types';
+import type { Currency, Destination, SpendEntry } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
 import { AddDestinationForm } from './AddDestinationForm';
+import { BurnRateIndicator } from './BurnRateIndicator';
 import { EditDestinationForm } from './EditDestinationForm';
 import { EditSpendEntryForm } from './EditSpendEntryForm';
 import { RecordSpendForm } from './RecordSpendForm';
@@ -18,14 +19,30 @@ const COMFORT_LABELS: Record<string, string> = {
   luxury: 'Luxury',
 };
 
+type BurndownData = {
+  dailyPacePence: number;
+  targetPacePence: number;
+  paceRatio: number;
+  projectedExhaustionDate: string | null;
+};
+
 type Props = {
   tripId: string;
   destinations: Destination[];
   allSpend: SpendEntry[];
   countryReferences: CountryReference[];
+  burndownByDestination: Record<string, BurndownData>;
+  currency: Currency;
 };
 
-export function DestinationSection({ tripId, destinations, allSpend, countryReferences }: Props) {
+export function DestinationSection({
+  tripId,
+  destinations,
+  allSpend,
+  countryReferences,
+  burndownByDestination,
+  currency,
+}: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
@@ -72,6 +89,8 @@ export function DestinationSection({ tripId, destinations, allSpend, countryRefe
                 destination={dest}
                 spend={destSpend}
                 countryReferences={countryReferences}
+                burndown={burndownByDestination[dest.id] ?? null}
+                currency={currency}
               />
             );
           })}
@@ -86,11 +105,15 @@ function DestinationCard({
   destination,
   spend,
   countryReferences,
+  burndown,
+  currency,
 }: {
   tripId: string;
   destination: Destination;
   spend: SpendEntry[];
   countryReferences: CountryReference[];
+  burndown: BurndownData | null;
+  currency: Currency;
 }) {
   const [showSpendForm, setShowSpendForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -208,6 +231,17 @@ function DestinationCard({
         </div>
         {isOverSpend && <p className="mt-1 text-xs text-red-600">Over estimated budget</p>}
       </div>
+
+      {/* Burn rate indicator */}
+      {burndown && (
+        <BurnRateIndicator
+          dailyPacePence={burndown.dailyPacePence}
+          targetPacePence={burndown.targetPacePence}
+          paceRatio={burndown.paceRatio}
+          projectedExhaustionDate={burndown.projectedExhaustionDate}
+          currency={currency}
+        />
+      )}
 
       {/* Spend entries */}
       {spend.length > 0 && (
