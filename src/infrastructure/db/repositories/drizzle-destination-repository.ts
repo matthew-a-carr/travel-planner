@@ -57,7 +57,7 @@ export class DrizzleDestinationRepository implements DestinationRepository {
       .select()
       .from(destinations)
       .where(eq(destinations.tripId, tripId))
-      .orderBy(destinations.sortOrder, destinations.createdAt);
+      .orderBy(destinations.startDate, destinations.sortOrder, destinations.createdAt);
     return rows.map(toDestination);
   }
 
