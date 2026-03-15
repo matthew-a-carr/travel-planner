@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.12.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.11.0...v1.12.0) (2026-03-15)
+
+
+### Features
+
+* **spending:** add burndown budget pace tracker with alerts ([#39](https://github.com/matthew-a-carr/travel-planner/issues/39)) ([3436fc8](https://github.com/matthew-a-carr/travel-planner/commit/3436fc8e089bb2eb2911349568a04907e39ab35f))
+* **trips:** add interactive journey map and budget timeline ([8f3e302](https://github.com/matthew-a-carr/travel-planner/commit/8f3e302c226ca7b219c2c3a64bc0ea9d35f994ea))
+
+
+### Bug Fixes
+
+* **ui:** fix mobile layout issues and collapse add fixed cost form ([#38](https://github.com/matthew-a-carr/travel-planner/issues/38)) ([ab7e635](https://github.com/matthew-a-carr/travel-planner/commit/ab7e6357a846437f5b4d543638f6afcf2c9efdda))
+
 ## [Unreleased]
 
 ### Added
