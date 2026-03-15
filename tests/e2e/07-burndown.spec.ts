@@ -123,14 +123,15 @@ test.describe('Burndown budget pace tracker', () => {
   });
 
   test('budget alert banner is dismissable', async ({ page }) => {
-    // Look for the alert banner
-    const alertBanner = page.getByRole('alert');
+    // Look specifically for the BudgetAlertBanner (not the Next.js route announcer,
+    // which also has role="alert")
+    const alertBanner = page.getByRole('alert').filter({ hasText: 'Budget alerts' });
+    const dismissButton = page.getByRole('button', { name: /dismiss budget alerts/i });
 
-    if ((await alertBanner.count()) > 0) {
+    if ((await dismissButton.count()) > 0) {
       await expect(alertBanner).toBeVisible();
 
       // Click dismiss
-      const dismissButton = page.getByRole('button', { name: /dismiss budget alerts/i });
       await dismissButton.click();
 
       // Banner should disappear

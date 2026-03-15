@@ -356,7 +356,9 @@ describe('calculateTripBurndown', () => {
     // Total budget: 60k + 40k = 100k
     expect(result!.idealLine[0].amountPence).toBe(100_000);
     // Date range: June 1 to July 1
-    expect(result!.idealLine[0].date).toEqual(new Date('2026-06-01T00:00:00.000Z'));
+    const expectedStart = new Date('2026-06-01');
+    expectedStart.setHours(0, 0, 0, 0);
+    expect(result!.idealLine[0].date).toEqual(expectedStart);
   });
 
   it('should exclude spend from undated destinations', () => {
