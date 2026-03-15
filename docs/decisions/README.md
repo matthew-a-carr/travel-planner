@@ -43,3 +43,6 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [032](032-sentry-error-monitoring.md) | Sentry Error Monitoring | 2026-03-09 | Accepted |
 | [033](033-remove-pre-push-hook-ci-gate-only.md) | Remove Pre-Push Hook — CI as the Only Hard Gate | 2026-03-14 | Accepted |
 | [034](034-comprehensive-country-reference-data.md) | Comprehensive Country Reference Data with Automated Sourcing | 2026-03-14 | Accepted |
+| [035](035-leaflet-map-library.md) | Leaflet Map Library | 2026-03-14 | Accepted |
+| [036](036-nominatim-geocoding.md) | Nominatim Geocoding | 2026-03-14 | Accepted |
+| [037](037-burndown-budget-pace-tracker.md) | Burndown Budget Pace Tracker | 2026-03-15 | Accepted |

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+* **spending:** burndown budget pace tracker with daily pace calculation, projected exhaustion dates, and smart budget alerts
+* **charts:** burndown line chart showing ideal, actual, and projected budget drawdown over time
+* **destinations:** burn rate indicator on destination cards showing daily spending pace vs target pace
+
 ## [1.11.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.10.0...v1.11.0) (2026-03-14)
 
 

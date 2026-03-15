@@ -30,6 +30,9 @@ src/domain/
     spend-entry.ts        ← calculateTotalSpend, getSpendByCategory
     spend-entry.test.ts
     spend-entry-repository.ts ← SpendEntryRepository interface
+    burndown.ts           ← calculateDailyPace, calculateTargetPace, calculateBurndownProjection,
+                             detectAlerts, calculateTripBurndown (budget pace tracking)
+    burndown.test.ts
   country-reference/
     country-reference.ts  ← findReference, suggestBudget (budget suggestion engine)
     country-reference.test.ts

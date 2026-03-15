@@ -2,6 +2,11 @@ import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { sortDestinations } from '@/domain/destination/destination';
 import { canDeleteTrips } from '@/domain/organization/organization';
+import {
+  calculateBurndownProjection,
+  calculateTripBurndown,
+  detectAlerts,
+} from '@/domain/spending/burndown';
 import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { buildBudgetWaterfall, getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
@@ -10,6 +15,7 @@ import { auth } from '@/infrastructure/auth';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
+import { BudgetAlertBanner } from '@/ui/components/BudgetAlertBanner';
 import { ChartsSection } from '@/ui/components/ChartsSection';
 import { DeleteTripButton } from '@/ui/components/DeleteTripModal';
 import { DestinationSection } from '@/ui/components/DestinationSection';
@@ -113,6 +119,77 @@ export default async function TripDetailPage({ params }: Props) {
     return Object.entries(totals).map(([category, amountPence]) => ({ category, amountPence }));
   })();
 
+  // Burndown data — computed server-side, serialised for client components
+  const now = new Date();
+
+  const burndownByDestination = new Map<
+    string,
+    {
+      dailyPacePence: number;
+      targetPacePence: number;
+      paceRatio: number;
+      projectedExhaustionDate: string | null;
+    }
+  >();
+
+  const allBurndownAlerts: {
+    destinationName: string;
+    type: string;
+    message: string;
+    severity: 'warning' | 'danger';
+  }[] = [];
+
+  for (const dest of sorted) {
+    if (!dest.startDate || !dest.endDate) continue;
+    const destSpend = allSpend.filter((s) => s.destinationId === dest.id);
+    const projection = calculateBurndownProjection(
+      destSpend,
+      dest.estimatedBudget.amountPence,
+      dest.startDate,
+      dest.endDate,
+      now,
+    );
+    burndownByDestination.set(dest.id, {
+      dailyPacePence: projection.dailyPacePence,
+      targetPacePence: projection.targetPacePence,
+      paceRatio: projection.paceRatio,
+      projectedExhaustionDate: projection.projectedExhaustionDate?.toISOString() ?? null,
+    });
+    const alerts = detectAlerts(projection, destSpend, dest.endDate);
+    for (const alert of alerts) {
+      allBurndownAlerts.push({ destinationName: dest.name, ...alert });
+    }
+  }
+
+  const tripBurndown = calculateTripBurndown(trip, sorted, allSpend, now);
+  const tripBurndownData = tripBurndown
+    ? {
+        idealLine: tripBurndown.idealLine.map((p) => ({
+          date: p.date.toISOString(),
+          amountPence: p.amountPence,
+        })),
+        actualLine: tripBurndown.actualLine.map((p) => ({
+          date: p.date.toISOString(),
+          amountPence: p.amountPence,
+        })),
+        projectedLine: tripBurndown.projectedLine.map((p) => ({
+          date: p.date.toISOString(),
+          amountPence: p.amountPence,
+        })),
+      }
+    : null;
+
+  if (tripBurndown) {
+    const datedEnds = sorted
+      .filter((d): d is typeof d & { endDate: Date } => d.endDate !== null)
+      .map((d) => d.endDate.getTime());
+    const latestEnd = new Date(Math.max(...datedEnds));
+    const tripAlerts = detectAlerts(tripBurndown, allSpend, latestEnd);
+    for (const alert of tripAlerts) {
+      allBurndownAlerts.push({ destinationName: 'Trip overall', ...alert });
+    }
+  }
+
   const fixedCostByCategoryData = (() => {
     const totals: Record<string, { amountPence: number; count: number }> = {};
     for (const fc of fixedCosts) {
@@ -167,6 +244,8 @@ export default async function TripDetailPage({ params }: Props) {
 
         <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />
 
+        <BudgetAlertBanner alerts={allBurndownAlerts} />
+
         <FixedCostSection tripId={id} fixedCosts={fixedCosts} />
 
         <FixedCostCategoryBreakdown data={fixedCostByCategoryData} />
@@ -175,6 +254,8 @@ export default async function TripDetailPage({ params }: Props) {
           budgetBreakdown={budgetBreakdownData}
           estimatedVsActual={estimatedVsActualData}
           spendByCategory={spendByCategoryData}
+          tripBurndown={tripBurndownData}
+          currency={trip.totalBudget.currency}
         />
 
         {sorted.length > 0 && (
@@ -186,6 +267,8 @@ export default async function TripDetailPage({ params }: Props) {
           destinations={sorted}
           allSpend={allSpend}
           countryReferences={countryReferences}
+          burndownByDestination={Object.fromEntries(burndownByDestination)}
+          currency={trip.totalBudget.currency}
         />
       </div>
     </main>
