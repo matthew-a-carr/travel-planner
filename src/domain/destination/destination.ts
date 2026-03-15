@@ -39,10 +39,18 @@ export function validateDateRange(
 }
 
 /**
- * Returns destinations sorted by their sort_order, then creation date.
+ * Returns destinations sorted chronologically by start date.
+ * Destinations without dates are placed at the end, ordered by sort_order then creation date.
  */
 export function sortDestinations(destinations: readonly Destination[]): Destination[] {
   return [...destinations].sort((a, b) => {
+    const aStart = a.startDate?.getTime() ?? null;
+    const bStart = b.startDate?.getTime() ?? null;
+
+    if (aStart !== null && bStart !== null) return aStart - bStart;
+    if (aStart !== null && bStart === null) return -1;
+    if (aStart === null && bStart !== null) return 1;
+
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
     return a.createdAt.getTime() - b.createdAt.getTime();
   });

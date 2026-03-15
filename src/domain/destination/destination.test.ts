@@ -113,20 +113,29 @@ describe('validateDateRange', () => {
 // ─── sortDestinations ─────────────────────────────────────────────────────────
 
 describe('sortDestinations', () => {
-  it('should sort by sortOrder ascending', () => {
+  it('should sort by startDate ascending', () => {
     const destinations = [
-      makeDestination({ id: 'dest-3', sortOrder: 2, name: 'Australia' }),
-      makeDestination({ id: 'dest-1', sortOrder: 0, name: 'Japan' }),
-      makeDestination({ id: 'dest-2', sortOrder: 1, name: 'Thailand' }),
+      makeDestination({ id: 'dest-3', name: 'Australia', startDate: new Date('2026-03-01'), endDate: new Date('2026-03-10') }),
+      makeDestination({ id: 'dest-1', name: 'Japan', startDate: new Date('2026-01-01'), endDate: new Date('2026-01-10') }),
+      makeDestination({ id: 'dest-2', name: 'Thailand', startDate: new Date('2026-02-01'), endDate: new Date('2026-02-10') }),
     ];
     const sorted = sortDestinations(destinations);
     expect(sorted.map((d) => d.name)).toEqual(['Japan', 'Thailand', 'Australia']);
   });
 
-  it('should sort by createdAt as tiebreaker when sortOrder is equal', () => {
+  it('should place destinations without dates after those with dates', () => {
     const destinations = [
-      makeDestination({ id: 'dest-b', sortOrder: 0, createdAt: new Date('2026-01-02') }),
-      makeDestination({ id: 'dest-a', sortOrder: 0, createdAt: new Date('2026-01-01') }),
+      makeDestination({ id: 'dest-a', name: 'No dates', startDate: null, endDate: null }),
+      makeDestination({ id: 'dest-b', name: 'Has dates', startDate: new Date('2026-02-01'), endDate: new Date('2026-02-10') }),
+    ];
+    const sorted = sortDestinations(destinations);
+    expect(sorted.map((d) => d.name)).toEqual(['Has dates', 'No dates']);
+  });
+
+  it('should sort dateless destinations by sortOrder then createdAt', () => {
+    const destinations = [
+      makeDestination({ id: 'dest-b', sortOrder: 1, createdAt: new Date('2026-01-01') }),
+      makeDestination({ id: 'dest-a', sortOrder: 0, createdAt: new Date('2026-01-02') }),
     ];
     const sorted = sortDestinations(destinations);
     expect(sorted[0]!.id).toBe('dest-a');
