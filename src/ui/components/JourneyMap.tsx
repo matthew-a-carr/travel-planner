@@ -85,7 +85,7 @@ export function JourneyMap({ waterfall, selectedStopId, onStopClick }: Props) {
   const centre: LatLngTuple = positions.length === 1 ? positions[0] : [0, 0];
 
   return (
-    <div className="h-[400px] overflow-hidden rounded-lg">
+    <div className="relative z-0 h-[400px] overflow-hidden rounded-lg">
       <MapContainer
         center={centre}
         zoom={4}

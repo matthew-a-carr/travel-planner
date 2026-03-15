@@ -15,17 +15,12 @@ Goal: keep this project running on free tiers and avoid accidental paid usage.
 
 ### Vercel
 
-- Team dashboard: <https://vercel.com/matthewacarrs-projects>
-- Project: <https://vercel.com/matthewacarrs-projects/travel-planner>
-- Deployments: <https://vercel.com/matthewacarrs-projects/travel-planner/deployments>
-- Domains: <https://vercel.com/matthewacarrs-projects/travel-planner/settings/domains>
+- Dashboard: <https://vercel.com/dashboard>
 
 ### HCP Terraform / Terraform Cloud
 
-- Terraform org: <https://app.terraform.io/app/travel-planner-mattcarr>
-- Prod workspace: <https://app.terraform.io/app/travel-planner-mattcarr/workspaces/travel-planner-prod>
-- Preview workspace: <https://app.terraform.io/app/travel-planner-mattcarr/workspaces/travel-planner-preview>
-- Billing account summary: <https://portal.cloud.hashicorp.com/billing/accounts/default-account/summary/index?org_id=1ed85c7f-5497-4e1e-baa4-2bb6f5197b1a>
+- Dashboard: <https://app.terraform.io>
+- Billing: <https://portal.cloud.hashicorp.com>
 
 ### Neon
 

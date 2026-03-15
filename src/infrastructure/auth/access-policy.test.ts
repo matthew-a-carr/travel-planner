@@ -4,7 +4,7 @@ import { normalizeEmail, splitName } from './access-policy';
 describe('access-policy helpers', () => {
   it('normalizes emails safely', () => {
     expect(normalizeEmail('  Test@Example.Com ')).toBe('test@example.com');
-    expect(normalizeEmail('Carr.Matty+travel@GoogleMail.com')).toBe('carrmatty@gmail.com');
+    expect(normalizeEmail('Jane.Doe+travel@GoogleMail.com')).toBe('janedoe@gmail.com');
     expect(normalizeEmail('   ')).toBeNull();
     expect(normalizeEmail(null)).toBeNull();
   });

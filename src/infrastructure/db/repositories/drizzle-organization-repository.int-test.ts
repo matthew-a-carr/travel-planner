@@ -170,7 +170,7 @@ describe('DrizzleOrganizationRepository', () => {
 
   it('searches member candidates by case-insensitive name or email contains', async () => {
     const owner = await seedUser(db, { email: 'owner@example.com', name: 'Owner User' });
-    await seedUser(db, { email: 'carr.matty@gmail.com', name: 'Matty Carr' });
+    await seedUser(db, { email: 'jane.doe@gmail.com', name: 'Jane Doe' });
     await seedUser(db, { email: 'partner@example.com', name: 'Partner User' });
     const repo = new DrizzleOrganizationRepository(db);
     const now = new Date();
@@ -184,10 +184,10 @@ describe('DrizzleOrganizationRepository', () => {
 
     const byEmail = await repo.searchMemberCandidates({
       organizationId: organization.id,
-      query: 'CARR.MATTY',
+      query: 'JANE.DOE',
       limit: 20,
     });
-    expect(byEmail.map((candidate) => candidate.email)).toEqual(['carr.matty@gmail.com']);
+    expect(byEmail.map((candidate) => candidate.email)).toEqual(['jane.doe@gmail.com']);
 
     const byName = await repo.searchMemberCandidates({
       organizationId: organization.id,

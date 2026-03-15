@@ -58,7 +58,7 @@ export function RecordSpendForm({
             className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <label
             htmlFor="spend-date"
             className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
@@ -71,7 +71,7 @@ export function RecordSpendForm({
             type="date"
             required
             defaultValue={today}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+            className="mt-1 block w-full max-w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </div>
       </div>

@@ -22,7 +22,7 @@ jobs:
       TF_VAR_project_name: travel-planner
       TF_VAR_github_repository: ${{ github.repository }}
       TF_VAR_production_branch: main
-      TF_VAR_production_domain: travel.matthewcarr.dev
+      TF_VAR_production_domain: ${{ vars.PRODUCTION_DOMAIN }}
       TF_VAR_auth_secret: ${{ secrets.AUTH_SECRET_PRODUCTION }}
       TF_VAR_auth_google_id: ${{ secrets.AUTH_GOOGLE_ID_PRODUCTION }}
       TF_VAR_auth_google_secret: ${{ secrets.AUTH_GOOGLE_SECRET_PRODUCTION }}
