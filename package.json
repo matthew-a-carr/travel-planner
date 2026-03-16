@@ -52,14 +52,14 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^6.0.1",
     "drizzle-kit": "^0.31.9",
     "tailwindcss": "^4",
     "testcontainers": "^11.12.0",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.0",
     "vitest-mock-extended": "^3.1.0"
   }
 }
