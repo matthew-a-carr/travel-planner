@@ -162,7 +162,7 @@ export default async function TripDetailPage({ params }: Props) {
     }
   }
 
-  const tripBurndown = calculateTripBurndown(trip, sorted, allSpend, now);
+  const tripBurndown = calculateTripBurndown(sorted, allSpend, now);
   const tripBurndownData = tripBurndown
     ? {
         idealLine: tripBurndown.idealLine.map((p) => ({

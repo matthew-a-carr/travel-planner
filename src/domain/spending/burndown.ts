@@ -1,4 +1,4 @@
-import type { Destination, SpendEntry, Trip } from '../trip/types';
+import type { Destination, SpendEntry } from '../trip/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -251,7 +251,6 @@ export function detectAlerts(
  * Returns null if no destinations have date ranges.
  */
 export function calculateTripBurndown(
-  _trip: Trip,
   destinations: readonly Destination[],
   allSpend: readonly SpendEntry[],
   currentDate: Date,

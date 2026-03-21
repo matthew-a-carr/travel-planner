@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Destination, SpendEntry, Trip } from '../trip/types';
+import type { Destination, SpendEntry } from '../trip/types';
 import { moneyUnchecked as money } from '../trip/types';
 import {
   calculateBurndownProjection,
@@ -38,20 +38,6 @@ function makeDestination(overrides: Partial<Destination> = {}): Destination {
     startDate: new Date('2026-06-01'),
     endDate: new Date('2026-07-01'),
     sortOrder: 0,
-    createdAt: new Date('2026-01-01'),
-    updatedAt: new Date('2026-01-01'),
-    ...overrides,
-  };
-}
-
-function makeTrip(overrides: Partial<Trip> = {}): Trip {
-  return {
-    id: 'trip-1',
-    organizationId: 'org-1',
-    ownerId: 'user-1',
-    name: 'Asia Trip',
-    totalBudget: money(500_000, 'GBP'), // £5,000
-    status: 'active',
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-01'),
     ...overrides,
@@ -321,16 +307,14 @@ describe('detectAlerts', () => {
 
 describe('calculateTripBurndown', () => {
   it('should return null when no destinations have dates', () => {
-    const trip = makeTrip();
     const destinations = [
       makeDestination({ startDate: null, endDate: null }),
     ];
-    const result = calculateTripBurndown(trip, destinations, [], new Date());
+    const result = calculateTripBurndown(destinations, [], new Date());
     expect(result).toBeNull();
   });
 
   it('should aggregate across multiple dated destinations', () => {
-    const trip = makeTrip();
     const destinations = [
       makeDestination({
         id: 'dest-1',
@@ -350,7 +334,7 @@ describe('calculateTripBurndown', () => {
       makeSpendEntry({ id: 'e2', destinationId: 'dest-2', amount: money(5_000, 'GBP'), spentAt: new Date('2026-06-20') }),
     ];
     const current = new Date('2026-06-20');
-    const result = calculateTripBurndown(trip, destinations, spend, current);
+    const result = calculateTripBurndown(destinations, spend, current);
 
     expect(result).not.toBeNull();
     // Total budget: 60k + 40k = 100k
@@ -362,7 +346,6 @@ describe('calculateTripBurndown', () => {
   });
 
   it('should exclude spend from undated destinations', () => {
-    const trip = makeTrip();
     const destinations = [
       makeDestination({
         id: 'dest-1',
@@ -382,7 +365,7 @@ describe('calculateTripBurndown', () => {
       makeSpendEntry({ id: 'e2', destinationId: 'dest-undated', amount: money(20_000, 'GBP'), spentAt: new Date('2026-06-05') }),
     ];
     const current = new Date('2026-06-06');
-    const result = calculateTripBurndown(trip, destinations, spend, current);
+    const result = calculateTripBurndown(destinations, spend, current);
 
     expect(result).not.toBeNull();
     // Only dest-1 budget: 50k
