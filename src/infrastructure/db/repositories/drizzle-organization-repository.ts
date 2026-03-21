@@ -15,6 +15,7 @@ import type {
   OrganizationWithRole,
 } from '@/domain/organization/types';
 import { normalizeEmail } from '@/infrastructure/auth/access-policy';
+import { canonicalEmailSql } from '../canonical-email-sql';
 import type { Db } from '../client';
 import { organizationMemberships, organizations, users } from '../schema';
 
@@ -35,16 +36,6 @@ function toMembership(row: typeof organizationMemberships.$inferSelect): Organiz
     role: row.role as OrganizationRole,
     createdAt: row.createdAt,
   };
-}
-
-function canonicalEmailSql(column: typeof users.email) {
-  return sql<string>`
-    case
-      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
-        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
-      else lower(trim(${column}))
-    end
-  `;
 }
 
 export class DrizzleOrganizationRepository implements OrganizationRepository {

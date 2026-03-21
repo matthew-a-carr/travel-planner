@@ -1,4 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
+import { canonicalEmailSql } from '@/infrastructure/db/canonical-email-sql';
 import type { Db } from '@/infrastructure/db/client';
 import { users } from '@/infrastructure/db/schema';
 
@@ -34,16 +35,6 @@ export function normalizeEmail(email: string | null | undefined): string | null 
   // Gmail treats dots as insignificant and supports plus aliases.
   const canonicalLocalPart = localPart.split('+')[0]?.replaceAll('.', '') ?? localPart;
   return `${canonicalLocalPart}@gmail.com`;
-}
-
-function canonicalEmailSql(column: typeof users.email) {
-  return sql<string>`
-    case
-      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
-        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
-      else lower(trim(${column}))
-    end
-  `;
 }
 
 function isBootstrapAdminEmail(
