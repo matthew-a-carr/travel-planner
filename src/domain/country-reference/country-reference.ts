@@ -1,5 +1,5 @@
 import type { ComfortLevel, Money } from '../trip/types';
-import { money } from '../trip/types';
+import { moneyUnchecked } from '../trip/types';
 import type { CountryReference } from './types';
 
 /**
@@ -41,5 +41,5 @@ export function suggestBudget(
 ): Money {
   const multiplier = COMFORT_MULTIPLIERS[comfortLevel];
   const rawPence = Math.round(days * reference.avgDailyCostPence * multiplier);
-  return money(rawPence, reference.currency);
+  return moneyUnchecked(rawPence, reference.currency);
 }

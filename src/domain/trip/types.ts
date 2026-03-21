@@ -7,18 +7,34 @@ export type Money = {
   readonly currency: Currency;
 };
 
-export function money(amountPence: number, currency: Currency = 'GBP'): Money {
+export function money(amountPence: number, currency: Currency = 'GBP'): Result<Money> {
   if (!Number.isInteger(amountPence)) {
-    throw new Error(`Money amount must be an integer (pence), got: ${amountPence}`);
+    return err(`Money amount must be an integer (pence), got: ${amountPence}`);
   }
+  return ok({ amountPence, currency });
+}
+
+/**
+ * Construct Money without validation — for trusted contexts where pence are
+ * known-integer (DB rows, arithmetic on existing Money values, test fixtures).
+ */
+export function moneyUnchecked(amountPence: number, currency: Currency = 'GBP'): Money {
   return { amountPence, currency };
 }
 
-export function addMoney(a: Money, b: Money): Money {
+export function addMoney(a: Money, b: Money): Result<Money> {
   if (a.currency !== b.currency) {
-    throw new Error(`Cannot add money with different currencies: ${a.currency} and ${b.currency}`);
+    return err(`Cannot add money with different currencies: ${a.currency} and ${b.currency}`);
   }
-  return money(a.amountPence + b.amountPence, a.currency);
+  return ok(moneyUnchecked(a.amountPence + b.amountPence, a.currency));
+}
+
+/**
+ * Add two Money values without validation — for trusted contexts where
+ * currencies are known to match.
+ */
+export function addMoneyUnchecked(a: Money, b: Money): Money {
+  return moneyUnchecked(a.amountPence + b.amountPence, a.currency);
 }
 
 export function formatMoney(m: Money): string {

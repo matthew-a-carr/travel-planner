@@ -8,7 +8,7 @@ import {
   validateDestinationEdit,
   validateNewDestination,
 } from './destination';
-import { money } from '../trip/types';
+import { moneyUnchecked as money } from '../trip/types';
 import type { Destination, Trip, TripFixedCost } from '../trip/types';
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────

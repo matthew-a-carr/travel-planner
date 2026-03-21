@@ -22,10 +22,13 @@ export async function editFixedCost(
   const existing = await fixedCostRepo.findById(input.fixedCostId);
   if (!existing) return err(`Fixed cost not found: ${input.fixedCostId}`);
 
+  const amountResult = money(input.amountPence, input.currency);
+  if (!amountResult.ok) return err(amountResult.error);
+
   const updated: TripFixedCost = {
     ...existing,
     label: input.label,
-    amount: money(input.amountPence, input.currency),
+    amount: amountResult.value,
     category: input.category,
     date: input.date,
   };

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateTotalSpend, groupByCategory } from './spend-entry';
 import type { SpendEntry } from './types';
-import { money } from '../trip/types';
+import { moneyUnchecked as money } from '../trip/types';
 
 function makeSpendEntry(overrides: Partial<SpendEntry> = {}): SpendEntry {
   return {
@@ -17,26 +17,41 @@ function makeSpendEntry(overrides: Partial<SpendEntry> = {}): SpendEntry {
 }
 
 describe('calculateTotalSpend', () => {
-  it('should return zero GBP when there are no entries', () => {
+  it('should return ok with zero GBP when there are no entries', () => {
     const result = calculateTotalSpend([]);
-    expect(result.amountPence).toBe(0);
-    expect(result.currency).toBe('GBP');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.amountPence).toBe(0);
+      expect(result.value.currency).toBe('GBP');
+    }
   });
 
-  it('should sum all entry amounts', () => {
+  it('should return ok with the sum of all entry amounts', () => {
     const entries = [
       makeSpendEntry({ id: 'e1', amount: money(5_000, 'GBP') }),
       makeSpendEntry({ id: 'e2', amount: money(3_000, 'GBP') }),
       makeSpendEntry({ id: 'e3', amount: money(2_000, 'GBP') }),
     ];
     const result = calculateTotalSpend(entries);
-    expect(result.amountPence).toBe(10_000);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.amountPence).toBe(10_000);
   });
 
   it('should return currency from the first entry', () => {
     const entries = [makeSpendEntry({ amount: money(5_000, 'GBP') })];
     const result = calculateTotalSpend(entries);
-    expect(result.currency).toBe('GBP');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.currency).toBe('GBP');
+  });
+
+  it('should return err when entries have mixed currencies', () => {
+    const entries = [
+      makeSpendEntry({ id: 'e1', amount: money(5_000, 'GBP') }),
+      makeSpendEntry({ id: 'e2', amount: money(3_000, 'USD') }),
+    ];
+    const result = calculateTotalSpend(entries);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/mixed currencies/);
   });
 });
 

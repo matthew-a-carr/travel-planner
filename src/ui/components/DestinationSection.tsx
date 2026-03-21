@@ -120,8 +120,8 @@ function DestinationCard({
   const [isPending, startTransition] = useTransition();
   const [removeError, setRemoveError] = useState<string | null>(null);
 
-  const totalSpend = calculateTotalSpend(spend);
-  const spendPence = totalSpend.amountPence;
+  const totalSpendResult = calculateTotalSpend(spend);
+  const spendPence = totalSpendResult.ok ? totalSpendResult.value.amountPence : 0;
   const budgetPence = destination.estimatedBudget.amountPence;
   const spendPercent = budgetPence > 0 ? Math.min((spendPence / budgetPence) * 100, 100) : 0;
   const isOverSpend = spendPence > budgetPence;
@@ -215,7 +215,7 @@ function DestinationCard({
         <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
           <span>Estimated: {formatMoney(destination.estimatedBudget)}</span>
           <span className={isOverSpend ? 'font-medium text-red-600' : ''}>
-            Spent: {formatMoney(totalSpend)}
+            Spent: {totalSpendResult.ok ? formatMoney(totalSpendResult.value) : '—'}
           </span>
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">

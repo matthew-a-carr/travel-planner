@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Destination, SpendEntry, Trip } from '../trip/types';
-import { money } from '../trip/types';
+import { moneyUnchecked as money } from '../trip/types';
 import {
   calculateBurndownProjection,
   calculateDailyPace,

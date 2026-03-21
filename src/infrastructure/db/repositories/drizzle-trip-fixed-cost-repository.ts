@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
 import type { Currency, FixedCostCategory, TripFixedCost } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
+import { moneyUnchecked } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { tripFixedCosts } from '../schema';
 
@@ -10,7 +10,7 @@ function toFixedCost(row: typeof tripFixedCosts.$inferSelect): TripFixedCost {
     id: row.id,
     tripId: row.tripId,
     label: row.label,
-    amount: money(row.amountPence, row.currency as Currency),
+    amount: moneyUnchecked(row.amountPence, row.currency as Currency),
     category: row.category as FixedCostCategory,
     date: new Date(row.date),
     sortOrder: row.sortOrder,

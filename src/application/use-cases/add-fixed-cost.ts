@@ -23,11 +23,14 @@ export async function addFixedCost(
 
   const existing = await fixedCostRepo.findByTrip(input.tripId);
 
+  const amountResult = money(input.amountPence, input.currency);
+  if (!amountResult.ok) return err(amountResult.error);
+
   const fixedCost: TripFixedCost = {
     id: crypto.randomUUID(),
     tripId: input.tripId,
     label: input.label,
-    amount: money(input.amountPence, input.currency),
+    amount: amountResult.value,
     category: input.category,
     date: input.date,
     sortOrder: nextFixedCostSortOrder(existing),

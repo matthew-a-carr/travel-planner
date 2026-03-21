@@ -38,6 +38,9 @@ export async function editDestination(
     fixedCostRepo.findByTrip(input.tripId),
   ]);
 
+  const budgetResult = money(input.estimatedBudgetPence, input.currency);
+  if (!budgetResult.ok) return err(budgetResult.error);
+
   const updated: Destination = {
     ...existing,
     name: input.name,
@@ -45,7 +48,7 @@ export async function editDestination(
     city: input.city,
     latitude: input.latitude,
     longitude: input.longitude,
-    estimatedBudget: money(input.estimatedBudgetPence, input.currency),
+    estimatedBudget: budgetResult.value,
     comfortLevel: input.comfortLevel,
     startDate: input.startDate,
     endDate: input.endDate,

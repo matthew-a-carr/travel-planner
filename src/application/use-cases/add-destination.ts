@@ -34,6 +34,9 @@ export async function addDestination(
   ]);
 
   const now = new Date();
+  const budgetResult = money(input.estimatedBudgetPence, input.currency);
+  if (!budgetResult.ok) return err(budgetResult.error);
+
   const candidate: Destination = {
     id: crypto.randomUUID(),
     tripId: input.tripId,
@@ -42,7 +45,7 @@ export async function addDestination(
     city: input.city,
     latitude: input.latitude,
     longitude: input.longitude,
-    estimatedBudget: money(input.estimatedBudgetPence, input.currency),
+    estimatedBudget: budgetResult.value,
     comfortLevel: input.comfortLevel,
     startDate: input.startDate,
     endDate: input.endDate,
