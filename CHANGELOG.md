@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.12.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.12.0...v1.12.1) (2026-03-21)
+
+
+### Bug Fixes
+
+* **e2e:** fix broken E2E tests caused by auth middleware and test setup ([#52](https://github.com/matthew-a-carr/travel-planner/issues/52)) ([19d0597](https://github.com/matthew-a-carr/travel-planner/commit/19d059767e58c62d9ead73815c2e55b4fef57397))
+
 ## [1.12.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.11.0...v1.12.0) (2026-03-15)
 
 
