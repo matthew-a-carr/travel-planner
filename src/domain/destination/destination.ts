@@ -1,6 +1,6 @@
 import { canAllocateBudget } from '../trip/trip';
 import type { Coordinates, Destination, Result, Trip, TripFixedCost } from '../trip/types';
-import { err, money, ok } from '../trip/types';
+import { err, moneyUnchecked, ok } from '../trip/types';
 
 /**
  * Validates geographic coordinates for map pinning.
@@ -127,7 +127,7 @@ export function validateDestinationEdit(
       trip,
       allDestinations,
       fixedCosts,
-      money(deltaPence, updated.estimatedBudget.currency),
+      moneyUnchecked(deltaPence, updated.estimatedBudget.currency),
     );
     if (!budgetCheck.ok) return err(budgetCheck.error);
   }

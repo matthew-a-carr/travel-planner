@@ -220,7 +220,8 @@ export async function removeFixedCostAction(
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return err('Forbidden');
 
-  await removeFixedCost(fixedCostRepo, fixedCostId);
+  const result = await removeFixedCost(fixedCostRepo, fixedCostId);
+  if (!result.ok) return result;
 
   revalidatePath(`/trips/${tripId}`);
   return ok(undefined);
@@ -433,7 +434,8 @@ export async function removeDestinationAction(
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return err('Forbidden');
 
-  await removeDestination(destRepo, destinationId);
+  const result = await removeDestination(destRepo, destinationId);
+  if (!result.ok) return result;
 
   revalidatePath(`/trips/${tripId}`);
   return ok(undefined);
@@ -502,7 +504,8 @@ export async function deleteSpendEntryAction(
   const trip = await getAccessibleTrip(tripRepo, organizationRepo, tripId, userResult.value);
   if (!trip) return err('Forbidden');
 
-  await deleteSpendEntry(spendRepo, entryId);
+  const result = await deleteSpendEntry(spendRepo, entryId);
+  if (!result.ok) return result;
 
   revalidatePath(`/trips/${tripId}`);
   return ok(undefined);

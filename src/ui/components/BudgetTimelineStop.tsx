@@ -1,7 +1,7 @@
 'use client';
 
 import type { Currency, WaterfallStop } from '@/domain/trip/types';
-import { formatMoney, money } from '@/domain/trip/types';
+import { formatMoney, moneyUnchecked } from '@/domain/trip/types';
 
 type Props = {
   stop: WaterfallStop;
@@ -18,7 +18,7 @@ export function BudgetTimelineStop({ stop, currency, isLast, isSelected, onClick
       ? 'bg-amber-500'
       : 'bg-blue-500';
 
-  const fmt = (pence: number) => formatMoney(money(pence, currency));
+  const fmt = (pence: number) => formatMoney(moneyUnchecked(pence, currency));
 
   const isClickable = stop.destinationId !== null;
 

@@ -7,7 +7,7 @@ import type {
   TripFixedCost,
   WaterfallStop,
 } from './types';
-import { err, money, ok } from './types';
+import { err, moneyUnchecked, ok } from './types';
 
 /**
  * Sums all fixed costs for a trip (flights, insurance, subscriptions, etc.).
@@ -16,7 +16,7 @@ export function calculateTotalFixedCosts(fixedCosts: readonly TripFixedCost[]): 
   const totalPence = fixedCosts.reduce((sum, fc) => sum + fc.amount.amountPence, 0);
   // Fixed costs are always GBP for now; default to GBP when list is empty
   const currency = fixedCosts[0]?.amount.currency ?? 'GBP';
-  return money(totalPence, currency);
+  return moneyUnchecked(totalPence, currency);
 }
 
 /**
@@ -26,7 +26,7 @@ export function calculateTotalFixedCosts(fixedCosts: readonly TripFixedCost[]): 
 export function calculateAllocatedBudget(trip: Trip, destinations: readonly Destination[]): Money {
   const tripDestinations = destinations.filter((d) => d.tripId === trip.id);
   const totalPence = tripDestinations.reduce((sum, d) => sum + d.estimatedBudget.amountPence, 0);
-  return money(totalPence, trip.totalBudget.currency);
+  return moneyUnchecked(totalPence, trip.totalBudget.currency);
 }
 
 /**
@@ -43,7 +43,7 @@ export function calculateAvailableBudget(
   const totalFixed = calculateTotalFixedCosts(fixedCosts);
   const availablePence =
     trip.totalBudget.amountPence - totalFixed.amountPence - allocated.amountPence;
-  return money(availablePence, trip.totalBudget.currency);
+  return moneyUnchecked(availablePence, trip.totalBudget.currency);
 }
 
 /**

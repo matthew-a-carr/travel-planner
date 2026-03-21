@@ -6,6 +6,7 @@ import type {
   UserAccessRepository,
 } from '@/domain/user-access/user-access-repository';
 import { normalizeEmail } from '@/infrastructure/auth/access-policy';
+import { canonicalEmailSql } from '../canonical-email-sql';
 import type { Db } from '../client';
 import { accounts, organizationMemberships, organizations, sessions, users } from '../schema';
 
@@ -22,16 +23,6 @@ function toSummary(row: typeof users.$inferSelect): UserAccessSummary {
     isAdmin: row.isAdmin,
     createdAt: row.createdAt,
   };
-}
-
-function canonicalEmailSql(column: typeof users.email) {
-  return sql<string>`
-    case
-      when lower(trim(${column})) like '%@gmail.com' or lower(trim(${column})) like '%@googlemail.com'
-        then replace(split_part(split_part(lower(trim(${column})), '@', 1), '+', 1), '.', '') || '@gmail.com'
-      else lower(trim(${column}))
-    end
-  `;
 }
 
 function splitName(name: string | null): { firstName: string | null; lastName: string | null } {

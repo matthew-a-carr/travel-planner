@@ -57,6 +57,20 @@
       "when": 1773508516626,
       "tag": "0007_quiet_blob",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774310400000,
+      "tag": "0008_fk_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1774310400001,
+      "tag": "0009_enum_check_constraints",
+      "breakpoints": true
     }
   ]
 }

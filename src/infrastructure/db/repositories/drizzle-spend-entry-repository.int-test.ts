@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { money } from '../../../domain/trip/types';
+import { moneyUnchecked as money } from '../../../domain/trip/types';
 import {
   createTestDb,
   type Db,

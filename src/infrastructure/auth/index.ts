@@ -183,14 +183,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return decision.allowed;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user?.id) token.sub = user.id;
+
+      // Fetch isApproved from DB on sign-in and on every session update so
+      // middleware can gate unapproved users without a page-level DB lookup.
+      if (trigger === 'signIn' || trigger === 'update') {
+        const userId = token.sub;
+        if (userId) {
+          const rows = await db
+            .select({ isApproved: schema.users.isApproved })
+            .from(schema.users)
+            .where(eq(schema.users.id, userId))
+            .limit(1);
+          token.isApproved = rows[0]?.isApproved ?? false;
+        }
+      }
+
       return token;
     },
     async session({ session, token, user }) {
       const userId = token.sub ?? user?.id ?? session.user?.id;
       if (session.user && userId) {
         session.user.id = userId;
+      }
+      if (session.user) {
+        session.user.isApproved = token.isApproved ?? false;
       }
       return session;
     },

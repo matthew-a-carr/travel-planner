@@ -11,7 +11,9 @@ const PNPM_COMMAND = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const E2E_DEFAULT_AUTH_SECRET = 'dev-only-not-a-real-secret';
 
 async function main(): Promise<void> {
-  const serverScript = process.env.CI ? 'start' : 'dev:next';
+  // Always use the production server — E2E tests should exercise the same
+  // code path as production.  Run `pnpm build` before `pnpm test:e2e`.
+  const serverScript = 'start';
   let startedContainer: Awaited<ReturnType<PostgreSqlContainer['start']>> | null = null;
 
   try {
@@ -32,6 +34,12 @@ async function main(): Promise<void> {
         ...process.env,
         POSTGRES_URL: postgresUrl,
         AUTH_SECRET: process.env.AUTH_SECRET ?? E2E_DEFAULT_AUTH_SECRET,
+        // Provide dummy OAuth credentials so the sign-in button renders in
+        // production mode (pnpm start).  The values must NOT start with a
+        // known placeholder prefix (see provider-availability.ts).
+        AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID ?? 'e2e-placeholder-client-id',
+        AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET ?? 'e2e-placeholder-client-secret',
+        AUTH_URL: process.env.AUTH_URL ?? 'http://localhost:3000',
       },
       stdio: 'inherit',
     });

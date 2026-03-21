@@ -22,9 +22,23 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+* **a11y:** keyboard navigation (ArrowUp/Down, Enter, Escape) for CityAutocomplete listbox
+* **db:** CHECK constraints on enum-like text columns (trip status, comfort level, spend/fixed-cost categories)
+* **db:** indexes on foreign key columns (trips.organization_id, destinations.trip_id, spend_entries.destination_id, trip_fixed_costs.trip_id)
 * **spending:** burndown budget pace tracker with daily pace calculation, projected exhaustion dates, and smart budget alerts
 * **charts:** burndown line chart showing ideal, actual, and projected budget drawdown over time
 * **destinations:** burn rate indicator on destination cards showing daily spending pace vs target pace
+
+### Changed
+
+* **auth:** middleware now checks `isApproved` — unapproved users are redirected to `/login`
+* **domain:** `money()`, `addMoney()`, and `calculateTotalSpend()` return `Result` instead of throwing; added `moneyUnchecked()` for trusted contexts (ADR 038)
+* **use-cases:** `deleteSpendEntry`, `removeFixedCost`, and `removeDestination` now return `Result<void>` with not-found checks
+
+### Fixed
+
+* **refactor:** centralize `canonicalEmailSql()` into shared module (was duplicated in 3 files)
+* **cleanup:** remove unused `_trip` parameter from `calculateTripBurndown`
 
 ## [1.11.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.10.0...v1.11.0) (2026-03-14)
 

@@ -9,7 +9,7 @@ import {
   validateTripBudgetEdit,
 } from './trip';
 import type { Destination, Trip, TripFixedCost } from './types';
-import { money } from './types';
+import { moneyUnchecked as money } from './types';
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 

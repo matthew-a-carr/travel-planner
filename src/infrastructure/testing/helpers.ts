@@ -21,7 +21,7 @@ import type {
   Trip,
   TripFixedCost,
 } from '../../domain/trip/types';
-import { money } from '../../domain/trip/types';
+import { moneyUnchecked } from '../../domain/trip/types';
 import * as schema from '../db/schema';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ export async function seedTrip(
     organizationId: row.organizationId,
     ownerId: row.ownerId,
     name: row.name,
-    totalBudget: money(row.totalBudgetAmount, row.totalBudgetCurrency as 'GBP'),
+    totalBudget: moneyUnchecked(row.totalBudgetAmount, row.totalBudgetCurrency as 'GBP'),
     status: row.status as 'planning',
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -280,7 +280,10 @@ export async function seedDestination(
     city: row.city,
     latitude: row.latitude,
     longitude: row.longitude,
-    estimatedBudget: money(row.estimatedBudgetAmount, row.estimatedBudgetCurrency as 'GBP'),
+    estimatedBudget: moneyUnchecked(
+      row.estimatedBudgetAmount,
+      row.estimatedBudgetCurrency as 'GBP',
+    ),
     comfortLevel: row.comfortLevel as 'mid',
     startDate: row.startDate ? new Date(row.startDate) : null,
     endDate: row.endDate ? new Date(row.endDate) : null,
@@ -330,7 +333,7 @@ export async function seedFixedCost(
     id: row.id,
     tripId: row.tripId,
     label: row.label,
-    amount: money(row.amountPence, 'GBP'),
+    amount: moneyUnchecked(row.amountPence, 'GBP'),
     category: row.category as FixedCostCategory,
     date: new Date(row.date),
     sortOrder: row.sortOrder,
@@ -410,7 +413,7 @@ export async function seedSpendEntry(
   return {
     id: row.id,
     destinationId: row.destinationId,
-    amount: money(row.amount, 'GBP'),
+    amount: moneyUnchecked(row.amount, 'GBP'),
     category: row.category as 'food',
     description: row.description,
     spentAt: new Date(row.spentAt),

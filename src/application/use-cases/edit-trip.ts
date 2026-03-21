@@ -30,10 +30,13 @@ export async function editTrip(
   const validation = validateTripBudgetEdit(input.totalBudgetPence, destinations, fixedCosts);
   if (!validation.ok) return err(validation.error);
 
+  const budgetResult = money(input.totalBudgetPence, input.currency);
+  if (!budgetResult.ok) return err(budgetResult.error);
+
   const updated: Trip = {
     ...existing,
     name: input.name,
-    totalBudget: money(input.totalBudgetPence, input.currency),
+    totalBudget: budgetResult.value,
     status: input.status,
     updatedAt: new Date(),
   };

@@ -1,62 +1,79 @@
 import { describe, expect, it } from 'vitest';
-import { addMoney, formatMoney, money } from './types';
+import { addMoney, formatMoney, money, moneyUnchecked } from './types';
 
 // ─── money ────────────────────────────────────────────────────────────────────
 
 describe('money', () => {
-  it('creates a Money value with the given amountPence and currency', () => {
-    const m = money(5_000, 'GBP');
-    expect(m.amountPence).toBe(5_000);
-    expect(m.currency).toBe('GBP');
+  it('returns ok with a Money value for valid integer pence', () => {
+    const result = money(5_000, 'GBP');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.amountPence).toBe(5_000);
+      expect(result.value.currency).toBe('GBP');
+    }
   });
 
   it('defaults currency to GBP when not provided', () => {
-    const m = money(1_000);
-    expect(m.currency).toBe('GBP');
+    const result = money(1_000);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.currency).toBe('GBP');
   });
 
   it('accepts zero', () => {
-    expect(money(0, 'GBP').amountPence).toBe(0);
+    const result = money(0, 'GBP');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.amountPence).toBe(0);
   });
 
   it('accepts negative values (used for over-allocated available budget)', () => {
-    expect(money(-500, 'GBP').amountPence).toBe(-500);
+    const result = money(-500, 'GBP');
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.amountPence).toBe(-500);
   });
 
-  it('throws when amountPence is not an integer', () => {
-    expect(() => money(10.5, 'GBP')).toThrow('integer');
+  it('returns err when amountPence is not an integer', () => {
+    const result = money(10.5, 'GBP');
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/integer/);
   });
 
   it('accepts all supported currencies', () => {
-    expect(money(100, 'USD').currency).toBe('USD');
-    expect(money(100, 'EUR').currency).toBe('EUR');
-    expect(money(100, 'AUD').currency).toBe('AUD');
+    for (const currency of ['USD', 'EUR', 'AUD'] as const) {
+      const result = money(100, currency);
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.value.currency).toBe(currency);
+    }
   });
 });
 
 // ─── addMoney ─────────────────────────────────────────────────────────────────
 
 describe('addMoney', () => {
-  it('sums two amounts with the same currency', () => {
-    const result = addMoney(money(1_000, 'GBP'), money(2_000, 'GBP'));
-    expect(result.amountPence).toBe(3_000);
-    expect(result.currency).toBe('GBP');
+  it('returns ok with the sum when currencies match', () => {
+    const result = addMoney(moneyUnchecked(1_000, 'GBP'), moneyUnchecked(2_000, 'GBP'));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.amountPence).toBe(3_000);
+      expect(result.value.currency).toBe('GBP');
+    }
   });
 
   it('correctly handles adding zero', () => {
-    const result = addMoney(money(5_000, 'GBP'), money(0, 'GBP'));
-    expect(result.amountPence).toBe(5_000);
+    const result = addMoney(moneyUnchecked(5_000, 'GBP'), moneyUnchecked(0, 'GBP'));
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.amountPence).toBe(5_000);
   });
 
   it('correctly handles negative operands', () => {
-    const result = addMoney(money(5_000, 'GBP'), money(-2_000, 'GBP'));
-    expect(result.amountPence).toBe(3_000);
+    const result = addMoney(moneyUnchecked(5_000, 'GBP'), moneyUnchecked(-2_000, 'GBP'));
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.amountPence).toBe(3_000);
   });
 
-  it('throws when currencies differ', () => {
-    expect(() => addMoney(money(1_000, 'GBP'), money(1_000, 'USD'))).toThrow(
-      'different currencies',
-    );
+  it('returns err when currencies differ', () => {
+    const result = addMoney(moneyUnchecked(1_000, 'GBP'), moneyUnchecked(1_000, 'USD'));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/different currencies/);
   });
 });
 
@@ -64,30 +81,30 @@ describe('addMoney', () => {
 
 describe('formatMoney', () => {
   it('formats GBP with £ symbol', () => {
-    expect(formatMoney(money(5_000_00, 'GBP'))).toBe('£5000.00');
+    expect(formatMoney(moneyUnchecked(5_000_00, 'GBP'))).toBe('£5000.00');
   });
 
   it('formats USD with $ symbol', () => {
-    expect(formatMoney(money(1_000, 'USD'))).toBe('$10.00');
+    expect(formatMoney(moneyUnchecked(1_000, 'USD'))).toBe('$10.00');
   });
 
   it('formats EUR with € symbol', () => {
-    expect(formatMoney(money(2_500, 'EUR'))).toBe('€25.00');
+    expect(formatMoney(moneyUnchecked(2_500, 'EUR'))).toBe('€25.00');
   });
 
   it('formats AUD with A$ symbol', () => {
-    expect(formatMoney(money(3_750, 'AUD'))).toBe('A$37.50');
+    expect(formatMoney(moneyUnchecked(3_750, 'AUD'))).toBe('A$37.50');
   });
 
   it('formats zero correctly', () => {
-    expect(formatMoney(money(0, 'GBP'))).toBe('£0.00');
+    expect(formatMoney(moneyUnchecked(0, 'GBP'))).toBe('£0.00');
   });
 
   it('formats amounts with pence (two decimal places)', () => {
-    expect(formatMoney(money(1_099, 'GBP'))).toBe('£10.99');
+    expect(formatMoney(moneyUnchecked(1_099, 'GBP'))).toBe('£10.99');
   });
 
   it('formats negative amounts with a minus sign', () => {
-    expect(formatMoney(money(-500, 'GBP'))).toBe('£-5.00');
+    expect(formatMoney(moneyUnchecked(-500, 'GBP'))).toBe('£-5.00');
   });
 });

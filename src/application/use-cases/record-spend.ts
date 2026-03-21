@@ -24,10 +24,13 @@ export async function recordSpend(
   const destination = await destRepo.findById(input.destinationId);
   if (!destination) return err(`Destination not found: ${input.destinationId}`);
 
+  const amountResult = money(input.amountPence, input.currency);
+  if (!amountResult.ok) return err(amountResult.error);
+
   const entry: SpendEntry = {
     id: crypto.randomUUID(),
     destinationId: input.destinationId,
-    amount: money(input.amountPence, input.currency),
+    amount: amountResult.value,
     category: input.category,
     description: input.description,
     spentAt: input.spentAt,

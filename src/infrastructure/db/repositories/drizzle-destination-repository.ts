@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { ComfortLevel, Currency, Destination } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
+import { moneyUnchecked } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { destinations } from '../schema';
 
@@ -14,7 +14,10 @@ function toDestination(row: typeof destinations.$inferSelect): Destination {
     city: row.city,
     latitude: row.latitude,
     longitude: row.longitude,
-    estimatedBudget: money(row.estimatedBudgetAmount, row.estimatedBudgetCurrency as Currency),
+    estimatedBudget: moneyUnchecked(
+      row.estimatedBudgetAmount,
+      row.estimatedBudgetCurrency as Currency,
+    ),
     comfortLevel: row.comfortLevel as ComfortLevel,
     startDate: row.startDate ? new Date(row.startDate) : null,
     endDate: row.endDate ? new Date(row.endDate) : null,

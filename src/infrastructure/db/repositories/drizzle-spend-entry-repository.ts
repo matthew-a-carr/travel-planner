@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { SpendEntryRepository } from '@/domain/spending/spend-entry-repository';
 import type { Currency, SpendCategory, SpendEntry } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
+import { moneyUnchecked } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { destinations, spendEntries } from '../schema';
 
@@ -9,7 +9,7 @@ function toSpendEntry(row: typeof spendEntries.$inferSelect): SpendEntry {
   return {
     id: row.id,
     destinationId: row.destinationId,
-    amount: money(row.amount, row.currency as Currency),
+    amount: moneyUnchecked(row.amount, row.currency as Currency),
     category: row.category as SpendCategory,
     description: row.description,
     spentAt: new Date(row.spentAt),

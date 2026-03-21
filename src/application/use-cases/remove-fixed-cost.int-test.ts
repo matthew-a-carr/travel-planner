@@ -33,8 +33,9 @@ describe('removeFixedCost', () => {
     const fixedCost = await seedFixedCost(db, trip.id);
     const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
 
-    await removeFixedCost(fixedCostRepo, fixedCost.id);
+    const result = await removeFixedCost(fixedCostRepo, fixedCost.id);
 
+    expect(result.ok).toBe(true);
     const remaining = await fixedCostRepo.findByTrip(trip.id);
     expect(remaining).toHaveLength(0);
   });
@@ -46,16 +47,17 @@ describe('removeFixedCost', () => {
     await seedFixedCost(db, trip.id, { label: 'Accommodation', sortOrder: 1 });
     const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
 
-    await removeFixedCost(fixedCostRepo, costToRemove.id);
+    const result = await removeFixedCost(fixedCostRepo, costToRemove.id);
 
+    expect(result.ok).toBe(true);
     const remaining = await fixedCostRepo.findByTrip(trip.id);
     expect(remaining).toHaveLength(1);
     expect(remaining[0]?.label).toBe('Accommodation');
   });
 
-  it('is a no-op for a non-existent id', async () => {
+  it('returns err for a non-existent id', async () => {
     const fixedCostRepo = new DrizzleTripFixedCostRepository(db);
-
-    await expect(removeFixedCost(fixedCostRepo, crypto.randomUUID())).resolves.toBeUndefined();
+    const result = await removeFixedCost(fixedCostRepo, crypto.randomUUID());
+    expect(result.ok).toBe(false);
   });
 });

@@ -34,7 +34,7 @@ describe('removeDestination', () => {
     if (!result.ok) expect(result.error).toContain('not found');
   });
 
-  it('deletes the destination and returns ok(true)', async () => {
+  it('deletes the destination and returns ok', async () => {
     const { id: ownerId } = await seedUser(db);
     const trip = await seedTrip(db, ownerId);
     const dest = await seedDestination(db, trip.id);

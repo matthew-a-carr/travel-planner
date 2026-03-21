@@ -35,13 +35,15 @@ describe('deleteSpendEntry', () => {
     const entry = await seedSpendEntry(db, dest.id);
     const spendRepo = new DrizzleSpendEntryRepository(db);
 
-    await deleteSpendEntry(spendRepo, entry.id);
+    const result = await deleteSpendEntry(spendRepo, entry.id);
 
+    expect(result.ok).toBe(true);
     expect(await spendRepo.findById(entry.id)).toBeNull();
   });
 
-  it('is a no-op for a non-existent id', async () => {
+  it('returns err for a non-existent id', async () => {
     const spendRepo = new DrizzleSpendEntryRepository(db);
-    await expect(deleteSpendEntry(spendRepo, crypto.randomUUID())).resolves.toBeUndefined();
+    const result = await deleteSpendEntry(spendRepo, crypto.randomUUID());
+    expect(result.ok).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import { desc, eq } from 'drizzle-orm';
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
-import { money } from '@/domain/trip/types';
+import { moneyUnchecked } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { trips } from '../schema';
 
@@ -11,7 +11,7 @@ function toTrip(row: typeof trips.$inferSelect): Trip {
     organizationId: row.organizationId,
     ownerId: row.ownerId,
     name: row.name,
-    totalBudget: money(row.totalBudgetAmount, row.totalBudgetCurrency as Currency),
+    totalBudget: moneyUnchecked(row.totalBudgetAmount, row.totalBudgetCurrency as Currency),
     status: row.status as TripStatus,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

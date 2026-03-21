@@ -146,6 +146,7 @@ export default async function globalSetup(): Promise<void> {
       name: 'E2E Test User',
       email: 'e2e@travelplanner.test',
       picture: null,
+      isApproved: true,
     },
     secret,
     salt: SESSION_COOKIE_NAME,

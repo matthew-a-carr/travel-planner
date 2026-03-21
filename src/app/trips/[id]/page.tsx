@@ -103,7 +103,8 @@ export default async function TripDetailPage({ params }: Props) {
 
   const estimatedVsActualData = sorted.map((dest) => {
     const destSpend = allSpend.filter((s) => s.destinationId === dest.id);
-    const actual = calculateTotalSpend(destSpend).amountPence;
+    const totalSpendResult = calculateTotalSpend(destSpend);
+    const actual = totalSpendResult.ok ? totalSpendResult.value.amountPence : 0;
     return {
       name: dest.name,
       estimated: dest.estimatedBudget.amountPence,
@@ -161,7 +162,7 @@ export default async function TripDetailPage({ params }: Props) {
     }
   }
 
-  const tripBurndown = calculateTripBurndown(trip, sorted, allSpend, now);
+  const tripBurndown = calculateTripBurndown(sorted, allSpend, now);
   const tripBurndownData = tripBurndown
     ? {
         idealLine: tripBurndown.idealLine.map((p) => ({

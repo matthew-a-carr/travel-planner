@@ -22,9 +22,12 @@ export async function editSpendEntry(
   const existing = await spendRepo.findById(input.entryId);
   if (!existing) return err(`Spend entry not found: ${input.entryId}`);
 
+  const amountResult = money(input.amountPence, input.currency);
+  if (!amountResult.ok) return err(amountResult.error);
+
   const updated: SpendEntry = {
     ...existing,
-    amount: money(input.amountPence, input.currency),
+    amount: amountResult.value,
     category: input.category,
     description: input.description,
     spentAt: input.spentAt,
