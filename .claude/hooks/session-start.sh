@@ -26,7 +26,28 @@ if ! docker info &>/dev/null; then
 fi
 
 ##############################################################################
-# 2. Install Node.js dependencies
+# 2. Install Terraform (~> 1.12.0, needed for infra/ and pre-commit hook)
+##############################################################################
+if ! terraform version &>/dev/null; then
+  TERRAFORM_VERSION="1.12.2"
+  curl -fsSL "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -o /tmp/terraform.zip
+  sudo unzip -o /tmp/terraform.zip -d /usr/local/bin/
+  rm /tmp/terraform.zip
+fi
+
+##############################################################################
+# 3. Install GitHub CLI (needed for PR workflows)
+##############################################################################
+if ! gh --version &>/dev/null; then
+  GH_VERSION="2.67.0"
+  curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" -o /tmp/gh.tar.gz
+  tar -xzf /tmp/gh.tar.gz -C /tmp
+  sudo cp "/tmp/gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+  rm -rf /tmp/gh.tar.gz "/tmp/gh_${GH_VERSION}_linux_amd64"
+fi
+
+##############################################################################
+# 4. Install Node.js dependencies
 ##############################################################################
 cd "$CLAUDE_PROJECT_DIR"
 
@@ -35,7 +56,7 @@ if [ ! -d "node_modules" ] || [ "pnpm-lock.yaml" -nt "node_modules/.pnpm/lock.ya
 fi
 
 ##############################################################################
-# 3. Install Playwright browsers (needed for e2e tests)
+# 5. Install Playwright browsers (needed for e2e tests)
 ##############################################################################
 if ! npx playwright install --dry-run chromium &>/dev/null 2>&1; then
   npx playwright install chromium
