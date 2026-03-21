@@ -2,6 +2,7 @@ import {
   boolean,
   date,
   doublePrecision,
+  index,
   integer,
   pgTable,
   primaryKey,
@@ -93,68 +94,84 @@ export const organizationMemberships = pgTable(
   (membership) => [primaryKey({ columns: [membership.organizationId, membership.userId] })],
 );
 
-export const trips = pgTable('trips', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: uuid('organization_id')
-    .notNull()
-    .references(() => organizations.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  totalBudgetAmount: integer('total_budget_amount').notNull(),
-  totalBudgetCurrency: text('total_budget_currency').notNull().default('GBP'),
-  status: text('status').notNull().default('planning'),
-  ownerId: text('owner_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const trips = pgTable(
+  'trips',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    totalBudgetAmount: integer('total_budget_amount').notNull(),
+    totalBudgetCurrency: text('total_budget_currency').notNull().default('GBP'),
+    status: text('status').notNull().default('planning'),
+    ownerId: text('owner_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_trips_organization_id').on(t.organizationId)],
+);
 
-export const tripFixedCosts = pgTable('trip_fixed_costs', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tripId: uuid('trip_id')
-    .notNull()
-    .references(() => trips.id, { onDelete: 'cascade' }),
-  label: text('label').notNull(), // e.g. "Flights to Asia", "Phone (£40/mo × 6)"
-  amountPence: integer('amount_pence').notNull(),
-  currency: text('currency').notNull().default('GBP'),
-  category: text('category').notNull().default('other'),
-  date: date('date').notNull().defaultNow(),
-  sortOrder: integer('sort_order').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const tripFixedCosts = pgTable(
+  'trip_fixed_costs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tripId: uuid('trip_id')
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    label: text('label').notNull(), // e.g. "Flights to Asia", "Phone (£40/mo × 6)"
+    amountPence: integer('amount_pence').notNull(),
+    currency: text('currency').notNull().default('GBP'),
+    category: text('category').notNull().default('other'),
+    date: date('date').notNull().defaultNow(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_trip_fixed_costs_trip_id').on(t.tripId)],
+);
 
-export const destinations = pgTable('destinations', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tripId: uuid('trip_id')
-    .notNull()
-    .references(() => trips.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  country: text('country').notNull(),
-  city: text('city'),
-  latitude: doublePrecision('latitude'),
-  longitude: doublePrecision('longitude'),
-  estimatedBudgetAmount: integer('estimated_budget_amount').notNull(),
-  estimatedBudgetCurrency: text('estimated_budget_currency').notNull().default('GBP'),
-  comfortLevel: text('comfort_level').notNull(),
-  startDate: date('start_date'),
-  endDate: date('end_date'),
-  sortOrder: integer('sort_order').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const destinations = pgTable(
+  'destinations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tripId: uuid('trip_id')
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    country: text('country').notNull(),
+    city: text('city'),
+    latitude: doublePrecision('latitude'),
+    longitude: doublePrecision('longitude'),
+    estimatedBudgetAmount: integer('estimated_budget_amount').notNull(),
+    estimatedBudgetCurrency: text('estimated_budget_currency').notNull().default('GBP'),
+    comfortLevel: text('comfort_level').notNull(),
+    startDate: date('start_date'),
+    endDate: date('end_date'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_destinations_trip_id').on(t.tripId)],
+);
 
-export const spendEntries = pgTable('spend_entries', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  destinationId: uuid('destination_id')
-    .notNull()
-    .references(() => destinations.id, { onDelete: 'cascade' }),
-  amount: integer('amount').notNull(),
-  currency: text('currency').notNull().default('GBP'),
-  category: text('category').notNull(),
-  description: text('description'),
-  spentAt: date('spent_at').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const spendEntries = pgTable(
+  'spend_entries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    destinationId: uuid('destination_id')
+      .notNull()
+      .references(() => destinations.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(),
+    currency: text('currency').notNull().default('GBP'),
+    category: text('category').notNull(),
+    description: text('description'),
+    spentAt: date('spent_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_spend_entries_destination_id').on(t.destinationId)],
+);
 
 export const countryReferenceData = pgTable('country_reference_data', {
   country: text('country').primaryKey(), // canonical display name, e.g. "Japan"
