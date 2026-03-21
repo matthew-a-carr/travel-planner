@@ -103,6 +103,7 @@ async function signInAsUser(
       name: user.name,
       email: user.email,
       picture: null,
+      isApproved: true,
     },
     secret,
     salt: SESSION_COOKIE_NAME,

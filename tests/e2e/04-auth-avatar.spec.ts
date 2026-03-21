@@ -45,6 +45,7 @@ test('authenticated user falls back to initials when avatar image cannot be load
       name: userName,
       email: userEmail,
       picture: FALLBACK_IMAGE_URL,
+      isApproved: true,
     },
     secret,
     salt: SESSION_COOKIE_NAME,

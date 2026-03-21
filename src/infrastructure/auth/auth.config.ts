@@ -16,8 +16,15 @@ export const authConfig: NextAuthConfig = {
       const isOnPublicPath = nextUrl.pathname === '/' || isOnLoginPage;
 
       if (isOnPublicPath) return true;
-      if (isLoggedIn) return true;
-      return false;
+      if (!isLoggedIn) return false;
+
+      // Redirect logged-in but unapproved users to the login page.
+      const isApproved = (auth?.user as { isApproved?: boolean } | undefined)?.isApproved;
+      if (!isApproved) {
+        return Response.redirect(new URL('/login', nextUrl));
+      }
+
+      return true;
     },
   },
 };
