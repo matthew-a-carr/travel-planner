@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@biomejs/biome": "^2.4.6",
+    "@biomejs/biome": "^2.4.8",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testcontainers/postgresql": "^11.12.0",
@@ -53,13 +53,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
-    "drizzle-kit": "^0.31.9",
+    "drizzle-kit": "^0.31.10",
     "tailwindcss": "^4",
     "testcontainers": "^11.12.0",
     "tsx": "^4.21.0",
-    "typescript": "^5",
+    "typescript": "^6",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.0",
+    "vitest": "^4.1.1",
     "vitest-mock-extended": "^3.1.0"
   }
 }
