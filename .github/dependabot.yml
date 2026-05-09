@@ -13,23 +13,16 @@ updates:
       prefix-development: chore
     labels:
       - dependencies
-    # Group low-noise dev tooling updates into a single PR to reduce churn
+    # Group all minor and patch updates into a single PR to reduce noise.
+    # Major versions still land as individual PRs so breaking-change
+    # changelogs can be reviewed separately.
     groups:
-      dev-tooling:
-        dependency-type: development
+      minor-and-patch:
         patterns:
-          - "@axe-core/*"
-          - "@biomejs/*"
-          - "@playwright/*"
-          - "@types/*"
-          - "@vitejs/*"
-          - "drizzle-kit"
-          - "tailwindcss"
-          - "@tailwindcss/*"
-          - "tsx"
-          - "typescript"
-          - "vitest"
-          - "vite-tsconfig-paths"
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   # ── GitHub Actions ───────────────────────────────────────────────────────────
   - package-ecosystem: github-actions
@@ -43,3 +36,10 @@ updates:
     labels:
       - dependencies
       - ci
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
