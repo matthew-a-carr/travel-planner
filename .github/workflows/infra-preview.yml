@@ -10,6 +10,10 @@ on:
         required: false
         default: ""
 
+concurrency:
+  group: infra-preview
+  cancel-in-progress: false
+
 jobs:
   apply:
     name: Apply preview stack
@@ -48,12 +52,14 @@ jobs:
           if [[ -n "$manual_open_previews" ]]; then
             open_previews="$manual_open_previews"
           else
+            # Skip bot-authored PRs (Dependabot, release-please) so they don't
+            # consume Neon's free-plan branch budget. See ADR 039.
             open_previews="$(gh api \
               -X GET \
               repos/${{ github.repository }}/pulls \
               --paginate \
               -f state=open \
-              --jq 'map({(.number|tostring): .head.ref}) | add // {}')"
+              --jq 'map(select(.user.type != "Bot")) | map({(.number|tostring): .head.ref}) | add // {}')"
           fi
           echo "open_previews=${open_previews}" >> "$GITHUB_OUTPUT"
 

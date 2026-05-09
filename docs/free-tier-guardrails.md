@@ -85,6 +85,7 @@ Guardrails:
   - up to **100 projects**
   - up to **0.5 GB storage per project**
   - up to **100 compute hours per project per month**
+  - up to **10 branches per project** (parent branch counts toward the cap)
   - automatic scale-to-zero behavior for idle compute
 
 Cost risk:
@@ -96,6 +97,10 @@ Guardrails:
 
 - Keep exactly 2 projects (`travel-planner-prod`, `travel-planner-preview`) unless justified.
 - Continue PR-close destroy for preview branches/databases.
+- Bot-authored PRs (Dependabot, release-please) reuse the shared default
+  `POSTGRES_URL` instead of getting a per-PR Neon branch — see
+  [ADR 039](decisions/039-skip-preview-branches-for-bot-prs.md) — to keep the
+  10-branch cap available for human PRs.
 - Check monthly compute/storage usage in Neon before month end.
 
 ### Google (OAuth for sign-in)
