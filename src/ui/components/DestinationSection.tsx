@@ -46,9 +46,14 @@ export function DestinationSection({
   const [showAddForm, setShowAddForm] = useState(false);
 
   return (
-    <section>
+    <section id="destinations" aria-labelledby="destinations-heading" className="scroll-mt-8">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Destinations</h2>
+        <h2
+          id="destinations-heading"
+          className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
+        >
+          Destinations
+        </h2>
         <button
           type="button"
           onClick={() => setShowAddForm((v) => !v)}

@@ -24,6 +24,8 @@ import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBre
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
+import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
+import { getTripStage, hasTwoOrMoreDatedDestinations } from './trip-stage';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -73,6 +75,13 @@ export default async function TripDetailPage({ params }: Props) {
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
+  const stage = getTripStage(trip, destinations, fixedCosts, allSpend);
+  const showCharts = stage === 'active' || stage === 'completed';
+  const showJourneyMap =
+    (stage === 'active' || stage === 'completed') && hasTwoOrMoreDatedDestinations(sorted);
+  const showBudgetOverview = stage !== 'empty';
+  const showFixedCostBreakdown =
+    (stage === 'active' || stage === 'completed') && fixedCosts.length > 0;
 
   // Journey map waterfall — spend aggregated by destination
   const spendByDestination = new Map<string, number>();
@@ -243,23 +252,32 @@ export default async function TripDetailPage({ params }: Props) {
           </div>
         </header>
 
-        <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />
+        {stage === 'empty' && (
+          <TripNextStepsPanel
+            hasDestinations={destinations.length > 0}
+            hasFixedCosts={fixedCosts.length > 0}
+          />
+        )}
 
-        <BudgetAlertBanner alerts={allBurndownAlerts} />
+        {showBudgetOverview && <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />}
+
+        {allBurndownAlerts.length > 0 && <BudgetAlertBanner alerts={allBurndownAlerts} />}
 
         <FixedCostSection tripId={id} fixedCosts={fixedCosts} />
 
-        <FixedCostCategoryBreakdown data={fixedCostByCategoryData} />
+        {showFixedCostBreakdown && <FixedCostCategoryBreakdown data={fixedCostByCategoryData} />}
 
-        <ChartsSection
-          budgetBreakdown={budgetBreakdownData}
-          estimatedVsActual={estimatedVsActualData}
-          spendByCategory={spendByCategoryData}
-          tripBurndown={tripBurndownData}
-          currency={trip.totalBudget.currency}
-        />
+        {showCharts && (
+          <ChartsSection
+            budgetBreakdown={budgetBreakdownData}
+            estimatedVsActual={estimatedVsActualData}
+            spendByCategory={spendByCategoryData}
+            tripBurndown={tripBurndownData}
+            currency={trip.totalBudget.currency}
+          />
+        )}
 
-        {sorted.length > 0 && (
+        {showJourneyMap && (
           <JourneyMapSection waterfall={waterfall} currency={trip.totalBudget.currency} />
         )}
 

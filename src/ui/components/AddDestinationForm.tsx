@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import type { AddDestinationState } from '@/app/trips/[id]/actions';
 import { addDestinationAction } from '@/app/trips/[id]/actions';
 import { findReference, suggestBudget } from '@/domain/country-reference/country-reference';
@@ -35,6 +35,7 @@ export function AddDestinationForm({
   countryReferences: CountryReference[];
   onSuccess: () => void;
 }) {
+  const [name, setName] = useState('');
   const [country, setCountry] = useState('');
   const [city, setCity] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -42,6 +43,9 @@ export function AddDestinationForm({
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [comfortLevel, setComfortLevel] = useState<ComfortLevel>('mid');
+  const [budgetPounds, setBudgetPounds] = useState('');
+  const budgetEditedByUser = useRef(false);
+  const addAnotherRef = useRef(false);
 
   const countryAlpha2 = country
     ? (countryReferences.find((r) => r.country === country)?.alpha2 ?? null)
@@ -52,7 +56,23 @@ export function AddDestinationForm({
   const [state, dispatch, isPending] = useActionState(
     async (prev: AddDestinationState, formData: FormData) => {
       const result = await boundAction(prev, formData);
-      if (!result.error) onSuccess();
+      if (!result.error) {
+        if (addAnotherRef.current) {
+          // Reset enough for the next entry; keep comfort level for batch-add ergonomics.
+          setName('');
+          setCountry('');
+          setCity('');
+          setLatitude(null);
+          setLongitude(null);
+          setStartDate('');
+          setEndDate('');
+          setBudgetPounds('');
+          budgetEditedByUser.current = false;
+          addAnotherRef.current = false;
+        } else {
+          onSuccess();
+        }
+      }
       return result;
     },
     initial,
@@ -63,6 +83,12 @@ export function AddDestinationForm({
   const reference = country ? findReference(country, countryReferences) : null;
   const suggestion =
     days !== null && reference ? suggestBudget(days, reference, comfortLevel) : null;
+  const suggestedPounds = suggestion ? String(Math.round(suggestion.amountPence / 100)) : '';
+
+  useEffect(() => {
+    if (budgetEditedByUser.current) return;
+    if (suggestedPounds) setBudgetPounds(suggestedPounds);
+  }, [suggestedPounds]);
 
   return (
     <form action={dispatch} className="space-y-4">
@@ -73,14 +99,15 @@ export function AddDestinationForm({
             htmlFor="dest-name"
             className="block text-sm font-medium text-zinc-700 dark:text-zinc-200"
           >
-            Name
+            Name <span className="text-zinc-400 dark:text-zinc-500">(optional)</span>
           </label>
           <input
             id="dest-name"
             name="name"
             type="text"
-            required
-            placeholder="Japan"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={city || country || 'Japan'}
             className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
         </div>
@@ -183,7 +210,12 @@ export function AddDestinationForm({
             required
             min="0.01"
             step="0.01"
-            placeholder={suggestion ? String(Math.round(suggestion.amountPence / 100)) : '5000'}
+            value={budgetPounds}
+            onChange={(e) => {
+              budgetEditedByUser.current = true;
+              setBudgetPounds(e.target.value);
+            }}
+            placeholder={suggestedPounds || '5000'}
             className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
           {suggestion && days !== null && reference && (
@@ -220,10 +252,23 @@ export function AddDestinationForm({
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 
-      <div className="flex justify-end gap-3 pt-1">
+      <div className="flex flex-wrap justify-end gap-3 pt-1">
         <button
           type="submit"
           disabled={isPending}
+          onClick={() => {
+            addAnotherRef.current = true;
+          }}
+          className="rounded-lg border border-zinc-200 bg-white px-5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        >
+          {isPending ? 'Saving…' : 'Save and add another'}
+        </button>
+        <button
+          type="submit"
+          disabled={isPending}
+          onClick={() => {
+            addAnotherRef.current = false;
+          }}
           className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           {isPending ? 'Saving…' : 'Add destination'}
