@@ -55,7 +55,7 @@ async function createDatedDestinationWithSpend(
   // Add destination
   await page.getByRole('button', { name: /add destination/i }).click();
   const destForm = addDestinationForm(page);
-  await destForm.getByLabel(/^name$/i).fill(opts.name);
+  await destForm.getByLabel(/^name/i).fill(opts.name);
   await destForm.getByLabel(/country/i).fill(opts.country);
   await page.getByRole('option', { name: opts.country }).click();
   await destForm.getByLabel(/estimated budget/i).fill(opts.budget);
@@ -143,7 +143,7 @@ test.describe('Burndown budget pace tracker', () => {
     // Add a destination without dates
     await page.getByRole('button', { name: /add destination/i }).click();
     const form = addDestinationForm(page);
-    await form.getByLabel(/^name$/i).fill('Undated Stop');
+    await form.getByLabel(/^name/i).fill('Undated Stop');
     await form.getByLabel(/country/i).fill('France');
     await page.getByRole('option', { name: 'France' }).click();
     await form.getByLabel(/estimated budget/i).fill('500');
