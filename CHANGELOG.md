@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.14.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.13.0...v1.14.0) (2026-05-09)
+
+
+### Features
+
+* **chat:** conversational trip assistant — Slice 0 foundations ([#79](https://github.com/matthew-a-carr/travel-planner/issues/79)) ([d03824e](https://github.com/matthew-a-carr/travel-planner/commit/d03824e4b4a2b5481e67a4e40effae96727f08ee))
+* **chat:** Slice 1 — read-only Q&A tools (ADR 042) ([#80](https://github.com/matthew-a-carr/travel-planner/issues/80)) ([9cbcee7](https://github.com/matthew-a-carr/travel-planner/commit/9cbcee70ab47afa33cf4b75fa63bee4e62af63fe))
+* **timeline:** AI-powered Trip Timeline tab with Vercel AI Gateway ([#77](https://github.com/matthew-a-carr/travel-planner/issues/77)) ([6e70610](https://github.com/matthew-a-carr/travel-planner/commit/6e70610f326a00f1c1e608376c95457597ef0567))
+
+
+### Bug Fixes
+
+* **ai:** pick up Vercel OIDC token at runtime ([#81](https://github.com/matthew-a-carr/travel-planner/issues/81)) ([5f7ad56](https://github.com/matthew-a-carr/travel-planner/commit/5f7ad56466dbf46297e4b6c9388acc0aa0aad5e2))
+
 ## [Unreleased]
 
 ### Features
