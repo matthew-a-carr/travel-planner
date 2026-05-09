@@ -49,13 +49,13 @@ describe('gatewayModelId', () => {
     vi.unstubAllEnvs();
   });
 
-  it('returns the default sonnet model id when AI_GATEWAY_MODEL is unset', () => {
+  it('returns the default Gemini Flash model id when AI_GATEWAY_MODEL is unset', () => {
     vi.stubEnv('AI_GATEWAY_MODEL', '');
-    expect(gatewayModelId()).toBe('anthropic/claude-sonnet-4-6');
+    expect(gatewayModelId()).toBe('google/gemini-3-flash');
   });
 
   it('returns the override when AI_GATEWAY_MODEL is set', () => {
-    vi.stubEnv('AI_GATEWAY_MODEL', 'anthropic/claude-opus-4-7');
-    expect(gatewayModelId()).toBe('anthropic/claude-opus-4-7');
+    vi.stubEnv('AI_GATEWAY_MODEL', 'anthropic/claude-sonnet-4-6');
+    expect(gatewayModelId()).toBe('anthropic/claude-sonnet-4-6');
   });
 });

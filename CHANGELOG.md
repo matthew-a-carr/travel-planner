@@ -17,6 +17,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 * **infra:** new `ai_cache` table for SHA-256-keyed caching of LLM outputs in Postgres (no Vercel KV dependency)
 * **infra:** AI Gateway auth uses `VERCEL_OIDC_TOKEN` (auto-injected on Vercel deployments) by default; no long-lived gateway secret in Terraform. Local dev / non-Vercel CI fall back to `AI_GATEWAY_API_KEY`. The app degrades gracefully when neither is set.
 
+### Performance
+
+* **ai:** switch default gateway model from Claude Sonnet 4.6 to Google Gemini 3 Flash. Roughly an order of magnitude cheaper on input tokens and ~6× cheaper on output, with competitive reasoning quality for itinerary extraction, timeline insights, and tool-using conversation. Behaviour and the architecture are unchanged — only the default model id changes. Override per-environment with `AI_GATEWAY_MODEL`. (ADR 040)
+
 ### Bug Fixes
 
 * **ai:** detect Vercel runtime via `VERCEL=1` rather than `process.env.VERCEL_OIDC_TOKEN`. Vercel delivers the OIDC token per-request via the `x-vercel-oidc-token` header (the env var is build-time only), so the previous check silently fell back to no-op AI services on every production request — visible as the "AI offline" message in the chat drawer and timeline insights. Enables `oidc_token_config` on the Vercel project via Terraform so OIDC tokens are actually issued. (ADR 040)

@@ -28,8 +28,14 @@ Use the **Vercel AI Gateway** as the only outbound LLM endpoint. Talk to it
 through the **Vercel AI SDK** (`ai` + `@ai-sdk/anthropic`) using
 `generateObject` with Zod schemas.
 
-The default model is **Anthropic Claude Sonnet 4.6**, exposed via the gateway
-under model id `claude-sonnet-4-6` and overridable via `AI_GATEWAY_MODEL`.
+The default model is **Google Gemini 3 Flash**, exposed via the gateway under
+model id `google/gemini-3-flash` and overridable via `AI_GATEWAY_MODEL`. We
+moved off Claude Sonnet 4.6 (the original choice — see *Provider selection*
+below) for cost: Flash 3 is roughly an order of magnitude cheaper on input
+tokens and ~6× cheaper on output tokens, with reasoning quality competitive
+for itinerary extraction, timeline insights, and conversational tool-use.
+The override mechanism is unchanged so individual deployments can switch
+back per-environment if needed.
 
 ### Provider selection
 
@@ -81,8 +87,8 @@ in Terraform or Vercel project env vars.** Local dev and CI use an explicit
 class of credential-rotation work entirely on Vercel.
 
 To activate the simpler architecture we pass the model as a *string id*
-(`'anthropic/claude-sonnet-4-6'`) rather than constructing an Anthropic
-provider with a baseURL override. The AI SDK routes string ids through
+(`'google/gemini-3-flash'`, or `'anthropic/claude-sonnet-4-6'`, etc.)
+rather than constructing a provider with a baseURL override. The AI SDK routes string ids through
 the gateway provider automatically. We dropped the `@ai-sdk/anthropic`
 dependency in favour of this pattern; only `ai` and `zod` remain.
 

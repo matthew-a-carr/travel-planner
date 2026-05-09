@@ -1,10 +1,18 @@
 /**
- * Default Anthropic model id for itinerary parsing and timeline insights.
+ * Default model id for itinerary parsing, timeline insights, and chat.
+ *
  * The `provider/model` form is resolved by the AI SDK's gateway provider
- * (`@ai-sdk/gateway`) and routed through the Vercel AI Gateway, which in
- * turn dispatches to Anthropic. Override via AI_GATEWAY_MODEL.
+ * (`@ai-sdk/gateway`) and routed through the Vercel AI Gateway. Default is
+ * Google's Gemini 3 Flash — chosen for its low cost (~10× cheaper input
+ * than Claude Sonnet 4.6) and strong reasoning at flash latency. Override
+ * via `AI_GATEWAY_MODEL`.
+ *
+ * Note: the adapter classes are still named `Anthropic*` for historical
+ * reasons (the gateway abstraction was introduced when Anthropic was the
+ * default). They are model-agnostic in practice — the gateway dispatches
+ * based on the model id string. A rename to `Gateway*` is a follow-up.
  */
-export const DEFAULT_MODEL_ID = 'anthropic/claude-sonnet-4-6';
+export const DEFAULT_MODEL_ID = 'google/gemini-3-flash';
 
 /**
  * True when AI Gateway calls have a chance of authenticating.
