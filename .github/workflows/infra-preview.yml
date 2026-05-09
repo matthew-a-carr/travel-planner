@@ -78,7 +78,31 @@ jobs:
       - name: Plan
         env:
           TF_VAR_open_previews: ${{ steps.open_previews.outputs.open_previews }}
-        run: terraform -chdir=infra/stacks/preview plan -input=false
+        run: terraform -chdir=infra/stacks/preview plan -input=false -out=tfplan
+
+      # Neon enforces a project-wide branch cap. When a plan both creates new
+      # branches and destroys orphans, Terraform runs them in parallel and the
+      # creates can hit BRANCHES_LIMIT_EXCEEDED before destroys reduce the
+      # count. Apply destroys in a targeted pass first to make headroom. See
+      # ADR 039.
+      - name: Apply destroys first
+        env:
+          TF_VAR_open_previews: ${{ steps.open_previews.outputs.open_previews }}
+        working-directory: infra/stacks/preview
+        run: |
+          set -euo pipefail
+          mapfile -t targets < <(
+            terraform show -json tfplan \
+              | jq -r '.resource_changes[]
+                  | select(.change.actions == ["delete"])
+                  | "-target=\(.address)"'
+          )
+          if [[ ${#targets[@]} -gt 0 ]]; then
+            echo "Applying ${#targets[@]} destroy target(s) first."
+            terraform apply -auto-approve -input=false "${targets[@]}"
+          else
+            echo "No destroys in plan; skipping destroy-first pass."
+          fi
 
       - name: Apply
         env:

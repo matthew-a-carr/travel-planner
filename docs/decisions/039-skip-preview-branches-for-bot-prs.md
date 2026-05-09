@@ -37,6 +37,12 @@ The workflow also gains a `concurrency: { group: infra-preview, cancel-in-progre
 block so that two preview applies can't race on the same Terraform Cloud
 workspace and Neon project.
 
+A single `terraform apply` runs creates and destroys in parallel, so when a
+plan both adds and removes branches Neon's count is briefly the sum of the
+two and trips the cap before destroys settle. The workflow runs a targeted
+destroy pass first (extracting `delete` addresses from the saved plan and
+applying them with `-target`), then a normal apply for the remaining changes.
+
 If a bot PR genuinely needs an isolated branch (e.g. a major bump that
 exercises schema), trigger the workflow manually via `workflow_dispatch`
 with `open_previews_json` including that PR.
