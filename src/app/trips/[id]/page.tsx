@@ -17,6 +17,7 @@ import { getAuthenticatedAccessContext } from '@/infrastructure/organization/act
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { BudgetAlertBanner } from '@/ui/components/BudgetAlertBanner';
 import { ChartsSection } from '@/ui/components/ChartsSection';
+import { TripAssistantDrawer } from '@/ui/components/chat/TripAssistantDrawer';
 import { DeleteTripButton } from '@/ui/components/DeleteTripModal';
 import { DestinationSection } from '@/ui/components/DestinationSection';
 import { EditTripButton } from '@/ui/components/EditTripModal';
@@ -247,6 +248,7 @@ export default async function TripDetailPage({ params }: Props) {
             </p>
           </div>
           <div className="space-y-2 text-right">
+            <TripAssistantDrawer tripId={trip.id} />
             <EditTripButton trip={trip} />
             <MoveTripForm tripId={trip.id} targets={moveTargets} />
             {canDeleteTrips(membership.role) && <DeleteTripButton tripId={trip.id} />}

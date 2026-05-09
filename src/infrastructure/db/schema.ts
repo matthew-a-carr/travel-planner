@@ -205,3 +205,41 @@ export const aiCache = pgTable(
   },
   (t) => [index('idx_ai_cache_expires_at').on(t.expiresAt)],
 );
+
+// ─── Chat assistant ───────────────────────────────────────────────────────────
+
+/**
+ * One thread per (trip, user). The drawer is per-trip and per-user so the
+ * compound index also serves as the lookup key. We don't enforce a unique
+ * constraint at the DB level — duplicate threads are harmless and a user
+ * could later open a second context.
+ */
+export const chatThreads = pgTable(
+  'chat_threads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tripId: uuid('trip_id')
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_chat_threads_trip_user').on(t.tripId, t.userId)],
+);
+
+export const chatMessages = pgTable(
+  'chat_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    threadId: uuid('thread_id')
+      .notNull()
+      .references(() => chatThreads.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(), // 'user' | 'assistant' | 'system'
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_chat_messages_thread_created').on(t.threadId, t.createdAt)],
+);

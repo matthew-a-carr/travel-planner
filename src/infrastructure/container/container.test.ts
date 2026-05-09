@@ -18,6 +18,8 @@ function createFakeContainer(): AppContainer {
     timelineInsightsService: {} as AppContainer['timelineInsightsService'],
     aiCacheRepository: {} as AppContainer['aiCacheRepository'],
     hashFn: ((s: string) => s) as AppContainer['hashFn'],
+    chatMessageRepository: {} as AppContainer['chatMessageRepository'],
+    chatAssistant: {} as AppContainer['chatAssistant'],
   };
 }
 

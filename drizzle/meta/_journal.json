@@ -78,6 +78,13 @@
       "when": 1778316883044,
       "tag": "0010_magenta_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1778324437918,
+      "tag": "0011_typical_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

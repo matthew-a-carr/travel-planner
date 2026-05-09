@@ -1,7 +1,10 @@
+import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
+import { AnthropicChatAssistant } from './anthropic-chat-assistant';
 import { AnthropicItineraryParser } from './anthropic-itinerary-parser';
 import { AnthropicTimelineInsights } from './anthropic-timeline-insights';
+import { NoOpChatAssistant } from './no-op-chat-assistant';
 import { NoOpItineraryParser } from './no-op-itinerary-parser';
 import { NoOpTimelineInsights } from './no-op-timeline-insights';
 import { gatewayModelId, hasAiCredentials } from './vercel-gateway-client';
@@ -9,6 +12,7 @@ import { gatewayModelId, hasAiCredentials } from './vercel-gateway-client';
 export type AiServices = {
   readonly itineraryParser: ItineraryParser;
   readonly timelineInsightsService: TimelineInsightsService;
+  readonly chatAssistant: ChatAssistantService;
 };
 
 /**
@@ -25,11 +29,13 @@ export function createAiServices(): AiServices {
     return {
       itineraryParser: new NoOpItineraryParser(),
       timelineInsightsService: new NoOpTimelineInsights(),
+      chatAssistant: new NoOpChatAssistant(),
     };
   }
   const modelId = gatewayModelId();
   return {
     itineraryParser: new AnthropicItineraryParser(modelId),
     timelineInsightsService: new AnthropicTimelineInsights(modelId),
+    chatAssistant: new AnthropicChatAssistant(modelId),
   };
 }

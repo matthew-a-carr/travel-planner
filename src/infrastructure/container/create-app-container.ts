@@ -2,6 +2,7 @@ import { createAiServices } from '@/infrastructure/ai/create-ai-services';
 import { DrizzleAiCacheRepository } from '@/infrastructure/ai/drizzle-ai-cache-repository';
 import { sha256 } from '@/infrastructure/ai/hash';
 import type { Db } from '@/infrastructure/db/client';
+import { DrizzleChatMessageRepository } from '@/infrastructure/db/repositories/drizzle-chat-message-repository';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
@@ -34,6 +35,8 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     timelineInsightsService: ai.timelineInsightsService,
     aiCacheRepository: new DrizzleAiCacheRepository(dbClient),
     hashFn: sha256,
+    chatMessageRepository: new DrizzleChatMessageRepository(dbClient),
+    chatAssistant: ai.chatAssistant,
   };
 
   return {

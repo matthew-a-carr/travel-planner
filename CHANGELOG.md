@@ -9,6 +9,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Features
 
+* **chat:** per-trip conversational assistant drawer (Slice 0 — read-only foundations) with streaming replies via Vercel AI Gateway and persisted chat history per (trip, user). Tool-calling mutations land in subsequent slices. (ADR 042)
 * **timeline:** add Trip Timeline tab with horizontal Gantt of dated destinations and fixed-cost pins (ADR 041)
 * **timeline:** AI-powered "Paste itinerary" panel — extract destination rows from free-form text via Claude Sonnet 4.6 through Vercel AI Gateway, pre-fill budgets from country reference data, preview, and bulk-insert (ADR 040, 041)
 * **timeline:** AI + deterministic insights panel — gaps, overlaps, budget-vs-reference mismatches, plus AI-only seasonality and missing-transport detection
