@@ -63,7 +63,10 @@ export async function processChatMessage(
 
   const history = await deps.chatMessageRepository.listMessages(thread.id);
 
-  const outcome = await deps.chatAssistant.streamReply({ history });
+  const outcome = await deps.chatAssistant.streamReply({
+    tripId: request.tripId,
+    history,
+  });
   if (!outcome.ok) return err(outcome.error);
 
   const replyStream = persistOnComplete(outcome.textStream, deps.chatMessageRepository, thread.id);

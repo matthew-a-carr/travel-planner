@@ -20,13 +20,24 @@ export type CreateAppContainerInput = {
 
 export function createAppContainer(input: CreateAppContainerInput): AppContainer {
   const { dbClient } = input;
-  const ai = createAiServices();
+
+  const tripRepository = new DrizzleTripRepository(dbClient);
+  const destinationRepository = new DrizzleDestinationRepository(dbClient);
+  const spendEntryRepository = new DrizzleSpendEntryRepository(dbClient);
+  const tripFixedCostRepository = new DrizzleTripFixedCostRepository(dbClient);
+
+  const ai = createAiServices({
+    tripRepository,
+    destinationRepository,
+    spendEntryRepository,
+    tripFixedCostRepository,
+  });
 
   const base: AppContainer = {
-    tripRepository: new DrizzleTripRepository(dbClient),
-    destinationRepository: new DrizzleDestinationRepository(dbClient),
-    spendEntryRepository: new DrizzleSpendEntryRepository(dbClient),
-    tripFixedCostRepository: new DrizzleTripFixedCostRepository(dbClient),
+    tripRepository,
+    destinationRepository,
+    spendEntryRepository,
+    tripFixedCostRepository,
     countryReferenceRepository: new DrizzleCountryReferenceRepository(dbClient),
     organizationRepository: new DrizzleOrganizationRepository(dbClient),
     userAccessRepository: new DrizzleUserAccessRepository(dbClient),

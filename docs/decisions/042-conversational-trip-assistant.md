@@ -81,6 +81,28 @@ that bind future slices.
    chat surface becomes a new *interface* over the existing application
    layer; no second source of truth.
 
+### Slice 1 scope (read-only Q&A tools)
+
+- Adds `tripId: string` to `StreamReplyInput` so the assistant adapter can
+  bind tools to the conversation's trip and the model has no surface for
+  reading any other trip.
+- New module `src/infrastructure/ai/chat-tools.ts` exposes four tools, each
+  wrapping existing read-side helpers — never duplicating domain logic:
+  - `get_trip_summary` — `getTripBudgetSummary` + earliest/latest dated range.
+  - `list_destinations` — `sortDestinations` + ISO dates and computed days.
+  - `get_burndown` — `calculateTripBurndown` + `detectAlerts`.
+  - `get_spending_by_category` — `groupByCategory` over all spend.
+- `AnthropicChatAssistant` constructor now takes a `ChatToolDeps` record. On
+  every turn it calls `createChatTools(deps, tripId)` and passes the tools
+  to `streamText`, with `stopWhen: stepCountIs(5)` to bound the
+  thought→tool→thought loop.
+- The drawer is unchanged — `streamText`'s `textStream` only yields
+  natural-language deltas; tool calls happen between assistant turns and the
+  client sees a brief gap then more text.
+- System prompt is updated to describe the four tools, instruct the model
+  to call them rather than invent numbers, and remind it that mutations
+  land in Slice 2.
+
 ### Slice 0 scope (this ADR's first PR)
 
 - New tables: `chat_threads(id, trip_id, user_id, created_at, updated_at)` and
