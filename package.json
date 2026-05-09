@@ -26,10 +26,12 @@
     "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.76",
     "@auth/drizzle-adapter": "^1.11.2",
     "@sentry/nextjs": "^10.52.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/postgres": "^0.10.0",
+    "ai": "^6.0.177",
     "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
     "leaflet": "^1.9.4",
@@ -40,7 +42,8 @@
     "react-dom": "19.2.6",
     "react-leaflet": "^5.0.0",
     "recharts": "^3.8.1",
-    "resend": "^6.12.3"
+    "resend": "^6.12.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

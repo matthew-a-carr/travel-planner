@@ -21,3 +21,6 @@ sentry_auth_token = "replace-with-sentry-auth-token" # Create at sentry.io → S
 sentry_org        = "replace-with-sentry-org-slug"
 sentry_team       = "replace-with-sentry-team-slug"
 
+# Vercel AI Gateway — leave empty to disable in-app AI features (paste-to-timeline, timeline insights)
+# ai_gateway_api_key = "replace-with-vercel-ai-gateway-key"
+

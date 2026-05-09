@@ -188,6 +188,9 @@ AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside 
 RESEND_API_KEY=          # Resend API key (required in production)
 EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
 EMAIL_FROM_NAME=Travel Planner
+AI_GATEWAY_API_KEY=      # Vercel AI Gateway key (optional — enables paste-to-timeline and AI timeline insights; see ADR 040)
+# AI_GATEWAY_BASE_URL=   # override gateway base URL (defaults to Vercel AI Gateway)
+# AI_GATEWAY_MODEL=      # override model id (defaults to claude-sonnet-4-6)
 ```
 
 Bootstrap the first admin user in each environment:

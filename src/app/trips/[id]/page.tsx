@@ -25,6 +25,7 @@ import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
 import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
+import { TripTabs } from '@/ui/components/TripTabs';
 import { getTripStage, hasTwoOrMoreDatedDestinations } from './trip-stage';
 
 type Props = { params: Promise<{ id: string }> };
@@ -251,6 +252,8 @@ export default async function TripDetailPage({ params }: Props) {
             {canDeleteTrips(membership.role) && <DeleteTripButton tripId={trip.id} />}
           </div>
         </header>
+
+        <TripTabs tripId={id} active="overview" />
 
         {stage === 'empty' && (
           <TripNextStepsPanel

@@ -14,6 +14,10 @@ function createFakeContainer(): AppContainer {
     organizationRepository: {} as AppContainer['organizationRepository'],
     userAccessRepository: {} as AppContainer['userAccessRepository'],
     inviteEmailService: {} as AppContainer['inviteEmailService'],
+    itineraryParser: {} as AppContainer['itineraryParser'],
+    timelineInsightsService: {} as AppContainer['timelineInsightsService'],
+    aiCacheRepository: {} as AppContainer['aiCacheRepository'],
+    hashFn: ((s: string) => s) as AppContainer['hashFn'],
   };
 }
 

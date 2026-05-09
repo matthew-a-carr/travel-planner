@@ -4,6 +4,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -184,3 +185,23 @@ export const countryReferenceData = pgTable('country_reference_data', {
   source: text('source').notNull().default('manual'), // 'manual' | 'estimated'
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// ─── AI cache ─────────────────────────────────────────────────────────────────
+
+/**
+ * Persistent cache for AI-generated outputs (itinerary parses and timeline
+ * insights). Keyed by SHA-256 of (kind + canonicalised input). Rows older
+ * than `expires_at` should be ignored at read time and may be vacuumed by
+ * a future maintenance job.
+ */
+export const aiCache = pgTable(
+  'ai_cache',
+  {
+    hash: text('hash').primaryKey(),
+    kind: text('kind').notNull(),
+    payload: jsonb('payload').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (t) => [index('idx_ai_cache_expires_at').on(t.expiresAt)],
+);

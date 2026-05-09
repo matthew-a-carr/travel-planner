@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Features
+
+* **timeline:** add Trip Timeline tab with horizontal Gantt of dated destinations and fixed-cost pins (ADR 041)
+* **timeline:** AI-powered "Paste itinerary" panel — extract destination rows from free-form text via Claude Sonnet 4.6 through Vercel AI Gateway, pre-fill budgets from country reference data, preview, and bulk-insert (ADR 040, 041)
+* **timeline:** AI + deterministic insights panel — gaps, overlaps, budget-vs-reference mismatches, plus AI-only seasonality and missing-transport detection
+* **infra:** new `ai_cache` table for SHA-256-keyed caching of LLM outputs in Postgres (no Vercel KV dependency)
+* **infra:** optional `AI_GATEWAY_API_KEY` env var managed by Terraform; the app degrades gracefully when unset
+
 ## [1.13.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.12.1...v1.13.0) (2026-05-09)
 
 

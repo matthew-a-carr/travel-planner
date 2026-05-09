@@ -71,6 +71,13 @@
       "when": 1774310400001,
       "tag": "0009_enum_check_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1778316883044,
+      "tag": "0010_magenta_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

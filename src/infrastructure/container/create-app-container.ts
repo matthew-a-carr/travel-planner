@@ -1,3 +1,6 @@
+import { createAiServices } from '@/infrastructure/ai/create-ai-services';
+import { DrizzleAiCacheRepository } from '@/infrastructure/ai/drizzle-ai-cache-repository';
+import { sha256 } from '@/infrastructure/ai/hash';
 import type { Db } from '@/infrastructure/db/client';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
@@ -16,6 +19,7 @@ export type CreateAppContainerInput = {
 
 export function createAppContainer(input: CreateAppContainerInput): AppContainer {
   const { dbClient } = input;
+  const ai = createAiServices();
 
   const base: AppContainer = {
     tripRepository: new DrizzleTripRepository(dbClient),
@@ -26,6 +30,10 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     organizationRepository: new DrizzleOrganizationRepository(dbClient),
     userAccessRepository: new DrizzleUserAccessRepository(dbClient),
     inviteEmailService: createInviteEmailService(),
+    itineraryParser: ai.itineraryParser,
+    timelineInsightsService: ai.timelineInsightsService,
+    aiCacheRepository: new DrizzleAiCacheRepository(dbClient),
+    hashFn: sha256,
   };
 
   return {

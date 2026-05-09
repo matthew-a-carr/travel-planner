@@ -114,17 +114,30 @@ locals {
       comment   = "Managed by Terraform: Sentry auth token for build-time source map upload"
     },
   ]
+
+  ai_gateway_environment_variable = trimspace(var.ai_gateway_api_key) == "" ? [] : [
+    {
+      key       = "AI_GATEWAY_API_KEY"
+      value     = var.ai_gateway_api_key
+      target    = toset(["production"])
+      sensitive = true
+      comment   = "Managed by Terraform: Vercel AI Gateway key for itinerary parsing + timeline insights"
+    },
+  ]
 }
 
 module "vercel_project" {
   source = "../../modules/vercel-project"
 
-  team_id               = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
-  project_name          = var.project_name
-  github_repository     = var.github_repository
-  production_branch     = var.production_branch
-  framework             = "nextjs"
-  build_command         = "pnpm build && pnpm db:migrate:deploy && pnpm db:seed"
-  domain                = var.production_domain
-  environment_variables = local.production_environment_variables
+  team_id           = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_name      = var.project_name
+  github_repository = var.github_repository
+  production_branch = var.production_branch
+  framework         = "nextjs"
+  build_command     = "pnpm build && pnpm db:migrate:deploy && pnpm db:seed"
+  domain            = var.production_domain
+  environment_variables = concat(
+    local.production_environment_variables,
+    local.ai_gateway_environment_variable,
+  )
 }
