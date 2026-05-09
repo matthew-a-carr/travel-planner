@@ -9,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -209,10 +210,9 @@ export const aiCache = pgTable(
 // ─── Chat assistant ───────────────────────────────────────────────────────────
 
 /**
- * One thread per (trip, user). The drawer is per-trip and per-user so the
- * compound index also serves as the lookup key. We don't enforce a unique
- * constraint at the DB level — duplicate threads are harmless and a user
- * could later open a second context.
+ * One thread per (trip, user). The unique index doubles as the lookup key
+ * for `findOrCreateThread` and prevents duplicate threads under concurrent
+ * first-message races.
  */
 export const chatThreads = pgTable(
   'chat_threads',
@@ -227,7 +227,7 @@ export const chatThreads = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (t) => [index('idx_chat_threads_trip_user').on(t.tripId, t.userId)],
+  (t) => [uniqueIndex('uq_chat_threads_trip_user').on(t.tripId, t.userId)],
 );
 
 export const chatMessages = pgTable(

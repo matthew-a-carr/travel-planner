@@ -3,6 +3,8 @@ import { processChatMessage } from '@/application/use-cases/process-chat-message
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
 
+export const dynamic = 'force-dynamic';
+
 type RouteParams = { params: Promise<{ id: string }> };
 
 type ChatRequestBody = {

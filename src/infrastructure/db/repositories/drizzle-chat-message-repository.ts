@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import type {
   AppendMessageInput,
   ChatMessageRepository,
@@ -31,16 +31,15 @@ export class DrizzleChatMessageRepository implements ChatMessageRepository {
   constructor(private readonly db: Db) {}
 
   async findOrCreateThread(tripId: string, userId: string): Promise<ChatThread> {
-    const existing = await this.db
-      .select()
-      .from(chatThreads)
-      .where(and(eq(chatThreads.tripId, tripId), eq(chatThreads.userId, userId)))
-      .limit(1);
-    const found = existing[0];
-    if (found) return toThread(found);
-
-    const inserted = await this.db.insert(chatThreads).values({ tripId, userId }).returning();
-    const row = inserted[0];
+    const upserted = await this.db
+      .insert(chatThreads)
+      .values({ tripId, userId })
+      .onConflictDoUpdate({
+        target: [chatThreads.tripId, chatThreads.userId],
+        set: { tripId: sql`excluded.trip_id` },
+      })
+      .returning();
+    const row = upserted[0];
     if (!row) throw new Error('Failed to create chat thread');
     return toThread(row);
   }

@@ -73,4 +73,17 @@ describe('DrizzleChatMessageRepository', () => {
     const messagesB = await repo.listMessages(threadB.id);
     expect(messagesB).toHaveLength(0);
   });
+
+  it('returns the same thread under concurrent first-message races', async () => {
+    const repo = new DrizzleChatMessageRepository(db);
+    const user = await seedUser(db);
+    const trip = await seedTrip(db, user.id);
+
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () => repo.findOrCreateThread(trip.id, user.id)),
+    );
+
+    const ids = new Set(results.map((t) => t.id));
+    expect(ids.size).toBe(1);
+  });
 });
