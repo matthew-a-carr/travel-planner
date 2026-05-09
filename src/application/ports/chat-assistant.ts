@@ -1,6 +1,9 @@
 import type { ChatMessage } from '@/domain/chat/types';
 
 export type StreamReplyInput = {
+  /** Trip the conversation is scoped to. Tool implementations bind to this id
+   *  so the model cannot read or mutate any other trip's data. */
+  readonly tripId: string;
   /** Conversation history, oldest first. The most recent message is the
    *  user message that just landed and triggered this turn. */
   readonly history: readonly ChatMessage[];

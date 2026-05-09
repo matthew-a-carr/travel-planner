@@ -194,6 +194,21 @@ describe('processChatMessage', () => {
     expect(result).toEqual({ ok: false, error: 'AI offline' });
   });
 
+  it('passes tripId to the assistant so tools can be bound per-trip', async () => {
+    const assistant = makeAssistant(['ok']);
+    const deps = makeDeps({ chatAssistant: assistant });
+
+    const result = await processChatMessage(deps, {
+      tripId: 'trip-1',
+      userId: 'user-1',
+      userMessage: 'hi',
+    });
+    expect(result.ok).toBe(true);
+    expect(assistant.streamReply).toHaveBeenCalledWith(
+      expect.objectContaining({ tripId: 'trip-1' }),
+    );
+  });
+
   it('persists partial output if the upstream stream throws', async () => {
     const chatRepo = makeChatRepo();
     async function* failingStream(): AsyncIterable<string> {
