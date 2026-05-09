@@ -34,10 +34,6 @@ export type ParseItineraryState = {
   readonly result: ParsedItineraryResult | null;
 };
 
-const initialParseState: ParseItineraryState = { error: null, result: null };
-
-export { initialParseState };
-
 export async function parseItineraryAction(
   tripId: string,
   _prev: ParseItineraryState,
@@ -85,10 +81,6 @@ export type ApplyItineraryState = {
   readonly error: string | null;
   readonly addedCount: number;
 };
-
-const initialApplyState: ApplyItineraryState = { error: null, addedCount: 0 };
-
-export { initialApplyState };
 
 type SerialisedCandidate = {
   readonly name: string;

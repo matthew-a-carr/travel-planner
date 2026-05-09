@@ -5,11 +5,12 @@ import type { ComfortLevel, Currency } from '@/domain/trip/types';
 import {
   type ApplyItineraryState,
   applyParsedItineraryAction,
-  initialApplyState,
-  initialParseState,
   type ParseItineraryState,
   parseItineraryAction,
 } from './actions';
+
+const initialParseState: ParseItineraryState = { error: null, result: null };
+const initialApplyState: ApplyItineraryState = { error: null, addedCount: 0 };
 
 const COMFORTS: ComfortLevel[] = ['budget', 'mid', 'luxury'];
 

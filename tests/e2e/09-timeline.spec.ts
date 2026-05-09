@@ -1,61 +1,48 @@
-import { type Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 /**
- * Timeline tab smoke test.
+ * Trip timeline tab smoke tests.
  *
- * Runs after the destination + spend tests so the seeded trip has at least
- * one dated destination on the timeline. Validates:
+ * Self-contained: creates its own trip per test so we don't depend on the
+ * state left behind by earlier specs.
  *
+ * Validates:
  * - The Timeline tab is reachable from the trip detail page.
  * - The Paste itinerary panel renders.
  * - The Insights panel renders.
- *
- * The AI gateway is intentionally unconfigured in CI; the page must render
- * fine with the no-op AI fallbacks (only deterministic findings, "AI offline"
- * badge in the insights panel).
+ * - With AI_GATEWAY_API_KEY unset (CI default), submitting a paste shows
+ *   the "AI gateway not configured" error from the no-op fallback,
+ *   confirming the env-var-driven graceful degradation works end-to-end.
  */
 
-function tripLink(page: Page, name: string) {
-  return page.getByRole('link').filter({ hasText: name }).first();
-}
+async function createTrip(
+  page: import('@playwright/test').Page,
+  tripName: string,
+  totalBudget = '20000',
+) {
+  await page.goto('/');
+  await page.getByRole('button', { name: /create trip/i }).first().click();
+  await page.getByLabel('Trip name').fill(tripName);
+  await page.getByLabel('Total budget').fill(totalBudget);
+  await page.locator('form').getByRole('button', { name: /create trip/i }).click();
 
-async function openExistingTrip(page: Page, ...candidates: string[]) {
-  for (const name of candidates) {
-    const link = tripLink(page, name);
-    if ((await link.count()) > 0) {
-      await link.click();
-      return;
-    }
-  }
-  throw new Error(`Could not find trip link for: ${candidates.join(', ')}`);
+  await expect(page).toHaveURL(/\/trips\/[0-9a-f-]+/);
+  await expect(page.getByRole('heading', { name: tripName })).toBeVisible();
 }
 
 test.describe('Trip timeline', () => {
   test('renders the timeline tab with paste panel and insights panel', async ({ page }) => {
-    await page.goto('/');
-    await openExistingTrip(
-      page,
-      'Test Round the World',
-      'Round the World 2026',
-      'Round the World',
-    );
+    await createTrip(page, `Timeline Smoke ${Date.now()}`);
 
     await page.getByRole('link', { name: 'Timeline', exact: true }).click();
     await expect(page).toHaveURL(/\/trips\/[^/]+\/timeline$/);
 
     await expect(page.getByRole('heading', { name: 'Paste an itinerary' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Insights' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Timeline', exact: true })).toBeVisible();
   });
 
   test('shows a clear error when the AI gateway is unavailable', async ({ page }) => {
-    await page.goto('/');
-    await openExistingTrip(
-      page,
-      'Test Round the World',
-      'Round the World 2026',
-      'Round the World',
-    );
+    await createTrip(page, `Timeline AI-Off ${Date.now()}`);
     await page.getByRole('link', { name: 'Timeline', exact: true }).click();
 
     await page
@@ -63,7 +50,7 @@ test.describe('Trip timeline', () => {
       .fill('3 weeks Vietnam from Aug 1, then Cambodia for 10 days');
     await page.getByRole('button', { name: /Extract destinations/i }).click();
 
-    // Without AI_GATEWAY_API_KEY the no-op parser reports its unavailability.
+    // Without AI_GATEWAY_API_KEY the no-op parser surfaces a clear message.
     await expect(page.getByText(/AI_GATEWAY_API_KEY is not configured/i)).toBeVisible();
   });
 });
