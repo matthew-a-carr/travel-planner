@@ -116,6 +116,13 @@ locals {
   ]
 }
 
+# AI Gateway authentication
+#
+# Vercel deployments authenticate to the AI Gateway via the auto-injected
+# VERCEL_OIDC_TOKEN (12-hour TTL, rotated by the platform) — no long-lived
+# AI Gateway secret is needed in production. Local dev / non-Vercel CI use
+# AI_GATEWAY_API_KEY in .env.local or as a CI secret. See ADR 040.
+
 module "vercel_project" {
   source = "../../modules/vercel-project"
 

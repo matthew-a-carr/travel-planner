@@ -188,6 +188,8 @@ AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside 
 RESEND_API_KEY=          # Resend API key (required in production)
 EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
 EMAIL_FROM_NAME=Travel Planner
+AI_GATEWAY_API_KEY=      # Vercel AI Gateway key (local dev / non-Vercel CI). On Vercel deployments this is unset and the SDK uses VERCEL_OIDC_TOKEN automatically. See ADR 040.
+# AI_GATEWAY_MODEL=      # override model id (defaults to anthropic/claude-sonnet-4-6, gateway-routed)
 ```
 
 Bootstrap the first admin user in each environment:

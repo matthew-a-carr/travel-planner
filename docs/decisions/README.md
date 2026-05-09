@@ -48,3 +48,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [037](037-burndown-budget-pace-tracker.md) | Burndown Budget Pace Tracker | 2026-03-15 | Accepted |
 | [038](038-money-result-and-unchecked-constructors.md) | Money Result and Unchecked Constructors | 2026-03-21 | Accepted |
 | [039](039-skip-preview-branches-for-bot-prs.md) | Skip Per-PR Neon Preview Branches for Bot-Authored PRs | 2026-05-09 | Accepted |
+| [040](040-vercel-ai-gateway-for-itinerary-ai.md) | Vercel AI Gateway for In-App Itinerary AI | 2026-05-09 | Accepted |
+| [041](041-trip-timeline-view.md) | Trip Timeline View | 2026-05-09 | Accepted |

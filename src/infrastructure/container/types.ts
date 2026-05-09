@@ -1,4 +1,7 @@
+import type { AiCacheRepository } from '@/application/ports/ai-cache-repository';
 import type { InviteEmailService } from '@/application/ports/invite-email-service';
+import type { ItineraryParser } from '@/application/ports/itinerary-parser';
+import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
@@ -16,4 +19,8 @@ export type AppContainer = {
   readonly organizationRepository: OrganizationRepository;
   readonly userAccessRepository: UserAccessRepository;
   readonly inviteEmailService: InviteEmailService;
+  readonly itineraryParser: ItineraryParser;
+  readonly timelineInsightsService: TimelineInsightsService;
+  readonly aiCacheRepository: AiCacheRepository;
+  readonly hashFn: (input: string) => string;
 };
