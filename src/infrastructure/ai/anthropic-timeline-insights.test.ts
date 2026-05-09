@@ -1,4 +1,3 @@
-import type { LanguageModel } from 'ai';
 import { generateObject } from 'ai';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Destination, TripFixedCost } from '@/domain/trip/types';
@@ -11,7 +10,7 @@ vi.mock('ai', () => ({
 
 const mockedGenerateObject = vi.mocked(generateObject);
 
-const fakeModel = {} as LanguageModel;
+const FAKE_MODEL_ID = 'anthropic/claude-sonnet-4-6';
 
 function makeDestination(overrides: Partial<Destination> & { id: string }): Destination {
   return {
@@ -63,7 +62,7 @@ describe('AnthropicTimelineInsights', () => {
       },
     } as Awaited<ReturnType<typeof generateObject>>);
 
-    const insights = new AnthropicTimelineInsights(fakeModel);
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
     const outcome = await insights.analyse({
       destinations: [makeDestination({ id: 'd1' })],
       fixedCosts: [fixedCost],
@@ -80,7 +79,7 @@ describe('AnthropicTimelineInsights', () => {
   it('returns a typed error when generateObject throws', async () => {
     mockedGenerateObject.mockRejectedValueOnce(new Error('fetch failed: gateway timeout'));
 
-    const insights = new AnthropicTimelineInsights(fakeModel);
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
     const outcome = await insights.analyse({
       destinations: [makeDestination({ id: 'd1' })],
       fixedCosts: [],
@@ -94,7 +93,7 @@ describe('AnthropicTimelineInsights', () => {
   });
 
   it('short-circuits without calling the model when no destinations are dated', async () => {
-    const insights = new AnthropicTimelineInsights(fakeModel);
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
     const outcome = await insights.analyse({
       destinations: [
         makeDestination({ id: 'd1', startDate: null, endDate: null }),
@@ -110,7 +109,7 @@ describe('AnthropicTimelineInsights', () => {
   it('returns a typed error when generateObject throws a non-Error value', async () => {
     mockedGenerateObject.mockRejectedValueOnce('quota exceeded');
 
-    const insights = new AnthropicTimelineInsights(fakeModel);
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
     const outcome = await insights.analyse({
       destinations: [makeDestination({ id: 'd1' })],
       fixedCosts: [],

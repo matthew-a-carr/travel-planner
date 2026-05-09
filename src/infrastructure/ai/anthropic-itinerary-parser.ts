@@ -1,4 +1,3 @@
-import type { LanguageModel } from 'ai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import type {
@@ -39,7 +38,7 @@ Rules:
 - Place anything that doesn't map to a row into "unresolved" (one entry per fragment).`;
 
 export class AnthropicItineraryParser implements ItineraryParser {
-  constructor(private readonly model: LanguageModel) {}
+  constructor(private readonly modelId: string) {}
 
   async parse(input: ParseItineraryInput): Promise<ParseItineraryOutcome> {
     const userPrompt = [
@@ -52,7 +51,7 @@ export class AnthropicItineraryParser implements ItineraryParser {
 
     try {
       const { object } = await generateObject({
-        model: this.model,
+        model: this.modelId,
         schema: parsedItinerarySchema,
         system: SYSTEM_PROMPT,
         prompt: userPrompt,

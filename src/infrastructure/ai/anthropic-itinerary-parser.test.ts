@@ -1,4 +1,3 @@
-import type { LanguageModel } from 'ai';
 import { generateObject } from 'ai';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnthropicItineraryParser } from './anthropic-itinerary-parser';
@@ -9,7 +8,7 @@ vi.mock('ai', () => ({
 
 const mockedGenerateObject = vi.mocked(generateObject);
 
-const fakeModel = {} as LanguageModel;
+const FAKE_MODEL_ID = 'anthropic/claude-sonnet-4-6';
 
 const baseInput = {
   text: '3 weeks Vietnam from Aug 1, then Cambodia for 10 days',
@@ -40,7 +39,7 @@ describe('AnthropicItineraryParser', () => {
       },
     } as Awaited<ReturnType<typeof generateObject>>);
 
-    const parser = new AnthropicItineraryParser(fakeModel);
+    const parser = new AnthropicItineraryParser(FAKE_MODEL_ID);
     const outcome = await parser.parse(baseInput);
 
     expect(outcome.ok).toBe(true);
@@ -57,7 +56,7 @@ describe('AnthropicItineraryParser', () => {
   it('returns a typed error when generateObject throws (network / rate-limit / etc.)', async () => {
     mockedGenerateObject.mockRejectedValueOnce(new Error('fetch failed: ECONNREFUSED'));
 
-    const parser = new AnthropicItineraryParser(fakeModel);
+    const parser = new AnthropicItineraryParser(FAKE_MODEL_ID);
     const outcome = await parser.parse(baseInput);
 
     expect(outcome.ok).toBe(false);
@@ -70,7 +69,7 @@ describe('AnthropicItineraryParser', () => {
   it('returns a typed error when generateObject throws a non-Error value', async () => {
     mockedGenerateObject.mockRejectedValueOnce('rate limited');
 
-    const parser = new AnthropicItineraryParser(fakeModel);
+    const parser = new AnthropicItineraryParser(FAKE_MODEL_ID);
     const outcome = await parser.parse(baseInput);
 
     expect(outcome.ok).toBe(false);
@@ -97,7 +96,7 @@ describe('AnthropicItineraryParser', () => {
       },
     } as Awaited<ReturnType<typeof generateObject>>);
 
-    const parser = new AnthropicItineraryParser(fakeModel);
+    const parser = new AnthropicItineraryParser(FAKE_MODEL_ID);
     const outcome = await parser.parse(baseInput);
 
     expect(outcome.ok).toBe(true);

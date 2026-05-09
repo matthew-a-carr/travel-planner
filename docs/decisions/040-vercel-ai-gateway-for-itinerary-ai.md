@@ -40,12 +40,35 @@ extraction quality on noisy travel text is meaningfully better.
 
 ### Why the Gateway and not direct Anthropic
 
-- Single env var (`AI_GATEWAY_API_KEY`) instead of provider-specific creds.
+- Single env var (`AI_GATEWAY_API_KEY`) for local/CI, plus `VERCEL_OIDC_TOKEN`
+  auto-injected on Vercel deployments — see "Authentication" below.
 - Built-in caching at the gateway layer for identical requests is a free
   second-line defence behind our application-level `ai_cache` table.
 - Spend caps and per-route metrics are configured in the Vercel dashboard with
   no application code.
 - Switching providers later (OpenAI, Google) is a one-line model id change.
+
+### Authentication: OIDC on Vercel, API key elsewhere
+
+Production runs on Vercel, which automatically injects a short-lived
+`VERCEL_OIDC_TOKEN` JWT (12-hour TTL, auto-refreshed by the platform). The
+gateway provider in `@ai-sdk/gateway` resolves credentials in this order:
+
+1. `AI_GATEWAY_API_KEY` — explicit override (local dev, CI, emergency).
+2. `getVercelOidcToken()` — falls back to OIDC when no API key is set.
+
+We rely on OIDC in production. **No long-lived AI Gateway secret is stored
+in Terraform or Vercel project env vars.** Local dev and CI use an explicit
+`AI_GATEWAY_API_KEY` (in `.env.local` or as a CI secret). This eliminates a
+class of credential-rotation work entirely on Vercel.
+
+To activate the simpler architecture we pass the model as a *string id*
+(`'anthropic/claude-sonnet-4-6'`) rather than constructing an Anthropic
+provider with a baseURL override. The AI SDK routes string ids through
+the gateway provider automatically. We dropped the `@ai-sdk/anthropic`
+dependency in favour of this pattern; only `ai` and `zod` remain.
+
+Reference: https://vercel.com/docs/ai-gateway/authentication-and-byok.
 
 ### Application-level caching
 
@@ -62,12 +85,12 @@ KV so the feature works on Hobby tier without additional vendors.
 
 ### No-op fallbacks
 
-When `AI_GATEWAY_API_KEY` is unset (local dev without a gateway, CI builds,
-test runs), the container wires `NoOpItineraryParser` and
-`NoOpTimelineInsights`. The UI surfaces a discreet "AI offline" badge in the
-insights panel; deterministic findings (gaps, overlaps, budget vs reference)
-still render. The feature degrades gracefully rather than gating the timeline
-view.
+When neither `AI_GATEWAY_API_KEY` nor `VERCEL_OIDC_TOKEN` is available
+(local dev without a gateway, non-Vercel CI, test runs), the container
+wires `NoOpItineraryParser` and `NoOpTimelineInsights`. The UI surfaces a
+discreet "AI offline" badge in the insights panel; deterministic findings
+(gaps, overlaps, budget vs reference) still render. The feature degrades
+gracefully rather than gating the timeline view.
 
 ### Architecture boundaries
 
@@ -80,8 +103,11 @@ view.
 
 ## Consequences
 
-- One new managed dependency (Vercel AI Gateway). One new sensitive env var.
-- Three new npm packages: `ai`, `@ai-sdk/anthropic`, `zod`.
+- One new managed dependency (Vercel AI Gateway). No new long-lived secret in
+  production — OIDC handles auth. `AI_GATEWAY_API_KEY` is only needed for
+  local dev and non-Vercel CI.
+- Two new npm packages: `ai`, `zod`. (`@ai-sdk/anthropic` is *not* needed —
+  the gateway provider routes Anthropic calls via the string-model shorthand.)
 - The application keeps working with the gateway disabled — no hard dep.
 - Observability and cost ceilings are handled at the gateway. We do not build
   request-counting or budget-enforcement plumbing of our own.

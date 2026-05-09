@@ -1,4 +1,3 @@
-import type { LanguageModel } from 'ai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import type {
@@ -75,7 +74,7 @@ function toJson(input: AnalyseTimelineInput): TimelineInputJson {
 }
 
 export class AnthropicTimelineInsights implements TimelineInsightsService {
-  constructor(private readonly model: LanguageModel) {}
+  constructor(private readonly modelId: string) {}
 
   async analyse(input: AnalyseTimelineInput): Promise<AnalyseTimelineOutcome> {
     const datedDestinations = input.destinations.filter((d) => d.startDate && d.endDate);
@@ -85,7 +84,7 @@ export class AnthropicTimelineInsights implements TimelineInsightsService {
 
     try {
       const { object } = await generateObject({
-        model: this.model,
+        model: this.modelId,
         schema: insightsSchema,
         system: SYSTEM_PROMPT,
         prompt: `Trip:\n${JSON.stringify(toJson(input), null, 2)}`,

@@ -50,7 +50,7 @@ test.describe('Trip timeline', () => {
       .fill('3 weeks Vietnam from Aug 1, then Cambodia for 10 days');
     await page.getByRole('button', { name: /Extract destinations/i }).click();
 
-    // Without AI_GATEWAY_API_KEY the no-op parser surfaces a clear message.
-    await expect(page.getByText(/AI_GATEWAY_API_KEY is not configured/i)).toBeVisible();
+    // Without any AI Gateway credentials the no-op parser surfaces a clear message.
+    await expect(page.getByText(/no AI Gateway credentials/i)).toBeVisible();
   });
 });

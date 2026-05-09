@@ -13,7 +13,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 * **timeline:** AI-powered "Paste itinerary" panel — extract destination rows from free-form text via Claude Sonnet 4.6 through Vercel AI Gateway, pre-fill budgets from country reference data, preview, and bulk-insert (ADR 040, 041)
 * **timeline:** AI + deterministic insights panel — gaps, overlaps, budget-vs-reference mismatches, plus AI-only seasonality and missing-transport detection
 * **infra:** new `ai_cache` table for SHA-256-keyed caching of LLM outputs in Postgres (no Vercel KV dependency)
-* **infra:** optional `AI_GATEWAY_API_KEY` env var managed by Terraform; the app degrades gracefully when unset
+* **infra:** AI Gateway auth uses `VERCEL_OIDC_TOKEN` (auto-injected on Vercel deployments) by default; no long-lived gateway secret in Terraform. Local dev / non-Vercel CI fall back to `AI_GATEWAY_API_KEY`. The app degrades gracefully when neither is set.
 
 ## [1.13.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.12.1...v1.13.0) (2026-05-09)
 

@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { analyseTripTimeline } from '@/application/use-cases/analyse-trip-timeline';
 import { sortDestinations } from '@/domain/destination/destination';
+import { hasAiCredentials } from '@/infrastructure/ai/vercel-gateway-client';
 import { auth } from '@/infrastructure/auth';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
@@ -57,8 +58,7 @@ export default async function TripTimelinePage({ params }: Props) {
 
   const sortedDestinations = sortDestinations(destinations);
   const findings = insightsResult.ok ? insightsResult.value : [];
-  const aiAvailable =
-    process.env.AI_GATEWAY_API_KEY !== undefined && process.env.AI_GATEWAY_API_KEY !== '';
+  const aiAvailable = hasAiCredentials();
 
   return (
     <main className="min-h-screen">

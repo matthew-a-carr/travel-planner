@@ -10,8 +10,9 @@ describe('createAiServices', () => {
     vi.unstubAllEnvs();
   });
 
-  it('wires no-op services when AI_GATEWAY_API_KEY is unset', () => {
+  it('wires no-op services when neither AI_GATEWAY_API_KEY nor VERCEL_OIDC_TOKEN is set', () => {
     vi.stubEnv('AI_GATEWAY_API_KEY', '');
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '');
 
     const services = createAiServices();
 
@@ -19,8 +20,9 @@ describe('createAiServices', () => {
     expect(services.timelineInsightsService).toBeInstanceOf(NoOpTimelineInsights);
   });
 
-  it('wires no-op services when AI_GATEWAY_API_KEY is whitespace-only', () => {
+  it('wires no-op services when both env vars are whitespace-only', () => {
     vi.stubEnv('AI_GATEWAY_API_KEY', '   ');
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '   ');
 
     const services = createAiServices();
 
@@ -28,8 +30,19 @@ describe('createAiServices', () => {
     expect(services.timelineInsightsService).toBeInstanceOf(NoOpTimelineInsights);
   });
 
-  it('wires Anthropic-backed services when AI_GATEWAY_API_KEY is set', () => {
+  it('wires Anthropic-backed services when AI_GATEWAY_API_KEY is set (local dev / CI)', () => {
     vi.stubEnv('AI_GATEWAY_API_KEY', 'sk-fake-test-key');
+    vi.stubEnv('VERCEL_OIDC_TOKEN', '');
+
+    const services = createAiServices();
+
+    expect(services.itineraryParser).toBeInstanceOf(AnthropicItineraryParser);
+    expect(services.timelineInsightsService).toBeInstanceOf(AnthropicTimelineInsights);
+  });
+
+  it('wires Anthropic-backed services when only VERCEL_OIDC_TOKEN is set (Vercel deployments)', () => {
+    vi.stubEnv('AI_GATEWAY_API_KEY', '');
+    vi.stubEnv('VERCEL_OIDC_TOKEN', 'eyJhbGciOiJSUzI1NiIs.fake.oidc-jwt');
 
     const services = createAiServices();
 

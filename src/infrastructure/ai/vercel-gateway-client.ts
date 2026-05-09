@@ -1,38 +1,31 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
+/**
+ * Default Anthropic model id for itinerary parsing and timeline insights.
+ * The `provider/model` form is resolved by the AI SDK's gateway provider
+ * (`@ai-sdk/gateway`) and routed through the Vercel AI Gateway, which in
+ * turn dispatches to Anthropic. Override via AI_GATEWAY_MODEL.
+ */
+export const DEFAULT_MODEL_ID = 'anthropic/claude-sonnet-4-6';
 
 /**
- * Default Vercel AI Gateway base URL for Anthropic.
- * Override via AI_GATEWAY_BASE_URL for self-hosted gateways or testing.
+ * True if either authentication mechanism the gateway provider supports is
+ * available:
+ *   - `AI_GATEWAY_API_KEY` — explicit Vercel AI Gateway key (local dev / CI).
+ *   - `VERCEL_OIDC_TOKEN` — automatically injected on Vercel deployments.
+ *
+ * The gateway provider in `@ai-sdk/gateway` prefers the API key when both
+ * are set and falls back to the OIDC token otherwise. Mirrors that
+ * precedence here so the container can decide whether to wire real or
+ * no-op AI services.
+ *
+ * See https://vercel.com/docs/ai-gateway/authentication-and-byok.
  */
-const DEFAULT_GATEWAY_BASE_URL = 'https://gateway.ai.vercel/v1/anthropic';
-
-/**
- * Default Anthropic model for itinerary parsing and timeline insights.
- * Sonnet 4.6 balances speed and reasoning quality for travel-domain extraction.
- * Override via AI_GATEWAY_MODEL.
- */
-export const DEFAULT_MODEL_ID = 'claude-sonnet-4-6';
-
-export type GatewayConfig = {
-  readonly apiKey: string;
-  readonly baseURL: string;
-  readonly modelId: string;
-};
-
-export function readGatewayConfig(): GatewayConfig | null {
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
-  if (!apiKey || apiKey.trim() === '') return null;
-  return {
-    apiKey: apiKey.trim(),
-    baseURL: process.env.AI_GATEWAY_BASE_URL?.trim() || DEFAULT_GATEWAY_BASE_URL,
-    modelId: process.env.AI_GATEWAY_MODEL?.trim() || DEFAULT_MODEL_ID,
-  };
+export function hasAiCredentials(): boolean {
+  if ((process.env.AI_GATEWAY_API_KEY ?? '').trim() !== '') return true;
+  if ((process.env.VERCEL_OIDC_TOKEN ?? '').trim() !== '') return true;
+  return false;
 }
 
-export function createGatewayModel(config: GatewayConfig) {
-  const provider = createAnthropic({
-    apiKey: config.apiKey,
-    baseURL: config.baseURL,
-  });
-  return provider(config.modelId);
+export function gatewayModelId(): string {
+  const override = process.env.AI_GATEWAY_MODEL?.trim();
+  return override && override !== '' ? override : DEFAULT_MODEL_ID;
 }

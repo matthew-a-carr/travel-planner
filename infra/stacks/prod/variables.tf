@@ -104,9 +104,3 @@ variable "sentry_team" {
   type        = string
 }
 
-variable "ai_gateway_api_key" {
-  description = "Vercel AI Gateway API key used by the in-app itinerary parser and timeline insights service. Leave empty to disable in-app AI."
-  type        = string
-  sensitive   = true
-  default     = ""
-}

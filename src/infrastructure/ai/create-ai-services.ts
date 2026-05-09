@@ -4,7 +4,7 @@ import { AnthropicItineraryParser } from './anthropic-itinerary-parser';
 import { AnthropicTimelineInsights } from './anthropic-timeline-insights';
 import { NoOpItineraryParser } from './no-op-itinerary-parser';
 import { NoOpTimelineInsights } from './no-op-timeline-insights';
-import { createGatewayModel, readGatewayConfig } from './vercel-gateway-client';
+import { gatewayModelId, hasAiCredentials } from './vercel-gateway-client';
 
 export type AiServices = {
   readonly itineraryParser: ItineraryParser;
@@ -12,22 +12,24 @@ export type AiServices = {
 };
 
 /**
- * Build the AI services for the runtime container. When AI_GATEWAY_API_KEY
- * is unset (local dev without gateway, CI builds, tests) this returns the
- * no-op fallbacks — the rest of the app still works and the UI surfaces a
- * clear "AI unavailable" message.
+ * Build the AI services for the runtime container. Real services are wired
+ * when either auth mechanism is available:
+ *   - `AI_GATEWAY_API_KEY` (local dev / CI)
+ *   - `VERCEL_OIDC_TOKEN` (auto-injected on Vercel deployments)
+ *
+ * Otherwise the no-op fallbacks are used so the rest of the app still works
+ * and the UI surfaces a clear "AI offline" message.
  */
 export function createAiServices(): AiServices {
-  const config = readGatewayConfig();
-  if (!config) {
+  if (!hasAiCredentials()) {
     return {
       itineraryParser: new NoOpItineraryParser(),
       timelineInsightsService: new NoOpTimelineInsights(),
     };
   }
-  const model = createGatewayModel(config);
+  const modelId = gatewayModelId();
   return {
-    itineraryParser: new AnthropicItineraryParser(model),
-    timelineInsightsService: new AnthropicTimelineInsights(model),
+    itineraryParser: new AnthropicItineraryParser(modelId),
+    timelineInsightsService: new AnthropicTimelineInsights(modelId),
   };
 }
