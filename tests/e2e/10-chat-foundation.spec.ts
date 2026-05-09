@@ -36,7 +36,7 @@ test.describe('Trip assistant drawer — Slice 0', () => {
 
     const drawer = page.getByRole('dialog', { name: 'Trip assistant' });
     await expect(drawer).toBeVisible();
-    await expect(drawer.getByText(/Ask anything about this trip/i)).toBeVisible();
+    await expect(drawer.getByText(/Ask about this trip or tell me to make changes/i)).toBeVisible();
 
     await drawer.getByLabel('Message').fill('Am I on pace?');
     await drawer.getByRole('button', { name: 'Send' }).click();

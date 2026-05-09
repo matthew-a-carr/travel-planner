@@ -286,4 +286,281 @@ describe('createChatTools', () => {
     expect(deps.destinationRepository.findByTrip).toHaveBeenCalledWith('trip-bound');
     expect(deps.tripFixedCostRepository.findByTrip).toHaveBeenCalledWith('trip-bound');
   });
+
+  describe('record_spend', () => {
+    function setup(overrides: Parameters<typeof makeDeps>[0] = {}, tripIdOverride?: string) {
+      const dest = makeDestination({
+        id: 'd1',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-11'),
+        estimatedBudget: moneyUnchecked(10_000, 'GBP'),
+      });
+      const deps = makeDeps({ destinations: [dest], spend: [], ...overrides });
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(dest);
+      (deps.spendEntryRepository.save as ReturnType<typeof vi.fn>).mockImplementation(
+        async (e: SpendEntry) => e,
+      );
+      const tools = createChatTools(deps, tripIdOverride ?? 'trip-1', () => new Date('2026-04-04'));
+      return { deps, tools, dest };
+    }
+
+    it('auto-executes a small spend within pace', async () => {
+      const { deps, tools } = setup();
+      const result = (await tools.record_spend.execute?.(
+        {
+          destinationId: 'd1',
+          amountPence: 500,
+          category: 'food',
+        },
+        { toolCallId: 'c1', messages: [] },
+      )) as { ok?: boolean; requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.ok).toBe(true);
+      expect(result.summary).toMatch(/Recorded £5\.00/);
+      expect(deps.spendEntryRepository.save).toHaveBeenCalled();
+    });
+
+    it('returns requiresConfirmation when the spend exceeds destination headroom', async () => {
+      const dest = makeDestination({
+        id: 'd1',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-11'),
+        estimatedBudget: moneyUnchecked(1_000, 'GBP'),
+      });
+      const deps = makeDeps({ destinations: [dest], spend: [] });
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(dest);
+      const tools = createChatTools(deps, 'trip-1', () => new Date('2026-04-04'));
+
+      const result = (await tools.record_spend.execute?.(
+        { destinationId: 'd1', amountPence: 5_000, category: 'food' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.summary).toMatch(/Heads-up/);
+      expect(deps.spendEntryRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('executes when confirmed: true is passed even if risky', async () => {
+      const dest = makeDestination({
+        id: 'd1',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-11'),
+        estimatedBudget: moneyUnchecked(1_000, 'GBP'),
+      });
+      const deps = makeDeps({ destinations: [dest], spend: [] });
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(dest);
+      (deps.spendEntryRepository.save as ReturnType<typeof vi.fn>).mockImplementation(
+        async (e: SpendEntry) => e,
+      );
+      const tools = createChatTools(deps, 'trip-1', () => new Date('2026-04-04'));
+
+      const result = (await tools.record_spend.execute?.(
+        {
+          destinationId: 'd1',
+          amountPence: 5_000,
+          category: 'food',
+          confirmed: true,
+        },
+        { toolCallId: 'c1', messages: [] },
+      )) as { ok?: boolean };
+
+      expect(result.ok).toBe(true);
+      expect(deps.spendEntryRepository.save).toHaveBeenCalled();
+    });
+
+    it('rejects a destination from a different trip', async () => {
+      const otherDest = makeDestination({ id: 'd1', tripId: 'trip-other' });
+      const deps = makeDeps();
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(otherDest);
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.record_spend.execute?.(
+        { destinationId: 'd1', amountPence: 100, category: 'food' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { error?: string };
+
+      expect(result.error).toMatch(/not part of this trip/);
+      expect(deps.spendEntryRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('edit_destination', () => {
+    it('auto-executes a label-only tweak', async () => {
+      const existing = makeDestination({ id: 'd1', name: 'Hanoi' });
+      const deps = makeDeps({ destinations: [existing] });
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+      (deps.destinationRepository.save as ReturnType<typeof vi.fn>).mockImplementation(
+        async (d: Destination) => d,
+      );
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.edit_destination.execute?.(
+        { destinationId: 'd1', name: 'Hanoi (updated)' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { ok?: boolean; summary?: string };
+
+      expect(result.ok).toBe(true);
+      expect(deps.destinationRepository.save).toHaveBeenCalled();
+    });
+
+    it('requires confirmation when start/end date changes', async () => {
+      const existing = makeDestination({
+        id: 'd1',
+        startDate: new Date('2026-04-01'),
+        endDate: new Date('2026-04-08'),
+      });
+      const deps = makeDeps({ destinations: [existing] });
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.edit_destination.execute?.(
+        { destinationId: 'd1', startDate: '2026-04-03', endDate: '2026-04-10' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.summary).toMatch(/schedule dates/);
+      expect(deps.destinationRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('rejects a destination from a different trip', async () => {
+      const otherDest = makeDestination({ id: 'd1', tripId: 'trip-other' });
+      const deps = makeDeps();
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(otherDest);
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.edit_destination.execute?.(
+        { destinationId: 'd1', name: 'X' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { error?: string };
+
+      expect(result.error).toMatch(/not part of this trip/);
+    });
+  });
+
+  describe('add_fixed_cost', () => {
+    it('auto-executes when within headroom', async () => {
+      const deps = makeDeps({
+        destinations: [makeDestination({ estimatedBudget: moneyUnchecked(50_000, 'GBP') })],
+        fixedCosts: [],
+      });
+      (deps.tripFixedCostRepository.save as ReturnType<typeof vi.fn>).mockImplementation(
+        async (fc: TripFixedCost) => fc,
+      );
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.add_fixed_cost.execute?.(
+        {
+          label: 'Insurance',
+          amountPence: 10_000,
+          category: 'insurance',
+          date: '2026-04-01',
+        },
+        { toolCallId: 'c1', messages: [] },
+      )) as { ok?: boolean; summary?: string };
+
+      expect(result.ok).toBe(true);
+      expect(deps.tripFixedCostRepository.save).toHaveBeenCalled();
+    });
+
+    it('requires confirmation when exceeding headroom', async () => {
+      const deps = makeDeps({
+        destinations: [makeDestination({ estimatedBudget: moneyUnchecked(490_000, 'GBP') })],
+        fixedCosts: [],
+      });
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.add_fixed_cost.execute?.(
+        {
+          label: 'Visas',
+          amountPence: 50_000,
+          category: 'visas',
+          date: '2026-04-01',
+        },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(deps.tripFixedCostRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('edit_trip_budget', () => {
+    it('always requires confirmation on the first call', async () => {
+      const deps = makeDeps();
+      const tools = createChatTools(deps, 'trip-1');
+      const result = (await tools.edit_trip_budget.execute?.(
+        { totalBudgetPence: 600_000 },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.summary).toMatch(/£5,000\.00.*£6,000\.00/);
+      expect(deps.tripRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('executes when confirmed: true', async () => {
+      const trip = makeTrip();
+      const deps = makeDeps({ trip });
+      (deps.tripRepository.save as ReturnType<typeof vi.fn>).mockImplementation(
+        async (t: Trip) => t,
+      );
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.edit_trip_budget.execute?.(
+        { totalBudgetPence: 600_000, confirmed: true },
+        { toolCallId: 'c1', messages: [] },
+      )) as { ok?: boolean };
+
+      expect(result.ok).toBe(true);
+      expect(deps.tripRepository.save).toHaveBeenCalled();
+    });
+  });
+
+  describe('delete_spend_entry', () => {
+    it('deletes and returns undo metadata', async () => {
+      const dest = makeDestination({ id: 'd1' });
+      const entry = makeSpend({ id: 's1', destinationId: 'd1' });
+      const deps = makeDeps({ destinations: [dest] });
+      (deps.spendEntryRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(entry);
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(dest);
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.delete_spend_entry.execute?.(
+        { spendEntryId: 's1' },
+        { toolCallId: 'c1', messages: [] },
+      )) as {
+        ok?: boolean;
+        undo?: { kind: string; destinationId: string; amountPence: number };
+      };
+
+      expect(result.ok).toBe(true);
+      expect(deps.spendEntryRepository.delete).toHaveBeenCalledWith('s1');
+      expect(result.undo).toEqual(
+        expect.objectContaining({
+          kind: 'record_spend',
+          destinationId: 'd1',
+          amountPence: 800,
+        }),
+      );
+    });
+
+    it('rejects a spend entry from a different trip', async () => {
+      const otherDest = makeDestination({ id: 'd1', tripId: 'trip-other' });
+      const entry = makeSpend({ id: 's1', destinationId: 'd1' });
+      const deps = makeDeps();
+      (deps.spendEntryRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(entry);
+      (deps.destinationRepository.findById as ReturnType<typeof vi.fn>).mockResolvedValue(otherDest);
+      const tools = createChatTools(deps, 'trip-1');
+
+      const result = (await tools.delete_spend_entry.execute?.(
+        { spendEntryId: 's1' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { error?: string };
+
+      expect(result.error).toMatch(/not part of this trip/);
+      expect(deps.spendEntryRepository.delete).not.toHaveBeenCalled();
+    });
+  });
 });

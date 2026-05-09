@@ -208,8 +208,8 @@ export function TripAssistantDrawer({ tripId }: Props) {
               )}
               {drawer.status === 'ready' && drawer.messages.length === 0 && (
                 <p className="text-zinc-500 dark:text-zinc-400">
-                  Ask anything about this trip — destinations, budget, pace. (Read-only for now;
-                  edits arrive in the next slice.)
+                  Ask about this trip or tell me to make changes — e.g. "I spent £8 on lunch in
+                  Hanoi" or "add £200 visas on 1 April". I'll confirm anything risky before acting.
                 </p>
               )}
               {drawer.status === 'ready' &&
