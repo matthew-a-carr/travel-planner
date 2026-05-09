@@ -223,7 +223,9 @@ All five jobs run in parallel on every push and PR:
   ADR 009 for Testcontainers rationale.
 
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
-Actions updates. Dev tooling is grouped into a single PR to reduce noise.
+Actions updates. All minor and patch updates are grouped into a single PR per
+ecosystem to reduce noise; major versions still land as individual PRs so
+breaking-change changelogs can be reviewed separately.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
 the build-time dummy POSTGRES_URL pattern, ADR 028 for runtime composition-root DI,
