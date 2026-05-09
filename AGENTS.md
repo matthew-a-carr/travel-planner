@@ -71,6 +71,14 @@ src/app/           → any layer (Next.js App Router).
 Violations **break CI**. Enforcement lives in `src/__tests__/architecture.test.ts`.
 Each layer has its own `AGENTS.md` with local rules.
 
+Every `AGENTS.md` (root and per-layer) has a sibling `CLAUDE.md` symlink so
+Claude Code auto-loads the same content. When you add a new `AGENTS.md`
+anywhere in the repo, create the symlink in the same commit:
+
+```bash
+ln -s AGENTS.md CLAUDE.md
+```
+
 ### Dependency composition root (runtime DI)
 
 - Runtime dependency construction lives in `src/infrastructure/container/`.
@@ -215,7 +223,9 @@ All five jobs run in parallel on every push and PR:
   ADR 009 for Testcontainers rationale.
 
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
-Actions updates. Dev tooling is grouped into a single PR to reduce noise.
+Actions updates. All minor and patch updates are grouped into a single PR per
+ecosystem to reduce noise; major versions still land as individual PRs so
+breaking-change changelogs can be reviewed separately.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
 the build-time dummy POSTGRES_URL pattern, ADR 028 for runtime composition-root DI,
@@ -252,6 +262,7 @@ the code change.
 | Database schema or migration strategy | `src/infrastructure/AGENTS.md`, `README.md` database section |
 | A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
+| Added a new `AGENTS.md` at any level | Create sibling `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md`) in the same commit |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
 | Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
