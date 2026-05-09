@@ -35,9 +35,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 * **spending:** burndown budget pace tracker with daily pace calculation, projected exhaustion dates, and smart budget alerts
 * **charts:** burndown line chart showing ideal, actual, and projected budget drawdown over time
 * **destinations:** burn rate indicator on destination cards showing daily spending pace vs target pace
+* **trips:** "What next?" panel on brand-new trips with shortcuts to add a destination or fixed cost
+* **destinations:** "Save and add another" button on the add-destination form for rapid entry
 
 ### Changed
 
+* **trips:** trip detail page now hides empty Budget Overview, Charts, and Journey Map sections until the trip has data to display
+* **destinations:** estimated budget auto-fills from the country/comfort/dates suggestion (still editable); destination name is now optional and falls back to city or country when blank
 * **ci:** Dependabot now groups all minor and patch updates into a single PR per ecosystem (npm, github-actions); major versions still land as individual PRs
 * **auth:** middleware now checks `isApproved` — unapproved users are redirected to `/login`
 * **domain:** `money()`, `addMoney()`, and `calculateTotalSpend()` return `Result` instead of throwing; added `moneyUnchecked()` for trusted contexts (ADR 038)

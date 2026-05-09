@@ -27,6 +27,7 @@ import type {
 import { err, ok } from '@/domain/trip/types';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
+import { resolveDestinationName } from './resolve-destination-name';
 
 const {
   tripRepository: tripRepo,
@@ -334,7 +335,7 @@ export async function addDestinationAction(
 
   const result = await addDestination(tripRepo, destRepo, fixedCostRepo, {
     tripId,
-    name: name.trim(),
+    name: resolveDestinationName(name, city, country),
     country: country.trim(),
     city,
     latitude: latitude !== null && !Number.isNaN(latitude) ? latitude : null,
