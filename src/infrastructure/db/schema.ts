@@ -9,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -204,4 +205,41 @@ export const aiCache = pgTable(
     expiresAt: timestamp('expires_at').notNull(),
   },
   (t) => [index('idx_ai_cache_expires_at').on(t.expiresAt)],
+);
+
+// ─── Chat assistant ───────────────────────────────────────────────────────────
+
+/**
+ * One thread per (trip, user). The unique index doubles as the lookup key
+ * for `findOrCreateThread` and prevents duplicate threads under concurrent
+ * first-message races.
+ */
+export const chatThreads = pgTable(
+  'chat_threads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tripId: uuid('trip_id')
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex('uq_chat_threads_trip_user').on(t.tripId, t.userId)],
+);
+
+export const chatMessages = pgTable(
+  'chat_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    threadId: uuid('thread_id')
+      .notNull()
+      .references(() => chatThreads.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(), // 'user' | 'assistant' | 'system'
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('idx_chat_messages_thread_created').on(t.threadId, t.createdAt)],
 );

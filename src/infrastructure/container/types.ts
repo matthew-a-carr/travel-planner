@@ -1,4 +1,6 @@
 import type { AiCacheRepository } from '@/application/ports/ai-cache-repository';
+import type { ChatAssistantService } from '@/application/ports/chat-assistant';
+import type { ChatMessageRepository } from '@/application/ports/chat-message-repository';
 import type { InviteEmailService } from '@/application/ports/invite-email-service';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
@@ -23,4 +25,6 @@ export type AppContainer = {
   readonly timelineInsightsService: TimelineInsightsService;
   readonly aiCacheRepository: AiCacheRepository;
   readonly hashFn: (input: string) => string;
+  readonly chatMessageRepository: ChatMessageRepository;
+  readonly chatAssistant: ChatAssistantService;
 };
