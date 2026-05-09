@@ -10,7 +10,7 @@ export class NoOpChatAssistant implements ChatAssistantService {
     return {
       ok: false,
       error:
-        'Trip assistant is unavailable: no AI Gateway credentials (AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN) are configured.',
+        'Trip assistant is unavailable: set AI_GATEWAY_API_KEY locally, or deploy to Vercel with OIDC enabled.',
     };
   }
 }

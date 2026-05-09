@@ -7,21 +7,25 @@
 export const DEFAULT_MODEL_ID = 'anthropic/claude-sonnet-4-6';
 
 /**
- * True if either authentication mechanism the gateway provider supports is
- * available:
- *   - `AI_GATEWAY_API_KEY` — explicit Vercel AI Gateway key (local dev / CI).
- *   - `VERCEL_OIDC_TOKEN` — automatically injected on Vercel deployments.
+ * True when AI Gateway calls have a chance of authenticating.
  *
- * The gateway provider in `@ai-sdk/gateway` prefers the API key when both
- * are set and falls back to the OIDC token otherwise. Mirrors that
- * precedence here so the container can decide whether to wire real or
- * no-op AI services.
+ * Two paths:
+ *  1. `AI_GATEWAY_API_KEY` is set — explicit gateway key (local dev / non-Vercel CI).
+ *  2. We're running on a Vercel Function (`VERCEL=1`) — the platform delivers
+ *     the OIDC token per-request as the `x-vercel-oidc-token` header.
+ *     The gateway provider reads it via `getVercelOidcToken()` at call time.
+ *     Project must have `oidc_token_config` set in Terraform / OIDC enabled
+ *     in Project Settings → Security; otherwise the call surfaces a 401.
  *
- * See https://vercel.com/docs/ai-gateway/authentication-and-byok.
+ * Note on `VERCEL_OIDC_TOKEN`: that env var is only populated **at build
+ * time**, not at runtime. Reading `process.env.VERCEL_OIDC_TOKEN` from a
+ * Vercel Function returns empty — historically this returned `false` here
+ * and silently routed every production call to the no-op fallback. See
+ * https://vercel.com/docs/oidc#in-vercel-functions.
  */
 export function hasAiCredentials(): boolean {
   if ((process.env.AI_GATEWAY_API_KEY ?? '').trim() !== '') return true;
-  if ((process.env.VERCEL_OIDC_TOKEN ?? '').trim() !== '') return true;
+  if ((process.env.VERCEL ?? '').trim() === '1') return true;
   return false;
 }
 

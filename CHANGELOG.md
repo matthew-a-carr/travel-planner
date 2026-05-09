@@ -17,6 +17,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 * **infra:** new `ai_cache` table for SHA-256-keyed caching of LLM outputs in Postgres (no Vercel KV dependency)
 * **infra:** AI Gateway auth uses `VERCEL_OIDC_TOKEN` (auto-injected on Vercel deployments) by default; no long-lived gateway secret in Terraform. Local dev / non-Vercel CI fall back to `AI_GATEWAY_API_KEY`. The app degrades gracefully when neither is set.
 
+### Bug Fixes
+
+* **ai:** detect Vercel runtime via `VERCEL=1` rather than `process.env.VERCEL_OIDC_TOKEN`. Vercel delivers the OIDC token per-request via the `x-vercel-oidc-token` header (the env var is build-time only), so the previous check silently fell back to no-op AI services on every production request — visible as the "AI offline" message in the chat drawer and timeline insights. Enables `oidc_token_config` on the Vercel project via Terraform so OIDC tokens are actually issued. (ADR 040)
+* **ai:** resolve real-vs-fallback per request, not at container construction. `createAiServices()` now wires a runtime-aware router per port that re-checks `hasAiCredentials()` on every call and delegates to either the Anthropic-backed real implementation or the no-op fallback. Container is still the DI seam — but the decision is no longer frozen for the worker's lifetime. (ADR 040)
+
 ## [1.13.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.12.1...v1.13.0) (2026-05-09)
 
 

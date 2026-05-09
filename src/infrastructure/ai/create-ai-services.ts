@@ -8,7 +8,12 @@ import type { ChatToolDeps } from './chat-tools';
 import { NoOpChatAssistant } from './no-op-chat-assistant';
 import { NoOpItineraryParser } from './no-op-itinerary-parser';
 import { NoOpTimelineInsights } from './no-op-timeline-insights';
-import { gatewayModelId, hasAiCredentials } from './vercel-gateway-client';
+import {
+  runtimeAwareChatAssistant,
+  runtimeAwareItineraryParser,
+  runtimeAwareTimelineInsights,
+} from './runtime-aware-services';
+import { gatewayModelId } from './vercel-gateway-client';
 
 export type AiServices = {
   readonly itineraryParser: ItineraryParser;
@@ -17,30 +22,38 @@ export type AiServices = {
 };
 
 /**
- * Build the AI services for the runtime container. Real services are wired
- * when either auth mechanism is available:
- *   - `AI_GATEWAY_API_KEY` (local dev / CI)
- *   - `VERCEL_OIDC_TOKEN` (auto-injected on Vercel deployments)
+ * Build the AI services for the runtime container.
  *
- * Otherwise the no-op fallbacks are used so the rest of the app still works
- * and the UI surfaces a clear "AI offline" message.
+ * Each service is a runtime-aware router that re-checks `hasAiCredentials()`
+ * on every call and delegates to either the real Anthropic-backed
+ * implementation or the no-op fallback. The container is still the DI seam
+ * — callers receive a single `ChatAssistantService` (etc.) — but the
+ * real-vs-fallback decision happens at request time, not at boot time.
+ *
+ * This matters because the AI Gateway OIDC token is only available
+ * per-request on Vercel (the `x-vercel-oidc-token` header), so a check at
+ * construction time would freeze the answer for the lifetime of the
+ * process. See `runtime-aware-services.ts` and ADR 040.
  *
  * `chatToolDeps` are the read-side repositories the chat assistant binds at
  * call time when constructing per-trip tools. The container wires them in
  * after concrete repositories are constructed.
  */
 export function createAiServices(chatToolDeps: ChatToolDeps): AiServices {
-  if (!hasAiCredentials()) {
-    return {
-      itineraryParser: new NoOpItineraryParser(),
-      timelineInsightsService: new NoOpTimelineInsights(),
-      chatAssistant: new NoOpChatAssistant(),
-    };
-  }
   const modelId = gatewayModelId();
+
   return {
-    itineraryParser: new AnthropicItineraryParser(modelId),
-    timelineInsightsService: new AnthropicTimelineInsights(modelId),
-    chatAssistant: new AnthropicChatAssistant(modelId, chatToolDeps),
+    itineraryParser: runtimeAwareItineraryParser(
+      new AnthropicItineraryParser(modelId),
+      new NoOpItineraryParser(),
+    ),
+    timelineInsightsService: runtimeAwareTimelineInsights(
+      new AnthropicTimelineInsights(modelId),
+      new NoOpTimelineInsights(),
+    ),
+    chatAssistant: runtimeAwareChatAssistant(
+      new AnthropicChatAssistant(modelId, chatToolDeps),
+      new NoOpChatAssistant(),
+    ),
   };
 }
