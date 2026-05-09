@@ -51,6 +51,6 @@ test.describe('Trip timeline', () => {
     await page.getByRole('button', { name: /Extract destinations/i }).click();
 
     // Without any AI Gateway credentials the no-op parser surfaces a clear message.
-    await expect(page.getByText(/no AI Gateway credentials/i)).toBeVisible();
+    await expect(page.getByText(/AI_GATEWAY_API_KEY|unavailable/i)).toBeVisible();
   });
 });

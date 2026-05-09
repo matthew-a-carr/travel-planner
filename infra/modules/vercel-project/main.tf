@@ -16,6 +16,15 @@ resource "vercel_project" "this" {
     repo              = var.github_repository
     production_branch = var.production_branch
   }
+
+  # Issue Vercel OIDC tokens to deployed Functions so they can authenticate
+  # to the Vercel AI Gateway without a long-lived API key. The token arrives
+  # per-request as the `x-vercel-oidc-token` header — see
+  # https://vercel.com/docs/oidc#in-vercel-functions. The "team" issuer mode
+  # scopes tokens to this team's namespace and is recommended over "global".
+  oidc_token_config = {
+    issuer_mode = "team"
+  }
 }
 
 resource "vercel_project_domain" "this" {

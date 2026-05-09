@@ -28,8 +28,14 @@ Use the **Vercel AI Gateway** as the only outbound LLM endpoint. Talk to it
 through the **Vercel AI SDK** (`ai` + `@ai-sdk/anthropic`) using
 `generateObject` with Zod schemas.
 
-The default model is **Anthropic Claude Sonnet 4.6**, exposed via the gateway
-under model id `claude-sonnet-4-6` and overridable via `AI_GATEWAY_MODEL`.
+The default model is **Google Gemini 3 Flash**, exposed via the gateway under
+model id `google/gemini-3-flash` and overridable via `AI_GATEWAY_MODEL`. We
+moved off Claude Sonnet 4.6 (the original choice — see *Provider selection*
+below) for cost: Flash 3 is roughly an order of magnitude cheaper on input
+tokens and ~6× cheaper on output tokens, with reasoning quality competitive
+for itinerary extraction, timeline insights, and conversational tool-use.
+The override mechanism is unchanged so individual deployments can switch
+back per-environment if needed.
 
 ### Provider selection
 
@@ -50,12 +56,30 @@ extraction quality on noisy travel text is meaningfully better.
 
 ### Authentication: OIDC on Vercel, API key elsewhere
 
-Production runs on Vercel, which automatically injects a short-lived
-`VERCEL_OIDC_TOKEN` JWT (12-hour TTL, auto-refreshed by the platform). The
-gateway provider in `@ai-sdk/gateway` resolves credentials in this order:
+Production runs on Vercel. **Two things must be true for the OIDC path to
+work** — both turned out to be subtle:
+
+1. **OIDC must be enabled on the Vercel project** (Project Settings →
+   Security → Secure backend access with OIDC federation). We enable it via
+   Terraform: the `vercel-project` module sets
+   `oidc_token_config = { issuer_mode = "team" }`. With OIDC disabled, no
+   token is issued and `getVercelOidcToken()` throws.
+2. **The token is delivered per-request via the `x-vercel-oidc-token`
+   request header**, not via `process.env.VERCEL_OIDC_TOKEN`. That env var
+   is only populated *at build time*; reading it at runtime returns empty.
+   See https://vercel.com/docs/oidc#in-vercel-functions.
+
+The gateway provider in `@ai-sdk/gateway` resolves credentials in this order:
 
 1. `AI_GATEWAY_API_KEY` — explicit override (local dev, CI, emergency).
-2. `getVercelOidcToken()` — falls back to OIDC when no API key is set.
+2. `getVercelOidcToken()` — reads the request header (or env var as a
+   fallback) and exchanges it with the gateway.
+
+Our pre-flight `hasAiCredentials()` reflects the same model. It treats
+either `AI_GATEWAY_API_KEY` *or* `VERCEL=1` (the platform-set marker that
+we're inside a Vercel Function invocation) as sufficient — actual OIDC
+auth happens at call time. **It does not look at
+`process.env.VERCEL_OIDC_TOKEN`** because that env var is build-time only.
 
 We rely on OIDC in production. **No long-lived AI Gateway secret is stored
 in Terraform or Vercel project env vars.** Local dev and CI use an explicit
@@ -63,8 +87,8 @@ in Terraform or Vercel project env vars.** Local dev and CI use an explicit
 class of credential-rotation work entirely on Vercel.
 
 To activate the simpler architecture we pass the model as a *string id*
-(`'anthropic/claude-sonnet-4-6'`) rather than constructing an Anthropic
-provider with a baseURL override. The AI SDK routes string ids through
+(`'google/gemini-3-flash'`, or `'anthropic/claude-sonnet-4-6'`, etc.)
+rather than constructing a provider with a baseURL override. The AI SDK routes string ids through
 the gateway provider automatically. We dropped the `@ai-sdk/anthropic`
 dependency in favour of this pattern; only `ai` and `zod` remain.
 
@@ -83,14 +107,32 @@ input. TTLs:
 The cache lives in Postgres (already provisioned via Neon) rather than Vercel
 KV so the feature works on Hobby tier without additional vendors.
 
-### No-op fallbacks
+### No-op fallbacks (per-request resolution)
 
-When neither `AI_GATEWAY_API_KEY` nor `VERCEL_OIDC_TOKEN` is available
-(local dev without a gateway, non-Vercel CI, test runs), the container
-wires `NoOpItineraryParser` and `NoOpTimelineInsights`. The UI surfaces a
-discreet "AI offline" badge in the insights panel; deterministic findings
-(gaps, overlaps, budget vs reference) still render. The feature degrades
-gracefully rather than gating the timeline view.
+The container exposes one `ItineraryParser` / `TimelineInsightsService` /
+`ChatAssistantService` for the whole app — that's the DI seam. But the
+real-vs-fallback decision is made **per call**, not at construction time.
+
+`src/infrastructure/ai/runtime-aware-services.ts` defines a tiny router
+per port. `createAiServices()` always wires the router with both
+implementations behind it; on every method call the router calls
+`hasAiCredentials()` and delegates to either the Anthropic-backed real
+class or the no-op class. Why not check at construction:
+
+- The container is a process-wide singleton (`getAppContainer()`). A
+  one-time check would freeze the answer for the worker's lifetime.
+- The OIDC token is delivered per-request (`x-vercel-oidc-token` header),
+  so even though `VERCEL=1` is stable on Vercel, the spirit of the check
+  is "can the gateway authenticate *right now*?" — that has to be
+  evaluated alongside each request.
+- Stubbing env vars in tests works without rebuilding the container.
+
+When `hasAiCredentials()` returns false (local dev without a gateway,
+non-Vercel CI, test runs), the fallback path is used: `NoOpItineraryParser`
+returns a clear "AI gateway not configured" error, `NoOpTimelineInsights`
+returns no AI findings (deterministic findings still render), and
+`NoOpChatAssistant` returns the same error so the chat drawer surfaces
+"AI offline" rather than crashing.
 
 ### Architecture boundaries
 

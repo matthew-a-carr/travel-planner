@@ -9,6 +9,7 @@ describe('NoOpItineraryParser', () => {
     expect(outcome.ok).toBe(false);
     if (!outcome.ok) {
       expect(outcome.error).toContain('AI_GATEWAY_API_KEY');
+      expect(outcome.error).toContain('Vercel');
     }
   });
 });
