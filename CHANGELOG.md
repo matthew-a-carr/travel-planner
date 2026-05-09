@@ -42,6 +42,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 * **trips:** trip detail page now hides empty Budget Overview, Charts, and Journey Map sections until the trip has data to display
 * **destinations:** estimated budget auto-fills from the country/comfort/dates suggestion (still editable); destination name is now optional and falls back to city or country when blank
+* **ci:** Dependabot now groups all minor and patch updates into a single PR per ecosystem (npm, github-actions); major versions still land as individual PRs
 * **auth:** middleware now checks `isApproved` — unapproved users are redirected to `/login`
 * **domain:** `money()`, `addMoney()`, and `calculateTotalSpend()` return `Result` instead of throwing; added `moneyUnchecked()` for trusted contexts (ADR 038)
 * **use-cases:** `deleteSpendEntry`, `removeFixedCost`, and `removeDestination` now return `Result<void>` with not-found checks

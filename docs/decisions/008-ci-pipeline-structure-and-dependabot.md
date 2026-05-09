@@ -109,3 +109,30 @@ Current e2e implementation differs from some historical wording above:
 - `playwright.config.ts` currently sets `reuseExistingServer: false`.
 - The e2e job does not use a GitHub Actions Postgres service container;
   Testcontainers starts `postgres:16-alpine` during the Playwright run.
+
+## Update (2026-05-09): broader Dependabot grouping
+
+The original npm grouping was scoped to a hand-maintained allowlist of dev
+tooling (`@types/*`, `vitest`, `@playwright/*`, `biome`, `drizzle-kit`, etc.)
+and left every production dependency to its own PR. In practice this still
+generated a steady weekly stream of single-package PRs for low-risk minor and
+patch bumps on production deps, and the allowlist drifted out of date as new
+dev tools were added.
+
+Grouping has been widened to cover **all** minor and patch updates across both
+ecosystems (`npm` and `github-actions`):
+
+```yaml
+groups:
+  minor-and-patch:
+    patterns:
+      - "*"
+    update-types:
+      - minor
+      - patch
+```
+
+Major-version bumps remain ungrouped so each one lands as an individual PR
+whose changelog can be reviewed in isolation — preserving the production-dep
+review intent of the original decision for the changes most likely to be
+breaking. The dev-tooling-only group has been removed.
