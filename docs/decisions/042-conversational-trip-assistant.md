@@ -172,12 +172,41 @@ text stream.
 
 ## Open questions (for later slices)
 
-- **Slice 2:** What's the exact `classifyToolRisk` rule for "within-budget
-  spend"? Initial proposal: `amount ≤ remainingDailyBudget * 1.5` →
-  auto-execute with inline undo.
 - **Slice 4:** When a proposed edit breaches an invariant, do we re-prompt
   the model with the validation failure to get a re-balance, or do we
   surface the failure verbatim and let the user retry? The plan favours
   re-prompting, but this needs an integration test to validate latency.
 - **Multi-user shared threads.** Out of scope for now; revisit if user
   research shows demand.
+
+## Slice 2 — Shipped
+
+Write-side tools landed with the rules below in
+`src/domain/chat/classify-tool-risk.ts`:
+
+- `record_spend` — `auto` iff
+  `amountPence ≤ remainingDailyBudgetPence × 1.5` **and**
+  `amountPence ≤ destinationAvailablePence` (allocated minus spent on
+  that destination). Otherwise `confirm`.
+- `edit_destination` — `confirm` iff start/end dates change **or** the
+  estimated-budget delta would push the trip over its allocation cap.
+  Pure label/comfort/budget tweaks within headroom are `auto`.
+- `add_fixed_cost` — `auto` iff
+  `amountPence ≤ fixedCostHeadroomPence`. Otherwise `confirm`.
+- `edit_trip_budget` — always `confirm` (changes the trip-level
+  invariant).
+- `delete_spend_entry` — always `auto`. The tool result includes
+  `undo: { kind: 'record_spend', ...prior }` so the user can ask the
+  assistant to put it back.
+
+The Slice 2 PR landed without the AI SDK UI message protocol upgrade or
+client-rendered Confirm/Cancel cards — the inline-confirm protocol
+described below works over the existing plain text stream and keeps the
+client surface minimal. Tools that need confirmation return
+`{ requiresConfirmation: true, summary }`; the system prompt instructs
+the model to relay the summary verbatim and only re-call with
+`confirmed: true` if the user explicitly agrees in the next turn.
+
+The protocol upgrade + ToolCallCard buttons are deferred to a follow-up
+slice (Slice 2.5 / 3) where they unlock proposing-multi-edit flows
+(Slice 4) that genuinely benefit from structured tool-call rendering.
