@@ -26,6 +26,7 @@
     "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.179",
     "@auth/drizzle-adapter": "^1.11.2",
     "@sentry/nextjs": "^10.52.0",
     "@vercel/analytics": "^2.0.1",

@@ -2,8 +2,9 @@ import { asc, eq, sql } from 'drizzle-orm';
 import type {
   AppendMessageInput,
   ChatMessageRepository,
+  ChatUIMessagePart,
 } from '@/application/ports/chat-message-repository';
-import type { ChatMessage, ChatRole, ChatThread } from '@/domain/chat/types';
+import type { ChatMessage, ChatMessagePart, ChatRole, ChatThread } from '@/domain/chat/types';
 import type { Db } from '../client';
 import { chatMessages, chatThreads } from '../schema';
 
@@ -18,11 +19,15 @@ function toThread(row: typeof chatThreads.$inferSelect): ChatThread {
 }
 
 function toMessage(row: typeof chatMessages.$inferSelect): ChatMessage {
+  // jsonb is unknown at the type level; we trust the writer (everything
+  // routes through `appendMessage` which only accepts UIMessagePart-shaped
+  // values).
+  const parts = row.parts as readonly ChatMessagePart[];
   return {
     id: row.id,
     threadId: row.threadId,
     role: row.role as ChatRole,
-    content: row.content,
+    parts,
     createdAt: row.createdAt,
   };
 }
@@ -54,12 +59,13 @@ export class DrizzleChatMessageRepository implements ChatMessageRepository {
   }
 
   async appendMessage(input: AppendMessageInput): Promise<ChatMessage> {
+    const partsForInsert: ChatUIMessagePart[] = [...input.parts];
     const inserted = await this.db
       .insert(chatMessages)
       .values({
         threadId: input.threadId,
         role: input.role,
-        content: input.content,
+        parts: partsForInsert,
       })
       .returning();
     const row = inserted[0];

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
+import type { ChatUIMessagePart } from '@/application/ports/chat-message-repository';
 import { DrizzleChatMessageRepository } from '@/infrastructure/db/repositories/drizzle-chat-message-repository';
 import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
@@ -28,47 +29,75 @@ beforeEach(async () => {
   await truncateAll(db);
 });
 
-async function* fromChunks(chunks: readonly string[]): AsyncIterable<string> {
-  for (const chunk of chunks) yield chunk;
+function textParts(text: string): ChatUIMessagePart[] {
+  return [{ type: 'text', text }];
 }
 
-function makeAssistant(chunks: readonly string[]): ChatAssistantService {
+function makeAssistant(replyParts: readonly ChatUIMessagePart[]): ChatAssistantService {
   return {
-    streamReply: async () => ({ ok: true, textStream: fromChunks(chunks) }),
+    streamReply: async (input) => {
+      await input.onFinish(replyParts);
+      return { ok: true, response: new Response('ok', { status: 200 }) };
+    },
   };
 }
 
-async function drainStream(stream: AsyncIterable<string>): Promise<string> {
-  let out = '';
-  for await (const chunk of stream) out += chunk;
-  return out;
-}
-
 describe('processChatMessage (integration)', () => {
-  it('persists user + assistant messages in order on a real Postgres', async () => {
+  it('persists user + assistant message parts in order on a real Postgres', async () => {
     const user = await seedUser(db);
     const trip = await seedTrip(db, user.id);
 
     const tripRepository = new DrizzleTripRepository(db);
     const organizationRepository = new DrizzleOrganizationRepository(db);
     const chatMessageRepository = new DrizzleChatMessageRepository(db);
-    const chatAssistant = makeAssistant(['Hello', ' there!']);
+    const chatAssistant = makeAssistant(textParts('Hello there!'));
 
     const result = await processChatMessage(
       { tripRepository, organizationRepository, chatMessageRepository, chatAssistant },
-      { tripId: trip.id, userId: user.id, userMessage: 'hi' },
+      { tripId: trip.id, userId: user.id, userParts: textParts('hi') },
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const text = await drainStream(result.value.replyStream);
-    expect(text).toBe('Hello there!');
+    const messages = await chatMessageRepository.listMessages(result.value.thread.id);
+    expect(messages.map((m) => ({ role: m.role, parts: m.parts }))).toEqual([
+      { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+      { role: 'assistant', parts: [{ type: 'text', text: 'Hello there!' }] },
+    ]);
+  });
+
+  it('persists structured tool-call parts when the assistant emits them', async () => {
+    const user = await seedUser(db);
+    const trip = await seedTrip(db, user.id);
+
+    const tripRepository = new DrizzleTripRepository(db);
+    const organizationRepository = new DrizzleOrganizationRepository(db);
+    const chatMessageRepository = new DrizzleChatMessageRepository(db);
+
+    const toolPart: ChatUIMessagePart = {
+      type: 'tool-record_spend',
+      state: 'output-available',
+      toolCallId: 'call-1',
+      input: { destinationId: 'dest-1', amountPence: 800, category: 'food' },
+      output: { ok: true, summary: 'Recorded £8.00 of food on Hanoi.' },
+    };
+    const chatAssistant = makeAssistant([{ type: 'text', text: 'Done.' }, toolPart]);
+
+    const result = await processChatMessage(
+      { tripRepository, organizationRepository, chatMessageRepository, chatAssistant },
+      {
+        tripId: trip.id,
+        userId: user.id,
+        userParts: textParts('I spent £8 on lunch in Hanoi.'),
+      },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
 
     const messages = await chatMessageRepository.listMessages(result.value.thread.id);
-    expect(messages.map((m) => ({ role: m.role, content: m.content }))).toEqual([
-      { role: 'user', content: 'hi' },
-      { role: 'assistant', content: 'Hello there!' },
-    ]);
+    expect(messages).toHaveLength(2);
+    expect(messages[1]?.role).toBe('assistant');
+    expect(messages[1]?.parts).toEqual([{ type: 'text', text: 'Done.' }, toolPart]);
   });
 
   it('forbids users without org membership', async () => {
@@ -79,17 +108,14 @@ describe('processChatMessage (integration)', () => {
     const tripRepository = new DrizzleTripRepository(db);
     const organizationRepository = new DrizzleOrganizationRepository(db);
     const chatMessageRepository = new DrizzleChatMessageRepository(db);
-    const chatAssistant = makeAssistant(['unused']);
+    const chatAssistant = makeAssistant(textParts('unused'));
 
     const result = await processChatMessage(
       { tripRepository, organizationRepository, chatMessageRepository, chatAssistant },
-      { tripId: trip.id, userId: outsider.id, userMessage: 'sneaking in' },
+      { tripId: trip.id, userId: outsider.id, userParts: textParts('sneaking in') },
     );
     expect(result).toEqual({ ok: false, error: 'Forbidden' });
 
-    // No thread should have been created for the outsider on this trip.
-    // (Use a fresh repo call — findOrCreateThread returns existing or creates;
-    //  this asserts no leftover state.)
     const messages = await db.query.chatMessages?.findMany?.({});
     expect(messages ?? []).toHaveLength(0);
   });

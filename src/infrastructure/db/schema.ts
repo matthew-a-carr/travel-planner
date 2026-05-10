@@ -238,7 +238,7 @@ export const chatMessages = pgTable(
       .notNull()
       .references(() => chatThreads.id, { onDelete: 'cascade' }),
     role: text('role').notNull(), // 'user' | 'assistant' | 'system'
-    content: text('content').notNull(),
+    parts: jsonb('parts').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [index('idx_chat_messages_thread_created').on(t.threadId, t.createdAt)],

@@ -1,9 +1,14 @@
+import type { UIMessagePart } from 'ai';
 import type { ChatMessage, ChatThread } from '@/domain/chat/types';
+
+/** AI SDK UIMessagePart with our (currently empty) data/tool generic args. */
+// biome-ignore lint/suspicious/noExplicitAny: matches the AI SDK's default UIMessagePart generic args
+export type ChatUIMessagePart = UIMessagePart<any, any>;
 
 export type AppendMessageInput = {
   readonly threadId: string;
   readonly role: ChatMessage['role'];
-  readonly content: string;
+  readonly parts: readonly ChatUIMessagePart[];
 };
 
 export interface ChatMessageRepository {

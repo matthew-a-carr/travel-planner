@@ -38,23 +38,27 @@ describe('DrizzleChatMessageRepository', () => {
     expect(first.userId).toBe(user.id);
   });
 
-  it('lists messages oldest-first and persists role + content', async () => {
+  it('lists messages oldest-first and persists role + parts', async () => {
     const repo = new DrizzleChatMessageRepository(db);
     const user = await seedUser(db);
     const trip = await seedTrip(db, user.id);
     const thread = await repo.findOrCreateThread(trip.id, user.id);
 
-    await repo.appendMessage({ threadId: thread.id, role: 'user', content: 'hi' });
+    await repo.appendMessage({
+      threadId: thread.id,
+      role: 'user',
+      parts: [{ type: 'text', text: 'hi' }],
+    });
     await repo.appendMessage({
       threadId: thread.id,
       role: 'assistant',
-      content: 'hello there',
+      parts: [{ type: 'text', text: 'hello there' }],
     });
 
     const messages = await repo.listMessages(thread.id);
-    expect(messages.map((m) => ({ role: m.role, content: m.content }))).toEqual([
-      { role: 'user', content: 'hi' },
-      { role: 'assistant', content: 'hello there' },
+    expect(messages.map((m) => ({ role: m.role, parts: m.parts }))).toEqual([
+      { role: 'user', parts: [{ type: 'text', text: 'hi' }] },
+      { role: 'assistant', parts: [{ type: 'text', text: 'hello there' }] },
     ]);
   });
 
@@ -69,7 +73,11 @@ describe('DrizzleChatMessageRepository', () => {
 
     expect(threadA.id).not.toBe(threadB.id);
 
-    await repo.appendMessage({ threadId: threadA.id, role: 'user', content: 'A says hi' });
+    await repo.appendMessage({
+      threadId: threadA.id,
+      role: 'user',
+      parts: [{ type: 'text', text: 'A says hi' }],
+    });
     const messagesB = await repo.listMessages(threadB.id);
     expect(messagesB).toHaveLength(0);
   });
