@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
-import type { ChatMessageRepository } from '@/application/ports/chat-message-repository';
+import type {
+  ChatMessageRepository,
+  ChatUIMessagePart,
+} from '@/application/ports/chat-message-repository';
 import type { ChatMessage, ChatThread } from '@/domain/chat/types';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
 import type { OrganizationMembership } from '@/domain/organization/types';
@@ -51,7 +54,9 @@ function makeTripRepo(trip: Trip | null = makeTrip()): TripRepository {
   };
 }
 
-function makeOrgRepo(membership: OrganizationMembership | null = makeMembership()): OrganizationRepository {
+function makeOrgRepo(
+  membership: OrganizationMembership | null = makeMembership(),
+): OrganizationRepository {
   return {
     findById: vi.fn(),
     findMembership: vi.fn().mockResolvedValue(membership),
@@ -70,23 +75,28 @@ function makeChatRepo(thread: ChatThread = makeThread()): ChatMessageRepository 
   return {
     findOrCreateThread: vi.fn().mockResolvedValue(thread),
     listMessages: vi.fn().mockResolvedValue([] as ChatMessage[]),
-    appendMessage: vi.fn().mockImplementation(async ({ threadId, role, content }) => ({
+    appendMessage: vi.fn().mockImplementation(async ({ threadId, role, parts }) => ({
       id: `${role}-msg`,
       threadId,
       role,
-      content,
+      parts,
       createdAt: new Date(),
     })),
   };
 }
 
-async function* fromChunks(chunks: readonly string[]): AsyncIterable<string> {
-  for (const chunk of chunks) yield chunk;
+function textParts(text: string): ChatUIMessagePart[] {
+  return [{ type: 'text', text }];
 }
 
-function makeAssistant(chunks: readonly string[]): ChatAssistantService {
+function makeAssistant(
+  assistantParts: readonly ChatUIMessagePart[] = textParts('Hello'),
+): ChatAssistantService {
   return {
-    streamReply: vi.fn().mockResolvedValue({ ok: true, textStream: fromChunks(chunks) }),
+    streamReply: vi.fn().mockImplementation(async (input) => {
+      await input.onFinish(assistantParts);
+      return { ok: true, response: new Response('ok', { status: 200 }) };
+    }),
   };
 }
 
@@ -101,22 +111,25 @@ function makeDeps(overrides: Partial<ProcessChatMessageDeps> = {}): ProcessChatM
     tripRepository: overrides.tripRepository ?? makeTripRepo(),
     organizationRepository: overrides.organizationRepository ?? makeOrgRepo(),
     chatMessageRepository: overrides.chatMessageRepository ?? makeChatRepo(),
-    chatAssistant: overrides.chatAssistant ?? makeAssistant(['Hello', ' world']),
+    chatAssistant: overrides.chatAssistant ?? makeAssistant(),
   };
 }
 
-async function drainStream(stream: AsyncIterable<string>): Promise<string> {
-  let out = '';
-  for await (const chunk of stream) out += chunk;
-  return out;
-}
-
 describe('processChatMessage', () => {
-  it('rejects an empty message', async () => {
+  it('rejects an empty parts array', async () => {
     const result = await processChatMessage(makeDeps(), {
       tripId: 'trip-1',
       userId: 'user-1',
-      userMessage: '   ',
+      userParts: [],
+    });
+    expect(result).toEqual({ ok: false, error: 'Message is empty' });
+  });
+
+  it('rejects parts with only whitespace text', async () => {
+    const result = await processChatMessage(makeDeps(), {
+      tripId: 'trip-1',
+      userId: 'user-1',
+      userParts: textParts('   '),
     });
     expect(result).toEqual({ ok: false, error: 'Message is empty' });
   });
@@ -125,7 +138,7 @@ describe('processChatMessage', () => {
     const result = await processChatMessage(makeDeps(), {
       tripId: 'trip-1',
       userId: 'user-1',
-      userMessage: 'x'.repeat(4_001),
+      userParts: textParts('x'.repeat(4_001)),
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/too long/);
@@ -136,7 +149,7 @@ describe('processChatMessage', () => {
     const result = await processChatMessage(deps, {
       tripId: 'missing',
       userId: 'user-1',
-      userMessage: 'hi',
+      userParts: textParts('hi'),
     });
     expect(result).toEqual({ ok: false, error: 'Trip not found: missing' });
   });
@@ -146,20 +159,20 @@ describe('processChatMessage', () => {
     const result = await processChatMessage(deps, {
       tripId: 'trip-1',
       userId: 'outsider',
-      userMessage: 'hi',
+      userParts: textParts('hi'),
     });
     expect(result).toEqual({ ok: false, error: 'Forbidden' });
   });
 
-  it('persists the user message and streams the assistant reply', async () => {
+  it('persists the user message parts and the assistant parts via onFinish', async () => {
     const chatRepo = makeChatRepo();
-    const assistant = makeAssistant(['Hel', 'lo']);
+    const assistant = makeAssistant(textParts('Hello'));
     const deps = makeDeps({ chatMessageRepository: chatRepo, chatAssistant: assistant });
 
     const result = await processChatMessage(deps, {
       tripId: 'trip-1',
       userId: 'user-1',
-      userMessage: 'hi there',
+      userParts: textParts('hi there'),
     });
 
     expect(result.ok).toBe(true);
@@ -169,17 +182,29 @@ describe('processChatMessage', () => {
     expect(chatRepo.appendMessage).toHaveBeenNthCalledWith(1, {
       threadId: 'thread-1',
       role: 'user',
-      content: 'hi there',
+      parts: textParts('hi there'),
     });
-
-    const text = await drainStream(result.value.replyStream);
-    expect(text).toBe('Hello');
-
     expect(chatRepo.appendMessage).toHaveBeenNthCalledWith(2, {
       threadId: 'thread-1',
       role: 'assistant',
-      content: 'Hello',
+      parts: textParts('Hello'),
     });
+  });
+
+  it('does not persist an empty assistant turn (zero parts)', async () => {
+    const chatRepo = makeChatRepo();
+    const assistant = makeAssistant([]);
+    const deps = makeDeps({ chatMessageRepository: chatRepo, chatAssistant: assistant });
+
+    const result = await processChatMessage(deps, {
+      tripId: 'trip-1',
+      userId: 'user-1',
+      userParts: textParts('hi'),
+    });
+    expect(result.ok).toBe(true);
+    // Only the user message is persisted; onFinish was called with [] which
+    // is a no-op.
+    expect(chatRepo.appendMessage).toHaveBeenCalledTimes(1);
   });
 
   it('surfaces a failing assistant outcome as a use-case error', async () => {
@@ -189,51 +214,23 @@ describe('processChatMessage', () => {
     const result = await processChatMessage(deps, {
       tripId: 'trip-1',
       userId: 'user-1',
-      userMessage: 'hi',
+      userParts: textParts('hi'),
     });
     expect(result).toEqual({ ok: false, error: 'AI offline' });
   });
 
   it('passes tripId to the assistant so tools can be bound per-trip', async () => {
-    const assistant = makeAssistant(['ok']);
+    const assistant = makeAssistant();
     const deps = makeDeps({ chatAssistant: assistant });
 
     const result = await processChatMessage(deps, {
       tripId: 'trip-1',
       userId: 'user-1',
-      userMessage: 'hi',
+      userParts: textParts('hi'),
     });
     expect(result.ok).toBe(true);
     expect(assistant.streamReply).toHaveBeenCalledWith(
       expect.objectContaining({ tripId: 'trip-1' }),
     );
-  });
-
-  it('persists partial output if the upstream stream throws', async () => {
-    const chatRepo = makeChatRepo();
-    async function* failingStream(): AsyncIterable<string> {
-      yield 'partial';
-      throw new Error('upstream broke');
-    }
-    const assistant: ChatAssistantService = {
-      streamReply: vi.fn().mockResolvedValue({ ok: true, textStream: failingStream() }),
-    };
-    const deps = makeDeps({ chatMessageRepository: chatRepo, chatAssistant: assistant });
-
-    const result = await processChatMessage(deps, {
-      tripId: 'trip-1',
-      userId: 'user-1',
-      userMessage: 'hi',
-    });
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    await expect(drainStream(result.value.replyStream)).rejects.toThrow('upstream broke');
-
-    expect(chatRepo.appendMessage).toHaveBeenNthCalledWith(2, {
-      threadId: 'thread-1',
-      role: 'assistant',
-      content: 'partial',
-    });
   });
 });

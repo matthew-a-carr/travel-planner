@@ -8,12 +8,11 @@ import {
   runtimeAwareTimelineInsights,
 } from './runtime-aware-services';
 
-async function* fromChunks(chunks: readonly string[]): AsyncIterable<string> {
-  for (const chunk of chunks) yield chunk;
-}
-
 const realChat: ChatAssistantService = {
-  streamReply: vi.fn().mockResolvedValue({ ok: true, textStream: fromChunks(['real']) }),
+  streamReply: vi.fn().mockResolvedValue({
+    ok: true,
+    response: new Response('real', { status: 200 }),
+  }),
 };
 const fallbackChat: ChatAssistantService = {
   streamReply: vi.fn().mockResolvedValue({ ok: false, error: 'fallback' }),
@@ -33,7 +32,11 @@ const fallbackInsights: TimelineInsightsService = {
   analyse: vi.fn().mockResolvedValue({ ok: true, findings: [] }),
 };
 
-const chatInput = { tripId: 't', history: [] } as const;
+const chatInput = {
+  tripId: 't',
+  history: [],
+  onFinish: async () => {},
+} as const;
 const parserInput = { text: 'x', referenceDate: '2026-05-09', knownCountries: [] } as const;
 const insightsInput = { destinations: [], fixedCosts: [] } as const;
 

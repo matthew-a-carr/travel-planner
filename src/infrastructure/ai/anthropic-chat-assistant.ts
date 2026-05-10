@@ -1,9 +1,10 @@
-import { stepCountIs, streamText } from 'ai';
+import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 'ai';
 import type {
   ChatAssistantService,
   StreamReplyInput,
   StreamReplyOutcome,
 } from '@/application/ports/chat-assistant';
+import type { ChatUIMessagePart } from '@/application/ports/chat-message-repository';
 import { type ChatToolDeps, createChatTools } from './chat-tools';
 
 const MAX_STEPS = 8;
@@ -32,11 +33,16 @@ How write tools work:
 - Risky changes (large overspend, schedule date changes, budget edits that
   would breach available headroom, total-budget changes) require user
   confirmation. When you call such a tool without 'confirmed: true', it
-  returns { requiresConfirmation: true, summary }. Relay the summary
-  verbatim and ask the user to confirm. Only re-call the tool with
-  'confirmed: true' if the user explicitly says yes (e.g. "yes",
-  "confirm", "do it", "go ahead"). If the user wavers or says no,
-  do not call again.
+  returns { requiresConfirmation: true, summary }. **Do not paraphrase**:
+  the UI already renders Confirm and Cancel buttons inline next to the
+  tool call from your structured output. After the user clicks, they
+  reply with the literal message "Confirmed." or "Cancelled.". On
+  "Confirmed.", re-call the same tool with the same arguments plus
+  'confirmed: true'. On "Cancelled.", do nothing — acknowledge briefly.
+- If the user sends a message starting "Restore the deleted spend:"
+  followed by structured args (destinationId, amountPence, category,
+  spentAt, optional description), call 'record_spend' with those args
+  plus 'confirmed: true' to put the entry back.
 - Low-risk tools (a small spend within pace, a label-only edit) execute
   immediately and return { ok: true, summary }. State the summary in
   your reply.
@@ -52,13 +58,15 @@ convert pence to £ in your replies (e.g. 500000 pence → "£5,000"). Two
 decimal places only when sub-pound precision matters.`;
 
 /**
- * Streams a free-form assistant reply via the Vercel AI Gateway.
+ * Streams a UI message response via the Vercel AI Gateway. The route
+ * handler returns the resulting `Response` directly, so the AI SDK 6
+ * UI message protocol surfaces text, tool calls, and tool results to
+ * `useChat` in the drawer without further transformation.
  *
- * Slice 1 adds read-only tools bound to the trip the conversation is scoped
- * to. The model decides whether to call a tool or answer directly. Tool
- * results are folded back into the same `streamText` loop and the surfaced
- * `textStream` only emits the model's natural-language deltas — the drawer
- * stays a plain text consumer.
+ * Persistence happens in `onFinish`: once the stream completes (or
+ * fails after partial output), the assistant's structured parts are
+ * handed back to the use case via `input.onFinish` for storage in
+ * `chat_messages.parts`.
  */
 export class AnthropicChatAssistant implements ChatAssistantService {
   constructor(
@@ -69,21 +77,40 @@ export class AnthropicChatAssistant implements ChatAssistantService {
   async streamReply(input: StreamReplyInput): Promise<StreamReplyOutcome> {
     try {
       const tools = createChatTools(this.deps, input.tripId);
+
+      // History is already in UIMessage shape (role + parts); convert to
+      // ModelMessage so the LLM sees prior tool calls/results faithfully.
+      const uiHistory: UIMessage[] = input.history.map((message) => ({
+        id: message.id,
+        role: message.role === 'system' ? 'assistant' : message.role,
+        // biome-ignore lint/suspicious/noExplicitAny: parts are stored as `unknown[]` in domain to keep it dependency-free
+        parts: message.parts as any,
+      }));
+
+      const modelMessages = await convertToModelMessages(uiHistory);
       const result = streamText({
         model: this.modelId,
         system: SYSTEM_PROMPT,
-        messages: input.history.map((message) => ({
-          role: message.role === 'system' ? 'assistant' : message.role,
-          content: message.content,
-        })),
+        messages: modelMessages,
         tools,
         stopWhen: stepCountIs(MAX_STEPS),
       });
 
-      return {
-        ok: true,
-        textStream: result.textStream,
-      };
+      const response = result.toUIMessageStreamResponse({
+        onFinish: async ({ messages }) => {
+          // Find the assistant turn(s) emitted in this run and forward
+          // their parts to the use case for persistence. There can be
+          // more than one assistant message when tool calls are
+          // interleaved; flatten them into a single persisted message
+          // so hydration replays the whole turn in order.
+          const assistant = messages.filter((m) => m.role === 'assistant');
+          if (assistant.length === 0) return;
+          const merged: ChatUIMessagePart[] = assistant.flatMap((m) => m.parts);
+          await input.onFinish(merged);
+        },
+      });
+
+      return { ok: true, response };
     } catch (cause) {
       const error = cause instanceof Error ? cause.message : String(cause);
       return { ok: false, error };

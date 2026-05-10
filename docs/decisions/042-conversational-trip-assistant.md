@@ -210,3 +210,56 @@ the model to relay the summary verbatim and only re-call with
 The protocol upgrade + ToolCallCard buttons are deferred to a follow-up
 slice (Slice 2.5 / 3) where they unlock proposing-multi-edit flows
 (Slice 4) that genuinely benefit from structured tool-call rendering.
+
+## Slice 2.5 — Shipped
+
+The drawer and route handler were upgraded to the AI SDK 6 UI message
+protocol. Tool-invocation parts now render through a dedicated
+`ToolCallCard` component with explicit Confirm / Cancel buttons (for
+risky calls) and an Undo button (for auto-executed mutations that
+include `undo` metadata).
+
+Architectural changes:
+
+- **Persistence.** `chat_messages.content text` migrated to
+  `chat_messages.parts jsonb`. Existing rows are backfilled to a single
+  `{ type: 'text', text }` part. Hydration round-trips the full part
+  array so reloaded conversations replay text + tool calls + tool
+  results faithfully.
+- **Server.** `AnthropicChatAssistant` now wraps `streamText` with
+  `toUIMessageStreamResponse({ onFinish })`, returning a `Response`
+  directly to the route handler. The `ChatAssistantService` port
+  contract changed from `{ textStream }` to `{ response }` plus an
+  `onFinish` callback in the input that the use case wires to
+  `chatMessageRepository.appendMessage(... role: 'assistant', parts ...)`.
+  `NoOpChatAssistant` returns a one-shot UI message stream containing
+  the offline message, so the client renders it as a normal assistant
+  bubble — no special-cased error branch.
+- **Client.** `TripAssistantDrawer` uses `useChat` from `@ai-sdk/react`
+  with `DefaultChatTransport`. Messages hydrate via the GET endpoint
+  feeding `useChat`'s `messages` init.
+- **HITL pattern — synthetic message, not `addToolResult`.** Tools keep
+  their server-side `execute` (no contract change to `chat-tools.ts`).
+  Confirm/Cancel buttons send a synthetic chat message — literally
+  `Confirmed.` or `Cancelled.` — and the system prompt instructs the
+  model to re-call the most recent confirm-required tool with
+  `confirmed: true` (or stop) accordingly. Undo on a deleted spend
+  sends a structured `Restore the deleted spend: destinationId=…,
+  amountPence=…, …` message; the model interprets this as a directive
+  to call `record_spend` with those args plus `confirmed: true`. We
+  picked this over the SDK's `addToolResult` HITL because it keeps the
+  tool layer (and its risk classifier) entirely server-side and avoids
+  splitting tools into "with execute" / "without execute" pairs. The
+  trade-off: the model's interpretation of "Confirmed." is a soft
+  contract — the system prompt is the single source of truth and is
+  exercised in dev/preview environments where the AI Gateway is live.
+
+Open follow-ups (not blocking):
+
+- E2E spec covering the full Confirm flow against a stubbed assistant.
+  Not added here because mocking the SSE-flavoured UI message stream in
+  Playwright is fragile; the persistence shape is well-covered by
+  integration tests. Revisit when Slice 4's diff card lands.
+- Accessibility hardening on the `ToolCallCard` (focus management is
+  in place; screen-reader announcement on tool result transitions is a
+  nice-to-have).

@@ -1,4 +1,6 @@
+import type { UIMessage } from 'ai';
 import type { NextRequest } from 'next/server';
+import type { ChatUIMessagePart } from '@/application/ports/chat-message-repository';
 import { processChatMessage } from '@/application/use-cases/process-chat-message';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
@@ -8,7 +10,7 @@ export const dynamic = 'force-dynamic';
 type RouteParams = { params: Promise<{ id: string }> };
 
 type ChatRequestBody = {
-  readonly message?: unknown;
+  readonly messages?: unknown;
 };
 
 async function authorizeTripAccess(
@@ -41,9 +43,8 @@ export async function GET(_request: NextRequest, { params }: RouteParams): Promi
     threadId: thread.id,
     messages: messages.map((m) => ({
       id: m.id,
-      role: m.role,
-      content: m.content,
-      createdAt: m.createdAt.toISOString(),
+      role: m.role === 'system' ? 'assistant' : m.role,
+      parts: m.parts,
     })),
   });
 }
@@ -63,16 +64,26 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  if (typeof body.message !== 'string') {
-    return Response.json({ error: 'Missing required string field "message"' }, { status: 400 });
+  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+    return Response.json(
+      { error: 'Missing required field "messages" (UIMessage[])' },
+      { status: 400 },
+    );
   }
+
+  const lastMessage = body.messages[body.messages.length - 1] as Partial<UIMessage> | undefined;
+  if (!lastMessage || lastMessage.role !== 'user' || !Array.isArray(lastMessage.parts)) {
+    return Response.json({ error: 'Last message must be a user UIMessage' }, { status: 400 });
+  }
+
+  const userParts = lastMessage.parts as ChatUIMessagePart[];
 
   const { tripRepository, organizationRepository, chatMessageRepository, chatAssistant } =
     getAppContainer();
 
   const outcome = await processChatMessage(
     { tripRepository, organizationRepository, chatMessageRepository, chatAssistant },
-    { tripId: id, userId: context.userId, userMessage: body.message },
+    { tripId: id, userId: context.userId, userParts },
   );
   if (!outcome.ok) {
     const status =
@@ -80,26 +91,5 @@ export async function POST(request: NextRequest, { params }: RouteParams): Promi
     return Response.json({ error: outcome.error }, { status });
   }
 
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const chunk of outcome.value.replyStream) {
-          controller.enqueue(encoder.encode(chunk));
-        }
-        controller.close();
-      } catch (cause) {
-        controller.error(cause);
-      }
-    },
-  });
-
-  return new Response(stream, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Chat-Thread-Id': outcome.value.thread.id,
-    },
-  });
+  return outcome.value.response;
 }

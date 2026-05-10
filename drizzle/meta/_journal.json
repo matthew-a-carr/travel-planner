@@ -92,6 +92,13 @@
       "when": 1778327349510,
       "tag": "0012_overjoyed_stick",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1778773400000,
+      "tag": "0013_chat_messages_parts_jsonb",
+      "breakpoints": true
     }
   ]
 }

@@ -1,163 +1,57 @@
 'use client';
 
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ToolCallCard } from './ToolCallCard';
 
 type LoadedMessage = {
   readonly id: string;
-  readonly role: 'user' | 'assistant' | 'system';
-  readonly content: string;
+  readonly role: UIMessage['role'];
+  readonly parts: UIMessage['parts'];
 };
 
-type DrawerState =
-  | { readonly status: 'closed' }
-  | { readonly status: 'loading'; readonly tripId: string }
-  | {
-      readonly status: 'ready';
-      readonly tripId: string;
-      readonly messages: readonly LoadedMessage[];
-      readonly streaming: boolean;
-      readonly error: string | null;
-    };
+type DrawerStatus = 'closed' | 'opening' | 'open' | 'failed';
 
 type Props = {
   readonly tripId: string;
 };
 
+/**
+ * Per-trip conversational assistant. Hydrates persisted messages on open,
+ * then delegates streaming to `@ai-sdk/react`'s `useChat`. Tool invocations
+ * (Slice 2 write tools) render via `ToolCallCard` with explicit
+ * Confirm / Cancel / Undo buttons. The empty-thread copy advertises the
+ * full mutation surface — read-only is a degenerate case of the same UX.
+ */
 export function TripAssistantDrawer({ tripId }: Props) {
-  const [drawer, setDrawer] = useState<DrawerState>({ status: 'closed' });
-  const [draft, setDraft] = useState('');
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [drawerStatus, setDrawerStatus] = useState<DrawerStatus>('closed');
+  const [hydration, setHydration] = useState<{
+    readonly initialMessages: readonly LoadedMessage[];
+    readonly hydratedTripId: string;
+  } | null>(null);
+  const [hydrationError, setHydrationError] = useState<string | null>(null);
 
   const open = useCallback(async () => {
-    setDrawer({ status: 'loading', tripId });
+    setDrawerStatus('opening');
+    setHydrationError(null);
     try {
       const res = await fetch(`/api/trips/${tripId}/chat`, { method: 'GET' });
       if (!res.ok) {
-        setDrawer({
-          status: 'ready',
-          tripId,
-          messages: [],
-          streaming: false,
-          error: `Failed to load chat (${res.status})`,
-        });
+        setHydrationError(`Failed to load chat (${res.status})`);
+        setDrawerStatus('failed');
         return;
       }
       const data = (await res.json()) as { messages: LoadedMessage[] };
-      setDrawer({
-        status: 'ready',
-        tripId,
-        messages: data.messages,
-        streaming: false,
-        error: null,
-      });
+      setHydration({ initialMessages: data.messages, hydratedTripId: tripId });
+      setDrawerStatus('open');
     } catch (cause) {
-      setDrawer({
-        status: 'ready',
-        tripId,
-        messages: [],
-        streaming: false,
-        error: cause instanceof Error ? cause.message : 'Failed to load chat',
-      });
+      setHydrationError(cause instanceof Error ? cause.message : 'Failed to load chat');
+      setDrawerStatus('failed');
     }
   }, [tripId]);
 
-  const close = useCallback(() => {
-    setDrawer({ status: 'closed' });
-  }, []);
-
-  const send = useCallback(async () => {
-    if (drawer.status !== 'ready' || drawer.streaming) return;
-    const message = draft.trim();
-    if (message.length === 0) return;
-
-    const userMsgId = `local-user-${Date.now()}`;
-    const assistantMsgId = `local-assistant-${Date.now()}`;
-    setDrawer({
-      ...drawer,
-      messages: [
-        ...drawer.messages,
-        { id: userMsgId, role: 'user', content: message },
-        { id: assistantMsgId, role: 'assistant', content: '' },
-      ],
-      streaming: true,
-      error: null,
-    });
-    setDraft('');
-
-    try {
-      const res = await fetch(`/api/trips/${tripId}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
-      });
-      if (!res.ok || !res.body) {
-        const error = await safeReadError(res);
-        setDrawer((prev) =>
-          prev.status === 'ready'
-            ? {
-                ...prev,
-                messages: prev.messages.filter((m) => m.id !== assistantMsgId),
-                streaming: false,
-                error,
-              }
-            : prev,
-        );
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffered = '';
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffered += decoder.decode(value, { stream: true });
-        setDrawer((prev) =>
-          prev.status === 'ready'
-            ? {
-                ...prev,
-                messages: prev.messages.map((m) =>
-                  m.id === assistantMsgId ? { ...m, content: buffered } : m,
-                ),
-              }
-            : prev,
-        );
-      }
-      buffered += decoder.decode();
-      setDrawer((prev) =>
-        prev.status === 'ready'
-          ? {
-              ...prev,
-              messages: prev.messages.map((m) =>
-                m.id === assistantMsgId ? { ...m, content: buffered } : m,
-              ),
-              streaming: false,
-            }
-          : prev,
-      );
-    } catch (cause) {
-      setDrawer((prev) =>
-        prev.status === 'ready'
-          ? {
-              ...prev,
-              streaming: false,
-              error: cause instanceof Error ? cause.message : 'Network error',
-            }
-          : prev,
-      );
-    }
-  }, [draft, drawer, tripId]);
-
-  const lastMessageContent =
-    drawer.status === 'ready' ? (drawer.messages.at(-1)?.content ?? '') : '';
-  const messageCount = drawer.status === 'ready' ? drawer.messages.length : 0;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll-on-update — scrollRef itself is a stable ref, the trigger is the message contents.
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messageCount, lastMessageContent]);
+  const close = useCallback(() => setDrawerStatus('closed'), []);
 
   return (
     <>
@@ -171,7 +65,7 @@ export function TripAssistantDrawer({ tripId }: Props) {
         Assistant
       </button>
 
-      {drawer.status !== 'closed' && (
+      {drawerStatus !== 'closed' && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <button
             type="button"
@@ -198,73 +92,21 @@ export function TripAssistantDrawer({ tripId }: Props) {
               </button>
             </header>
 
-            <div
-              ref={scrollRef}
-              className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm"
-              data-testid="assistant-message-list"
-            >
-              {drawer.status === 'loading' && (
-                <p className="text-zinc-500 dark:text-zinc-400">Loading…</p>
-              )}
-              {drawer.status === 'ready' && drawer.messages.length === 0 && (
-                <p className="text-zinc-500 dark:text-zinc-400">
-                  Ask about this trip or tell me to make changes — e.g. "I spent £8 on lunch in
-                  Hanoi" or "add £200 visas on 1 April". I'll confirm anything risky before acting.
-                </p>
-              )}
-              {drawer.status === 'ready' &&
-                drawer.messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={
-                      m.role === 'user'
-                        ? 'ml-8 rounded-lg bg-zinc-900 px-3 py-2 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                        : 'mr-8 rounded-lg bg-zinc-100 px-3 py-2 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
-                    }
-                    data-testid={`assistant-message-${m.role}`}
-                  >
-                    {m.content || (drawer.streaming ? '…' : '')}
-                  </div>
-                ))}
-              {drawer.status === 'ready' && drawer.error && (
-                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-                  {drawer.error}
-                </p>
-              )}
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                void send();
-              }}
-              className="flex items-end gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
-            >
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    void send();
-                  }
-                }}
-                placeholder="Ask the assistant…"
-                rows={2}
-                disabled={drawer.status !== 'ready' || drawer.streaming}
-                className="flex-1 resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:ring-zinc-100"
-                aria-label="Message"
-              />
-              <button
-                type="submit"
-                disabled={
-                  drawer.status !== 'ready' || drawer.streaming || draft.trim().length === 0
-                }
-                className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            {drawerStatus === 'opening' && (
+              <p className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">Loading…</p>
+            )}
+            {drawerStatus === 'failed' && (
+              <p
+                className="px-4 py-3 text-sm text-red-600 dark:text-red-400"
+                role="alert"
+                data-testid="assistant-hydration-error"
               >
-                Send
-              </button>
-            </form>
+                {hydrationError ?? 'Failed to load chat'}
+              </p>
+            )}
+            {drawerStatus === 'open' && hydration?.hydratedTripId === tripId && (
+              <DrawerBody tripId={tripId} initialMessages={hydration.initialMessages} />
+            )}
           </aside>
         </div>
       )}
@@ -272,11 +114,142 @@ export function TripAssistantDrawer({ tripId }: Props) {
   );
 }
 
-async function safeReadError(res: Response): Promise<string> {
-  try {
-    const data = (await res.json()) as { error?: string };
-    return data.error ?? `Request failed (${res.status})`;
-  } catch {
-    return `Request failed (${res.status})`;
-  }
+function DrawerBody({
+  tripId,
+  initialMessages,
+}: {
+  readonly tripId: string;
+  readonly initialMessages: readonly LoadedMessage[];
+}) {
+  const { messages, sendMessage, status } = useChat({
+    id: tripId,
+    messages: initialMessages.map((m) => ({
+      id: m.id,
+      role: m.role,
+      parts: m.parts,
+    })) as UIMessage[],
+    transport: new DefaultChatTransport({ api: `/api/trips/${tripId}/chat` }),
+  });
+
+  const [draft, setDraft] = useState('');
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const streaming = status === 'streaming' || status === 'submitted';
+  const errored = status === 'error';
+
+  const messageCount = messages.length;
+  const lastMessageSignature = messages
+    .at(-1)
+    ?.parts.map((p) => ('text' in p ? (p as { text: string }).text : p.type))
+    .join('|');
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll-on-update — scrollRef is stable, the trigger is the message contents.
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messageCount, lastMessageSignature]);
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const text = draft.trim();
+    if (text.length === 0 || streaming) return;
+    sendMessage({ text });
+    setDraft('');
+  };
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm"
+        data-testid="assistant-message-list"
+      >
+        {messages.length === 0 && (
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Ask about this trip or tell me to make changes — e.g. "I spent £8 on lunch in Hanoi" or
+            "add £200 visas on 1 April". I'll confirm anything risky before acting.
+          </p>
+        )}
+        {messages.map((message, messageIndex) => {
+          const isLastAssistant =
+            message.role === 'assistant' && messageIndex === messages.length - 1;
+          return (
+            <div key={message.id} data-testid={`assistant-message-${message.role}`}>
+              {message.parts.map((part, partIndex) => {
+                if (part.type === 'text') {
+                  const text = (part as { text: string }).text;
+                  return (
+                    <div
+                      // biome-ignore lint/suspicious/noArrayIndexKey: parts are positionally stable within a message turn
+                      key={`text-${partIndex}`}
+                      className={
+                        message.role === 'user'
+                          ? 'ml-8 rounded-lg bg-zinc-900 px-3 py-2 text-white dark:bg-zinc-100 dark:text-zinc-900'
+                          : 'mr-8 rounded-lg bg-zinc-100 px-3 py-2 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+                      }
+                      aria-live={isLastAssistant && streaming ? 'polite' : undefined}
+                    >
+                      {text || (streaming && isLastAssistant ? '…' : '')}
+                    </div>
+                  );
+                }
+                if (part.type.startsWith('tool-')) {
+                  return (
+                    <ToolCallCard
+                      // biome-ignore lint/suspicious/noArrayIndexKey: parts are positionally stable within a message turn
+                      key={`tool-${partIndex}`}
+                      part={part as Parameters<typeof ToolCallCard>[0]['part']}
+                      sendMessage={sendMessage}
+                      disabled={streaming}
+                    />
+                  );
+                }
+                return null;
+              })}
+            </div>
+          );
+        })}
+        {errored && (
+          <p
+            className="text-sm text-red-600 dark:text-red-400"
+            role="alert"
+            data-testid="assistant-stream-error"
+          >
+            Something went wrong sending your message. Try again.
+          </p>
+        )}
+      </div>
+
+      <form
+        onSubmit={submit}
+        className="flex items-end gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
+      >
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              const text = draft.trim();
+              if (text.length === 0 || streaming) return;
+              sendMessage({ text });
+              setDraft('');
+            }
+          }}
+          placeholder="Ask the assistant…"
+          rows={2}
+          disabled={streaming}
+          className="flex-1 resize-none rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:ring-zinc-100"
+          aria-label="Message"
+        />
+        <button
+          type="submit"
+          disabled={streaming || draft.trim().length === 0}
+          className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          Send
+        </button>
+      </form>
+    </>
+  );
 }
