@@ -465,10 +465,23 @@ export function createChatTools(
         if (!trip) return { error: 'Trip not found' };
 
         if (args.confirmed !== true) {
-          return {
-            requiresConfirmation: true,
-            summary: `Change trip budget from ${formatGbp(trip.totalBudget.amountPence)} to ${formatGbp(args.totalBudgetPence)}?`,
-          };
+          const changes: string[] = [];
+          if (args.totalBudgetPence !== trip.totalBudget.amountPence) {
+            changes.push(
+              `budget ${formatGbp(trip.totalBudget.amountPence)} → ${formatGbp(args.totalBudgetPence)}`,
+            );
+          }
+          if (args.name !== undefined && args.name !== trip.name) {
+            changes.push(`name "${trip.name}" → "${args.name}"`);
+          }
+          if (args.status !== undefined && args.status !== trip.status) {
+            changes.push(`status ${trip.status} → ${args.status}`);
+          }
+          const summary =
+            changes.length === 0
+              ? 'No changes — current values match the request.'
+              : `Apply trip changes: ${changes.join('; ')}?`;
+          return { requiresConfirmation: true, summary };
         }
 
         const result = await editTrip(

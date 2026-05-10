@@ -496,8 +496,35 @@ describe('createChatTools', () => {
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
-      expect(result.summary).toMatch(/£5,000\.00.*£6,000\.00/);
+      expect(result.summary).toMatch(/budget.*£5,000\.00.*£6,000\.00/);
       expect(deps.tripRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('summary mentions every changed field — budget, name, status', async () => {
+      const deps = makeDeps();
+      const tools = createChatTools(deps, 'trip-1');
+      const result = (await tools.edit_trip_budget.execute?.(
+        { totalBudgetPence: 600_000, name: 'Renamed Trip', status: 'completed' },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.summary).toMatch(/budget/);
+      expect(result.summary).toMatch(/name "Asia 2026" → "Renamed Trip"/);
+      expect(result.summary).toMatch(/status active → completed/);
+    });
+
+    it('summary omits fields that match current values', async () => {
+      const deps = makeDeps();
+      const tools = createChatTools(deps, 'trip-1');
+      const trip = makeTrip();
+      const result = (await tools.edit_trip_budget.execute?.(
+        { totalBudgetPence: trip.totalBudget.amountPence, name: trip.name, status: trip.status },
+        { toolCallId: 'c1', messages: [] },
+      )) as { requiresConfirmation?: boolean; summary?: string };
+
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.summary).toMatch(/No changes/);
     });
 
     it('executes when confirmed: true', async () => {
