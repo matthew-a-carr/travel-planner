@@ -4,6 +4,7 @@ import type { ChatMessageRepository } from '@/application/ports/chat-message-rep
 import type { InviteEmailService } from '@/application/ports/invite-email-service';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
+import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
@@ -23,6 +24,7 @@ export type AppContainer = {
   readonly inviteEmailService: InviteEmailService;
   readonly itineraryParser: ItineraryParser;
   readonly timelineInsightsService: TimelineInsightsService;
+  readonly tripNarrativeService: TripNarrativeService;
   readonly aiCacheRepository: AiCacheRepository;
   readonly hashFn: (input: string) => string;
   readonly chatMessageRepository: ChatMessageRepository;

@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
+import { summariseTripNarrative } from '@/application/use-cases/summarise-trip-narrative';
 import { getSuggestedPrompts } from '@/domain/chat/suggested-prompts';
 import { sortDestinations } from '@/domain/destination/destination';
 import { canDeleteTrips } from '@/domain/organization/organization';
@@ -26,6 +27,7 @@ import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBre
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
+import { TripNarrativePanel } from '@/ui/components/TripNarrativePanel';
 import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
 import { TripTabs } from '@/ui/components/TripTabs';
 import { getTripStage, hasTwoOrMoreDatedDestinations } from './trip-stage';
@@ -41,11 +43,14 @@ export default async function TripDetailPage({ params }: Props) {
   if (!session?.user) redirect('/login');
 
   const {
+    aiCacheRepository,
     countryReferenceRepository,
     destinationRepository,
+    hashFn,
     organizationRepository,
     spendEntryRepository,
     tripFixedCostRepository,
+    tripNarrativeService,
     tripRepository,
   } = getAppContainer();
   const trip = await tripRepository.findById(id);
@@ -69,12 +74,26 @@ export default async function TripDetailPage({ params }: Props) {
           }))
       : [];
 
-  const [destinations, allSpend, fixedCosts, countryReferences] = await Promise.all([
-    destinationRepository.findByTrip(id),
-    spendEntryRepository.findByTrip(id),
-    tripFixedCostRepository.findByTrip(id),
-    getCountryReferences(countryReferenceRepository),
-  ]);
+  const renderedAt = new Date();
+  const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult] =
+    await Promise.all([
+      destinationRepository.findByTrip(id),
+      spendEntryRepository.findByTrip(id),
+      tripFixedCostRepository.findByTrip(id),
+      getCountryReferences(countryReferenceRepository),
+      summariseTripNarrative(
+        tripRepository,
+        destinationRepository,
+        tripFixedCostRepository,
+        spendEntryRepository,
+        tripNarrativeService,
+        aiCacheRepository,
+        hashFn,
+        id,
+        renderedAt,
+      ),
+    ]);
+  const tripNarrative = narrativeResult.ok ? narrativeResult.value : { narrative: '', bullets: [] };
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
@@ -133,7 +152,7 @@ export default async function TripDetailPage({ params }: Props) {
   })();
 
   // Burndown data — computed server-side, serialised for client components
-  const now = new Date();
+  const now = renderedAt;
 
   const burndownByDestination = new Map<
     string,
@@ -274,6 +293,8 @@ export default async function TripDetailPage({ params }: Props) {
         )}
 
         {showBudgetOverview && <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />}
+
+        <TripNarrativePanel narrative={tripNarrative.narrative} bullets={tripNarrative.bullets} />
 
         {allBurndownAlerts.length > 0 && <BudgetAlertBanner alerts={allBurndownAlerts} />}
 

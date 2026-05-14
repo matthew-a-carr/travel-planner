@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
+import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import {
   runtimeAwareChatAssistant,
   runtimeAwareItineraryParser,
   runtimeAwareTimelineInsights,
+  runtimeAwareTripNarrative,
 } from './runtime-aware-services';
 
 const realChat: ChatAssistantService = {
@@ -31,6 +33,25 @@ const realInsights: TimelineInsightsService = {
 const fallbackInsights: TimelineInsightsService = {
   analyse: vi.fn().mockResolvedValue({ ok: true, findings: [] }),
 };
+
+const realNarrative: TripNarrativeService = {
+  summarise: vi
+    .fn()
+    .mockResolvedValue({ ok: true, result: { narrative: 'real', bullets: [] } }),
+};
+const fallbackNarrative: TripNarrativeService = {
+  summarise: vi
+    .fn()
+    .mockResolvedValue({ ok: true, result: { narrative: '', bullets: [] } }),
+};
+
+const narrativeInput = {
+  trip: {} as Parameters<TripNarrativeService['summarise']>[0]['trip'],
+  destinations: [],
+  fixedCosts: [],
+  spendEntries: [],
+  currentDate: new Date('2026-08-01'),
+} as Parameters<TripNarrativeService['summarise']>[0];
 
 const chatInput = {
   tripId: 't',
@@ -110,5 +131,35 @@ describe('runtimeAwareTimelineInsights', () => {
     const outcome = await service.analyse(insightsInput);
     expect(outcome.ok).toBe(true);
     if (outcome.ok) expect(outcome.findings).toHaveLength(0);
+  });
+});
+
+describe('runtimeAwareTripNarrative', () => {
+  it('routes to the real implementation when credentials are present', async () => {
+    const service = runtimeAwareTripNarrative(realNarrative, fallbackNarrative, () => true);
+    const outcome = await service.summarise(narrativeInput);
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) expect(outcome.result.narrative).toBe('real');
+  });
+
+  it('routes to the fallback when credentials are absent', async () => {
+    const service = runtimeAwareTripNarrative(realNarrative, fallbackNarrative, () => false);
+    const outcome = await service.summarise(narrativeInput);
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) expect(outcome.result.narrative).toBe('');
+  });
+
+  it('re-evaluates the predicate on every call', async () => {
+    let creds = false;
+    const service = runtimeAwareTripNarrative(
+      realNarrative,
+      fallbackNarrative,
+      () => creds,
+    );
+    const first = await service.summarise(narrativeInput);
+    expect(first.ok && first.result.narrative).toBe('');
+    creds = true;
+    const second = await service.summarise(narrativeInput);
+    expect(second.ok && second.result.narrative).toBe('real');
   });
 });
