@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { SuggestedPrompt } from '@/domain/chat/suggested-prompts';
 import { ToolCallCard } from './ToolCallCard';
 
 type LoadedMessage = {
@@ -15,6 +16,7 @@ type DrawerStatus = 'closed' | 'opening' | 'open' | 'failed';
 
 type Props = {
   readonly tripId: string;
+  readonly suggestedPrompts: readonly SuggestedPrompt[];
 };
 
 /**
@@ -24,7 +26,7 @@ type Props = {
  * Confirm / Cancel / Undo buttons. The empty-thread copy advertises the
  * full mutation surface — read-only is a degenerate case of the same UX.
  */
-export function TripAssistantDrawer({ tripId }: Props) {
+export function TripAssistantDrawer({ tripId, suggestedPrompts }: Props) {
   const [drawerStatus, setDrawerStatus] = useState<DrawerStatus>('closed');
   const [hydration, setHydration] = useState<{
     readonly initialMessages: readonly LoadedMessage[];
@@ -105,7 +107,11 @@ export function TripAssistantDrawer({ tripId }: Props) {
               </p>
             )}
             {drawerStatus === 'open' && hydration?.hydratedTripId === tripId && (
-              <DrawerBody tripId={tripId} initialMessages={hydration.initialMessages} />
+              <DrawerBody
+                tripId={tripId}
+                initialMessages={hydration.initialMessages}
+                suggestedPrompts={suggestedPrompts}
+              />
             )}
           </aside>
         </div>
@@ -117,9 +123,11 @@ export function TripAssistantDrawer({ tripId }: Props) {
 function DrawerBody({
   tripId,
   initialMessages,
+  suggestedPrompts,
 }: {
   readonly tripId: string;
   readonly initialMessages: readonly LoadedMessage[];
+  readonly suggestedPrompts: readonly SuggestedPrompt[];
 }) {
   const { messages, sendMessage, status } = useChat({
     id: tripId,
@@ -133,6 +141,7 @@ function DrawerBody({
 
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const streaming = status === 'streaming' || status === 'submitted';
   const errored = status === 'error';
 
@@ -165,10 +174,29 @@ function DrawerBody({
         data-testid="assistant-message-list"
       >
         {messages.length === 0 && (
-          <p className="text-zinc-500 dark:text-zinc-400">
-            Ask about this trip or tell me to make changes — e.g. "I spent £8 on lunch in Hanoi" or
-            "add £200 visas on 1 April". I'll confirm anything risky before acting.
-          </p>
+          <div className="space-y-3">
+            <p className="text-zinc-500 dark:text-zinc-400">
+              Ask about this trip or tell me to make changes — e.g. "I spent £8 on lunch in Hanoi"
+              or "add £200 visas on 1 April". I'll confirm anything risky before acting.
+            </p>
+            {suggestedPrompts.length > 0 && (
+              <div className="flex flex-wrap gap-2" data-testid="assistant-suggested-prompts">
+                {suggestedPrompts.map((suggestion) => (
+                  <button
+                    key={suggestion.label}
+                    type="button"
+                    onClick={() => {
+                      setDraft(suggestion.prompt);
+                      textareaRef.current?.focus();
+                    }}
+                    className="rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    {suggestion.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         {messages.map((message, messageIndex) => {
           const isLastAssistant =
@@ -225,6 +253,7 @@ function DrawerBody({
         className="flex items-end gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
       >
         <textarea
+          ref={textareaRef}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
