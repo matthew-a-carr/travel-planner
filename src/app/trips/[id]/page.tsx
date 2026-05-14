@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
+import { getSuggestedPrompts } from '@/domain/chat/suggested-prompts';
 import { sortDestinations } from '@/domain/destination/destination';
 import { canDeleteTrips } from '@/domain/organization/organization';
 import {
@@ -248,7 +249,15 @@ export default async function TripDetailPage({ params }: Props) {
             </p>
           </div>
           <div className="space-y-2 text-right">
-            <TripAssistantDrawer tripId={trip.id} />
+            <TripAssistantDrawer
+              tripId={trip.id}
+              suggestedPrompts={getSuggestedPrompts({
+                tripStatus: trip.status,
+                destinations: sorted,
+                hasSpend: allSpend.length > 0,
+                currentDate: now,
+              })}
+            />
             <EditTripButton trip={trip} />
             <MoveTripForm tripId={trip.id} targets={moveTargets} />
             {canDeleteTrips(membership.role) && <DeleteTripButton tripId={trip.id} />}
