@@ -44,6 +44,7 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     inviteEmailService: createInviteEmailService(),
     itineraryParser: ai.itineraryParser,
     timelineInsightsService: ai.timelineInsightsService,
+    tripNarrativeService: ai.tripNarrativeService,
     aiCacheRepository: new DrizzleAiCacheRepository(dbClient),
     hashFn: sha256,
     chatMessageRepository: new DrizzleChatMessageRepository(dbClient),

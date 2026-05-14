@@ -26,9 +26,11 @@ describe('createAiServices', () => {
     expect(services.itineraryParser).toBeDefined();
     expect(services.timelineInsightsService).toBeDefined();
     expect(services.chatAssistant).toBeDefined();
+    expect(services.tripNarrativeService).toBeDefined();
     expect(typeof services.itineraryParser.parse).toBe('function');
     expect(typeof services.timelineInsightsService.analyse).toBe('function');
     expect(typeof services.chatAssistant.streamReply).toBe('function');
+    expect(typeof services.tripNarrativeService.summarise).toBe('function');
   });
 
   it('routes the chat assistant to the no-op fallback when credentials are absent at call time', async () => {
