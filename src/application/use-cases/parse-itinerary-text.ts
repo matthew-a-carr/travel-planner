@@ -12,7 +12,14 @@ const PARSE_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
 const PARSE_CACHE_KIND = 'itinerary-parse-v1';
 
 export type ParseItineraryRequest = {
-  readonly tripId: string;
+  /**
+   * Optional. When provided, the use case asserts the trip exists before
+   * doing any LLM work — this is the per-trip "paste from the timeline tab"
+   * path. When omitted, the use case skips the existence check so the
+   * create-trip flow can call the same parser before a trip exists. Both
+   * paths still share the same cache and country-reference enrichment.
+   */
+  readonly tripId?: string;
   readonly text: string;
 };
 
@@ -32,8 +39,10 @@ export async function parseItineraryText(
     return err('Itinerary text is too long (max 12,000 characters)');
   }
 
-  const trip = await tripRepo.findById(request.tripId);
-  if (!trip) return err(`Trip not found: ${request.tripId}`);
+  if (request.tripId !== undefined) {
+    const trip = await tripRepo.findById(request.tripId);
+    if (!trip) return err(`Trip not found: ${request.tripId}`);
+  }
 
   const references = await countryRefRepo.findAll();
   const knownCountries = references.map((r) => r.country);
