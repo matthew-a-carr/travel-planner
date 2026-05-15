@@ -8,7 +8,10 @@ export type FindingKind =
   | 'budget-low'
   | 'budget-high'
   | 'seasonality'
-  | 'transport-missing';
+  | 'transport-missing'
+  | 'visa-required'
+  | 'event-clash'
+  | 'peak-pricing';
 
 export type TimelineFinding = {
   readonly stopId: string | null;

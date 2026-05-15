@@ -10,7 +10,9 @@ import type { Result } from '@/domain/trip/types';
 import { err, ok } from '@/domain/trip/types';
 
 const INSIGHTS_CACHE_TTL_SECONDS = 24 * 60 * 60;
-const INSIGHTS_CACHE_KIND = 'timeline-insights-v1';
+// v2 adds visa-required, event-clash, peak-pricing kinds — bump so post-deploy
+// runs don't serve a stale v1 payload that's missing them.
+const INSIGHTS_CACHE_KIND = 'timeline-insights-v2';
 
 export async function analyseTripTimeline(
   tripRepo: TripRepository,

@@ -12,7 +12,13 @@ const insightsSchema = z.object({
     z.object({
       stopId: z.string().nullable(),
       severity: z.enum(['info', 'warning', 'danger']),
-      kind: z.enum(['seasonality', 'transport-missing']),
+      kind: z.enum([
+        'seasonality',
+        'transport-missing',
+        'visa-required',
+        'event-clash',
+        'peak-pricing',
+      ]),
       message: z.string().min(4).max(280),
       suggestion: z.string().nullable(),
     }),
@@ -26,12 +32,16 @@ date, amount, category).
 Return *only* findings of these kinds — nothing else:
 - 'seasonality': a destination falls in a clearly unfavourable season (heavy wet season, off-peak shutdown, extreme heat/cold) given its country and dates.
 - 'transport-missing': a long inter-country leg between consecutive dated destinations has no fixed-cost row of category 'transport' anywhere on or close to the transition date.
+- 'visa-required': the destination's country typically requires a short-stay tourist visa for a UK passport holder, and the trip has no fixed-cost row of category 'visas' for it. Be conservative — only emit when the visa requirement is well-established (e.g. Vietnam e-visa, India e-visa, China L visa, Russia, Saudi Arabia). Do *not* emit for visa-free or visa-on-arrival destinations. The suggestion must include the phrase "verify with the embassy" because policies change.
+- 'event-clash': the destination's date range overlaps a major festival, public-holiday cluster, or sporting event well-known to spike prices or close attractions (e.g. Songkran in Thailand, Tet in Vietnam, Diwali in India, Carnival in Rio, European school summer holidays). Skip if unsure.
+- 'peak-pricing': the destination's date range overlaps the well-known peak tourist season for the country/region (e.g. July–August in Mediterranean Europe, Dec–Feb in the Caribbean, mid-Jul to mid-Aug in Japan around Obon) and the comfort level is not already 'luxury'. Only emit when it materially affects accommodation or transport cost.
 
 Rules:
 - Use stopId from the destinations input. Never invent ids.
-- Be conservative. Skip a finding rather than fabricate one.
+- Be conservative. Skip a finding rather than fabricate one. When in doubt, omit.
 - One finding per (stopId, kind). At most 8 findings total.
-- 'message' must be a single concrete sentence. 'suggestion' must be a single actionable next step or null.`;
+- 'message' must be a single concrete sentence. 'suggestion' must be a single actionable next step or null.
+- For 'visa-required', the message must mention the visa name/type and the suggestion must direct the user to verify with the embassy.`;
 
 type TimelineInputJson = {
   destinations: {
