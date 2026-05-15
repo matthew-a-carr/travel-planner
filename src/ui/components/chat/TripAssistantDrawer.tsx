@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { formatChatStreamError } from '@/domain/chat/format-chat-stream-error';
 import type { SuggestedPrompt } from '@/domain/chat/suggested-prompts';
 import { ToolCallCard } from './ToolCallCard';
 
@@ -129,7 +130,7 @@ function DrawerBody({
   readonly initialMessages: readonly LoadedMessage[];
   readonly suggestedPrompts: readonly SuggestedPrompt[];
 }) {
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     id: tripId,
     messages: initialMessages.map((m) => ({
       id: m.id,
@@ -144,6 +145,7 @@ function DrawerBody({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const streaming = status === 'streaming' || status === 'submitted';
   const errored = status === 'error';
+  const errorMessage = errored ? formatChatStreamError(error) : null;
 
   const messageCount = messages.length;
   const lastMessageSignature = messages
@@ -237,13 +239,13 @@ function DrawerBody({
             </div>
           );
         })}
-        {errored && (
+        {errored && errorMessage && (
           <p
             className="text-sm text-red-600 dark:text-red-400"
             role="alert"
             data-testid="assistant-stream-error"
           >
-            Something went wrong sending your message. Try again.
+            {errorMessage}
           </p>
         )}
       </div>

@@ -5,6 +5,7 @@ import type {
   StreamReplyOutcome,
 } from '@/application/ports/chat-assistant';
 import type { ChatUIMessagePart } from '@/application/ports/chat-message-repository';
+import { formatChatStreamError } from '@/domain/chat/format-chat-stream-error';
 import { type ChatToolDeps, createChatTools } from './chat-tools';
 
 const MAX_STEPS = 8;
@@ -97,6 +98,10 @@ export class AnthropicChatAssistant implements ChatAssistantService {
       });
 
       const response = result.toUIMessageStreamResponse({
+        // The SDK default is a generic "An error occurred." — replace with
+        // a categorised, user-readable line (gateway quota, auth, network,
+        // timeout, fallback) so the drawer surfaces something actionable.
+        onError: (error) => formatChatStreamError(error),
         onFinish: async ({ messages }) => {
           // Find the assistant turn(s) emitted in this run and forward
           // their parts to the use case for persistence. There can be

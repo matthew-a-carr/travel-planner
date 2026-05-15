@@ -21,6 +21,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Bug Fixes
+
+* **chat:** the assistant drawer now surfaces a categorised, actionable error instead of a generic "Something went wrong". Gateway quota errors (e.g. Vercel's `RestrictedModelsError` / `no_providers_available`) read "AI is temporarily unavailable — the gateway quota has been reached. Try again later."; auth, network, and timeout failures get their own short lines; short pass-through messages are surfaced verbatim; only truly opaque errors fall back to the original generic line. Implemented as a pure-domain `formatChatStreamError` helper wired into both the server-side `toUIMessageStreamResponse({ onError })` and the client's `useChat`-surfaced error so the message is consistent in both places.
+
 ### Features
 
 * **timeline:** three new AI-driven insight kinds — `visa-required` (UK passport tourist visa heads-up with a "verify with the embassy" suggestion), `event-clash` (major festivals / holiday clusters / sporting events that spike prices or close attractions), and `peak-pricing` (well-known peak tourist windows for non-luxury comfort levels). Bumped the timeline-insights cache key to `timeline-insights-v2` so post-deploy runs aren't served stale v1 payloads. The system prompt now instructs the model to skip rather than fabricate, and to direct visa enquiries to the embassy. (extends ADR 041 / 040)
