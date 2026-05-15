@@ -21,6 +21,9 @@ const KIND_LABEL: Record<TimelineFinding['kind'], string> = {
   'budget-high': 'Budget high',
   seasonality: 'Seasonality',
   'transport-missing': 'Transport',
+  'visa-required': 'Visa',
+  'event-clash': 'Event clash',
+  'peak-pricing': 'Peak pricing',
 };
 
 type Props = {

@@ -118,4 +118,67 @@ describe('AnthropicTimelineInsights', () => {
     expect(outcome.ok).toBe(false);
     if (!outcome.ok) expect(outcome.error).toContain('Unknown insights error');
   });
+
+  it('passes through the new visa-required, event-clash, and peak-pricing kinds', async () => {
+    mockedGenerateObject.mockResolvedValueOnce({
+      object: {
+        findings: [
+          {
+            stopId: 'd1',
+            severity: 'warning',
+            kind: 'visa-required',
+            message: 'Vietnam requires an e-visa for short-stay UK passport holders.',
+            suggestion: 'Apply for the e-visa online and verify with the embassy.',
+          },
+          {
+            stopId: 'd1',
+            severity: 'info',
+            kind: 'event-clash',
+            message: 'Your dates overlap Tet (Vietnamese New Year) — many businesses close.',
+            suggestion: 'Book accommodation and inter-city transport well in advance.',
+          },
+          {
+            stopId: 'd1',
+            severity: 'warning',
+            kind: 'peak-pricing',
+            message: 'July–August is peak tourist season on the Adriatic coast.',
+            suggestion: 'Consider shifting by 2–3 weeks for materially lower lodging cost.',
+          },
+        ],
+      },
+    } as Awaited<ReturnType<typeof generateObject>>);
+
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
+    const outcome = await insights.analyse({
+      destinations: [makeDestination({ id: 'd1' })],
+      fixedCosts: [],
+    });
+
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      const kinds = outcome.findings.map((f) => f.kind).sort();
+      expect(kinds).toEqual(['event-clash', 'peak-pricing', 'visa-required']);
+    }
+  });
+
+  it('forwards a system prompt that mentions every supported finding kind', async () => {
+    mockedGenerateObject.mockResolvedValueOnce({
+      object: { findings: [] },
+    } as Awaited<ReturnType<typeof generateObject>>);
+
+    const insights = new AnthropicTimelineInsights(FAKE_MODEL_ID);
+    await insights.analyse({
+      destinations: [makeDestination({ id: 'd1' })],
+      fixedCosts: [],
+    });
+
+    const call = mockedGenerateObject.mock.calls[0]?.[0];
+    const system = call?.system ?? '';
+    expect(system).toContain("'seasonality'");
+    expect(system).toContain("'transport-missing'");
+    expect(system).toContain("'visa-required'");
+    expect(system).toContain("'event-clash'");
+    expect(system).toContain("'peak-pricing'");
+    expect(system).toContain('verify with the embassy');
+  });
 });
