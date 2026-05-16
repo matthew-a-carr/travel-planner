@@ -9,6 +9,7 @@ resource "vercel_project" "this" {
   name                                              = var.project_name
   framework                                         = var.framework
   build_command                                     = var.build_command
+  root_directory                                    = var.root_directory
   automatically_expose_system_environment_variables = true
 
   git_repository = {

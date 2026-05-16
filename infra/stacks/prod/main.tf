@@ -129,12 +129,17 @@ locals {
 module "vercel_project" {
   source = "../../modules/vercel-project"
 
-  team_id               = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
-  project_name          = var.project_name
-  github_repository     = var.github_repository
-  production_branch     = var.production_branch
-  framework             = "nextjs"
-  build_command         = "pnpm build && pnpm db:migrate:deploy && pnpm db:seed"
+  team_id           = trimspace(var.vercel_team_id) == "" ? null : var.vercel_team_id
+  project_name      = var.project_name
+  github_repository = var.github_repository
+  production_branch = var.production_branch
+  framework         = "nextjs"
+  build_command     = "pnpm build && pnpm db:migrate:deploy && pnpm db:seed"
+  # The Next.js app lives at apps/web/ in this pnpm monorepo (ADR 046).
+  # Vercel detects the workspace root automatically by walking up for
+  # pnpm-workspace.yaml, so `pnpm install` still runs at the repo root and
+  # the lockfile is honoured.
+  root_directory        = "apps/web"
   domain                = var.production_domain
   environment_variables = local.production_environment_variables
 }

@@ -124,10 +124,15 @@ package independently from the workspace root is a deferred concern.
   playwright install`), and the failure-case Playwright report artifact
   path is `apps/web/playwright-report/`. The other four CI jobs are
   byte-identical because they call root scripts.
-- **Vercel build configuration may need a Root Directory override** to
-  point at `apps/web/`. Whether this is needed depends on the Vercel
-  project's Build Output API support for pnpm workspaces; verified at
-  deploy time. Not a blocker for the next slice.
+- **Vercel build configuration requires a Root Directory override.** The
+  `vercel-project` Terraform module gains a `root_directory` input, set to
+  `apps/web` from the prod stack. Vercel detects the pnpm workspace by
+  walking up for `pnpm-workspace.yaml`, so `pnpm install` still runs at the
+  repo root and the lockfile is honoured. The setting takes effect when
+  the prod stack applies (`.github/workflows/infra-prod.yml` on push to
+  `main` or via `workflow_dispatch`). Until that apply runs, Vercel preview
+  deployments cannot detect Next.js and will fail with "No Next.js version
+  detected"; CI checks for code, tests, types, and lint are unaffected.
 - **In-document path references like `src/domain/` remain accurate** as
   conceptual paths within the web app. A new "Repo layout" section in
   `AGENTS.md` clarifies that these resolve under `apps/web/`.
