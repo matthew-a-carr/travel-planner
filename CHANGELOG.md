@@ -21,6 +21,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Features
+
+* **trip:** AI-assisted trip creation. The create-trip modal now has a "Plan with AI" tab next to the existing manual form. Paste a rough itinerary (e.g. "3 weeks Vietnam from Aug 1, then Cambodia 10 days, Laos a week, Thailand till mid-Oct") and the parser extracts destinations, suggests a trip name derived from up to three countries plus a month/year segment, and proposes a total budget = sum of per-country reference suggestions + 10% contingency rounded up to £100. The row list is editable before submission; submit composes `createTrip` + `bulkAddDestinations` in a new `createTripWithDestinations` use case with a compensating-delete rollback if bulk-add breaches the budget invariant. Reuses the existing AI gateway parser — no new model port or new cache key. (ADR 044)
+
 ### Bug Fixes
 
 * **chat:** the assistant drawer now surfaces a categorised, actionable error instead of a generic "Something went wrong". Gateway quota errors (e.g. Vercel's `RestrictedModelsError` / `no_providers_available`) read "AI is temporarily unavailable — the gateway quota has been reached. Try again later."; auth, network, and timeout failures get their own short lines; short pass-through messages are surfaced verbatim; only truly opaque errors fall back to the original generic line. Implemented as a pure-domain `formatChatStreamError` helper wired into both the server-side `toUIMessageStreamResponse({ onError })` and the client's `useChat`-surfaced error so the message is consistent in both places.
