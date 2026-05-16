@@ -23,12 +23,12 @@
     "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.179",
+    "@ai-sdk/react": "^3.0.186",
     "@auth/drizzle-adapter": "^1.11.2",
-    "@sentry/nextjs": "^10.52.0",
+    "@sentry/nextjs": "^10.53.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/postgres": "^0.10.0",
-    "ai": "^6.0.177",
+    "ai": "^6.0.184",
     "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
     "leaflet": "^1.9.4",
@@ -44,21 +44,21 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@testcontainers/postgresql": "^11.14.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-react": "^6.0.2",
     "drizzle-kit": "^0.31.10",
     "tailwindcss": "^4",
     "testcontainers": "^11.14.0",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.0",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.5",
+    "vitest": "^4.1.6",
     "vitest-mock-extended": "^3.1.0"
   }
 }
