@@ -59,6 +59,6 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.5",
-    "vitest-mock-extended": "^3.1.0"
+    "vitest-mock-extended": "^4.0.0"
   }
 }
