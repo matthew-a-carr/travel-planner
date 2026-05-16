@@ -53,3 +53,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [042](042-conversational-trip-assistant.md) | Conversational Trip Assistant — Per-Trip Streaming Drawer | 2026-05-09 | Accepted |
 | [043](043-trip-narrative-on-overview.md) | Trip Narrative on the Overview Card | 2026-05-14 | Accepted |
 | [044](044-ai-assisted-trip-creation.md) | AI-Assisted Trip Creation | 2026-05-15 | Accepted |
+| [045](045-pre-departure-planning-helper.md) | Pre-departure Planning Helper | 2026-05-15 | Accepted |

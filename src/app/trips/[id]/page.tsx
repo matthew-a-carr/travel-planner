@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import { generatePreDeparturePlan } from '@/application/use-cases/generate-pre-departure-plan';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
 import { summariseTripNarrative } from '@/application/use-cases/summarise-trip-narrative';
 import { getSuggestedPrompts } from '@/domain/chat/suggested-prompts';
@@ -27,6 +28,7 @@ import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBre
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
+import { PreDeparturePlannerPanel } from '@/ui/components/PreDeparturePlannerPanel';
 import { TripNarrativePanel } from '@/ui/components/TripNarrativePanel';
 import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
 import { TripTabs } from '@/ui/components/TripTabs';
@@ -48,6 +50,7 @@ export default async function TripDetailPage({ params }: Props) {
     destinationRepository,
     hashFn,
     organizationRepository,
+    preDeparturePlannerService,
     spendEntryRepository,
     tripFixedCostRepository,
     tripNarrativeService,
@@ -75,25 +78,44 @@ export default async function TripDetailPage({ params }: Props) {
       : [];
 
   const renderedAt = new Date();
-  const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult] =
-    await Promise.all([
-      destinationRepository.findByTrip(id),
-      spendEntryRepository.findByTrip(id),
-      tripFixedCostRepository.findByTrip(id),
-      getCountryReferences(countryReferenceRepository),
-      summariseTripNarrative(
-        tripRepository,
-        destinationRepository,
-        tripFixedCostRepository,
-        spendEntryRepository,
-        tripNarrativeService,
-        aiCacheRepository,
-        hashFn,
-        id,
-        renderedAt,
-      ),
-    ]);
+  const [
+    destinations,
+    allSpend,
+    fixedCosts,
+    countryReferences,
+    narrativeResult,
+    preDeparturePlanResult,
+  ] = await Promise.all([
+    destinationRepository.findByTrip(id),
+    spendEntryRepository.findByTrip(id),
+    tripFixedCostRepository.findByTrip(id),
+    getCountryReferences(countryReferenceRepository),
+    summariseTripNarrative(
+      tripRepository,
+      destinationRepository,
+      tripFixedCostRepository,
+      spendEntryRepository,
+      tripNarrativeService,
+      aiCacheRepository,
+      hashFn,
+      id,
+      renderedAt,
+    ),
+    generatePreDeparturePlan(
+      tripRepository,
+      destinationRepository,
+      tripFixedCostRepository,
+      preDeparturePlannerService,
+      aiCacheRepository,
+      hashFn,
+      id,
+      renderedAt,
+    ),
+  ]);
   const tripNarrative = narrativeResult.ok ? narrativeResult.value : { narrative: '', bullets: [] };
+  const preDeparturePlan = preDeparturePlanResult.ok
+    ? preDeparturePlanResult.value
+    : { items: [], transportLegs: [] };
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
@@ -297,6 +319,13 @@ export default async function TripDetailPage({ params }: Props) {
         <TripNarrativePanel narrative={tripNarrative.narrative} bullets={tripNarrative.bullets} />
 
         {allBurndownAlerts.length > 0 && <BudgetAlertBanner alerts={allBurndownAlerts} />}
+
+        <PreDeparturePlannerPanel
+          tripId={id}
+          plan={preDeparturePlan}
+          destinations={sorted}
+          fixedCosts={fixedCosts}
+        />
 
         <FixedCostSection tripId={id} fixedCosts={fixedCosts} />
 

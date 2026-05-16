@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
+import type { PreDeparturePlannerService } from '@/application/ports/pre-departure-planner-service';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import {
   runtimeAwareChatAssistant,
   runtimeAwareItineraryParser,
+  runtimeAwarePreDeparturePlanner,
   runtimeAwareTimelineInsights,
   runtimeAwareTripNarrative,
 } from './runtime-aware-services';
@@ -44,6 +46,28 @@ const fallbackNarrative: TripNarrativeService = {
     .fn()
     .mockResolvedValue({ ok: true, result: { narrative: '', bullets: [] } }),
 };
+
+const realPlanner: PreDeparturePlannerService = {
+  plan: vi.fn().mockResolvedValue({
+    ok: true,
+    result: {
+      items: [{ title: 'real', category: 'visa', dueDate: null, costPence: null, suggestion: null, verifyAt: null }],
+      transportLegs: [],
+    },
+  }),
+};
+const fallbackPlanner: PreDeparturePlannerService = {
+  plan: vi
+    .fn()
+    .mockResolvedValue({ ok: true, result: { items: [], transportLegs: [] } }),
+};
+
+const plannerInput = {
+  trip: {} as Parameters<PreDeparturePlannerService['plan']>[0]['trip'],
+  destinations: [],
+  fixedCosts: [],
+  currentDate: new Date('2026-05-15'),
+} as Parameters<PreDeparturePlannerService['plan']>[0];
 
 const narrativeInput = {
   trip: {} as Parameters<TripNarrativeService['summarise']>[0]['trip'],
@@ -161,5 +185,21 @@ describe('runtimeAwareTripNarrative', () => {
     creds = true;
     const second = await service.summarise(narrativeInput);
     expect(second.ok && second.result.narrative).toBe('real');
+  });
+});
+
+describe('runtimeAwarePreDeparturePlanner', () => {
+  it('routes to the real implementation when credentials are present', async () => {
+    const service = runtimeAwarePreDeparturePlanner(realPlanner, fallbackPlanner, () => true);
+    const outcome = await service.plan(plannerInput);
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) expect(outcome.result.items).toHaveLength(1);
+  });
+
+  it('routes to the fallback when credentials are absent', async () => {
+    const service = runtimeAwarePreDeparturePlanner(realPlanner, fallbackPlanner, () => false);
+    const outcome = await service.plan(plannerInput);
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) expect(outcome.result.items).toHaveLength(0);
   });
 });

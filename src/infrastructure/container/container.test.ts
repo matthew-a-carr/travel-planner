@@ -17,6 +17,7 @@ function createFakeContainer(): AppContainer {
     itineraryParser: {} as AppContainer['itineraryParser'],
     timelineInsightsService: {} as AppContainer['timelineInsightsService'],
     tripNarrativeService: {} as AppContainer['tripNarrativeService'],
+    preDeparturePlannerService: {} as AppContainer['preDeparturePlannerService'],
     aiCacheRepository: {} as AppContainer['aiCacheRepository'],
     hashFn: ((s: string) => s) as AppContainer['hashFn'],
     chatMessageRepository: {} as AppContainer['chatMessageRepository'],

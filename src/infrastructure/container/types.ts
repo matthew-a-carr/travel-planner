@@ -3,6 +3,7 @@ import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ChatMessageRepository } from '@/application/ports/chat-message-repository';
 import type { InviteEmailService } from '@/application/ports/invite-email-service';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
+import type { PreDeparturePlannerService } from '@/application/ports/pre-departure-planner-service';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
@@ -25,6 +26,7 @@ export type AppContainer = {
   readonly itineraryParser: ItineraryParser;
   readonly timelineInsightsService: TimelineInsightsService;
   readonly tripNarrativeService: TripNarrativeService;
+  readonly preDeparturePlannerService: PreDeparturePlannerService;
   readonly aiCacheRepository: AiCacheRepository;
   readonly hashFn: (input: string) => string;
   readonly chatMessageRepository: ChatMessageRepository;

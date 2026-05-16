@@ -1,19 +1,23 @@
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
+import type { PreDeparturePlannerService } from '@/application/ports/pre-departure-planner-service';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import { AnthropicChatAssistant } from './anthropic-chat-assistant';
 import { AnthropicItineraryParser } from './anthropic-itinerary-parser';
 import { AnthropicTimelineInsights } from './anthropic-timeline-insights';
 import type { ChatToolDeps } from './chat-tools';
+import { GatewayPreDeparturePlannerService } from './gateway-pre-departure-planner';
 import { GatewayTripNarrativeService } from './gateway-trip-narrative';
 import { NoOpChatAssistant } from './no-op-chat-assistant';
 import { NoOpItineraryParser } from './no-op-itinerary-parser';
+import { NoOpPreDeparturePlannerService } from './no-op-pre-departure-planner';
 import { NoOpTimelineInsights } from './no-op-timeline-insights';
 import { NoOpTripNarrativeService } from './no-op-trip-narrative';
 import {
   runtimeAwareChatAssistant,
   runtimeAwareItineraryParser,
+  runtimeAwarePreDeparturePlanner,
   runtimeAwareTimelineInsights,
   runtimeAwareTripNarrative,
 } from './runtime-aware-services';
@@ -24,6 +28,7 @@ export type AiServices = {
   readonly timelineInsightsService: TimelineInsightsService;
   readonly chatAssistant: ChatAssistantService;
   readonly tripNarrativeService: TripNarrativeService;
+  readonly preDeparturePlannerService: PreDeparturePlannerService;
 };
 
 /**
@@ -63,6 +68,10 @@ export function createAiServices(chatToolDeps: ChatToolDeps): AiServices {
     tripNarrativeService: runtimeAwareTripNarrative(
       new GatewayTripNarrativeService(modelId),
       new NoOpTripNarrativeService(),
+    ),
+    preDeparturePlannerService: runtimeAwarePreDeparturePlanner(
+      new GatewayPreDeparturePlannerService(modelId),
+      new NoOpPreDeparturePlannerService(),
     ),
   };
 }

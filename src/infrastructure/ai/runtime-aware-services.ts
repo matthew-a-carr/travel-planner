@@ -1,5 +1,6 @@
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
+import type { PreDeparturePlannerService } from '@/application/ports/pre-departure-planner-service';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
 import { hasAiCredentials } from './vercel-gateway-client';
@@ -69,5 +70,15 @@ export function runtimeAwareTripNarrative(
 ): TripNarrativeService {
   return {
     summarise: (input) => (hasCredentials() ? real : fallback).summarise(input),
+  };
+}
+
+export function runtimeAwarePreDeparturePlanner(
+  real: PreDeparturePlannerService,
+  fallback: PreDeparturePlannerService,
+  hasCredentials: Predicate = hasAiCredentials,
+): PreDeparturePlannerService {
+  return {
+    plan: (input) => (hasCredentials() ? real : fallback).plan(input),
   };
 }
