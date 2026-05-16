@@ -31,6 +31,12 @@ variable "build_command" {
   type        = string
 }
 
+variable "root_directory" {
+  description = "Path to the application within the repository (for monorepos). Relative path; cannot start with ./ or contain ../. Leave null when the application is at the repo root."
+  type        = string
+  default     = null
+}
+
 variable "domain" {
   description = "Optional production domain to assign to the Vercel project."
   type        = string

@@ -81,10 +81,12 @@ Member assignment uses a searchable picker backed by the `users` table
 (pre-provisioned users only). First-time pre-provision approval sends a warm
 invite email; explicit resend is available from access settings.
 
-If you want to use your own database and OAuth credentials, copy the template and fill in your values:
+If you want to use your own database and OAuth credentials, copy the template
+and fill in your values. The web app reads `.env.local` from its own
+directory (see ADR 046 for the monorepo layout):
 
 ```bash
-cp .env.example .env.local
+cp apps/web/.env.example apps/web/.env.local
 ```
 
 ```
@@ -129,17 +131,20 @@ production build and e2e suite.
 
 ## Architecture
 
-The codebase follows a DDD-inspired layered architecture with mechanically enforced import boundaries:
+This is a pnpm monorepo (see [ADR 046](./docs/decisions/046-monorepo-layout.md)).
+The web app lives at `apps/web/`; future apps (iOS — see [ADR 045](./docs/decisions/045-ios-app-strategy.md))
+will live alongside it under `apps/`. Inside the web app, the codebase follows
+a DDD-inspired layered architecture with mechanically enforced import boundaries:
 
 ```
-src/domain/        Pure TypeScript domain logic — no external dependencies
-src/application/   Use cases — orchestrates domain; no framework code
-src/infrastructure Adapters — Drizzle repositories, Auth.js, external APIs
-src/ui/            React components
-src/app/           Next.js App Router (pages, layouts, server actions)
+apps/web/src/domain/        Pure TypeScript domain logic — no external dependencies
+apps/web/src/application/   Use cases — orchestrates domain; no framework code
+apps/web/src/infrastructure Adapters — Drizzle repositories, Auth.js, external APIs
+apps/web/src/ui/            React components
+apps/web/src/app/           Next.js App Router (pages, layouts, server actions)
 ```
 
-Layer boundaries are enforced by `src/__tests__/architecture.test.ts`. Breaking them fails CI.
+Layer boundaries are enforced by `apps/web/src/__tests__/architecture.test.ts`. Breaking them fails CI.
 
 Key domain decisions:
 - **Money as integers in pence** — never floats
