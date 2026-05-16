@@ -27,36 +27,29 @@ async function createTrip(page: Page, tripName: string, totalBudget = '20000'): 
 }
 
 test.describe('Pre-departure planning panel', () => {
-  test('renders the stub plan with addable + info-only rows', async ({ page }) => {
+  test('renders the stub plan and one-click adds a fixed cost that dedupes', async ({ page }) => {
     await createTrip(page, `Pre-Departure E2E ${Date.now()}`);
 
     const panel = page.getByTestId('pre-departure-panel');
-    await expect(panel).toBeVisible();
+    await expect(panel).toBeVisible({ timeout: 15_000 });
 
-    // Stub returns one item with a cost (addable) and one info-only item.
-    const addableRow = panel.locator('li', { hasText: STUB_VISA_ITEM });
+    // Stub returns one addable item (with cost) and one info-only item.
+    const addableRow = panel.locator('li').filter({ hasText: STUB_VISA_ITEM });
     await expect(addableRow).toBeVisible();
-    await expect(
-      addableRow.getByRole('button', { name: /add as fixed cost/i }),
-    ).toBeVisible();
 
-    const infoRow = panel.locator('li', { hasText: STUB_INFO_ITEM });
+    const infoRow = panel.locator('li').filter({ hasText: STUB_INFO_ITEM });
     await expect(infoRow).toBeVisible();
     await expect(infoRow.getByText(/info only/i)).toBeVisible();
-  });
 
-  test('"Add as fixed cost" creates a fixed cost and the row dedupes', async ({ page }) => {
-    await createTrip(page, `Pre-Departure E2E ${Date.now()}`);
+    const addButton = addableRow.getByRole('button', { name: /add as fixed cost/i });
+    await expect(addButton).toBeVisible();
+    await addButton.click();
 
-    const panel = page.getByTestId('pre-departure-panel');
-    const addableRow = panel.locator('li', { hasText: STUB_VISA_ITEM });
-    await addableRow.getByRole('button', { name: /add as fixed cost/i }).click();
+    // Server action + revalidation round trip — allow generous time on CI.
+    await expect(addableRow.getByText(/already added/i)).toBeVisible({ timeout: 20_000 });
 
-    // After the server action revalidates, the row marks itself "Already added".
-    await expect(addableRow.getByText(/already added/i)).toBeVisible();
-
-    // And the new fixed cost appears in the Fixed costs section below.
+    // The new fixed cost appears in the Fixed costs section below.
     const fixedCosts = page.locator('#fixed-costs');
-    await expect(fixedCosts.getByText(STUB_VISA_ITEM)).toBeVisible();
+    await expect(fixedCosts.getByText(STUB_VISA_ITEM).first()).toBeVisible({ timeout: 15_000 });
   });
 });

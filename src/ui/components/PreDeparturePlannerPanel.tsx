@@ -60,7 +60,7 @@ export function PreDeparturePlannerPanel({ tripId, plan, destinations, fixedCost
         >
           Pre-departure planning
         </h2>
-        <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+        <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
           AI suggestions
         </span>
       </div>
@@ -173,7 +173,7 @@ function ChecklistItemRow({
             Already added
           </span>
         ) : (
-          <span className="shrink-0 text-[11px] italic text-zinc-400 dark:text-zinc-500">
+          <span className="shrink-0 text-[11px] italic text-zinc-500 dark:text-zinc-400">
             Info only
           </span>
         )}
