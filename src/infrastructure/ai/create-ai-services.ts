@@ -7,6 +7,7 @@ import { AnthropicChatAssistant } from './anthropic-chat-assistant';
 import { AnthropicItineraryParser } from './anthropic-itinerary-parser';
 import { AnthropicTimelineInsights } from './anthropic-timeline-insights';
 import type { ChatToolDeps } from './chat-tools';
+import { E2eStubPreDeparturePlannerService } from './e2e-stub-pre-departure-planner';
 import { GatewayPreDeparturePlannerService } from './gateway-pre-departure-planner';
 import { GatewayTripNarrativeService } from './gateway-trip-narrative';
 import { NoOpChatAssistant } from './no-op-chat-assistant';
@@ -51,6 +52,7 @@ export type AiServices = {
  */
 export function createAiServices(chatToolDeps: ChatToolDeps): AiServices {
   const modelId = gatewayModelId();
+  const e2eStubAiServices = process.env.E2E_STUB_AI_SERVICES === 'true';
 
   return {
     itineraryParser: runtimeAwareItineraryParser(
@@ -69,9 +71,11 @@ export function createAiServices(chatToolDeps: ChatToolDeps): AiServices {
       new GatewayTripNarrativeService(modelId),
       new NoOpTripNarrativeService(),
     ),
-    preDeparturePlannerService: runtimeAwarePreDeparturePlanner(
-      new GatewayPreDeparturePlannerService(modelId),
-      new NoOpPreDeparturePlannerService(),
-    ),
+    preDeparturePlannerService: e2eStubAiServices
+      ? new E2eStubPreDeparturePlannerService()
+      : runtimeAwarePreDeparturePlanner(
+          new GatewayPreDeparturePlannerService(modelId),
+          new NoOpPreDeparturePlannerService(),
+        ),
   };
 }

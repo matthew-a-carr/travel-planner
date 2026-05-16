@@ -40,6 +40,10 @@ async function main(): Promise<void> {
         AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID ?? 'e2e-placeholder-client-id',
         AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET ?? 'e2e-placeholder-client-secret',
         AUTH_URL: process.env.AUTH_URL ?? 'http://localhost:3000',
+        // Inject deterministic AI stubs for the pre-departure planner so the
+        // panel can be exercised without live AI credentials. Other AI ports
+        // still fall back to no-op. See `e2e-stub-pre-departure-planner.ts`.
+        E2E_STUB_AI_SERVICES: 'true',
       },
       stdio: 'inherit',
     });

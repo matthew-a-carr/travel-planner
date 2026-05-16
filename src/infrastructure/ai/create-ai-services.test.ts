@@ -70,6 +70,47 @@ describe('createAiServices', () => {
     if (!outcome.ok) expect(outcome.error).toMatch(/unavailable/i);
   });
 
+  it('swaps the pre-departure planner for the deterministic e2e stub when E2E_STUB_AI_SERVICES=true', async () => {
+    vi.stubEnv('AI_GATEWAY_API_KEY', '');
+    vi.stubEnv('VERCEL', '');
+    vi.stubEnv('E2E_STUB_AI_SERVICES', 'true');
+
+    const services = createAiServices(stubChatToolDeps);
+    const outcome = await services.preDeparturePlannerService.plan({
+      // The stub ignores its input — these fields exist only to satisfy the type.
+      trip: {} as Parameters<typeof services.preDeparturePlannerService.plan>[0]['trip'],
+      destinations: [],
+      fixedCosts: [],
+      currentDate: new Date('2026-05-15'),
+    });
+
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.result.items).toHaveLength(2);
+    expect(outcome.result.items[0].title).toContain('E2E stub');
+    expect(outcome.result.transportLegs).toEqual([]);
+  });
+
+  it('routes the pre-departure planner to the no-op fallback when E2E stub is off and creds are absent', async () => {
+    vi.stubEnv('AI_GATEWAY_API_KEY', '');
+    vi.stubEnv('VERCEL', '');
+    vi.stubEnv('E2E_STUB_AI_SERVICES', '');
+
+    const services = createAiServices(stubChatToolDeps);
+    const outcome = await services.preDeparturePlannerService.plan({
+      trip: {} as Parameters<typeof services.preDeparturePlannerService.plan>[0]['trip'],
+      destinations: [],
+      fixedCosts: [],
+      currentDate: new Date('2026-05-15'),
+    });
+
+    expect(outcome.ok).toBe(true);
+    if (outcome.ok) {
+      expect(outcome.result.items).toEqual([]);
+      expect(outcome.result.transportLegs).toEqual([]);
+    }
+  });
+
   it('routes the timeline insights to the no-op fallback (empty findings) when credentials are absent', async () => {
     vi.stubEnv('AI_GATEWAY_API_KEY', '');
     vi.stubEnv('VERCEL', '');
