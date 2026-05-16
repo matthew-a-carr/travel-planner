@@ -5,6 +5,30 @@
 
 ---
 
+## Repo layout
+
+This is a pnpm monorepo (ADR 046). The web application lives at
+`apps/web/`; future apps (iOS — ADR 045) will sit alongside it under
+`apps/`. Shared workspace packages live under `packages/`.
+
+```
+travel-planner/
+├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
+├── packages/         ← shared workspace packages (empty for now)
+├── docs/             ← project-wide docs and ADRs
+├── infra/            ← Terraform
+├── biome.json        ← workspace-wide formatter/linter config
+├── package.json      ← workspace root with pass-through scripts
+└── pnpm-workspace.yaml
+```
+
+**Path references in this document and the layer-specific `AGENTS.md`
+files describe paths *within* the web app.** For example, `src/domain/`
+resolves to `apps/web/src/domain/`. All `pnpm` commands below run from the
+repo root and pass through to the right workspace automatically.
+
+---
+
 ## Verification — run this before pushing
 
 ```bash

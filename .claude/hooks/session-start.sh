@@ -10,6 +10,17 @@ fi
 # 1. Start Docker daemon (needed for Testcontainers — integration/e2e tests)
 ##############################################################################
 if ! docker info &>/dev/null; then
+  # Remove stale pid file if its referenced process is gone.
+  # Firecracker boots can leave /var/run/docker.pid behind from prior runs,
+  # which causes dockerd to refuse to start ("process with PID N is still
+  # running") even though that PID does not exist in this container.
+  if [ -f /var/run/docker.pid ]; then
+    stale_pid="$(cat /var/run/docker.pid 2>/dev/null || true)"
+    if [ -n "$stale_pid" ] && ! kill -0 "$stale_pid" 2>/dev/null; then
+      sudo rm -f /var/run/docker.pid
+    fi
+  fi
+
   sudo dockerd &>/tmp/dockerd.log &
 
   # Wait up to 30 seconds for the daemon to be ready
@@ -22,6 +33,7 @@ if ! docker info &>/dev/null; then
 
   if ! docker info &>/dev/null; then
     echo "WARNING: Docker daemon failed to start within 30 seconds" >&2
+    tail -20 /tmp/dockerd.log >&2 || true
   fi
 fi
 

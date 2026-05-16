@@ -1,8 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
-/.pnp
+# dependencies — match at every depth so workspace packages are covered.
+node_modules
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,20 +11,20 @@
 !.yarn/versions
 
 # testing
-/coverage
-/test-results
-/playwright-report
+coverage
+test-results
+playwright-report
 # Testcontainers runtime artefacts (written by global.setup.ts, not for VCS)
-/tests/e2e/fixtures/auth-state.json
-/tests/e2e/fixtures/.container-id
-/tests/e2e/fixtures/.postgres-url
+apps/web/tests/e2e/fixtures/auth-state.json
+apps/web/tests/e2e/fixtures/.container-id
+apps/web/tests/e2e/fixtures/.postgres-url
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build
 
 # misc
 .DS_Store

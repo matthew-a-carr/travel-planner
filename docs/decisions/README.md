@@ -54,3 +54,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [043](043-trip-narrative-on-overview.md) | Trip Narrative on the Overview Card | 2026-05-14 | Accepted |
 | [044](044-ai-assisted-trip-creation.md) | AI-Assisted Trip Creation | 2026-05-15 | Accepted |
 | [045](045-ios-app-strategy.md) | iOS App Strategy | 2026-05-16 | Proposed |
+| [046](046-monorepo-layout.md) | Monorepo Layout — apps/ and packages/ | 2026-05-16 | Accepted |
