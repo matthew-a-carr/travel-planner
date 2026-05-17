@@ -1,5 +1,3 @@
-BEGIN;
-
 -- Step 1: Add new columns as nullable
 ALTER TABLE "country_reference_data" ADD COLUMN "alpha2" text;
 ALTER TABLE "country_reference_data" ADD COLUMN "alpha3" text;
@@ -48,5 +46,3 @@ ALTER TABLE "country_reference_data" ALTER COLUMN "alpha3" SET NOT NULL;
 -- Step 4: Add unique constraints
 ALTER TABLE "country_reference_data" ADD CONSTRAINT "country_reference_data_alpha2_unique" UNIQUE("alpha2");
 ALTER TABLE "country_reference_data" ADD CONSTRAINT "country_reference_data_alpha3_unique" UNIQUE("alpha3");
-
-COMMIT;

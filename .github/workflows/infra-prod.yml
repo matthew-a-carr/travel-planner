@@ -3,9 +3,6 @@ name: Infra Prod Apply
 on:
   push:
     branches: [main]
-    paths:
-      - 'infra/**'
-      - '.github/workflows/infra-*.yml'
   workflow_dispatch:
 
 jobs:
