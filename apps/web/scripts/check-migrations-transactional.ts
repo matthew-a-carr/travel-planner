@@ -28,6 +28,26 @@ const NON_TRANSACTIONAL_PATTERNS: ReadonlyArray<{ pattern: RegExp; reason: strin
     pattern: /\bdrop\s+database\b/i,
     reason: 'DROP DATABASE cannot run inside a transaction block.',
   },
+  {
+    pattern: /^\s*begin\s*;?\s*$/im,
+    // Drizzle's migrator wraps the entire migration batch in a single
+    // transaction (pg-core/dialect.js::migrate). An in-file BEGIN raises
+    // Postgres warning 25001 (transaction already in progress).
+    reason: 'BEGIN is redundant — Drizzle already wraps migrations in a transaction.',
+  },
+  {
+    pattern: /^\s*(?:commit|rollback)\s*;?\s*$/im,
+    // An in-file COMMIT/ROLLBACK closes Drizzle's outer transaction
+    // prematurely, breaks atomicity for the rest of the batch, and yields
+    // Postgres warning 25P01 when Drizzle later tries its own COMMIT.
+    // END is omitted from the pattern — it also legitimately closes CASE
+    // expressions and PL/pgSQL blocks.
+    reason: 'COMMIT/ROLLBACK inside a migration closes Drizzle’s outer transaction prematurely.',
+  },
+  {
+    pattern: /\bstart\s+transaction\b/i,
+    reason: 'START TRANSACTION is redundant — Drizzle already wraps migrations in a transaction.',
+  },
 ];
 
 type MigrationIssue = {

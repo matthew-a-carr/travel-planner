@@ -1,5 +1,3 @@
-BEGIN;
-
 ALTER TABLE trips ADD CONSTRAINT check_trip_status
   CHECK (status IN ('planning', 'active', 'completed'));
 
@@ -13,5 +11,3 @@ ALTER TABLE trip_fixed_costs ADD CONSTRAINT check_fixed_cost_category
   CHECK (category IN ('accommodation', 'activities', 'bills', 'eating-out', 'fuel',
     'groceries', 'healthcare', 'insurance', 'shopping', 'subscriptions',
     'transport', 'visas', 'other'));
-
-COMMIT;
