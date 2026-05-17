@@ -224,8 +224,12 @@ parallelised (noted inline).
   user. Accepts cookie session OR (later) bearer token.
 - Define the error envelope, versioning rule, and HTTP-status mapping for
   `Result<T, E>`.
-- Co-located `route.int-test.ts` covering: authenticated 200, unauthenticated
-  401, soft-deleted user 410.
+- Co-located `route.int-test.ts` covering: approved session 200,
+  no-session 401, session-points-to-missing-user 401, unapproved-user 403,
+  and approved-admin 200 with `isAdmin: true`. (The original plan listed
+  a `410 Gone` case for a soft-deleted user; the `users` table has no
+  soft-delete column, so a missing row is treated as effectively
+  unauthenticated.)
 - **ADR 047:** REST API conventions — versioning, error envelope, pagination,
   status-code mapping, naming.
 

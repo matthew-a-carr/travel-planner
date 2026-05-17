@@ -48,6 +48,7 @@ src/application/
     set-user-admin.ts             + set-user-admin.int-test.ts
     pre-provision-user-access.ts  + pre-provision-user-access.int-test.ts
     send-user-access-invite.ts    + send-user-access-invite.int-test.ts
+    get-current-user.ts           + get-current-user.int-test.ts
 ```
 
 ## Email templates
@@ -86,5 +87,5 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 26 integration test files in `use-cases/`, **one per use case**.
+There are currently 27 integration test files in `use-cases/`, **one per use case**.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.
