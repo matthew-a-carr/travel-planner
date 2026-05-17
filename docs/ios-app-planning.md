@@ -212,7 +212,44 @@ Every slice is independently shippable, ends with passing CI, and is small
 enough for a single PR. Slices are listed in dependency order; some can be
 parallelised (noted inline).
 
+### Roadmap status
+
+This table is the canonical "what's done / what's next" for any agent picking
+up work. Keep it in sync with reality whenever a slice's PR opens, merges,
+or stalls. Update the status, the PR link, and (if you finished a slice) the
+date.
+
+| Slice | Title | Status | PR | Notes |
+|---|---|---|---|---|
+| 0 | Monorepo restructure | ✅ Landed (2026-05-16) | [#93](https://github.com/matthew-a-carr/travel-planner/pull/93) | ADR 046 accepted |
+| 1 | REST API conventions + `GET /api/v1/me` | 🚧 In review (2026-05-17) | [#97](https://github.com/matthew-a-carr/travel-planner/pull/97) | ADR 047 accepted; awaiting merge |
+| 2 | **Bearer-token authentication** | ⏭ **Next** | – | Authors ADR 048 (Proposed). Unblocks Slice 3 + Slice 7. |
+| 3 | Mobile OAuth issuance endpoints | Pending | – | Sequential after Slice 2. Flips ADR 048 → Accepted. |
+| 4 | Shared types package (`packages/shared/`) | Pending — **parallelisable** | – | Independent of 2/3. Can be picked up by a second agent. |
+| 5 | Expo app skeleton (`apps/mobile/`) | Pending — **parallelisable** | – | Independent of 2/3/4. Authors ADR 049. |
+| 6 | Mobile sign-in UI + PKCE flow | Pending | – | Requires Slices 3 and 5. |
+| 7 | Authenticated "me" screen | Pending — **milestone** | – | When this merges, the goal in §7 is met. |
+| 8 | Mobile testing infrastructure | Pending | – | Authors ADR 050. |
+| 9 | Mobile observability | Pending | – | Authors ADR 051. |
+
+**Picking up the next slice.** An agent landing in this repo with no context
+should:
+
+1. Read the row marked ⏭ (currently Slice 2) — that is the next slice.
+2. Open the corresponding `### Slice N — …` subsection below for the
+   detailed acceptance criteria and the ADR to author.
+3. Cross-check the "ADRs to be written" table in §10 for status.
+4. Branch from `main`, follow the verification commands in
+   [`AGENTS.md`](../AGENTS.md), and open a PR linking back to this doc.
+5. **Before merging your slice's PR**, update this table:
+   change the status from ⏭/Pending to ✅ Landed, fill in the PR link
+   and date, and flip the ⏭ marker to the next slice.
+
+If two contributors are working at once, the parallelisable slices (4, 5)
+are the obvious second track — they have no dependency on 2/3.
+
 ### Slice 0 — Monorepo restructure
+*✅ Landed in [PR #93](https://github.com/matthew-a-carr/travel-planner/pull/93) on 2026-05-16.*
 - Move `src/`, `tests/`, `next.config.ts`, etc. into `apps/web/`.
 - Add root `pnpm-workspace.yaml` listing `apps/*` and `packages/*`.
 - Update CI paths and verification scripts.
@@ -220,6 +257,8 @@ parallelised (noted inline).
 - **ADR 046:** Monorepo layout — apps and packages structure.
 
 ### Slice 1 — REST API conventions and the first endpoint
+*🚧 In review in [PR #97](https://github.com/matthew-a-carr/travel-planner/pull/97) since 2026-05-17.*
+
 - Add `apps/web/src/app/api/v1/me/route.ts` — `GET` returns the authenticated
   user. Accepts cookie session OR (later) bearer token.
 - Define the error envelope, versioning rule, and HTTP-status mapping for
@@ -234,6 +273,8 @@ parallelised (noted inline).
   status-code mapping, naming.
 
 ### Slice 2 — Bearer-token authentication for Route Handlers
+*⏭ Next up. Author ADR 048 (Proposed) at the start of the slice.*
+
 - New file `apps/web/src/infrastructure/auth/bearer-token.ts` — verifies a
   JWT and resolves it to the same `User` row that next-auth resolves cookies to.
 - Route Handler middleware that accepts either cookie or bearer.
@@ -458,15 +499,15 @@ Each upcoming ADR is written when its slice is started, not before. They
 land **Proposed** at the start of the slice and **Accepted** when the slice
 merges.
 
-| ADR | Title | Triggered by | Slice |
-|---|---|---|---|
-| 045 | iOS App Strategy | (overarching) | this doc — already exists |
-| 046 | Monorepo Layout: apps/ and packages/ | Slice 0 | 0 |
-| 047 | REST API Conventions: versioning, error envelope, status mapping | Slice 1 | 1 |
-| 048 | Mobile Authentication: PKCE + JWT + Keychain | Slice 2 | 2–3 |
-| 049 | Expo as the React Native Framework and Distribution Path | Slice 5 | 5 |
-| 050 | Mobile Testing Strategy: Jest + RNTL + MSW + Maestro | Slice 8 | 8 |
-| 051 | Mobile Observability: Sentry React Native | Slice 9 | 9 |
+| ADR | Title | Triggered by | Slice | Status |
+|---|---|---|---|---|
+| 045 | iOS App Strategy | (overarching) | this doc — already exists | Proposed (flip to Accepted in a follow-up doc PR) |
+| 046 | Monorepo Layout: apps/ and packages/ | Slice 0 | 0 | Accepted ([PR #93](https://github.com/matthew-a-carr/travel-planner/pull/93)) |
+| 047 | REST API Conventions: versioning, error envelope, status mapping | Slice 1 | 1 | Accepted ([PR #97](https://github.com/matthew-a-carr/travel-planner/pull/97), awaiting merge) |
+| 048 | Mobile Authentication: PKCE + JWT + Keychain | Slice 2 | 2–3 | Not yet written |
+| 049 | Expo as the React Native Framework and Distribution Path | Slice 5 | 5 | Not yet written |
+| 050 | Mobile Testing Strategy: Jest + RNTL + MSW + Maestro | Slice 8 | 8 | Not yet written |
+| 051 | Mobile Observability: Sentry React Native | Slice 9 | 9 | Not yet written |
 
 Possible later ADRs (post-milestone, deferred):
 
