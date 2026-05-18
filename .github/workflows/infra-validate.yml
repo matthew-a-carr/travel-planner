@@ -4,17 +4,17 @@ on:
   pull_request:
     paths:
       - 'infra/**'
-      - 'drizzle/**'
-      - 'scripts/check-migrations-transactional.ts'
-      - 'src/infrastructure/db/migrate-deploy.ts'
+      - 'apps/web/drizzle/**'
+      - 'apps/web/scripts/check-migrations-transactional.ts'
+      - 'apps/web/src/infrastructure/db/migrate-deploy.ts'
       - '.github/workflows/infra-*.yml'
   push:
     branches: [main]
     paths:
       - 'infra/**'
-      - 'drizzle/**'
-      - 'scripts/check-migrations-transactional.ts'
-      - 'src/infrastructure/db/migrate-deploy.ts'
+      - 'apps/web/drizzle/**'
+      - 'apps/web/scripts/check-migrations-transactional.ts'
+      - 'apps/web/src/infrastructure/db/migrate-deploy.ts'
       - '.github/workflows/infra-*.yml'
 
 jobs:
