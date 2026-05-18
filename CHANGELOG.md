@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.15.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.14.0...v1.15.0) (2026-05-18)
+
+
+### Features
+
+* **chat:** Slice 2 — write-side tools with inline-confirm risk policy ([#82](https://github.com/matthew-a-carr/travel-planner/issues/82)) ([815504e](https://github.com/matthew-a-carr/travel-planner/commit/815504ec380ec01126cd07630488e413a754d504))
+* **chat:** Slice 2.5 — UI message protocol + ToolCallCard ([#84](https://github.com/matthew-a-carr/travel-planner/issues/84)) ([86fea4d](https://github.com/matthew-a-carr/travel-planner/commit/86fea4defb153aa90943ee2db61d228832b811b4))
+* **chat:** suggested-prompt chips on assistant drawer empty state ([#88](https://github.com/matthew-a-carr/travel-planner/issues/88)) ([135e06a](https://github.com/matthew-a-carr/travel-planner/commit/135e06afd695641c0df5eb00f72969552210a38f))
+* **repo:** iOS app strategy (ADR 045) + monorepo restructure (ADR 046) ([#93](https://github.com/matthew-a-carr/travel-planner/issues/93)) ([a74e76b](https://github.com/matthew-a-carr/travel-planner/commit/a74e76b33dacdb11ad12258d7a0b4dad04f568c9))
+* **timeline:** visa-required, event-clash, peak-pricing insight kinds ([#90](https://github.com/matthew-a-carr/travel-planner/issues/90)) ([23d3dee](https://github.com/matthew-a-carr/travel-planner/commit/23d3deed776d5cad5f817e3667981afac14e4384))
+* **trip:** AI burndown narrative panel on the overview (ADR 043) ([#89](https://github.com/matthew-a-carr/travel-planner/issues/89)) ([e8246ca](https://github.com/matthew-a-carr/travel-planner/commit/e8246ca202e08a1bfb3170c7e96aa37ade1dd2a0))
+* **trip:** AI-assisted trip creation from a pasted paragraph (ADR 044) ([#92](https://github.com/matthew-a-carr/travel-planner/issues/92)) ([899d962](https://github.com/matthew-a-carr/travel-planner/commit/899d962f5cce2aa5e251704a5bfcd5f839fe3664))
+
+
+### Bug Fixes
+
+* **chat:** surface a friendly error when the AI gateway fails ([#91](https://github.com/matthew-a-carr/travel-planner/issues/91)) ([bd57a6e](https://github.com/matthew-a-carr/travel-planner/commit/bd57a6e7c4dd5136ea656914af2c875f33643955))
+* **ci:** repair infra workflows after the monorepo restructure ([#96](https://github.com/matthew-a-carr/travel-planner/issues/96)) ([921eb36](https://github.com/matthew-a-carr/travel-planner/commit/921eb361d667f9838d7e70ff6aecf4d600717209))
+
 ## [1.14.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.13.0...v1.14.0) (2026-05-09)
 
 
