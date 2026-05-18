@@ -1,5 +1,3 @@
-BEGIN;
-
 ALTER TABLE "chat_messages" ADD COLUMN "parts" JSONB;
 --> statement-breakpoint
 UPDATE "chat_messages"
@@ -8,5 +6,3 @@ UPDATE "chat_messages"
 ALTER TABLE "chat_messages" ALTER COLUMN "parts" SET NOT NULL;
 --> statement-breakpoint
 ALTER TABLE "chat_messages" DROP COLUMN "content";
-
-COMMIT;

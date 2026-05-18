@@ -18,6 +18,15 @@ jobs:
   apply:
     name: Apply preview stack
     runs-on: ubuntu-latest
+    # Bot-authored PRs (Dependabot, release-please) cannot access repository
+    # secrets — TF_TOKEN_APP_TERRAFORM_IO is empty, terraform init against the
+    # TFC backend fails. We also intentionally skip preview branch creation for
+    # bot PRs (see ADR 039), so there is nothing useful for this job to do on
+    # them. The non-bot paths (closed-PR cleanup, real branches) still trigger
+    # normally on subsequent runs.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]')
     permissions:
       contents: read
       pull-requests: read
