@@ -111,19 +111,25 @@ production ID may be registered.
 
 ### 6. Path-filtered CI
 
-Four new GitHub Actions jobs in `.github/workflows/ci.yml`, all with
-`paths: ['apps/mobile/**']` filters:
+Three new GitHub Actions jobs in `.github/workflows/ci.yml`, all
+path-filtered via a shared `detect-changes` job that watches
+`apps/mobile/**`, `pnpm-lock.yaml`, and `pnpm-workspace.yaml`:
 
 | Job | Runner | Why |
 |-----|--------|-----|
-| `mobile-lint` | `ubuntu-latest` | Biome already covers `apps/mobile/**` via workspace config |
 | `mobile-typecheck` | `ubuntu-latest` | `tsc --noEmit` on the mobile package |
 | `mobile-unit-test` | `ubuntu-latest` | Jest + RNTL |
 | `mobile-e2e` | `macos-latest` | Maestro needs iOS Simulator |
 
+**Lint is not split per app.** The top-level `lint` job runs Biome
+from the repo root, and `biome.json`'s `includes` pattern covers
+both `apps/web/src/**` and `apps/mobile/app/**` +
+`apps/mobile/*.{ts,tsx,js,mjs}`. One lint check, one source of
+truth, no duplication.
+
 The macOS runner is ~10× the cost of Linux on GitHub Actions
 billing. Path filter is load-bearing — web-only PRs (e.g. Dependabot
-bumps of web deps, docs changes) must skip the mobile jobs.
+bumps of web deps, docs changes) must skip the macOS job.
 
 ### 7. testID convention
 

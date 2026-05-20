@@ -170,33 +170,14 @@ jobs:
 
   # ── Mobile (apps/mobile/) — path-filtered per ADR 052 ──────────────────────
   #
-  # mobile-lint / mobile-typecheck / mobile-unit-test run on Linux on every PR
-  # (they're cheap and catch breakage on shared-deps PRs too).
-  # mobile-e2e runs on macOS only when apps/mobile/** (or the lockfile/workspace
-  # config) actually changed — macOS runner cost is ~10× Linux.
-
-  mobile-lint:
-    name: Mobile lint
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm --filter @travel-planner/mobile exec biome check .
-        # Biome workspace config already covers apps/mobile via the root
-        # biome.json. This filter keeps the mobile lint signal explicit.
+  # mobile-typecheck / mobile-unit-test run on Linux when apps/mobile/**
+  # (or the lockfile/workspace config) changes.
+  # mobile-e2e runs on macOS only — macOS runner cost is ~10× Linux.
+  #
+  # Lint is NOT split per app: the top-level `lint` job runs Biome from the
+  # repo root, and biome.json's `includes` covers both apps/web/src/** and
+  # apps/mobile/app/** + apps/mobile/*.{ts,tsx,js,mjs}. One lint check, one
+  # source of truth.
 
   mobile-typecheck:
     name: Mobile type-check

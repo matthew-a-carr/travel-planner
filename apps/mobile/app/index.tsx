@@ -13,10 +13,7 @@ export default function HelloScreen() {
           backgroundColor: '#f4f4f5',
         }}
       >
-        <Text
-          style={{ fontSize: 24, fontWeight: '600' }}
-          testID="hello-screen-greeting"
-        >
+        <Text style={{ fontSize: 24, fontWeight: '600' }} testID="hello-screen-greeting">
           Hello, Travel Planner
         </Text>
       </View>

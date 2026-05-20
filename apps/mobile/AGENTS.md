@@ -30,6 +30,7 @@ pnpm dev:mobile        # starts Expo Metro; prints QR code
 pnpm mobile:test       # Jest unit + component tests
 pnpm mobile:e2e        # Maestro E2E (requires Maestro + iOS Simulator locally)
 pnpm --filter @travel-planner/mobile type-check
+pnpm lint              # repo-wide Biome — lints apps/mobile/app/** + apps/mobile/*.{ts,tsx,js,mjs} via biome.json includes
 ```
 
 To run on the author's iPhone: scan the QR with the Expo Go app
