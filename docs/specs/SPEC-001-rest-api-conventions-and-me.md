@@ -1,9 +1,9 @@
 # SPEC-001: REST API Conventions for v1 and `GET /api/v1/me`
 
 **Date:** 2026-05-20
-**Status:** Draft
+**Status:** Approved
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 1
 
 ---

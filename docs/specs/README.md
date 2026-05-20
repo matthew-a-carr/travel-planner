@@ -30,4 +30,4 @@ Draft → Approved → In Progress → Complete
 
 | Spec | Title | Parent | Date | Status |
 |------|-------|--------|------|--------|
-| [001](SPEC-001-rest-api-conventions-and-me.md) | REST API Conventions for v1 and `GET /api/v1/me` | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Draft |
+| [001](SPEC-001-rest-api-conventions-and-me.md) | REST API Conventions for v1 and `GET /api/v1/me` | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Approved |
