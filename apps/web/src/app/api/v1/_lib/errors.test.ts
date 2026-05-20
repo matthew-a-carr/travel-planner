@@ -13,6 +13,12 @@ const EXPECTED_STATUS: Record<ApiErrorCode, number> = {
   rate_limited: 429,
   internal: 500,
   unavailable: 503,
+  invalid_exchange_code: 400,
+  pkce_mismatch: 400,
+  refresh_reused: 401,
+  refresh_expired: 401,
+  refresh_revoked: 401,
+  refresh_unknown: 401,
 };
 
 describe('respondWithError', () => {

@@ -38,6 +38,44 @@ breakage from adding the FK to `users` cascade.
 
 ---
 
+### 2026-05-20 17:34 — Step 6 (route handlers) done
+
+**Step:** Step 6 — Route handlers (4 endpoints)
+**Type:** decision
+**Note:**
+
+Four route handlers under `apps/web/src/app/api/v1/auth/mobile/`:
+- `start/route.ts` — POST, zod parses `code_challenge`, returns
+  `{ authorise_url, state }`.
+- `callback/route.ts` — GET, **always** returns 302 to a
+  `travelplanner://auth?...` deep link. Never JSON — UA is the
+  system browser, not the app. Missing `code`/`state` →
+  `?error=invalid_request`.
+- `exchange/route.ts` — POST, maps `invalid_exchange_code` → 400,
+  `pkce_mismatch` → 400, happy path returns
+  `{ access_token, refresh_token, access_expires_at }`.
+- `refresh/route.ts` — POST, maps `refresh_reused` / `refresh_expired`
+  / `refresh_revoked` / `refresh_unknown` → 401 with the matching
+  envelope code. Sentry observer hook left empty (step 8 wires it).
+
+Extended `ApiErrorCode` union in `src/app/api/v1/_lib/errors.ts`
+with six new codes + their HTTP status mappings. Updated
+`errors.test.ts` table. Per ADR 050, status codes follow the
+documented mapping (validation → 400; bearer/refresh failures → 401).
+
+Small helper `_lib/redirect-uri.ts` derives the Google redirect URI
+from the request URL — single source of truth between `start` and
+`callback`.
+
+Route int-tests in `src/app/api/v1/auth/mobile/route.int-test.ts` — 9
+HTTP-shaped scenarios proving envelope shape, status codes, and
+container wiring. Use cases are already covered by deeper int-tests
+in the use-case dir, so these stay focused on the HTTP layer.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 17:30 — Step 5 (DI wiring) done
 
 **Step:** Step 5 — Container wiring + guard tests

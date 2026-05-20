@@ -14,7 +14,14 @@ export type ApiErrorCode =
   | 'gone'
   | 'rate_limited'
   | 'internal'
-  | 'unavailable';
+  | 'unavailable'
+  // Mobile auth (SPEC-004 / ADR 051)
+  | 'invalid_exchange_code'
+  | 'pkce_mismatch'
+  | 'refresh_reused'
+  | 'refresh_expired'
+  | 'refresh_revoked'
+  | 'refresh_unknown';
 
 export type ApiErrorBody = {
   readonly error: {
@@ -36,6 +43,12 @@ const STATUS_BY_CODE: Readonly<Record<ApiErrorCode, number>> = {
   rate_limited: 429,
   internal: 500,
   unavailable: 503,
+  invalid_exchange_code: 400,
+  pkce_mismatch: 400,
+  refresh_reused: 401,
+  refresh_expired: 401,
+  refresh_revoked: 401,
+  refresh_unknown: 401,
 };
 
 export function respondWithError(
