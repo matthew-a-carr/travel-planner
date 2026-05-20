@@ -59,3 +59,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [048](048-grilling-and-implementation-notes.md) | Grilling Step and Rolling Implementation Notes | 2026-05-20 | Accepted |
 | [049](049-epic-tier-for-multi-spec-initiatives.md) | Epic Tier for Multi-SPEC Initiatives | 2026-05-20 | Accepted |
 | [050](050-rest-api-conventions-v1.md) | REST API Conventions for `/api/v1/*` | 2026-05-20 | Accepted |
+| [051](051-mobile-authentication-model.md) | Mobile Authentication Model | 2026-05-20 | Proposed |

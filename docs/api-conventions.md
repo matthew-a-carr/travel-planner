@@ -137,11 +137,49 @@ are the only mechanism.
 
 ## Authentication
 
-- **Cookie session** (slice 1+): existing next-auth `authjs.session-token`
-  cookie. Resolved server-side via `requireCookieSession()` (see
-  `apps/web/src/app/api/v1/_lib/auth.ts`).
-- **Bearer token** (slice 2+): `Authorization: Bearer <jwt>`. Handler
-  middleware accepts either cookie or bearer once slice 2 ships.
+`/api/v1/*` endpoints accept **two credential formats**, both of which
+resolve to the same `User` row:
+
+- **Cookie session:** the existing next-auth `authjs.session-token`
+  cookie. Used by the web client and by any caller that's already
+  signed in via the browser.
+- **Bearer token:** `Authorization: Bearer <jwt>` header carrying an
+  HS256-signed JWT minted per ADR 051 (Mobile Authentication Model).
+  Used by the iOS app and any future non-browser client.
+
+### Helper composition
+
+`apps/web/src/app/api/v1/_lib/auth.ts` exports three helpers:
+
+| Helper | Accepts | Use case |
+|--------|---------|----------|
+| `requireCookieSession()` | cookie only | Endpoints that must reject bearer (rare; none today) |
+| `requireBearerSession(request)` | bearer only | Endpoints that must reject cookie (rare) |
+| `requireAuth(request)` | cookie OR bearer | **Default for all authenticated v1 endpoints** |
+
+All three return the same `AuthResult` discriminated union (`{ ok:
+true, userId, email, name, isApproved } | { ok: false, response }`).
+Handlers branch identically regardless of which credential the caller
+used.
+
+### When both are present
+
+If a request bears **both** a valid cookie session and a valid bearer
+token, **bearer wins** — the response reflects the user the bearer's
+`sub` claim identifies, even if the cookie identifies a different
+user. Rationale: bearer is the more explicit credential; iOS clients
+never send cookies, so a request with both is most likely a test
+fixture or a browser session on a shared machine.
+
+### 401 disambiguation
+
+All bearer verification failures (missing token, malformed token,
+expired token, bad signature, invalid claims) collapse to **`401
+unauthenticated`** regardless of cause. The underlying error is logged
+server-side for debugging but never surfaced in the response. Mobile
+clients respond to any 401 by attempting refresh; if refresh fails
+they re-login. Distinct codes wouldn't change that behaviour and would
+confirm system internals to attackers.
 
 Endpoints describing themselves as authenticated MUST reject requests
 with neither cookie nor bearer with `401 unauthenticated`.
