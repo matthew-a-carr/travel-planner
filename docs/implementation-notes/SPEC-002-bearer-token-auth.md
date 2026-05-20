@@ -22,7 +22,7 @@ SPEC §6 and §12 said pin jose as a direct **dev**Dep. That was wrong —
 ship in the production bundle. Pinning under `dependencies` instead of
 `devDependencies`.
 
-**Triage:** _see triage summary below_
+**Triage:** see triage summary below
 
 ---
 
@@ -55,7 +55,7 @@ the full stack and would have failed CI immediately. Adding a doc-
 review-table entry so future contributors know the matcher excludes
 `api/v1` deliberately.
 
-**Triage:** _see triage summary below_
+**Triage:** see triage summary below
 
 ---
 
@@ -70,9 +70,12 @@ that `04-auth-avatar.spec.ts` already exists. Renamed to
 `11-api-me.spec.ts` to follow the existing numerical sequence (last
 existing is `10-chat-foundation.spec.ts`).
 
-**Triage:** _see triage summary below_
+**Triage:** see triage summary below
 
 ## Close-out triage summary
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 (step 1, jose under `dependencies` not `devDependencies`) | Spec **Implementation Deviations** table — design intent change (SPEC §6 and §12 wording corrected). Small but real. |
+| 2 (step 8, proxy middleware redirecting `/api/v1/*`) | Spec **Post-Implementation Notes** + `AGENTS.md` doc-review table — pre-existing latent bug from SPEC-001 that integration tests had bypassed; fix committed; AGENTS row prevents regression. Worth a learning entry so future slices know middleware coverage matters. |
+| 3 (step 8, e2e file renamed `04-api-me` → `11-api-me`) | Discarded — cosmetic file-naming clash with `04-auth-avatar.spec.ts` already existing; resolved in the same commit that introduced the file. No future reader needs the original spec wording. |

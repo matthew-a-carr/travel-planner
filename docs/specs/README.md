@@ -31,4 +31,4 @@ Draft → Approved → In Progress → Complete
 | Spec | Title | Parent | Date | Status |
 |------|-------|--------|------|--------|
 | [001](SPEC-001-rest-api-conventions-and-me.md) | REST API Conventions for v1 and `GET /api/v1/me` | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
-| [002](SPEC-002-bearer-token-auth.md) | Bearer-Token Auth Alongside Cookie Sessions + Mobile-Auth Model ADR | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | In Progress |
+| [002](SPEC-002-bearer-token-auth.md) | Bearer-Token Auth Alongside Cookie Sessions + Mobile-Auth Model ADR | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |

@@ -1,9 +1,10 @@
 # SPEC-002: Bearer-Token Auth Alongside Cookie Sessions + Mobile-Auth Model ADR
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20
+**Completed:** 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 2
 
 ---
@@ -451,8 +452,30 @@ resolved before slice 2 began).
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _none yet_ | | | |
+| 1 | `jose` pinned under `dependencies`, not `devDependencies` as the spec said. | `bearer-token.ts` (step 3) imports `jose` at runtime; it must ship in the production bundle. | Tiny — corrected at step 1 before any commits referenced the wrong pin. No follow-up needed. | Yes — resolved in step 1. |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+**Things that worked well:**
+
+- **The 8-commit shape held.** Each commit was small and reviewable on its own. The longest single commit (step 6, handler migration + 7 new bearer tests) was still under 200 lines of production change.
+- **The three-helper composition has zero downside so far.** `requireCookieSession` / `requireBearerSession` / `requireAuth` returning the same `AuthResult` means `/me`'s handler change was literally one line. Future endpoints inherit the same trivial-migration property when they need bearer support.
+- **`signAccessToken` + `verifyAccessToken` as a pure module** turned out to be the right shape — used by the helper, the integration tests, the dev CLI, and (in slice 3) the PKCE flow without any modification. Single-purpose helper, multiple consumers.
+- **The "always 401 unauthenticated" rule simplified everything.** No 401-sub-code taxonomy to maintain; clients have a trivial decision tree (any 401 → try refresh → re-login if refresh fails).
+
+**Patterns to repeat for slice 3 and beyond:**
+
+- **Pin runtime libraries (vite, jose, …) as direct deps even when transitively available.** Insulates against silent transitive resolution shifts and makes lockfile auditing meaningful.
+- **`globalSetup` is the right place for stable test-env secrets.** Both `POSTGRES_URL` and `AUTH_JWT_SIGNING_KEY` live there now; whatever slice 3 introduces (mobile OAuth client id, etc.) should follow.
+- **Add an AGENTS.md doc-review row for any cross-cutting concern that future slices might unknowingly violate.** The proxy-matcher row (`if you touch proxy.ts, verify excluded paths still handle their own auth`) is exactly the shape future contributors will benefit from.
+
+**What I'd do differently:**
+
+- **The proxy-middleware bug should have been caught in SPEC-001.** Integration tests called the handler directly and bypassed middleware, so the latent redirect-to-login behaviour stayed hidden until slice 2's first e2e exercised the full stack. Lesson for future SPECs: when a slice adds a new HTTP surface, a single e2e against the running app catches whole-stack issues that handler-level integration tests can't. Slice 1's "no e2e in this slice" call was defensible but had a real cost.
+- **The SPEC text initially said `jose` would be a `devDep`.** I caught it at step 1 because the spec called out runtime import paths in §7. Future SPECs: when listing a library, decide and write `runtime` vs `dev` explicitly so the implementation step has zero ambiguity.
+- **The e2e file numbering was guessed without checking** (spec said 04). A 30-second `ls tests/e2e/` would have avoided the rename. Trivial; just discipline.
+
+**Surprising existing behaviour:**
+
+- **Next.js 16's middleware lives at `src/proxy.ts`** (not `src/middleware.ts`). Not surprising once you find it, but it's not obvious from a `find . -name middleware*` search. Worth documenting in `src/infrastructure/AGENTS.md` if a future contributor goes hunting.
+- **Stale `.next` build directories shadow `proxy.ts` config changes.** Even with `reuseExistingServer: false` in playwright config, the production build (`next start`) reads from `.next/server/middleware-manifest.json`. Editing `proxy.ts` alone does not propagate until `pnpm build` regenerates the manifest. The `pnpm test:e2e` workflow already runs `pnpm build` upstream; the issue is only visible when iterating locally without rebuilding.
