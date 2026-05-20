@@ -1,9 +1,10 @@
 # SPEC-005: Shared Wire Types and Schemas (`@travel-planner/shared`)
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20 (after `review-spec` pass + one round of patches)
+**Completed:** 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 4
 
 ---
@@ -540,8 +541,70 @@ on its own. Tests-first per CONSTITUTION.md §3.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| _to be filled at close-out_ |
+| 1 | **`MobileAuthCallbackError` enforcement design switched from runtime grep-as-test to type-only enforcement (option B).** §9 Unit table originally specified two architecture-test blocks: a bidirectional set-equality check between `callback/route.ts`'s inline `?error=<literal>` strings and `MobileAuthCallbackError.options`, plus a "no `${`-prefixed template literals" guard. Neither shipped. Instead: `MobileAuthCallbackError` is a `z.enum` in `@travel-planner/shared/mobile-auth.ts`; `handle-mobile-callback.ts`'s `deny()` parameter type and `callback/route.ts`'s `buildErrorRedirect()` parameter type are both narrowed to the union, so any drift is a `pnpm type-check` failure. | Code walk during step 3 found that 3 of 5 `?error=<reason>` values live in `handle-mobile-callback.ts` via a template-literal `deny()` helper, not in `callback/route.ts`. The spec's grep design was built on a falsified assumption about which file emits all reasons. Two paths to fix: rewrite the `deny()` template-literal pattern + the grep test to span both files (option A/C), or replace the grep test with the TypeScript union check that subsumes it (option B). | None on AC#9 — it's still observable, just via `pnpm type-check` instead of `pnpm test:unit`. Spec §3 AC#9 wording ("when I run `pnpm test:unit`, then a small structural test confirms…") is mildly stale — the check now lives in the type-checker. SPEC-005 §9 + §12 step 3 should be read with this deviation in mind. | Yes — landed in commit dbe9646. |
+| 2 | **`ApiErrorBody`'s `readonly` field modifiers were dropped during the move to `@travel-planner/shared`.** Previously: `readonly error`, `readonly code`, `Readonly<Record<string, unknown>>` on `details`. Now: a `z.infer<typeof apiErrorBodySchema>` with no `readonly` modifiers. | `ApiErrorBody` is built from a zod schema in the shared package (so mobile can `.parse()` the envelope at runtime). zod's `z.infer` produces non-readonly fields by default. Preserving `readonly` would have required a manual `Readonly<>` wrapper around the inferred type — splitting the source of truth between the schema and the wrapper, defeating the package's whole purpose. | Effectively none. `ApiErrorBody` is only used as the type of a local `body` variable inside `respondWithError` (verified by `grep -rn ApiErrorBody apps/web/src` returning two hits, both in `_lib/errors.ts`). The `readonly` modifiers were defence-in-depth type hints with no runtime effect; no consumer relies on them. | Yes — landed in commit 373b6e9. |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+**Type-check as a load-bearing CI gate.** Deviation #1 is interesting in
+retrospect. The spec defaulted to a runtime grep-as-test for the
+callback-error closed union because that's what the rest of
+`architecture.test.ts` does. Once the code walk revealed the
+union members are spread across two files (one with inline literals,
+one with a template-literal helper), the runtime test became
+fragile and `pnpm type-check` became the natural enforcement
+boundary: the union exists *to be a type*, and the type system
+already does exhaustive-literal checking. The lesson for future
+shared-package work: if a runtime structural test exists to prove
+"this set is closed", reach for the TypeScript union before reaching
+for grep. The union is the test.
+
+**Lint coverage when adding a new workspace package.** Adding
+`packages/shared/` exposed a small gap: `biome.json`'s `files.includes`
+didn't automatically cover the new directory. `pnpm lint` happily
+reported "Checked 274 files" but `packages/shared/src/index.ts` wasn't
+among them. Easy fix (append `"packages/shared/src/**"`), but worth
+documenting because the same trap waits for the next workspace
+package added to `packages/`. Note added to step 1's commit. Could
+become a workspace-template line item eventually, but one package
+isn't enough to justify the abstraction.
+
+**zod 4 on jest-expo 54 was a non-event.** §14 risk #1 worried about
+zod 4's ESM-first packaging causing transform issues under jest-expo.
+The mobile smoke test (step 8) imported three schemas and exercised
+`.parse()` + `.options` access — all green on the first run, no Metro
+configuration changes required, no jest-expo `transformIgnorePatterns`
+adjustments. The risk was reasonable to flag but the actual zero-touch
+outcome confirms ADR 053's stripped-Metro-config decision is robust.
+
+**Next 16 + `transpilePackages` + Sentry: also a non-event.** §14
+risk #2 worried about Sentry's instrumentation wrapping interacting
+oddly with `transpilePackages`. Production build completed in 3.9s
+with 4 mobile-auth routes + `/me` all compiling clean. No special
+config changes needed beyond the single-line `transpilePackages` add.
+
+**Shape of the package after slice 4.** Three source files:
+`api-errors.ts` (envelope), `me.ts` (`/me` response), `mobile-auth.ts`
+(8 wire shapes — request/response for 4 endpoints + callback error
+union). All exported via a flat `index.ts` barrel. Total surface:
+~140 lines of TypeScript, with `zod` as the only external dependency.
+Slice 6 should be able to consume it without further package-shape
+work. If trips/spend mobile screens land in a future epic, the
+foundation is laid for adding `Money` / `Currency` / domain DTOs
+under whichever subdirectory makes sense at that point — but
+deliberately deferred until there's a real consumer.
+
+**File count: one fewer file than originally planned.** The spec's
+§7 hinted at the package potentially containing a `callback.ts`
+sub-module for the deep-link error union. In practice the union sits
+naturally alongside the four mobile-auth request/response pairs in
+`mobile-auth.ts` — no need to split. Resulting layout matches the
+spec's §7 table ("`mobile-auth.ts` — 4 endpoint req/res pairs +
+MobileAuthCallbackError union") exactly.
+
+**Final commit count: 10 (matches the §12 step count exactly).** The
+SPEC-004 cadence of "one commit per spec step + one commit for
+planning artefacts" held. Sequence: docs(spec-005) plan, feat step 1,
+test step 2, feat step 3, feat step 4, feat step 5, feat step 6,
+chore step 7, test step 8, docs step 9, chore step 10 prep
+(format-fix). Step 10 itself (this close-out) is the eleventh.

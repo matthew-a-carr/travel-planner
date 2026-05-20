@@ -33,7 +33,9 @@ out by name. Erring on the side of including it in step 1's commit
 keeps the package consistent with the rest of the monorepo's lint
 coverage from the moment it lands.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** post-impl-note — small learning for
+future package authors; no spec-design change. Surfaced as part of the
+"Lint coverage when adding a new workspace package" note in §Post-Impl.
 
 ---
 
@@ -87,7 +89,9 @@ Spec §9's Unit table will lose the second + third architecture-test
 rows (the bidirectional union literals test and the no-template-
 literals test). Spec §3 AC#9 is satisfied by type-check.
 
-**Triage (filled at close-out):** likely spec-deviation #1.
+**Triage (filled at close-out):** spec-deviation #1 — design change vs
+§9 + §12 step 3. Type-check now subsumes the proposed runtime grep test.
+Landed via commits dbe9646 (union + emit-site refactor) and afd2580.
 
 ---
 
@@ -123,7 +127,9 @@ Verification: `pnpm -r type-check` exits 0; `pnpm test:unit` 410/410
 green (errors.test.ts unchanged); the shim `export type {...} from
 '@travel-planner/shared'` keeps existing imports working.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** spec-deviation #2 — minor type-shape
+change vs the implicit spec contract ("move existing types"). Justified
+by source-of-truth-via-zod-schema being the spec's whole point.
 
 ---
 
@@ -134,3 +140,7 @@ green (errors.test.ts unchanged); the shim `export type {...} from
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 — biome.json `includes` extended to cover `packages/shared/src/**` | Post-Implementation Notes — "Lint coverage when adding a new workspace package" |
+| 2 — Step 3 spec design (option B, type-only enforcement for MobileAuthCallbackError) | Spec deviation #1 |
+| 3 — Step 4 `ApiErrorBody` readonly modifiers dropped | Spec deviation #2 |
+
