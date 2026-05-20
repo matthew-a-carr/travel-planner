@@ -20,7 +20,7 @@
 | Screens | `app/*.tsx` (Expo Router, file-system routing) |
 | Component tests | `__tests__/` mirroring the `app/` tree (Expo Router treats every file in `app/` as a route — see ADR 053) |
 | E2E flows | `.maestro/flows/*.yaml` (one per user journey) |
-| API mocks | `__mocks__/msw-server.ts` (added when the first API call ships) |
+| API mocks | `jest.spyOn(globalThis, 'fetch')` inline per test (see "API mocking" section). |
 | Metro pnpm config | `metro.config.js` — **do not touch without reading ADR 053** (SDK 54 default-config, supersedes ADR 052 §3) |
 | Test framework setup | `jest.config.js` + `jest.setup.ts` |
 | App identifier | `app.json` → `expo.ios.bundleIdentifier` (`dev.matthewcarr.travelplanner`) |
@@ -101,11 +101,38 @@ describe('MyScreen', () => {
 });
 ```
 
-### API mocking (msw/native, slice 6+)
+### API mocking (fetch spy)
 
-When slice 6's sign-in screen lands, add `__mocks__/msw-server.ts`
-exporting an msw server; uncomment the lifecycle hooks in
-`jest.setup.ts`. Mock handlers live in `__mocks__/handlers/*.ts`.
+Slice 6 introduced the first `/api/v1/*` calls. Network mocking
+uses `jest.spyOn(globalThis, 'fetch')` directly per test —
+Node 18+ provides a global `fetch`, jest can spy on it, and
+canned `Response` objects cover the needed scenarios. See
+`apps/mobile/src/api/client.ts` for the wrapper this fronts and
+`apps/mobile/__tests__/api/client.test.ts` for the canonical
+test shape.
+
+```ts
+const spy = jest.spyOn(globalThis, 'fetch');
+spy.mockResolvedValueOnce(
+  new Response(JSON.stringify({ message: 'pong' }), { status: 200 }),
+);
+const result = await apiPost('/api/v1/echo', {}, echoResponseSchema);
+expect(result).toEqual({ ok: true, data: { message: 'pong' } });
+
+afterEach(() => jest.restoreAllMocks());
+```
+
+**Why not msw?** Evaluated during SPEC-006 step 4 and deferred —
+msw 2.x's transitive ESM dependency graph (`rettime`, `until-async`,
+`outvariant`, `@bundled-es-modules/*`, ...) needs substantial
+`transformIgnorePatterns` + `moduleNameMapper` expansion under
+jest-expo 54 to load. The fetch-spy pattern has zero third-party
+surface area, ships no new transform config, and covers slice 6's
+test needs without ongoing maintenance. The `msw` dep is still in
+`devDependencies` for a future spec to revisit if richer request
+matching / response templating / multi-handler routing becomes a
+real test need. To reactivate, see the SPEC-006 implementation
+notes for the configuration sketch.
 
 ### Maestro flows (E2E)
 

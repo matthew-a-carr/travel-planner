@@ -1,15 +1,15 @@
 /**
- * Jest test framework setup. Runs after Jest's test globals are
- * initialised; the right place to extend `expect` with RNTL matchers
- * and to wire msw/native server lifecycle hooks.
+ * Jest test framework setup. Runs after Jest's test framework is
+ * installed (per the `setupFilesAfterEnv` config), so `beforeAll`,
+ * `afterEach`, and `expect` extensions can be used here.
+ *
+ * Network mocking in slice 6 uses a global `fetch` spy via
+ * `jest.spyOn(globalThis, 'fetch')` directly in each test — see
+ * `apps/mobile/AGENTS.md` "API mocking" section. msw (already in
+ * devDependencies) was evaluated and deferred per the SPEC-006
+ * deviation log; reactivate by importing `./__mocks__/msw-server`
+ * here and wiring the lifecycle hooks once the transformIgnorePatterns
+ * + moduleNameMapper fight is worth it.
  */
 
-import '@testing-library/react-native/extend-expect';
-
-// msw/native server lifecycle. Activated once a test actually mocks
-// an API call (slice 6 onward).
-//
-// import { server } from './__mocks__/msw-server';
-// beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-// afterEach(() => server.resetHandlers());
-// afterAll(() => server.close());
+import '@testing-library/react-native/matchers';
