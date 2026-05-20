@@ -190,9 +190,9 @@ describe('/api/v1/auth/mobile/callback', () => {
     expect(res.status).toBe(302);
     const invalidRequestLocation = res.headers.get('location');
     expect(invalidRequestLocation).toContain('error=invalid_request');
-    expect(
-      mobileAuthCallbackErrorSchema.parse(callbackErrorParam(invalidRequestLocation)),
-    ).toBe('invalid_request');
+    expect(mobileAuthCallbackErrorSchema.parse(callbackErrorParam(invalidRequestLocation))).toBe(
+      'invalid_request',
+    );
   });
 });
 
