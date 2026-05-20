@@ -34,6 +34,13 @@ export async function setup(): Promise<void> {
   const connectionUri = container.getConnectionUri();
   process.env.POSTGRES_URL = connectionUri;
 
+  // Bearer-auth tests mint and verify JWTs via the real signAccessToken /
+  // verifyAccessToken code paths. Provide a stable test-only signing key so
+  // tokens round-trip deterministically across the suite.
+  if (!process.env.AUTH_JWT_SIGNING_KEY) {
+    process.env.AUTH_JWT_SIGNING_KEY = 'integration-test-jwt-signing-key-do-not-use-in-prod';
+  }
+
   containerStop = async () => {
     await container.stop();
   };

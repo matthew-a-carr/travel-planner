@@ -1,9 +1,9 @@
-import { requireCookieSession } from '../_lib/auth';
+import { requireAuth } from '../_lib/auth';
 import { respondWithError } from '../_lib/errors';
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   try {
-    const session = await requireCookieSession();
+    const session = await requireAuth(request);
     if (!session.ok) return session.response;
 
     return Response.json(
