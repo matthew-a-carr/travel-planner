@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
-import HelloScreen from './index';
+import HelloScreen from '../../app/index';
 
 describe('HelloScreen', () => {
   it('renders the greeting text', () => {

@@ -3,9 +3,14 @@
 > Rules for `apps/mobile/`. These add specificity to the root AGENTS.md.
 >
 > The mobile app is an Expo + React Native client that talks to the
-> `/api/v1/*` surface from the web app. Per ADR 045 / 052: Expo SDK
-> 55 + Expo Router + Expo Go for the entire EPIC-001 phase
+> `/api/v1/*` surface from the web app. Per ADR 045 / 052: Expo +
+> Expo Router + Expo Go for the entire EPIC-001 phase
 > (TestFlight / EAS Build deferred to EPIC-002).
+>
+> **SDK version: 54** (temporary, per [ADR 053](../../docs/decisions/053-expo-sdk-54-temporary-downgrade.md)
+> + [TD-003](../../docs/tech-debt.md)). App Store Expo Go is stuck on
+> SDK 54 pending Apple's approval of an SDK 55 build. Do not bump to
+> SDK 55 speculatively — wait for the trigger documented in ADR 053.
 
 ## Quick reference
 
@@ -13,10 +18,10 @@
 |---------|-------|
 | App entry | `app/_layout.tsx` (root Stack) |
 | Screens | `app/*.tsx` (Expo Router, file-system routing) |
-| Component tests | co-located `*.test.tsx` next to source |
+| Component tests | `__tests__/` mirroring the `app/` tree (Expo Router treats every file in `app/` as a route — see ADR 053) |
 | E2E flows | `.maestro/flows/*.yaml` (one per user journey) |
 | API mocks | `__mocks__/msw-server.ts` (added when the first API call ships) |
-| Metro pnpm config | `metro.config.js` — **do not touch without reading ADR 052** |
+| Metro pnpm config | `metro.config.js` — **do not touch without reading ADR 053** (SDK 54 default-config, supersedes ADR 052 §3) |
 | Test framework setup | `jest.config.js` + `jest.setup.ts` |
 | App identifier | `app.json` → `expo.ios.bundleIdentifier` (`dev.matthewcarr.travelplanner`) |
 | URL scheme | `app.json` → `expo.scheme` (`travelplanner://`) |
@@ -69,14 +74,22 @@ changes are cheap; testID changes break flows.
 
 ### Component testing (Jest + RNTL)
 
-Co-located: `Foo.tsx` → `Foo.test.tsx`. Use `@testing-library/react-native`
-queries (`screen.getByTestId`, `screen.getByText`, etc.). Extend-expect
-matchers (`toBeOnTheScreen`, `toHaveTextContent`) are wired in
-`jest.setup.ts`.
+Tests live under `apps/mobile/__tests__/` mirroring the `app/` tree.
+**Never put test files inside `app/`** — Expo Router would treat
+them as routes and bundle them into the iOS app, which then pulls
+RNTL's Node-only `console` / `util` requires into the native bundle
+and crashes the bundler (see ADR 053).
+
+For `app/foo.tsx` the test lives at `__tests__/app/foo.test.tsx` and
+imports the source as `from '../../app/foo'`. Use
+`@testing-library/react-native` queries (`screen.getByTestId`,
+`screen.getByText`, etc.). Extend-expect matchers (`toBeOnTheScreen`,
+`toHaveTextContent`) are wired in `jest.setup.ts`.
 
 ```tsx
+// __tests__/app/my-screen.test.tsx
 import { render, screen } from '@testing-library/react-native';
-import MyScreen from './my-screen';
+import MyScreen from '../../app/my-screen';
 
 describe('MyScreen', () => {
   it('renders the heading', () => {
@@ -104,12 +117,16 @@ Use `id:` selectors over visible-text selectors where possible.
 
 ## Pnpm + Metro
 
-The repo uses pnpm's isolated linker. Metro's default module
-resolution doesn't understand pnpm's symlinked layout. `metro.config.js`
-enables `unstable_enableSymlinks` and points `watchFolders` at the
-workspace root. **Do not change this file** without reading ADR 052 —
-the alternative (`node-linker=hoisted` globally) forfeits pnpm
-strictness for the web app, which architecture tests depend on.
+The repo uses pnpm's isolated linker. As of Expo SDK 54+,
+`expo/metro-config`'s `getDefaultConfig()` detects the pnpm workspace
+and configures `watchFolders`, `resolver.nodeModulesPaths`, and
+symlink resolution automatically — so `metro.config.js` is just the
+minimal `getDefaultConfig(__dirname)` call. ADR 053 supersedes ADR 052
+§3 here. **Do not re-add manual `watchFolders` / `nodeModulesPaths` /
+`disableHierarchicalLookup` overrides** — they break transitive-dep
+resolution under SDK 54 (the bug ADR 053 fixes). The hoisted-linker
+escape hatch from ADR 052 §3 still stands if Metro regresses on pnpm
+in a future SDK.
 
 ## Doc review — keeping mobile docs true
 
@@ -118,7 +135,7 @@ strictness for the web app, which architecture tests depend on.
 | `app/` structure or routing | This file's "Architecture" section |
 | Add a new screen / Maestro flow / testID convention | This file's "Quick reference" + an entry per convention |
 | `metro.config.js` | ADR 052; smoke-test that `pnpm dev:mobile` still resolves all imports |
-| Expo SDK version (`package.json`) | ADR 052's "Expo SDK 55 + Expo Router 55" section; verify jest-expo + RNTL versions still match |
+| Expo SDK version (`package.json`) | [ADR 053](../../docs/decisions/053-expo-sdk-54-temporary-downgrade.md) (current pin is SDK 54) and ADR 052 §1 (original SDK rationale); verify jest-expo + RNTL versions still match the new SDK's bundled-native-modules manifest |
 | `app.json` (`bundleIdentifier`, `scheme`) | ADR 052; any active Maestro flows referencing the bundleIdentifier |
 | CI workflow (mobile jobs in `.github/workflows/ci.yml`) | This file's "Dev loop" section; ADR 052's CI table |
 

@@ -1,7 +1,7 @@
 # ADR 052: Mobile Application Foundation — Expo, Metro, and Testing Strategy
 
 **Date:** 2026-05-20
-**Status:** Accepted
+**Status:** Accepted (§1 SDK pin, §3 Metro config, and §5 test layout amended by [ADR 053](053-expo-sdk-54-temporary-downgrade.md))
 
 ## Context
 
@@ -37,6 +37,13 @@ Adopt the following mobile-foundation stack for `apps/mobile/`.
 
 ### 1. Expo SDK 55 + Expo Router 55
 
+> **Amended 2026-05-20 by [ADR 053](053-expo-sdk-54-temporary-downgrade.md):**
+> the SDK pin is temporarily SDK 54 while App Store Expo Go's SDK 55
+> build is stuck in Apple's approval queue. Distribution mechanics,
+> tooling rationale, and "no Apple Developer Program until EPIC-002"
+> position all stand — only the specific SDK version differs. Re-upgrade
+> tracked as TD-003.
+
 - Pinned in `apps/mobile/package.json`.
 - TypeScript template, strict mode (matching the web app).
 - SDK upgrade trigger: when Expo SDK N+1 ships and reaches stable
@@ -59,6 +66,18 @@ Hand-write the seven minimal files (`package.json`, `tsconfig.json`,
   than surgically patched into a generated file.
 
 ### 3. Metro `unstable_enableSymlinks` + `watchFolders` (not hoisted linker)
+
+> **Amended 2026-05-20 by [ADR 053](053-expo-sdk-54-temporary-downgrade.md):**
+> Expo SDK 54's `expo/metro-config` `getDefaultConfig()` now detects
+> the pnpm workspace and configures `watchFolders`,
+> `resolver.nodeModulesPaths`, and symlink resolution automatically.
+> The manual overrides documented below (especially
+> `disableHierarchicalLookup: true`) break SDK 54's transitive-dep
+> resolution for packages that ship `src/*.ts` entry points whose
+> adjacent `node_modules` is only reachable via hierarchical lookup.
+> `apps/mobile/metro.config.js` is now the minimal default. The
+> "hoisted linker fallback" escape hatch below still stands if Metro
+> regresses on pnpm in a future SDK.
 
 `apps/mobile/metro.config.js` enables Metro's experimental symlink
 resolver and points `watchFolders` at the workspace root so Metro
@@ -103,6 +122,12 @@ production ID may be registered.
   examples) assumes it.
 - **Component tests: `@testing-library/react-native`.** Same mental
   model as RTL on web; co-located `*.test.tsx` files next to source.
+
+  > **Amended 2026-05-20 by [ADR 053](053-expo-sdk-54-temporary-downgrade.md):**
+  > Co-location inside `app/` is not viable with Expo Router — every
+  > file in `app/` is treated as a route, so `*.test.tsx` files would
+  > be bundled into the iOS app. Tests now live under
+  > `apps/mobile/__tests__/` mirroring the `app/` source tree.
 - **API mocking: `msw/native`.** Server-lifecycle hooks live in
   `jest.setup.ts`; mock handlers under `apps/mobile/__mocks__/`
   when slice 6 introduces them.

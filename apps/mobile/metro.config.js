@@ -1,26 +1,18 @@
 // Metro configuration for the Expo app inside the pnpm monorepo.
-// See ADR 052 for the rationale: Metro's default module resolution
-// doesn't speak pnpm's isolated symlink layout, so we point watchFolders
-// at the workspace root and enable Metro's experimental symlink resolver.
-// The alternative — `node-linker=hoisted` globally — would forfeit pnpm's
-// strict isolation for the web app, which architecture tests rely on.
+//
+// As of Expo SDK 54, `getDefaultConfig` detects the pnpm workspace and
+// configures `watchFolders`, `resolver.nodeModulesPaths`, and symlink
+// resolution automatically. The manual Metro config that lived here
+// previously (per the original ADR 052 §3) broke transitive-dep
+// resolution under the SDK 54 layout where some packages ship `src/*`
+// entry points whose adjacent `node_modules` is reachable only via
+// hierarchical lookup.
+//
+// See ADR 053 for the rationale; ADR 052 §3 has an amendment pointer.
+//
+// Do not re-add manual `watchFolders` / `nodeModulesPaths` /
+// `disableHierarchicalLookup` overrides without first reading ADR 053.
 
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('node:path');
 
-const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '../..');
-
-const config = getDefaultConfig(projectRoot);
-
-config.watchFolders = [workspaceRoot];
-
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
-];
-
-config.resolver.unstable_enableSymlinks = true;
-config.resolver.disableHierarchicalLookup = true;
-
-module.exports = config;
+module.exports = getDefaultConfig(__dirname);

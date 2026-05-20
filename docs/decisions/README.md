@@ -60,4 +60,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [049](049-epic-tier-for-multi-spec-initiatives.md) | Epic Tier for Multi-SPEC Initiatives | 2026-05-20 | Accepted |
 | [050](050-rest-api-conventions-v1.md) | REST API Conventions for `/api/v1/*` | 2026-05-20 | Accepted |
 | [051](051-mobile-authentication-model.md) | Mobile Authentication Model | 2026-05-20 | Accepted |
-| [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Accepted |
+| [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Accepted (§1 SDK pin, §3 Metro config, and §5 test layout amended by ADR 053) |
+| [053](053-expo-sdk-54-temporary-downgrade.md) | Temporary Downgrade to Expo SDK 54 (also strips ADR 052 §3 Metro overrides and relocates tests from `app/` to `__tests__/`) | 2026-05-20 | Accepted |
