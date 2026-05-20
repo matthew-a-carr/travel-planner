@@ -138,6 +138,37 @@ ln -s AGENTS.md CLAUDE.md
 
 ---
 
+## Decision-making bias: prefer durable over expedient
+
+When choosing between a quick fix and a longer-term / more stable
+solution, default to the durable option. Examples:
+
+- Pay down related tech debt **inside the slice that touches it**, not
+  in a follow-up "we'll get to it" spec.
+- Wire up proper test infrastructure now rather than ship the placeholder
+  and a TD-NNN entry promising to fix it later.
+- Correct an architectural pattern as part of the feature that exposed
+  it, not as drive-by churn after the fact.
+
+When presenting options during `plan-feature` grilling or in-flight
+deviations, **lead with the durable choice as the recommendation**, even
+if it costs more upfront. The "quick" option still belongs in the table
+for transparency — just not as the default.
+
+Override only when:
+
+- The user explicitly says "patch it for now" / "ship the quick version".
+- The durable option genuinely exceeds the slice's own scope (then
+  surface it as a separate spec or tech-debt entry, but don't paper over
+  the choice).
+- The quick fix is a documented intermediate step toward the durable
+  one — not a permanent hack.
+
+The cost of yak-shaving once is bounded; the cost of a TODO that outlives
+the team's memory of why it's there is not.
+
+---
+
 ## Specification-driven development (ADRs 047, 048, 049)
 
 Two artefact tiers:
