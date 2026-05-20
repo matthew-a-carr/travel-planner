@@ -47,6 +47,37 @@ need.
 
 **Triage:** see triage summary below
 
+### 2026-05-20 — step 5 — mobile-e2e CI job is a placeholder
+
+**Step:** Step 5 (CI jobs)
+**Type:** scope cut
+**Note:**
+
+SPEC-003 §3 acceptance #7 said `mobile-e2e` runs on macos-latest and
+runs the Maestro flow against the iOS Simulator. The wiring to boot
+an Expo Go simulator instance with our app loaded + Maestro pointed at
+it is more involved than a single `expo start` → `maestro test`
+invocation: the macOS runner needs simulator UDID resolution,
+`expo prebuild` for a dev-client build (Expo Go doesn't run on CI
+simulators — you can't sideload it), and probably an EAS Local
+build step.
+
+Slice 5 ships:
+- The Maestro YAML flow (committed earlier).
+- The macOS CI job skeleton (Maestro install + placeholder).
+- Path-filtered triggering (works correctly).
+
+What slice 5 does NOT ship:
+- Actual end-to-end execution of the flow in CI.
+
+Marked the relevant step `continue-on-error: true` so the slice
+doesn't gate on infra we'll harden in the next mobile-CI iteration —
+arguably this is its own small chore-slice before slice 6, or it
+folds into slice 6 alongside the second Maestro flow (login).
+Capturing as tech debt so it isn't forgotten.
+
+**Triage:** see triage summary below
+
 _(append further entries here as work proceeds)_
 
 ## Close-out triage summary

@@ -15,7 +15,7 @@
 
 | ID | Date | Source Spec | Description | Severity | Owner |
 |----|------|-------------|-------------|----------|-------|
-| — | — | — | _No outstanding items_ | — | — |
+| TD-002 | 2026-05-20 | SPEC-003 | `mobile-e2e` GitHub Actions job is a placeholder. Path filter + macOS runner + Maestro install work; full simulator-boot-and-test wiring deferred. Expo Go can't be sideloaded into a CI simulator, so the real fix is an `expo prebuild` + EAS Local build for a dev-client, then `maestro test`. ~half-day chore. Land before slice 6 (login flow needs its own Maestro flow that would also be skipped today). | Medium | unowned |
 
 ## Resolved Items
 

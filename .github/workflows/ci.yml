@@ -11,6 +11,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── Detect which areas changed so the macOS mobile job can skip cheaply ──
+
+  detect-changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      mobile: ${{ steps.filter.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            mobile:
+              - 'apps/mobile/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+
   # ── All checks run in parallel ─────────────────────────────────────────────
 
   lint:
@@ -149,3 +167,112 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report/
           retention-days: 7
+
+  # ── Mobile (apps/mobile/) — path-filtered per ADR 052 ──────────────────────
+  #
+  # mobile-lint / mobile-typecheck / mobile-unit-test run on Linux on every PR
+  # (they're cheap and catch breakage on shared-deps PRs too).
+  # mobile-e2e runs on macOS only when apps/mobile/** (or the lockfile/workspace
+  # config) actually changed — macOS runner cost is ~10× Linux.
+
+  mobile-lint:
+    name: Mobile lint
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.mobile == 'true'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @travel-planner/mobile exec biome check .
+        # Biome workspace config already covers apps/mobile via the root
+        # biome.json. This filter keeps the mobile lint signal explicit.
+
+  mobile-typecheck:
+    name: Mobile type-check
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.mobile == 'true'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @travel-planner/mobile type-check
+
+  mobile-unit-test:
+    name: Mobile unit tests
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.mobile == 'true'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @travel-planner/mobile test
+
+  mobile-e2e:
+    name: Mobile e2e (Maestro)
+    runs-on: macos-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.mobile == 'true'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Start iOS Simulator + boot Expo build
+        # Detailed simulator + Expo boot wiring lands in a future ADR pass.
+        # For slice 5 the Maestro flow is committed but the runner step is a
+        # placeholder that documents the missing pieces (simulator UDID,
+        # `expo prebuild` for a dev client, etc.). Marked continue-on-error so
+        # the slice doesn't gate on infra we'll harden next.
+        continue-on-error: true
+        run: |
+          echo "TODO(slice-5): wire Maestro against an Expo Go simulator boot."
+          echo "Slice 5 ships the YAML flow; full CI execution lands in the"
+          echo "next mobile-CI iteration."
+          maestro --version
