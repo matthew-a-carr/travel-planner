@@ -49,7 +49,7 @@ If `POSTGRES_URL` is missing, `pnpm dev` will:
 - start a throwaway `postgres:16-alpine` container via Testcontainers
 - run `pnpm db:migrate`
 - run `pnpm db:seed`
-- set safe local defaults for `AUTH_SECRET`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET`
+- set safe local defaults for `AUTH_SECRET`, `AUTH_JWT_SIGNING_KEY`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET`
 - on macOS, attempt to open Docker Desktop automatically if the Docker runtime is not ready
 
 In local development, you can always use a one-click **Sign in locally (dev)** button
@@ -92,6 +92,7 @@ cp apps/web/.env.example apps/web/.env.local
 ```
 POSTGRES_URL=             # Vercel Postgres / Neon connection string
 AUTH_SECRET=              # generate with: openssl rand -base64 32
+AUTH_JWT_SIGNING_KEY=     # HS256 key for /api/v1/* bearer tokens (openssl rand -base64 32); must differ from AUTH_SECRET
 AUTH_GOOGLE_ID=           # Google OAuth client ID
 AUTH_GOOGLE_SECRET=       # Google OAuth client secret
 AUTH_URL=http://localhost:3000

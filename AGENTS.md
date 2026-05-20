@@ -381,6 +381,7 @@ Use `.env.local` when you want to target your own database/OAuth credentials:
 ```
 POSTGRES_URL=            # Vercel Postgres / Neon connection string
 AUTH_SECRET=             # next-auth secret (openssl rand -base64 32)
+AUTH_JWT_SIGNING_KEY=    # HS256 signing key for /api/v1/* bearer tokens (openssl rand -base64 32). Must differ from AUTH_SECRET (SPEC-002).
 AUTH_GOOGLE_ID=          # Google OAuth client ID
 AUTH_GOOGLE_SECRET=      # Google OAuth client secret
 AUTH_URL=http://localhost:3000
