@@ -146,8 +146,8 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0
       '@testcontainers/postgresql':
-        specifier: ^11.14.0
-        version: 11.14.0
+        specifier: ^12.0.0
+        version: 12.0.0
       '@types/leaflet':
         specifier: ^1.9.21
         version: 1.9.21
@@ -170,8 +170,8 @@ importers:
         specifier: ^4.3.0
         version: 4.3.0
       testcontainers:
-        specifier: ^11.14.0
-        version: 11.14.0
+        specifier: ^12.0.0
+        version: 12.0.0
       tsx:
         specifier: ^4.22.3
         version: 4.22.3
@@ -188,8 +188,8 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(jsdom@20.0.3(bufferutil@4.1.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(tsx@4.22.3)(yaml@2.9.0))
       vitest-mock-extended:
-        specifier: ^3.1.1
-        version: 3.1.1(typescript@5.9.3)(vitest@4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(jsdom@20.0.3(bufferutil@4.1.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(tsx@4.22.3)(yaml@2.9.0)))
+        specifier: ^4.0.0
+        version: 4.0.0(typescript@5.9.3)(vitest@4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(jsdom@20.0.3(bufferutil@4.1.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(tsx@4.22.3)(yaml@2.9.0)))
 
   packages/shared:
     dependencies:
@@ -2962,8 +2962,8 @@ packages:
   '@tailwindcss/postcss@4.3.0':
     resolution: {integrity: sha512-Jm05Tjx+9yCLGv5qw1c+84Psds8MnyrEQYCB+FFk2lgGiUjlRqdxke4mVTuYrj2xnVZqKim2Apr5ySuQRYAw/w==}
 
-  '@testcontainers/postgresql@11.14.0':
-    resolution: {integrity: sha512-wYbJn8GRTj8qfqzfVubxioYWlHJU/ImIjuzPwyy9C5Qfo6g3GLduPZAj+BifvqTZjgT3gd4gFVLCPhBji7dc1w==}
+  '@testcontainers/postgresql@12.0.0':
+    resolution: {integrity: sha512-mqGQHwmY+xLKFvFd3XQYaa0vDJRaJAOUfFWYbgjd4wb6hOlrK7xhszaXB7KuGCGTIJf5jvtoEB8/56oVB5s55w==}
 
   '@testing-library/react-native@13.3.3':
     resolution: {integrity: sha512-k6Mjsd9dbZgvY4Bl7P1NIpePQNi+dfYtlJ5voi9KQlynxSyQkfOgJmYGCYmw/aSgH/rUcFvG8u5gd4npzgRDyg==}
@@ -4012,9 +4012,9 @@ packages:
     resolution: {integrity: sha512-XJgGhoR/CLpqshm4d3L7rzH6t8NgDFUIIpztYlLHIApeJjMZKYJMz2zxPsYxnejq5h3ELYSw/RBsi3t5h7gNTA==}
     engines: {node: '>= 8.0'}
 
-  dockerode@4.0.12:
-    resolution: {integrity: sha512-/bCZd6KlGcjZO8Buqmi/vXuqEGVEZ0PNjx/biBNqJD3MhK9DmdiAuKxqfNhflgDESDIiBz3qF+0e55+CpnrUcw==}
-    engines: {node: '>= 8.0'}
+  dockerode@5.0.0:
+    resolution: {integrity: sha512-C52mvJ+7lcyhWNfrzVfFsbTrBfy/ezE9FGEYLpu17FUeBcCkxERk9nN7uDl/478ynDiQ4U+5DbQC2vENHkVEtQ==}
+    engines: {node: '>= 14.17'}
 
   domexception@4.0.0:
     resolution: {integrity: sha512-A2is4PLG+eeSfoTMA95/s4pvAoSo2mKtiM5jlHkAVewmiO8ISFTFKZjH7UAM1Atli/OT/7JHOrJRJiMKUZKYBw==}
@@ -6499,8 +6499,8 @@ packages:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
 
-  testcontainers@11.14.0:
-    resolution: {integrity: sha512-r9pniwv/iwzyHaI7gwAvAm4Y+IvjJg3vBWdjrUCaDMc2AXIr4jKbq7jJO18Mw2ybs73pZy1Aj7p/4RVBGMRWjg==}
+  testcontainers@12.0.0:
+    resolution: {integrity: sha512-/PdRvFvuHPwX126HR7RO0cEgLD3Nr8sWZyWSv54ei92TT79BubUkOCU5uwTc8ufTsTGQf0v6nyvZJVVVyR9Uqw==}
 
   text-decoder@1.2.7:
     resolution: {integrity: sha512-vlLytXkeP4xvEq2otHeJfSQIRyWxo/oZGEbXrtEEF9Hnmrdly59sUbzZ/QgyWuLYHctCHxFF4tRQZNQ9k60ExQ==}
@@ -6714,11 +6714,6 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
-    hasBin: true
-
   uuid@7.0.3:
     resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
     deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
@@ -6790,11 +6785,11 @@ packages:
       yaml:
         optional: true
 
-  vitest-mock-extended@3.1.1:
-    resolution: {integrity: sha512-IQBKkEYB5BW4eJ+8JHZRzrLkKIJu5zkLJsU6u8vB+skSXbES+Di86nrUIbXwEQivDXcR4APMZFSvt398+iqKYA==}
+  vitest-mock-extended@4.0.0:
+    resolution: {integrity: sha512-m2FmH8JYfxzZoLsHuhXRY+Pv++a3zd91HYpSz81tpRLEHbtFkEL2QcWvJowucWuNTirzQURKfWbJJSXbYqkTsA==}
     peerDependencies:
       typescript: 3.x || 4.x || 5.x || 6.x
-      vitest: '>=3.0.0'
+      vitest: '>=4.0.0'
 
   vitest@4.1.6:
     resolution: {integrity: sha512-6lvjbS3p9b4CrdCmguzbh2/4uoXhGE2q71R4OX5sqF9R1bo9Xd6fGrMAfvp5wnCzlBnFVdCOp6onuTQVbo8iUQ==}
@@ -9817,9 +9812,9 @@ snapshots:
       postcss: 8.5.15
       tailwindcss: 4.3.0
 
-  '@testcontainers/postgresql@11.14.0':
+  '@testcontainers/postgresql@12.0.0':
     dependencies:
-      testcontainers: 11.14.0
+      testcontainers: 12.0.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
@@ -10920,7 +10915,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  dockerode@4.0.12:
+  dockerode@5.0.0:
     dependencies:
       '@balena/dockerignore': 1.0.2
       '@grpc/grpc-js': 1.14.3
@@ -10928,7 +10923,6 @@ snapshots:
       docker-modem: 5.0.7
       protobufjs: 7.6.0
       tar-fs: 2.1.4
-      uuid: 10.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -13889,7 +13883,7 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.5
 
-  testcontainers@11.14.0:
+  testcontainers@12.0.0:
     dependencies:
       '@balena/dockerignore': 1.0.2
       '@types/dockerode': 4.0.1
@@ -13898,7 +13892,7 @@ snapshots:
       byline: 5.0.0
       debug: 4.4.3
       docker-compose: 1.4.2
-      dockerode: 4.0.12
+      dockerode: 5.0.0
       get-port: 7.2.0
       proper-lockfile: 4.1.2
       properties-reader: 3.0.1
@@ -14075,8 +14069,6 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
-  uuid@10.0.0: {}
-
   uuid@7.0.3: {}
 
   v8-to-istanbul@9.3.0:
@@ -14142,7 +14134,7 @@ snapshots:
       tsx: 4.22.3
       yaml: 2.9.0
 
-  vitest-mock-extended@3.1.1(typescript@5.9.3)(vitest@4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(jsdom@20.0.3(bufferutil@4.1.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(tsx@4.22.3)(yaml@2.9.0))):
+  vitest-mock-extended@4.0.0(typescript@5.9.3)(vitest@4.1.6(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(jsdom@20.0.3(bufferutil@4.1.0))(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(vite@7.3.3(@types/node@25.9.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.47.1)(tsx@4.22.3)(yaml@2.9.0))):
     dependencies:
       ts-essentials: 10.2.0(typescript@5.9.3)
       typescript: 5.9.3

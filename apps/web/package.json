@@ -49,7 +49,7 @@
     "@axe-core/playwright": "^4.11.3",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.0",
-    "@testcontainers/postgresql": "^11.14.0",
+    "@testcontainers/postgresql": "^12.0.0",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
@@ -57,12 +57,12 @@
     "@vitejs/plugin-react": "^6.0.2",
     "drizzle-kit": "^0.31.10",
     "tailwindcss": "^4.3.0",
-    "testcontainers": "^11.14.0",
+    "testcontainers": "^12.0.0",
     "tsx": "^4.22.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.6",
-    "vitest-mock-extended": "^3.1.1"
+    "vitest-mock-extended": "^4.0.0"
   }
 }
