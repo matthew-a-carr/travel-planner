@@ -6,6 +6,12 @@ New specs follow the template in [`_template.md`](./_template.md).
 See [AGENTS.md](../../AGENTS.md) for the spec-driven development workflow and
 [CONSTITUTION.md](../../CONSTITUTION.md) §3 for TDD rules.
 
+Pre-spec draft briefs (produced by `plan-feature` after invoking the
+`grill-me` skill — ADR 048) live alongside specs as `_draft-NNN-<slug>.md`
+and are deleted (or renamed `.superseded.md`) once the SPEC is committed.
+Per-spec rolling implementation notes live in
+[`../implementation-notes/`](../implementation-notes/).
+
 ## Lifecycle
 
 ```

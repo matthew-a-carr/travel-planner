@@ -17,9 +17,10 @@ travel-planner/
 ├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
 ├── packages/         ← shared workspace packages (empty for now)
 ├── docs/             ← project-wide docs and ADRs
-│   ├── decisions/    ← Architecture Decision Records
-│   ├── specs/        ← feature specifications (ADR 047)
-│   └── tech-debt.md  ← tech debt register
+│   ├── decisions/           ← Architecture Decision Records
+│   ├── specs/               ← feature specifications (ADR 047)
+│   ├── implementation-notes/ ← per-spec rolling logs (ADR 048)
+│   └── tech-debt.md         ← tech debt register
 ├── infra/            ← Terraform
 ├── biome.json        ← workspace-wide formatter/linter config
 ├── package.json      ← workspace root with pass-through scripts
@@ -157,25 +158,42 @@ Do NOT write a spec for:
 
 ### Spec lifecycle
 
-1. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md`.
-2. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
-3. Set status: `Draft`.
-4. Request human review and approval.
-5. **Do NOT begin implementation until status is `Approved`.**
+1. **Grill the idea first** — invoke the `grill-me` skill on any non-trivial
+   idea before writing a spec. `plan-feature` then writes a draft brief at
+   `docs/specs/_draft-NNN-<slug>.md` capturing refined scope, alternatives
+   considered, and load-bearing decisions from the interview. (ADR 048.)
+2. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md` and use the
+   draft brief as the source of truth for scope and acceptance.
+3. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
+4. Set status: `Draft`.
+5. Request human review and approval.
+6. **Do NOT begin implementation until status is `Approved`.**
 
 ### During implementation
 
 - Follow the implementation order in the spec.
-- Log every deviation in the spec's "Implementation Deviations" table.
+- **Capture cheap, triage deliberate.** Append observations, deviations,
+  surprises, decisions, and blockers to
+  `docs/implementation-notes/SPEC-NNN-<slug>.md` as they happen — one
+  timestamped entry per observation. Do **not** edit the spec's deviations
+  table or `docs/tech-debt.md` mid-flight; those are populated at close-out.
+  (ADR 048.)
 - When unsure about a deviation: **STOP and consult the human.**
-- When a deviation creates tech debt: add it to `docs/tech-debt.md`.
+- One exception: cross-cutting hazards (security, data loss, broken
+  invariant) that another contributor must know about *today* go straight to
+  `docs/tech-debt.md` with a back-reference to the notes entry.
 
 ### After implementation
 
 - Run the full verification suite (see "Verification" section above).
+- **Triage the rolling notes file.** For every entry in
+  `docs/implementation-notes/SPEC-NNN-<slug>.md`, pick a landing place:
+  the spec's Implementation Deviations table (design intent changed), the
+  spec's Post-Implementation Notes (learnings), `docs/tech-debt.md` (debt
+  that outlives the spec), or discarded (resolved already). Fill in the
+  triage summary table at the bottom of the notes file.
 - Update spec status → `Complete`.
-- Write post-implementation notes in the spec.
-- Move unresolved deviations to `docs/tech-debt.md`.
+- Leave the notes file in place as the raw record.
 
 ### Tech debt review
 
@@ -192,6 +210,8 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 
 ```
 .agents/skills/
+├── grill-me/
+│   └── SKILL.md        ← "Grill me on [idea]" — interview before spec
 ├── plan-feature/
 │   └── SKILL.md        ← "Plan a feature for [idea]"
 ├── implement-spec/
@@ -199,6 +219,12 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 └── review-tech-debt/
     └── SKILL.md        ← "Review tech debt"
 ```
+
+`grill-me` is vendored from the upstream
+[`matthew-a-carr/agent-scripts`](https://github.com/matthew-a-carr/agent-scripts)
+plugin so the lifecycle works in any environment without a separate plugin
+install (ADR 048). If you change the canonical version upstream, re-vendor
+it here to keep them aligned.
 
 #### How skills work
 
@@ -212,8 +238,9 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 
 | Skill | Invocation | What it does |
 |-------|-----------|--------------|
-| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" | Research → write spec → request approval |
-| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → deviation logging → verification → close-out |
+| [`grill-me`](./.agents/skills/grill-me/SKILL.md) | "Grill me on [idea]" | One-question-at-a-time interview until shared understanding |
+| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" | Invoke `grill-me` → write draft brief at `docs/specs/_draft-NNN-...` → write SPEC-NNN |
+| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → rolling notes → verification → triage at close-out |
 | [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | "Review tech debt" | Assess → categorise → report → act |
 
 #### Adding a new skill
@@ -234,8 +261,11 @@ See the [Agent Skills specification](https://agentskills.io/specification) for
 the full format reference, and `.agents/skills/plan-feature/SKILL.md` for a
 working example.
 
-Specs and the tech debt register live in `docs/specs/` and `docs/tech-debt.md`.
-See [`docs/specs/README.md`](./docs/specs/README.md) for the full index.
+Specs, per-spec implementation notes, and the tech debt register live in
+`docs/specs/`, `docs/implementation-notes/`, and `docs/tech-debt.md`
+respectively. See [`docs/specs/README.md`](./docs/specs/README.md) for the
+full spec index and [`docs/implementation-notes/README.md`](./docs/implementation-notes/README.md)
+for the rolling-notes triage workflow.
 
 ---
 
@@ -412,4 +442,5 @@ setup steps no longer work end-to-end.
 Full rules → [`CONSTITUTION.md`](./CONSTITUTION.md)
 ADRs → [`docs/decisions/`](./docs/decisions/)
 Feature specs → [`docs/specs/`](./docs/specs/)
+Implementation notes → [`docs/implementation-notes/`](./docs/implementation-notes/)
 Tech debt → [`docs/tech-debt.md`](./docs/tech-debt.md)

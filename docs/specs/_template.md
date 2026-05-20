@@ -132,16 +132,15 @@ If any are checked: create the ADR before implementation begins.
 
 ## Implementation Deviations
 
-> **Instruction to implementing agent:** As you implement this spec,
-> document ANY deviation from the plan below. This includes: steps that
-> were harder than expected, acceptance criteria that needed refinement,
-> domain design that changed, tests that revealed new edge cases, or
-> scope that was cut.
+> **Instruction to implementing agent:** During implementation, capture
+> deviations and observations as they happen in
+> `docs/implementation-notes/SPEC-NNN-<slug>.md` (rolling log). At close-out,
+> triage that log and populate this table with anything that changed the
+> design intent vs. this approved spec. Use the spec's Post-Implementation
+> Notes for learnings, and `docs/tech-debt.md` for unresolved debt that must
+> outlive the spec.
 >
 > Be honest — this section is for learning, not blame.
->
-> If a deviation creates unresolved tech debt, add it to `docs/tech-debt.md`
-> with a cross-reference back to this spec.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
