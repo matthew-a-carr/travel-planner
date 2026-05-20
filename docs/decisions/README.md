@@ -55,3 +55,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [044](044-ai-assisted-trip-creation.md) | AI-Assisted Trip Creation | 2026-05-15 | Accepted |
 | [045](045-ios-app-strategy.md) | iOS App Strategy | 2026-05-16 | Proposed |
 | [046](046-monorepo-layout.md) | Monorepo Layout — apps/ and packages/ | 2026-05-16 | Accepted |
+| [047](047-specification-driven-ai-development-lifecycle.md) | Specification-Driven AI Development Lifecycle | 2026-05-20 | Accepted |

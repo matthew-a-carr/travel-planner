@@ -48,6 +48,7 @@ yarn-error.log*
 next-env.d.ts
 .claude/*
 !.claude/settings.json
+!.claude/skills
 !.claude/hooks/
 .claude/hooks/*
 !.claude/hooks/session-start.sh

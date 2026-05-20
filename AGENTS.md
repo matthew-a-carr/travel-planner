@@ -13,9 +13,13 @@ This is a pnpm monorepo (ADR 046). The web application lives at
 
 ```
 travel-planner/
+├── .agents/skills/   ← agent skills (Open Skills format, ADR 047)
 ├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
 ├── packages/         ← shared workspace packages (empty for now)
 ├── docs/             ← project-wide docs and ADRs
+│   ├── decisions/    ← Architecture Decision Records
+│   ├── specs/        ← feature specifications (ADR 047)
+│   └── tech-debt.md  ← tech debt register
 ├── infra/            ← Terraform
 ├── biome.json        ← workspace-wide formatter/linter config
 ├── package.json      ← workspace root with pass-through scripts
@@ -132,18 +136,123 @@ ln -s AGENTS.md CLAUDE.md
 
 ---
 
+## Specification-driven development (ADR 047)
+
+Every non-trivial feature starts with a **spec**. The spec is the contract
+between the planning phase and the implementation phase.
+
+### When to write a spec
+
+Write a spec when:
+- Adding a new user-facing feature
+- Making a significant change to domain logic
+- Adding a new integration or external service
+- Any change that would benefit from up-front design
+
+Do NOT write a spec for:
+- Bug fixes (unless the fix reveals a design problem)
+- Dependency bumps
+- Documentation-only changes
+- Refactors with no behaviour change
+
+### Spec lifecycle
+
+1. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md`.
+2. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
+3. Set status: `Draft`.
+4. Request human review and approval.
+5. **Do NOT begin implementation until status is `Approved`.**
+
+### During implementation
+
+- Follow the implementation order in the spec.
+- Log every deviation in the spec's "Implementation Deviations" table.
+- When unsure about a deviation: **STOP and consult the human.**
+- When a deviation creates tech debt: add it to `docs/tech-debt.md`.
+
+### After implementation
+
+- Run the full verification suite (see "Verification" section above).
+- Update spec status → `Complete`.
+- Write post-implementation notes in the spec.
+- Move unresolved deviations to `docs/tech-debt.md`.
+
+### Tech debt review
+
+Before planning a new spec, review `docs/tech-debt.md`. If any outstanding
+items are relevant to the new feature or can be addressed alongside it,
+include them in the spec's implementation order.
+
+### Skills — step-by-step invocation
+
+Each phase of the lifecycle has a corresponding skill in `.agents/skills/`.
+Skills follow the [Open Skills format](https://agentskills.io/specification):
+each skill is a directory containing a `SKILL.md` file with YAML frontmatter
+(`name` + `description`) and a markdown body with step-by-step instructions.
+
+```
+.agents/skills/
+├── plan-feature/
+│   └── SKILL.md        ← "Plan a feature for [idea]"
+├── implement-spec/
+│   └── SKILL.md        ← "Implement SPEC-NNN"
+└── review-tech-debt/
+    └── SKILL.md        ← "Review tech debt"
+```
+
+#### How skills work
+
+1. **Discovery** — at session start, agents scan `.agents/skills/` and read
+   each `SKILL.md`'s `name` and `description` fields (~100 tokens per skill).
+2. **Activation** — when a task matches a skill's description, the agent reads
+   the full `SKILL.md` body into context.
+3. **Execution** — the agent follows the step-by-step instructions in the body.
+
+#### Skill index
+
+| Skill | Invocation | What it does |
+|-------|-----------|--------------|
+| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" | Research → write spec → request approval |
+| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → deviation logging → verification → close-out |
+| [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | "Review tech debt" | Assess → categorise → report → act |
+
+#### Adding a new skill
+
+To add a new skill, create a directory under `.agents/skills/` with a `SKILL.md`:
+
+```yaml
+---
+name: my-skill-name          # must match directory name; lowercase + hyphens only
+description: >               # 1–1024 chars; describes WHAT it does and WHEN to use it
+  Do X when the user asks Y.
+---
+
+# Step-by-step instructions here...
+```
+
+See the [Agent Skills specification](https://agentskills.io/specification) for
+the full format reference, and `.agents/skills/plan-feature/SKILL.md` for a
+working example.
+
+Specs and the tech debt register live in `docs/specs/` and `docs/tech-debt.md`.
+See [`docs/specs/README.md`](./docs/specs/README.md) for the full index.
+
+---
+
 ## Adding a feature — standard sequence
 
-1. Write the Playwright e2e test first (`tests/e2e/`).
-2. Write domain unit tests (`*.test.ts` alongside the domain file). For use-case and
+1. Write or review the **feature spec** (`docs/specs/`). Get human approval.
+2. Write the Playwright e2e test first (`tests/e2e/`).
+3. Write domain unit tests (`*.test.ts` alongside the domain file). For use-case and
    repository layer changes, also write integration tests (`*.int-test.ts` in the same
    directory).
-3. Implement minimum code to make tests pass.
-4. Run the verification commands above.
-5. Update `CHANGELOG.md` under `## [Unreleased]`.
-6. **Review and patch any docs that describe stale state** (see Doc review below).
-7. **Write an ADR** if the change meets the trigger criteria below.
-8. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message.
+4. Implement minimum code to make tests pass.
+5. Log any deviations from the spec in its "Implementation Deviations" table.
+6. Run the verification commands above.
+7. Update `CHANGELOG.md` under `## [Unreleased]`.
+8. **Review and patch any docs that describe stale state** (see Doc review below).
+9. **Write an ADR** if the change meets the trigger criteria below.
+10. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message.
 
 ---
 
@@ -290,6 +399,7 @@ the code change.
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
 | Added a new `AGENTS.md` at any level | Create sibling `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md`) in the same commit |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
 | Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
@@ -301,3 +411,5 @@ setup steps no longer work end-to-end.
 
 Full rules → [`CONSTITUTION.md`](./CONSTITUTION.md)
 ADRs → [`docs/decisions/`](./docs/decisions/)
+Feature specs → [`docs/specs/`](./docs/specs/)
+Tech debt → [`docs/tech-debt.md`](./docs/tech-debt.md)

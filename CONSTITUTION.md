@@ -8,8 +8,10 @@
 ## 1. The Harness
 
 This project is designed to be worked on by human engineers and AI agents interchangeably.
-The engineering harness consists of three things:
+The engineering harness consists of four things:
 
+- **Specifications** — formal, structured feature specs that define scope, acceptance criteria,
+  and implementation order before code is written (`docs/specs/`, ADR 047)
 - **Constraints** — what the system mechanically prevents (layer boundaries, type safety, lint rules)
 - **Feedback loops** — how you know when your work is correct (test suite, type checker, linter)
 - **Enforcement** — automated checks that run on every commit and every PR
@@ -115,13 +117,16 @@ No production code is written without a failing test that describes the expected
 ### Workflow
 
 ```
+0. Write/review feature spec (docs/specs/) → defines scope, acceptance criteria, and test plan.
+   Get human approval before proceeding. See AGENTS.md § "Specification-driven development".
 1. Write Playwright e2e test → defines the acceptance criterion (what the user experiences).
 2. Write Vitest domain unit tests → for any new domain logic.
 3. Write Vitest integration tests → for any new use cases or repository methods
    (.int-test.ts alongside the source file; Docker + Testcontainers required).
 4. Implement the minimum code to make tests pass.
-5. Refactor if needed, keeping all tests green.
-6. pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration must all
+5. Log deviations from the spec in the spec's "Implementation Deviations" table.
+6. Refactor if needed, keeping all tests green.
+7. pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration must all
    pass before pushing.
 ```
 
@@ -265,6 +270,7 @@ When in doubt: if a real user would notice a difference, the changelog needs an 
 | A significant architectural decision | New ADR in `docs/decisions/`, update superseded ADR status if applicable, and update `docs/decisions/README.md` index |
 | ADR files in `docs/decisions/` (add/rename/status) | `docs/decisions/README.md` index, superseded ADR status lines, and any ADR cross-references in `AGENTS.md`/`README.md` |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
+| Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
 | Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
