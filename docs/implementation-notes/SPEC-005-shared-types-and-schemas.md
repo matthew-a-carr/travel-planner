@@ -91,6 +91,42 @@ literals test). Spec §3 AC#9 is satisfied by type-check.
 
 ---
 
+### 2026-05-20 19:07 — Step 4: `ApiErrorBody` shipped without `readonly` modifiers
+
+**Step:** Step 4 — Move ApiErrorCode + ApiErrorBody to shared package
+**Type:** decision
+
+**Note:**
+
+Existing `ApiErrorBody` in `apps/web/src/app/api/v1/_lib/errors.ts`
+carried `readonly` on `error`, `code`, `message`, and `Readonly<...>`
+on `details`. zod's `z.infer<typeof apiErrorBodySchema>` produces
+non-readonly fields by default. Preserving the `readonly` annotations
+would need a manual type wrapper.
+
+Decision: drop the `readonly` modifiers. Reasoning:
+
+1. `ApiErrorBody` is only used as a type annotation on the local
+   `body` variable inside `respondWithError`. Not exported beyond
+   the shim and not consumed anywhere else in the codebase
+   (verified by `grep -rn ApiErrorBody apps/web/src` — two hits,
+   both in `errors.ts`).
+2. The `readonly` modifiers had no runtime effect — they were
+   defence-in-depth type hints. Tests (`errors.test.ts`) don't
+   assert on the mutability of the response body.
+3. Adding a manual `Readonly<>` wrapper around the inferred type
+   would split the source of truth between the zod schema and a
+   wrapper type — exactly the drift the shared package exists to
+   prevent.
+
+Verification: `pnpm -r type-check` exits 0; `pnpm test:unit` 410/410
+green (errors.test.ts unchanged); the shim `export type {...} from
+'@travel-planner/shared'` keeps existing imports working.
+
+**Triage (filled at close-out):**
+
+---
+
 
 ## Close-out triage summary
 
