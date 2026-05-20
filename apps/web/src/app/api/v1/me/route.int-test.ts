@@ -1,3 +1,4 @@
+import { apiErrorBodySchema, meResponseSchema } from '@travel-planner/shared';
 import { SignJWT } from 'jose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { signAccessToken } from '@/infrastructure/auth/bearer-token';
@@ -74,7 +75,9 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-store');
-    expect(await response.json()).toEqual({
+    const body = await response.json();
+    meResponseSchema.parse(body);
+    expect(body).toEqual({
       id: user.id,
       email: 'matt@example.com',
       name: 'Matt Carr',
@@ -95,7 +98,9 @@ describe('GET /api/v1/me — cookie path', () => {
     const response = await GET(requestWithoutAuth());
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
+    const pendingBody = await response.json();
+    meResponseSchema.parse(pendingBody);
+    expect(pendingBody).toEqual({
       id: user.id,
       email: 'pending@example.com',
       name: 'Pending User',
@@ -119,7 +124,8 @@ describe('GET /api/v1/me — cookie path', () => {
     const response = await GET(requestWithoutAuth());
 
     expect(response.status).toBe(410);
-    const body = (await response.json()) as { error: { code: string; message: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('user_deleted');
     expect(typeof body.error.message).toBe('string');
   });
@@ -128,7 +134,8 @@ describe('GET /api/v1/me — cookie path', () => {
     const response = await GET(requestWithoutAuth());
 
     expect(response.status).toBe(401);
-    const body = (await response.json()) as { error: { code: string; message: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('unauthenticated');
   });
 
@@ -141,7 +148,8 @@ describe('GET /api/v1/me — cookie path', () => {
     const response = await GET(requestWithoutAuth());
 
     expect(response.status).toBe(401);
-    const body = (await response.json()) as { error: { code: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('unauthenticated');
   });
 
@@ -153,7 +161,8 @@ describe('GET /api/v1/me — cookie path', () => {
     const response = await GET(requestWithoutAuth());
 
     expect(response.status).toBe(500);
-    const body = (await response.json()) as { error: { code: string; message: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('internal');
     expect(JSON.stringify(body)).not.toContain('boom from auth()');
   });
@@ -171,7 +180,9 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer(jwt));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
+    const bearerBody = await response.json();
+    meResponseSchema.parse(bearerBody);
+    expect(bearerBody).toEqual({
       id: user.id,
       email: 'mobile@example.com',
       name: 'Mobile Matt',
@@ -190,7 +201,9 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer(jwt));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({
+    const unapprovedBearerBody = await response.json();
+    meResponseSchema.parse(unapprovedBearerBody);
+    expect(unapprovedBearerBody).toMatchObject({
       isApproved: false,
     });
   });
@@ -209,7 +222,8 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer(jwt));
 
     expect(response.status).toBe(410);
-    const body = (await response.json()) as { error: { code: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('user_deleted');
   });
 
@@ -231,7 +245,8 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer(expiredJwt));
 
     expect(response.status).toBe(401);
-    const body = (await response.json()) as { error: { code: string; message: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('unauthenticated');
     // Single unauthenticated code, no expired/invalid sub-codes leak.
     expect(JSON.stringify(body)).not.toContain('expired');
@@ -240,7 +255,8 @@ describe('GET /api/v1/me — bearer path', () => {
   it('returns 401 for a malformed bearer', async () => {
     const response = await GET(requestWithBearer('not-a-jwt'));
     expect(response.status).toBe(401);
-    const body = (await response.json()) as { error: { code: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('unauthenticated');
   });
 
@@ -261,7 +277,8 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer(badSigJwt));
 
     expect(response.status).toBe(401);
-    const body = (await response.json()) as { error: { code: string } };
+    const body = await response.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('unauthenticated');
   });
 });
@@ -287,7 +304,8 @@ describe('GET /api/v1/me — bearer-wins when both are present', () => {
     const response = await GET(requestWithBearer(jwt));
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { id: string; email: string };
+    const body = await response.json();
+    meResponseSchema.parse(body);
     expect(body.id).toBe(bearerUser.id);
     expect(body.email).toBe('bearer@example.com');
   });

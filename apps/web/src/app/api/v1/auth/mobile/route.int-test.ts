@@ -9,6 +9,12 @@
  * Google. Repos + crypto are real, backed by Testcontainers.
  */
 
+import {
+  apiErrorBodySchema,
+  mobileAuthCallbackErrorSchema,
+  mobileAuthExchangeResponseSchema,
+  mobileAuthStartResponseSchema,
+} from '@travel-planner/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebCryptoMobileAuthCrypto } from '@/infrastructure/auth/mobile-auth-crypto';
 import {
@@ -25,6 +31,22 @@ import {
   seedUser,
   truncateAll,
 } from '@/infrastructure/testing/helpers';
+
+/**
+ * Extract the `error` query parameter from a `travelplanner://auth?...`
+ * deep-link URL. Returns undefined if no error param is present (happy
+ * path) so the caller can pass it to mobileAuthCallbackErrorSchema.parse
+ * only when expected.
+ */
+function callbackErrorParam(location: string | null): string | undefined {
+  if (!location) return undefined;
+  // The custom scheme isn't a recognised URL protocol everywhere; parse
+  // the query manually.
+  const queryStart = location.indexOf('?');
+  if (queryStart === -1) return undefined;
+  const params = new URLSearchParams(location.slice(queryStart + 1));
+  return params.get('error') ?? undefined;
+}
 
 let db: Db;
 let sql: Sql;
@@ -81,6 +103,7 @@ describe('/api/v1/auth/mobile/start', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('validation_failed');
   });
 
@@ -101,6 +124,7 @@ describe('/api/v1/auth/mobile/start', () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
+    mobileAuthStartResponseSchema.parse(body);
     expect(body.authorise_url).toContain('accounts.google.test');
     expect(body.state).toMatch(/^[A-Za-z0-9_-]{43}$/);
   });
@@ -152,7 +176,11 @@ describe('/api/v1/auth/mobile/callback', () => {
       new Request(`http://localhost/api/v1/auth/mobile/callback?code=goog&state=${stateRow.state}`),
     );
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toContain('error=access_denied');
+    const accessDeniedLocation = res.headers.get('location');
+    expect(accessDeniedLocation).toContain('error=access_denied');
+    expect(mobileAuthCallbackErrorSchema.parse(callbackErrorParam(accessDeniedLocation))).toBe(
+      'access_denied',
+    );
   });
 
   it('redirects with invalid_request when code or state is missing', async () => {
@@ -160,7 +188,11 @@ describe('/api/v1/auth/mobile/callback', () => {
     const { GET } = await import('./callback/route');
     const res = await GET(new Request('http://localhost/api/v1/auth/mobile/callback'));
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toContain('error=invalid_request');
+    const invalidRequestLocation = res.headers.get('location');
+    expect(invalidRequestLocation).toContain('error=invalid_request');
+    expect(
+      mobileAuthCallbackErrorSchema.parse(callbackErrorParam(invalidRequestLocation)),
+    ).toBe('invalid_request');
   });
 });
 
@@ -193,6 +225,7 @@ describe('/api/v1/auth/mobile/exchange', () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
+    mobileAuthExchangeResponseSchema.parse(body);
     expect(typeof body.access_token).toBe('string');
     expect(typeof body.refresh_token).toBe('string');
     expect(typeof body.access_expires_at).toBe('string');
@@ -225,6 +258,7 @@ describe('/api/v1/auth/mobile/exchange', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('pkce_mismatch');
   });
 });
@@ -242,6 +276,7 @@ describe('/api/v1/auth/mobile/refresh', () => {
     );
     expect(res.status).toBe(401);
     const body = await res.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('refresh_unknown');
   });
 
@@ -257,6 +292,7 @@ describe('/api/v1/auth/mobile/refresh', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
+    apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('validation_failed');
   });
 });
