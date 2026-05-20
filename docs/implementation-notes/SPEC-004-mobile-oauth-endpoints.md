@@ -38,6 +38,41 @@ breakage from adding the FK to `users` cascade.
 
 ---
 
+### 2026-05-20 17:12 — Step 2 (domain) done; PKCE Result-type narrowing
+
+**Step:** Step 2 — Domain PKCE + rotation logic
+**Type:** decision
+**Note:**
+
+Two pure modules in `src/domain/auth/`:
+
+- `pkce.ts` — constant-time string compare for the S256 challenge.
+  Application layer computes the SHA-256 (async, Web Crypto) and
+  passes both base64url strings to the domain. Constant-time loop
+  prevents timing attacks on the verifier.
+- `refresh-token-rotation.ts` — pure `decideRotation` that takes the
+  presented row + the forward chain and returns one of five tagged
+  outcomes (`rotate`, `unknown_token`, `expired`, `revoked`,
+  `reused`). Precedence: `reused` wins over `expired`/`revoked` —
+  attacker holding an expired-but-rotated token still triggers chain
+  revocation (covered by the "prioritises reused over expired" test).
+
+15 unit tests across both files; type-check + architecture tests
+green.
+
+Small TS papercut: `err<'pkce_mismatch'>('pkce_mismatch')` didn't
+narrow because the existing `err` helper signature widens E to
+`string` via the `E = string` default in some inference contexts.
+Worked around by defining a `MISMATCH: PkceMatchResult` constant
+inside the module rather than calling `err()`. Other domains use
+`ok()`/`err()` happily because their generic constraints are looser
+(`Result<T, string>`-shaped). Not worth widening the shared helpers
+for one consumer — local constant is fine.
+
+**Triage (filled at close-out):**
+
+---
+
 ## Close-out triage summary
 
 _(populated at close-out)_
