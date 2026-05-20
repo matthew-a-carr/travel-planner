@@ -34,6 +34,30 @@ warning noise on every run.
 
 ---
 
+### 2026-05-20 22:30 — Step ordering swap: 7 before 6 (signed-in placeholder lands first)
+
+**Step:** Step 7 → Step 6
+**Type:** decision
+
+**Note:**
+
+SPEC-006 §12 lists step 6 (rewrite `app/index.tsx`) before step 7
+(`app/signed-in.tsx` placeholder). With `app.json`'s
+`experiments.typedRoutes: true`, Expo Router infers the valid route
+union from the `app/` directory contents at type-check time. Step 6
+needs to call `router.replace({ pathname: '/signed-in', params: {
+email } })` — but `'/signed-in'` doesn't exist as a route yet, so
+the typed-route narrowing would reject it.
+
+Swap the order: do step 7 first (5-line route file + tiny render
+test), then step 6 (the meaty screen + state machine). No
+load-bearing dependency in either direction so the swap is
+mechanical.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 22:05 — Step 4: msw 2.x + jest-expo 54 ESM transitive friction; switched to global fetch spy
 
 **Step:** Step 4 — apiClient.ts + tests
