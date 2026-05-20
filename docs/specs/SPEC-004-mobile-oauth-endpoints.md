@@ -1,9 +1,9 @@
 # SPEC-004: Mobile OAuth Endpoints (`/api/v1/auth/mobile/*`)
 
 **Date:** 2026-05-20
-**Status:** Draft
+**Status:** In Progress
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 3
 
 ---
