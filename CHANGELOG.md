@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.16.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.15.0...v1.16.0) (2026-05-20)
+
+
+### Features
+
+* **api:** /api/v1/me accepts bearer tokens ([1291dbd](https://github.com/matthew-a-carr/travel-planner/commit/1291dbd9e4b236263c7d798259e43dcba9aba841))
+* **api:** bearer auth e2e + close slice 2 ([5c830c4](https://github.com/matthew-a-carr/travel-planner/commit/5c830c4a5bd7ba14390551991012c7e32589acc5))
+* **api:** cookie-session helper for /api/v1 ([4025ed2](https://github.com/matthew-a-carr/travel-planner/commit/4025ed274e6ef36d5679c218bfcf962171563e7a))
+* **api:** error envelope helper for /api/v1 ([a97bca2](https://github.com/matthew-a-carr/travel-planner/commit/a97bca2f20599517a6d0a209aeb39acf852e2c8e))
+* **api:** GET /api/v1/me (cookie auth) ([a31c47a](https://github.com/matthew-a-carr/travel-planner/commit/a31c47a6a2b4dc283869905a62276bcfaf33cf30))
+* **api:** requireBearerSession + requireAuth helpers ([060a34e](https://github.com/matthew-a-carr/travel-planner/commit/060a34ee16d1bd8a4af9b33f98c1653586d39e0e))
+* **auth:** JWT access-token signer + verifier ([9833294](https://github.com/matthew-a-carr/travel-planner/commit/9833294424bc604993a3b7d68918306bd72eede5))
+* **auth:** pnpm auth:mint-token dev CLI ([8936617](https://github.com/matthew-a-carr/travel-planner/commit/8936617432ffc449d945028c667dad41a8ca020c))
+* **mobile:** close slice 5 + merge slice 8 ([2997bd2](https://github.com/matthew-a-carr/travel-planner/commit/2997bd22e42bf6a9895facf7c73611327a6f556b))
+* **mobile:** expo sdk 55 scaffold with pnpm metro config ([53fe015](https://github.com/matthew-a-carr/travel-planner/commit/53fe0159983d0b7bf2e405bc0021a709648f61f7))
+* **mobile:** hello screen + jest harness ([ba1d08d](https://github.com/matthew-a-carr/travel-planner/commit/ba1d08d5b29383d3d06c20b9fa7394bb5496785b))
+* **mobile:** maestro launch flow ([3b6c69b](https://github.com/matthew-a-carr/travel-planner/commit/3b6c69be693bdd098626577573e8bc7ee2d9bbde))
+* **skills:** add review-spec consistency gate ([dd76c1c](https://github.com/matthew-a-carr/travel-planner/commit/dd76c1c5063d63d1b37910df7241291007a50d69))
+* **spec-004:** add mobile auth + rate-limit tables (step 1) ([017c949](https://github.com/matthew-a-carr/travel-planner/commit/017c949e68eb9e1da1628c35257b40d86582edd0))
+* **spec-004:** close out — rate limit + Sentry + ADR-054 + demo + close-out ([dfc510b](https://github.com/matthew-a-carr/travel-planner/commit/dfc510b3c410dec4e0871f6fd9fe9e2b4d460e6d))
+* **spec-004:** domain PKCE verify + refresh-token rotation logic (step 2) ([bb17341](https://github.com/matthew-a-carr/travel-planner/commit/bb173416629cab7afd5dd9a24a459012344cb6f4))
+* **spec-004:** four /api/v1/auth/mobile/* route handlers (step 6) ([0fb2580](https://github.com/matthew-a-carr/travel-planner/commit/0fb2580179670881c4dddf900ed1f10ae47b2958))
+* **spec-004:** four mobile-auth use cases + crypto port (step 4) ([e7c190f](https://github.com/matthew-a-carr/travel-planner/commit/e7c190ffbb03ec1ba79628f5652fc2e9590553ef))
+* **spec-004:** repositories for mobile auth + rate limit (step 3) ([e785de9](https://github.com/matthew-a-carr/travel-planner/commit/e785de967642cb11cd68d48d6ac2cf58128e58bf))
+* **spec-004:** wire mobile auth into the DI container (step 5) ([394f625](https://github.com/matthew-a-carr/travel-planner/commit/394f625e0cf5a65d0bb32145a3923f396bd6ac71))
+* **spec-005:** meResponseSchema + integration tests parse observed bodies (step 6) ([123ded6](https://github.com/matthew-a-carr/travel-planner/commit/123ded6cdaeb53fdb43225bb6a5be72762772ba5))
+* **spec-005:** mobile-auth request + response schemas + handler refactor (step 5) ([afd2580](https://github.com/matthew-a-carr/travel-planner/commit/afd258059cadcaa3ace65a4d99bd28fc39b42eec))
+* **spec-005:** MobileAuthCallbackError union + type-narrow callback emit sites (step 3) ([dbe9646](https://github.com/matthew-a-carr/travel-planner/commit/dbe96469c52a84fbca24fceefa83341702bf50dd))
+* **spec-005:** move ApiErrorCode + ApiErrorBody to @travel-planner/shared (step 4) ([373b6e9](https://github.com/matthew-a-carr/travel-planner/commit/373b6e95106e488150bc87b18615603e715fa5bd))
+* **spec-005:** scaffold @travel-planner/shared workspace package (step 1) ([5318f87](https://github.com/matthew-a-carr/travel-planner/commit/5318f87a9debb228aaa9e84e6de4ac3a50f035b5))
+
+
+### Bug Fixes
+
+* **ci:** single lint covers both apps; drop redundant mobile-lint job ([4458cff](https://github.com/matthew-a-carr/travel-planner/commit/4458cff11ed78acf41f2adf9897ce19bf8a30d97))
+
 ## [Unreleased]
 
 ### Added
