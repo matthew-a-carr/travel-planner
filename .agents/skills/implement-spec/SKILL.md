@@ -19,10 +19,16 @@ The spec must have status `Approved` before implementation begins.
 
 1. Read the spec file (`docs/specs/SPEC-NNN-title.md`) end-to-end.
 2. **Verify status is `Approved`.** If not, STOP — do not implement unapproved specs.
-3. Read `AGENTS.md` and `CONSTITUTION.md` to confirm current engineering standards.
-4. Read the layer-specific `AGENTS.md` files for any layers this spec touches.
-5. Set the spec status to `In Progress`.
-6. **Open the implementation notes file.** Copy
+3. **Invoke the `review-spec` skill** as a final gate. The spec may have
+   been approved before later ADRs, epic changes, or tech debt entries
+   landed. Refuse to start if the verdict is **Needs revision** or
+   **Blocked** — return to the human with the report; do not proceed and
+   do not silently patch the spec. Warnings can be acknowledged inline in
+   the implementation notes file rather than blocking.
+4. Read `AGENTS.md` and `CONSTITUTION.md` to confirm current engineering standards.
+5. Read the layer-specific `AGENTS.md` files for any layers this spec touches.
+6. Set the spec status to `In Progress`.
+7. **Open the implementation notes file.** Copy
    `docs/implementation-notes/_template.md` →
    `docs/implementation-notes/SPEC-NNN-<slug>.md`. Fill in the header (spec
    link, start date). Leave the entries list empty — you'll append to it as

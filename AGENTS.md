@@ -199,8 +199,11 @@ Do NOT write a spec for:
 4. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
 5. Set status: `Draft`. If parented to an epic, update the epic's §7 slice
    table and slice ledger.
-6. Request human review and approval.
-7. **Do NOT begin implementation until status is `Approved`.**
+6. **Invoke `review-spec`** to check the draft against the constitution,
+   ADRs, parent epic, and tech debt register. Address any **Critical**
+   findings before requesting human review.
+7. Request human review and approval.
+8. **Do NOT begin implementation until status is `Approved`.**
 
 ### During implementation
 
@@ -251,6 +254,8 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 │   └── SKILL.md        ← "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM"
 ├── implement-spec/
 │   └── SKILL.md        ← "Implement SPEC-NNN"
+├── review-spec/
+│   └── SKILL.md        ← "Review SPEC-NNN" — cross-artefact consistency check
 └── review-tech-debt/
     └── SKILL.md        ← "Review tech debt"
 ```
@@ -276,6 +281,7 @@ it here to keep them aligned.
 | [`grill-me`](./.agents/skills/grill-me/SKILL.md) | "Grill me on [idea]" | One-question-at-a-time interview until shared understanding |
 | [`plan-epic`](./.agents/skills/plan-epic/SKILL.md) | "Plan an epic for [initiative]" | Grill at epic altitude → write EPIC-NNN. Does NOT write SPECs |
 | [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM" | Grill at slice altitude → write SPEC-NNN, inheriting epic decisions if any |
+| [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates Draft → Approved and Approved → implementation |
 | [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → rolling notes → verification → triage at close-out |
 | [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | "Review tech debt" | Assess → categorise → report → act |
 

@@ -115,22 +115,36 @@ no behaviour change.
     draft the ADR alongside the spec.
 17. Set status to `Draft`.
 
+## Self-review before submitting
+
+18. **Invoke the `review-spec` skill** on the new SPEC. It runs a read-only
+    consistency check against the constitution, ADRs, parent epic (if any),
+    and tech debt register.
+    - If the verdict is **Needs revision** or **Blocked**, address every
+      Critical finding before showing the spec to the human. Warnings should
+      be fixed or explicitly justified inline.
+    - If the verdict is **Ready for implementation**, proceed.
+    - Include the review report alongside the spec when presenting to the
+      human so they see what was checked.
+
 ## Submit for review
 
-18. Update `docs/specs/README.md` — add the new spec to the index table.
-19. **If the spec has a parent epic**, update that epic's §7 slice table
+19. Update `docs/specs/README.md` — add the new spec to the index table.
+20. **If the spec has a parent epic**, update that epic's §7 slice table
     (the relevant row's "Becomes SPEC" cell → `SPEC-NNN (Draft)`) and
     append a row to its slice ledger.
-20. Delete (or rename to `_draft-NNN-<slug>.superseded.md`) the draft brief
+21. Delete (or rename to `_draft-NNN-<slug>.superseded.md`) the draft brief
     now that the spec supersedes it.
-21. Present the spec to the human for review.
-22. **STOP. Do not begin implementation until the human sets status to
+22. Present the spec (and the `review-spec` report) to the human for review.
+23. **STOP. Do not begin implementation until the human sets status to
     `Approved`.**
 
 ## If changes are requested
 
-23. Revise the spec based on human feedback.
-24. If feedback exposes a new genuinely unresolved question, run another
+24. Revise the spec based on human feedback.
+25. If feedback exposes a new genuinely unresolved question, run another
     `grill-me` pass on just that question rather than guessing.
-25. Re-submit for review.
-26. Repeat until approved.
+26. Re-invoke `review-spec` after revisions before re-submitting — the same
+    gate applies to revised drafts.
+27. Re-submit for review.
+28. Repeat until approved.
