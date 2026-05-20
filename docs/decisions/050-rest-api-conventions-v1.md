@@ -1,7 +1,7 @@
 # ADR 050: REST API Conventions for `/api/v1/*`
 
 **Date:** 2026-05-20
-**Status:** Proposed
+**Status:** Accepted
 
 ## Context
 

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **REST API v1 baseline.** New `/api/v1/*` surface with versioned URL prefix,
+  typed error envelope (`{ error: { code, message, details? } }`), and
+  per-handler `Result<T, E>` → HTTP mapping. Conventions in
+  `docs/api-conventions.md`; decision recorded in ADR 050.
+- **`GET /api/v1/me`** — first endpoint on the v1 surface. Returns
+  `{ id, email, name, isApproved }` for an authenticated cookie session.
+  410 for anonymised users (ADR 031 marker); 200 with `isApproved: false`
+  for authenticated-but-unapproved sessions.
+
 ## [1.15.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.14.0...v1.15.0) (2026-05-18)
 
 

@@ -118,7 +118,7 @@ in parallel.
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Budget | Status |
 |---|-------|---------------------|--------------|------------|--------|--------|
 | 0 | Monorepo restructure (`apps/web/`, `apps/mobile/`, `packages/*`) | n/a — invisible | _shipped, ADR 046_ | — | — | **Done** |
-| 1 | REST API conventions + first endpoint `GET /api/v1/me` (cookie auth only) | (foundation for line 6) | [SPEC-001 (Approved)](../specs/SPEC-001-rest-api-conventions-and-me.md) | 0 | 2d | Not started |
+| 1 | REST API conventions + first endpoint `GET /api/v1/me` (cookie auth only) | (foundation for line 6) | [SPEC-001 (Complete)](../specs/SPEC-001-rest-api-conventions-and-me.md) | 0 | 2d | **Done** |
 | 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | _not yet planned_ | 1 | 2d | Not started |
 | 3 | Mobile OAuth endpoints (PKCE start / callback / exchange / refresh) + `refresh_tokens` migration + auth-endpoint rate limiting | (foundation for lines 3–5) | _not yet planned_ | 2 | 4–5d | Not started |
 | 4 | `packages/shared/` re-exports domain types + zod schemas | (foundation for line 6) | _not yet planned_ | 0 (parallel to 1–3) | 1d | Not started |
@@ -331,6 +331,7 @@ mobile chart library, mobile map library, PWA decision.
 | 2026-05-20 | — | — | Approved | After `grill-me` pass: Option A (no ADP in EPIC-001), partner included in audience, streaming-compat in §10, refresh-token + rate-limit decisions added, §13 Q1–Q5 resolved. |
 | 2026-05-20 | 1 | SPEC-001 | Planned (Draft) | SPEC-001 written via `plan-feature` + `grill-me`. Locks envelope shape, /me payload (Option B), `/stream` suffix + reused-envelope SSE error frames, integration-tests-only strategy, 4-commit implementation order. Awaiting human approval. |
 | 2026-05-20 | 1 | SPEC-001 | Approved | Approved by Matt Carr. Implementation begins. |
+| 2026-05-20 | 1 | SPEC-001 | Done | ADR 050 Accepted; `/api/v1/me` shipped with 5 integration tests (+ 7 anonymised-email unit tests, 17 envelope helper unit tests). All verification green. EPIC §10 streaming-compat & rate-limit principles codified in conventions doc without exercising them yet. |
 
 ## Epic-level deviations
 
