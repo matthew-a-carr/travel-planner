@@ -35,8 +35,11 @@ Every non-2xx response uses this exact JSON shape:
 }
 ```
 
-- `code` is a member of `ApiErrorCode` (TypeScript string-literal union;
-  see `apps/web/src/app/api/v1/_lib/errors.ts`). Misspelling is a compile
+- `code` is a member of `ApiErrorCode` (zod `z.enum` plus inferred TS
+  union; source of truth at `packages/shared/src/api-errors.ts` so the
+  mobile client can parse the envelope against the same definition; the
+  server-side `respondWithError` helper and `STATUS_BY_CODE` map live in
+  `apps/web/src/app/api/v1/_lib/errors.ts`). Misspelling is a compile
   error.
 - `message` is a sentence-cased string, no trailing period required.
   Generic enough not to leak server internals. Safe for direct display.
@@ -64,7 +67,8 @@ directly.
 | 503 | `unavailable` | Dependency down (DB, AI gateway, upstream) | `undefined` |
 
 When adding a new code: edit this table in the same commit as the
-endpoint and update `ApiErrorCode`.
+endpoint and update `ApiErrorCode` in `packages/shared/src/api-errors.ts`
+plus its `STATUS_BY_CODE` entry in `apps/web/src/app/api/v1/_lib/errors.ts`.
 
 ## `Result<T, E>` → HTTP mapping rule
 
