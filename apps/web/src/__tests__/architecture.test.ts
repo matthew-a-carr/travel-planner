@@ -60,3 +60,37 @@ describe('Architecture layer boundaries', () => {
     }
   });
 });
+
+describe('@travel-planner/shared package imports', () => {
+  // Cwd-based to match the existing path.resolve('src/domain') convention.
+  // Vitest runs with cwd = apps/web/, so '../../' reaches the repo root.
+  const sharedDir = path.resolve('../../packages/shared/src');
+
+  it('files only import zod or siblings within the package', () => {
+    const sharedFiles = getAllTsFiles(sharedDir);
+    expect(
+      sharedFiles.length,
+      'expected packages/shared/src to contain at least one .ts file',
+    ).toBeGreaterThan(0);
+
+    for (const file of sharedFiles) {
+      const imports = getImports(file);
+      for (const imp of imports) {
+        if (imp === 'zod') continue;
+        if (imp.startsWith('./') || imp.startsWith('../')) {
+          const resolvedAbs = path.resolve(path.dirname(file), imp);
+          const isSibling = resolvedAbs === sharedDir || resolvedAbs.startsWith(`${sharedDir}/`);
+          if (!isSibling) {
+            throw new Error(
+              `${path.relative(process.cwd(), file)} imports '${imp}' which resolves outside packages/shared/src/`,
+            );
+          }
+          continue;
+        }
+        throw new Error(
+          `${path.relative(process.cwd(), file)} imports '${imp}' — only 'zod' and sibling files are allowed in @travel-planner/shared`,
+        );
+      }
+    }
+  });
+});
