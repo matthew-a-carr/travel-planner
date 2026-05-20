@@ -119,7 +119,7 @@ in parallel.
 |---|-------|---------------------|--------------|------------|--------|--------|
 | 0 | Monorepo restructure (`apps/web/`, `apps/mobile/`, `packages/*`) | n/a — invisible | _shipped, ADR 046_ | — | — | **Done** |
 | 1 | REST API conventions + first endpoint `GET /api/v1/me` (cookie auth only) | (foundation for line 6) | [SPEC-001 (Complete)](../specs/SPEC-001-rest-api-conventions-and-me.md) | 0 | 2d | **Done** |
-| 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | [SPEC-002 (Approved)](../specs/SPEC-002-bearer-token-auth.md) | 1 | 2d | Not started |
+| 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | [SPEC-002 (Complete)](../specs/SPEC-002-bearer-token-auth.md) | 1 | 2d | **Done** |
 | 3 | Mobile OAuth endpoints (PKCE start / callback / exchange / refresh) + `refresh_tokens` migration + auth-endpoint rate limiting | (foundation for lines 3–5) | _not yet planned_ | 2 | 4–5d | Not started |
 | 4 | `packages/shared/` re-exports domain types + zod schemas | (foundation for line 6) | _not yet planned_ | 0 (parallel to 1–3) | 1d | Not started |
 | 5 | Expo app skeleton in `apps/mobile/` — runs in Expo Go, shows "Hello, Travel Planner" | line 2 | _not yet planned_ | 0 (parallel to 1–3) | 2d | Not started |
@@ -333,6 +333,7 @@ mobile chart library, mobile map library, PWA decision.
 | 2026-05-20 | 1 | SPEC-001 | Approved | Approved by Matt Carr. Implementation begins. |
 | 2026-05-20 | 1 | SPEC-001 | Done | ADR 050 Accepted; `/api/v1/me` shipped with 5 integration tests (+ 7 anonymised-email unit tests, 17 envelope helper unit tests). All verification green. EPIC §10 streaming-compat & rate-limit principles codified in conventions doc without exercising them yet. |
 | 2026-05-20 | 2 | SPEC-002 | Planned + Approved | Drafted via `plan-feature` + `grill-me`; approved same-day with user authorisation to implement. Locks HS256 signing, dedicated `AUTH_JWT_SIGNING_KEY` env var, 15m access / 30d refresh, minimal `{ sub, iat, exp, iss }` claims, three-helper composition (cookie / bearer / both), bearer-wins-when-both, single `unauthenticated` 401, cookie-only Playwright e2e, dev `pnpm auth:mint-token` CLI. Mobile-auth-model ADR drafted as part of step 2. |
+| 2026-05-20 | 2 | SPEC-002 | Done | ADR 051 Accepted; `/api/v1/me` accepts bearer alongside cookie via `requireAuth`; 13 integration tests pass (6 cookie + 6 bearer + 1 bearer-wins); 14 bearer-token unit tests; 1 Playwright e2e (cookie path); `pnpm auth:mint-token` CLI ships for dev. All verification green. Refresh-tokens table designed in ADR but migration deferred to slice 3. |
 
 ## Epic-level deviations
 

@@ -469,7 +469,8 @@ the code change.
 | Added a new `AGENTS.md` at any level | Create sibling `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md`) in the same commit |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 | Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
-| A new `/api/v1/*` endpoint or error code | `docs/api-conventions.md` (vocabulary tables, naming, streaming-compat); `apps/web/src/app/api/v1/_lib/errors.ts` (`ApiErrorCode` union) |
+| A new `/api/v1/*` endpoint or error code | `docs/api-conventions.md` (vocabulary tables, naming, streaming-compat); `apps/web/src/app/api/v1/_lib/errors.ts` (`ApiErrorCode` union); `apps/web/src/proxy.ts` matcher already excludes `api/v1` (SPEC-002), so v1 endpoints handle their own auth |
+| Proxy / middleware matcher (`apps/web/src/proxy.ts`) | Verify excluded paths (e.g. `api/auth`, `api/v1`) still handle their own auth and return their own envelopes; run `pnpm test:e2e` |
 | Epic (add / status change / slice ledger update) | `docs/epics/README.md` index; the linked strategic ADR if any |
 | A slice of an epic shipped or changed status | The parent epic's §7 slice table and slice ledger |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |

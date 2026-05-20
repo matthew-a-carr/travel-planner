@@ -34,6 +34,12 @@ async function main(): Promise<void> {
         ...process.env,
         POSTGRES_URL: postgresUrl,
         AUTH_SECRET: process.env.AUTH_SECRET ?? E2E_DEFAULT_AUTH_SECRET,
+        // Stable test-only key so /api/v1/* bearer endpoints boot in
+        // production-mode e2e (per SPEC-002 step 1). Slice 2 e2e only
+        // exercises the cookie path; the bearer integration tests cover
+        // verification.
+        AUTH_JWT_SIGNING_KEY:
+          process.env.AUTH_JWT_SIGNING_KEY ?? 'e2e-only-jwt-signing-key-do-not-use-in-prod',
         // Provide dummy OAuth credentials so the sign-in button renders in
         // production mode (pnpm start).  The values must NOT start with a
         // known placeholder prefix (see provider-availability.ts).

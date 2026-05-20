@@ -17,6 +17,14 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   `{ id, email, name, isApproved }` for an authenticated cookie session.
   410 for anonymised users (ADR 031 marker); 200 with `isApproved: false`
   for authenticated-but-unapproved sessions.
+- **Bearer-token authentication on `/api/v1/*`.** `Authorization: Bearer <jwt>`
+  is now accepted alongside cookie sessions. Tokens are HS256-signed JWTs
+  per ADR 051 (Mobile Authentication Model); bearer wins when both are
+  present. `GET /api/v1/me` accepts either credential.
+- **`pnpm auth:mint-token`** — dev-only CLI for minting JWT access tokens
+  against an existing user. Refuses to run when `NODE_ENV=production`.
+  Useful for manual `/api/v1` testing until slice 3 ships the PKCE
+  issuance flow.
 
 ## [1.15.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.14.0...v1.15.0) (2026-05-18)
 

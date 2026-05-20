@@ -24,6 +24,54 @@ ship in the production bundle. Pinning under `dependencies` instead of
 
 **Triage:** _see triage summary below_
 
+---
+
+### 2026-05-20 — step 8 — proxy middleware was redirecting `/api/v1/*` to `/login`
+
+**Step:** Step 8 (Playwright e2e)
+**Type:** surprise (bug surfaced and fixed)
+**Note:**
+
+The first Playwright e2e for the no-cookie path returned the homepage
+HTML with status 200 instead of the typed 401 envelope. Root cause:
+`src/proxy.ts` (Next.js 16 middleware) has matcher
+`'/((?!api/auth|_next/static|_next/image|favicon.ico).*)'` which
+intercepts **every** route except `api/auth` and the build asset
+paths. `/api/v1/*` was caught, and `authConfig.callbacks.authorized`
+returns `false` for unauthenticated non-public paths → next-auth
+middleware redirects to `/login`. The integration tests in SPEC-001
+called the route handler directly and bypassed middleware, so this
+went undetected until e2e exercised the full stack.
+
+Fix: add `api/v1` to the matcher exclusion. `/api/v1/*` endpoints
+handle their own auth (cookie via `requireCookieSession`, bearer via
+`requireBearerSession`, or both via `requireAuth`) and return the v1
+typed error envelope on 401 — they must not be intercepted by the
+session-redirect middleware.
+
+This was a pre-existing latent bug from SPEC-001 (slice 1). Fixing
+under slice 2 because slice 2's e2e is the first thing that exercises
+the full stack and would have failed CI immediately. Adding a doc-
+review-table entry so future contributors know the matcher excludes
+`api/v1` deliberately.
+
+**Triage:** _see triage summary below_
+
+---
+
+### 2026-05-20 — step 8 — e2e file renamed `04-api-me` → `11-api-me`
+
+**Step:** Step 8 (Playwright e2e)
+**Type:** deviation (cosmetic)
+**Note:**
+
+SPEC-002 §9 named the new e2e `tests/e2e/04-api-me.spec.ts`, unaware
+that `04-auth-avatar.spec.ts` already exists. Renamed to
+`11-api-me.spec.ts` to follow the existing numerical sequence (last
+existing is `10-chat-foundation.spec.ts`).
+
+**Triage:** _see triage summary below_
+
 ## Close-out triage summary
 
 | Entry | Landed in |

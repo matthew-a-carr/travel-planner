@@ -1,7 +1,7 @@
 # ADR 051: Mobile Authentication Model
 
 **Date:** 2026-05-20
-**Status:** Proposed
+**Status:** Accepted
 
 ## Context
 
