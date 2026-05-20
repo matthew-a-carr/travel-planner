@@ -34,3 +34,4 @@ Draft → Approved → In Progress → Complete
 | [002](SPEC-002-bearer-token-auth.md) | Bearer-Token Auth Alongside Cookie Sessions + Mobile-Auth Model ADR | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [003](SPEC-003-mobile-app-foundation.md) | Mobile App Foundation — Expo Skeleton + Testing Infra (merged slice 5 + 8) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [004](SPEC-004-mobile-oauth-endpoints.md) | Mobile OAuth Endpoints (`/api/v1/auth/mobile/*`) + refresh-token table + Postgres rate limit | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
+| [005](SPEC-005-shared-types-and-schemas.md) | Shared Wire Types and Schemas (`@travel-planner/shared`) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | In Progress |
