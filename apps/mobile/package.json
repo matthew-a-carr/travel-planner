@@ -8,7 +8,7 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:unit": "jest",
-    "e2e": "maestro test .maestro/flows"
+    "test:e2e": "maestro test .maestro/flows"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

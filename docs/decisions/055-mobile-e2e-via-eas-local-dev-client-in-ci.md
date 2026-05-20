@@ -68,7 +68,7 @@ The dev-client `.app` can then be installed into the simulator via
 5. Boots an iOS Simulator (`xcrun simctl boot "iPhone 15"` or the
    currently-recommended Simulator name for SDK 54).
 6. Installs the bundle (`xcrun simctl install booted <artifact>.app`).
-7. Runs `pnpm --filter @travel-planner/mobile exec maestro test .maestro/flows/`.
+7. Runs `pnpm test:e2e:mobile` (which expands to `maestro test .maestro/flows`).
 8. On failure, uploads Maestro's HTML report as a CI artifact (7-day
    retention).
 

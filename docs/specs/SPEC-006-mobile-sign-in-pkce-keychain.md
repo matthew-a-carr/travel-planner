@@ -124,7 +124,7 @@ the full Q→A trail. The load-bearing decisions:
     generic error) plus the `apiClient.ts` success-and-error envelope
     parsing.
 11. Given the new Maestro flow, when I run
-    `pnpm --filter @travel-planner/mobile e2e`, then
+    `pnpm test:e2e:mobile`, then
     `.maestro/flows/sign-in.yaml` runs against the iOS Simulator and
     asserts: app launches → sign-in screen renders with the
     `login-google-button` testID → tapping the button transitions UI
@@ -610,7 +610,7 @@ Tests written **before** implementation per CONSTITUTION.md §3.
   workflow's `continue-on-error` setting; (ii) revert just the
   `.github/workflows/ci.yml` portion of the slice while keeping the
   Maestro flow + dev-client wiring scripts. The flow file then runs
-  on `pnpm --filter @travel-planner/mobile e2e` locally until the CI
+  on `pnpm test:e2e:mobile` locally until the CI
   flake is fixed. Decide at SPEC time which fallback (i)/(ii) is the
   default — recommendation: **(i) non-blocking for the first week,
   then promote**. Captured in §14 risks.
@@ -661,7 +661,7 @@ budget tracking.
    `__tests__/app/index.test.tsx` to mock the flow and assert all
    four UI branches + the navigation call. Update the existing
    `launch.yaml` Maestro flow's selectors to the new screen's
-   testIDs. **Verification:** Jest passes; `pnpm --filter @travel-planner/mobile e2e`
+   testIDs. **Verification:** Jest passes; `pnpm test:e2e:mobile`
    (against simulator) shows `launch.yaml` green. (Day 3.)
 
 7. [ ] **Intent:** Create `apps/mobile/app/signed-in.tsx` placeholder
@@ -671,7 +671,7 @@ budget tracking.
 8. [ ] **Intent:** Create `apps/mobile/.maestro/flows/sign-in.yaml`
    asserting launch → sign-in screen → tap button → observable
    in-flight state. **Verification:**
-   `pnpm --filter @travel-planner/mobile e2e` runs both flows green
+   `pnpm test:e2e:mobile` runs both flows green
    locally. (Day 3 afternoon.)
 
 9. [ ] **Intent:** Pay down TD-002 — replace the placeholder
@@ -684,7 +684,7 @@ budget tracking.
    - `xcrun simctl boot "iPhone 15"` (or the current SDK 54-compatible
      simulator name).
    - `xcrun simctl install booted <artifact>.app`.
-   - `pnpm --filter @travel-planner/mobile exec maestro test .maestro/flows/`.
+   - `pnpm test:e2e:mobile` (which runs `maestro test .maestro/flows`).
    - Upload Maestro's HTML report as a CI artifact on failure
      (7-day retention).
    - **Caching:** skip in the first iteration — ship without
@@ -718,7 +718,7 @@ budget tracking.
     **Verification:** From repo root: `pnpm lint &&
     pnpm db:check:migrations && pnpm type-check && pnpm test:unit &&
     pnpm test:integration` all exit 0; `pnpm build` exits 0;
-    `pnpm --filter @travel-planner/mobile e2e` exits 0; manual
+    `pnpm test:e2e:mobile` exits 0; manual
     on-device sign-in dry-run plus closed-auth dry-run plus
     cancellation dry-run all pass per §9. (Day 5.)
 
