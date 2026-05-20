@@ -1,13 +1,9 @@
 import * as Sentry from '@sentry/nextjs';
-import { z } from 'zod';
+import { mobileAuthRefreshRequestSchema as Body } from '@travel-planner/shared';
 import { makeRefreshMobileTokens } from '@/application/use-cases/auth/mobile/refresh-mobile-tokens';
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
 import { rateLimitOrReject } from '../_lib/with-rate-limit';
-
-const Body = z.object({
-  refresh_token: z.string().min(1),
-});
 
 export async function POST(request: Request): Promise<Response> {
   try {
