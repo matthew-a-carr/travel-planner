@@ -1,7 +1,7 @@
 # SPEC-003: Mobile App Foundation — Expo Skeleton + Testing Infra
 
 **Date:** 2026-05-20
-**Status:** Approved
+**Status:** In Progress
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — **merged slice 5 + slice 8**
