@@ -8,18 +8,22 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:unit": "jest",
-    "e2e": "maestro test .maestro/flows"
+    "test:e2e": "maestro test .maestro/flows"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@travel-planner/shared": "workspace:*",
     "expo": "^54.0.34",
+    "expo-crypto": "~15.0.9",
     "expo-router": "~6.0.23",
+    "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
+    "expo-web-browser": "~15.0.11",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.2",
-    "react-native-screens": "~4.16.0"
+    "react-native-screens": "~4.16.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",

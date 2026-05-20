@@ -9,6 +9,6 @@
  */
 module.exports = {
   preset: 'jest-expo',
-  setupFilesAfterEach: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testMatch: ['<rootDir>/__tests__/**/*.test.{ts,tsx}'],
 };

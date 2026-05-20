@@ -35,3 +35,4 @@ Draft → Approved → In Progress → Complete
 | [003](SPEC-003-mobile-app-foundation.md) | Mobile App Foundation — Expo Skeleton + Testing Infra (merged slice 5 + 8) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [004](SPEC-004-mobile-oauth-endpoints.md) | Mobile OAuth Endpoints (`/api/v1/auth/mobile/*`) + refresh-token table + Postgres rate limit | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [005](SPEC-005-shared-types-and-schemas.md) | Shared Wire Types and Schemas (`@travel-planner/shared`) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
+| [006](SPEC-006-mobile-sign-in-pkce-keychain.md) | Mobile Sign-In UI + PKCE Flow + Keychain | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | In Progress |

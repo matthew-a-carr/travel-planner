@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.16.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.16.0...v1.16.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **mobile:** restrict Expo platforms to iOS ([#99](https://github.com/matthew-a-carr/travel-planner/issues/99)) ([24feb60](https://github.com/matthew-a-carr/travel-planner/commit/24feb600750e2ea41d5258dfea17d9f1a33a62fc))
+
 ## [1.16.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.15.0...v1.16.0) (2026-05-20)
 
 

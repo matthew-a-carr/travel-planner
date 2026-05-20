@@ -77,8 +77,10 @@ On your iPhone:
 Test commands (also run from repo root):
 
 ```bash
-pnpm mobile:test        # Jest + RNTL unit / component tests
-pnpm mobile:e2e         # Maestro E2E (requires Maestro + iOS Simulator)
+pnpm test:mobile        # Jest + RNTL unit / component tests
+pnpm test:mobile:watch  # Jest watch mode for TDD on the mobile app
+pnpm test:e2e:mobile    # Maestro E2E (requires Maestro + iOS Simulator)
+pnpm type-check:mobile  # tsc --noEmit for the mobile app only
 ```
 
 See `apps/mobile/AGENTS.md` for the full mobile conventions

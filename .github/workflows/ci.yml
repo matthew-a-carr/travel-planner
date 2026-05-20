@@ -153,12 +153,15 @@ jobs:
         # can be instantiated (for DrizzleAdapter's instanceof checks) without
         # throwing. No queries run during next build — the postgres library only
         # opens a TCP connection on the first query. next start (run by pnpm
-        # test:e2e via Playwright webServer) re-evaluates modules with the real
-        # POSTGRES_URL set by Testcontainers globalSetup.
+        # test:e2e:web via Playwright webServer) re-evaluates modules with the
+        # real POSTGRES_URL set by Testcontainers globalSetup.
         run: POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
 
-      - name: Run e2e tests
-        run: pnpm test:e2e
+      - name: Run web e2e tests
+        # Scoped to web-only (Playwright) because this is a Linux runner.
+        # Mobile e2e (Maestro) runs in the path-filtered `mobile-e2e` job
+        # on macOS — see ADR-055.
+        run: pnpm test:e2e:web
 
       - name: Upload Playwright report
         if: failure()

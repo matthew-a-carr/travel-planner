@@ -133,8 +133,41 @@ ln -s AGENTS.md CLAUDE.md
 | DB migrations | `pnpm db:migrate` |
 | Generate migration | `pnpm db:generate` |
 | Seed reference data | `pnpm db:seed` |
-| e2e tests (local) | `pnpm test:e2e` (Docker required — Testcontainers manages the DB) |
-| e2e UI mode | `pnpm test:e2e:ui` |
+| e2e tests (umbrella — web Playwright + mobile Maestro) | `pnpm test:e2e` |
+| e2e — web only (Playwright; Docker required — Testcontainers manages the DB) | `pnpm test:e2e:web` |
+| e2e — web Playwright UI mode | `pnpm test:e2e:web:ui` |
+| e2e — mobile only (Maestro; requires iOS Simulator + Maestro CLI) | `pnpm test:e2e:mobile` |
+
+---
+
+## Decision-making bias: prefer durable over expedient
+
+When choosing between a quick fix and a longer-term / more stable
+solution, default to the durable option. Examples:
+
+- Pay down related tech debt **inside the slice that touches it**, not
+  in a follow-up "we'll get to it" spec.
+- Wire up proper test infrastructure now rather than ship the placeholder
+  and a TD-NNN entry promising to fix it later.
+- Correct an architectural pattern as part of the feature that exposed
+  it, not as drive-by churn after the fact.
+
+When presenting options during `plan-feature` grilling or in-flight
+deviations, **lead with the durable choice as the recommendation**, even
+if it costs more upfront. The "quick" option still belongs in the table
+for transparency — just not as the default.
+
+Override only when:
+
+- The user explicitly says "patch it for now" / "ship the quick version".
+- The durable option genuinely exceeds the slice's own scope (then
+  surface it as a separate spec or tech-debt entry, but don't paper over
+  the choice).
+- The quick fix is a documented intermediate step toward the durable
+  one — not a permanent hack.
+
+The cost of yak-shaving once is bounded; the cost of a TODO that outlives
+the team's memory of why it's there is not.
 
 ---
 
@@ -424,8 +457,8 @@ All five jobs run in parallel on every push and PR:
 - `integration-test` (`pnpm test:integration`) — runs repository and use-case tests
   against a real Postgres database via Testcontainers. Docker is available by default
   on `ubuntu-latest` GitHub Actions runners.
-- `e2e` — builds the app with a dummy `POSTGRES_URL` (`pnpm build`), then runs
-  `pnpm test:e2e`. `tests/e2e/setup/start-web-server.ts` starts a throwaway
+- `e2e` (web Playwright) — builds the app with a dummy `POSTGRES_URL` (`pnpm build`),
+  then runs `pnpm test:e2e:web`. `tests/e2e/setup/start-web-server.ts` starts a throwaway
   `postgres:16-alpine` container via Testcontainers and boots the app (`pnpm start`
   in CI, `pnpm dev:next` locally). Playwright `globalSetup` then waits for the
   DB URL file, runs migrations, seeds data, and writes `auth-state.json`. Failed
@@ -476,7 +509,7 @@ the code change.
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 | Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
 | A new `/api/v1/*` endpoint or error code | `docs/api-conventions.md` (vocabulary tables, naming, streaming-compat); `packages/shared/src/api-errors.ts` is the source of truth for the `ApiErrorCode` / `ApiErrorBody` union + zod schema (SPEC-005); `apps/web/src/app/api/v1/_lib/errors.ts` holds the load-bearing `export type {...} from '@travel-planner/shared'` shim plus the server-side `respondWithError` helper and `STATUS_BY_CODE` map — keep them in lock-step when adding a code; `apps/web/src/proxy.ts` matcher already excludes `api/v1` (SPEC-002), so v1 endpoints handle their own auth |
-| Proxy / middleware matcher (`apps/web/src/proxy.ts`) | Verify excluded paths (e.g. `api/auth`, `api/v1`) still handle their own auth and return their own envelopes; run `pnpm test:e2e` |
+| Proxy / middleware matcher (`apps/web/src/proxy.ts`) | Verify excluded paths (e.g. `api/auth`, `api/v1`) still handle their own auth and return their own envelopes; run `pnpm test:e2e:web` |
 | Epic (add / status change / slice ledger update) | `docs/epics/README.md` index; the linked strategic ADR if any |
 | A slice of an epic shipped or changed status | The parent epic's §7 slice table and slice ledger |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |

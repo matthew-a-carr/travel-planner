@@ -11,6 +11,8 @@
       "apps/web/src/**",
       "!apps/web/src/**/*.test.ts",
       "apps/mobile/app/**",
+      "apps/mobile/src/**",
+      "apps/mobile/__tests__/**",
       "apps/mobile/*.{ts,tsx,js,mjs}",
       "packages/shared/src/**"
     ]
