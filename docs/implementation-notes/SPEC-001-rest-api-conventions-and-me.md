@@ -55,6 +55,33 @@ existing helper.
 
 **Triage (filled at close-out):**
 
+### 2026-05-20 — step 2 — pnpm v11 local-environment block
+
+**Step:** Step 2 (envelope helper)
+**Type:** blocker (worked around)
+**Note:**
+
+`pnpm test:unit` from repo root failed locally with
+`[ERR_PNPM_IGNORED_BUILDS]` because `pnpm-workspace.yaml` has stale
+placeholder entries under `allowBuilds:` (literally
+`'@sentry/cli': set this to true or false` — a string, not a boolean).
+pnpm v11.1.3 (local Homebrew) rejects this; CI uses pnpm v10 and is
+unaffected.
+
+Workaround for this slice: ran tests via
+`cd apps/web && ./node_modules/.bin/vitest run --project=unit <file>`
+which bypasses pnpm's deps-status check. All 17 tests pass.
+
+Did NOT modify `pnpm-workspace.yaml` from SPEC-001 — it's out of scope
+for the REST API conventions spec, and CI is currently green. Captured
+as tech debt instead so a future small chore commit can fix it
+(probably: replace `allowBuilds` with `onlyBuiltDependencies` listing
+the deps that genuinely need build scripts, drop the placeholder).
+
+**Triage (filled at close-out):**
+
+---
+
 ## Close-out triage summary
 
 > Filled at the very end. One line per entry above plus where it landed.

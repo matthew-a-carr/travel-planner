@@ -15,7 +15,7 @@
 
 | ID | Date | Source Spec | Description | Severity | Owner |
 |----|------|-------------|-------------|----------|-------|
-| — | — | — | _No outstanding items_ | — | — |
+| TD-001 | 2026-05-20 | SPEC-001 | `pnpm-workspace.yaml` has stale `allowBuilds:` placeholder entries (`'@sentry/cli': set this to true or false`) that block local installs on pnpm v11+. CI uses pnpm v10 and is unaffected, but every contributor on a fresh machine with current pnpm hits this. Fix: replace `allowBuilds:` with `onlyBuiltDependencies:` listing the deps that genuinely need build scripts (`@sentry/cli`, `bufferutil`, `cpu-features`, `esbuild`, `protobufjs`, `ssh2`), drop the placeholder values, leave `sharp` in `ignoredBuiltDependencies`. ~5 min chore. | Low | unowned |
 
 ## Resolved Items
 
