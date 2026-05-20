@@ -1,0 +1,12 @@
+# Smoke flow: launches the app on the iOS Simulator and asserts the
+# Hello screen renders. Each subsequent slice should add a flow named
+# after the user journey it ships (e.g. login.yaml, me-screen.yaml).
+#
+# Run locally: `pnpm --filter @travel-planner/mobile e2e`
+# CI: macOS runner via the mobile-e2e job, path-filtered to apps/mobile/**.
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- assertVisible:
+    id: "hello-screen-greeting"
+- assertVisible: "Hello, Travel Planner"
