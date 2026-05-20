@@ -20,7 +20,8 @@
     "db:migrate:deploy": "pnpm db:check:migrations && tsx src/infrastructure/db/migrate-deploy.ts",
     "db:check:migrations": "tsx scripts/check-migrations-transactional.ts",
     "db:seed": "tsx src/infrastructure/db/seed/seed.ts",
-    "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts"
+    "auth:bootstrap-admin": "tsx scripts/bootstrap-admin-user.ts",
+    "auth:mint-token": "tsx scripts/mint-token.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.179",

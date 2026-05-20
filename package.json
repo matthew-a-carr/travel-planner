@@ -23,7 +23,8 @@
     "db:migrate:deploy": "pnpm --filter @travel-planner/web db:migrate:deploy",
     "db:check:migrations": "pnpm --filter @travel-planner/web db:check:migrations",
     "db:seed": "pnpm --filter @travel-planner/web db:seed",
-    "auth:bootstrap-admin": "pnpm --filter @travel-planner/web auth:bootstrap-admin"
+    "auth:bootstrap-admin": "pnpm --filter @travel-planner/web auth:bootstrap-admin",
+    "auth:mint-token": "pnpm --filter @travel-planner/web auth:mint-token"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14"
