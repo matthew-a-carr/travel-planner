@@ -4,6 +4,5 @@
 // contains only the runtime zod schemas and inferred TypeScript types for
 // payloads that cross the network between server and mobile client. Server-
 // internal domain logic (apps/web/src/domain/**) is NOT re-exported here.
-//
-// Exports are populated step-by-step per SPEC-005 §12.
-export {};
+
+export * from './mobile-auth';

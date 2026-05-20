@@ -1,3 +1,4 @@
+import type { MobileAuthCallbackError } from '@travel-planner/shared';
 import { makeHandleMobileCallback } from '@/application/use-cases/auth/mobile/handle-mobile-callback';
 import { getAppContainer } from '@/infrastructure/container';
 import { buildMobileCallbackRedirectUri } from '../_lib/redirect-uri';
@@ -9,7 +10,9 @@ import { buildMobileCallbackRedirectUri } from '../_lib/redirect-uri';
  *
  * On any failure (unknown state, expired state, Google error,
  * unapproved user, …) the deep link carries `?error=<reason>`
- * instead of `?code=<one-time>`.
+ * instead of `?code=<one-time>`. The reason is drawn from the closed
+ * `MobileAuthCallbackError` union in `@travel-planner/shared`, so
+ * adding a reason without adding it to the union is a compile error.
  */
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -18,7 +21,7 @@ export async function GET(request: Request): Promise<Response> {
     const state = url.searchParams.get('state');
 
     if (!code || !state) {
-      return Response.redirect('travelplanner://auth?error=invalid_request', 302);
+      return buildErrorRedirect('invalid_request');
     }
 
     const container = getAppContainer();
@@ -35,6 +38,10 @@ export async function GET(request: Request): Promise<Response> {
     return Response.redirect(redirectUrl, 302);
   } catch (error) {
     console.error('[api/v1/auth/mobile/callback] unexpected error', error);
-    return Response.redirect('travelplanner://auth?error=server_error', 302);
+    return buildErrorRedirect('server_error');
   }
+}
+
+function buildErrorRedirect(reason: MobileAuthCallbackError): Response {
+  return Response.redirect(`travelplanner://auth?error=${reason}`, 302);
 }

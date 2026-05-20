@@ -1,3 +1,4 @@
+import type { MobileAuthCallbackError } from '@travel-planner/shared';
 import type { GoogleOAuthClient } from '@/domain/auth/google-oauth-client';
 import type { MobileAuthCrypto } from '@/domain/auth/mobile-auth-crypto';
 import type { MobileAuthExchangeCodeRepository } from '@/domain/auth/mobile-auth-exchange-code-repository';
@@ -76,6 +77,6 @@ export function makeHandleMobileCallback(deps: HandleMobileCallbackDeps) {
   };
 }
 
-function deny(error: string): HandleMobileCallbackResult {
-  return { redirectUrl: `${APP_REDIRECT_BASE}?error=${encodeURIComponent(error)}` };
+function deny(error: MobileAuthCallbackError): HandleMobileCallbackResult {
+  return { redirectUrl: `${APP_REDIRECT_BASE}?error=${error}` };
 }

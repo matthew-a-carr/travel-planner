@@ -37,6 +37,60 @@ coverage from the moment it lands.
 
 ---
 
+### 2026-05-20 18:45 — Step 3: spec's grep-as-test design rests on a falsified assumption; user picks option B (type-only enforcement)
+
+**Step:** Step 3 — MobileAuthCallbackError union + structural test
+**Type:** deviation
+
+**Note:**
+
+Code walk of `?error=<reason>` emit sites turned up 5 reasons across
+TWO files, not one:
+
+- `apps/web/src/app/api/v1/auth/mobile/callback/route.ts` — 2 reasons
+  as **inline string literals**:
+  - `'travelplanner://auth?error=invalid_request'` (missing code or state)
+  - `'travelplanner://auth?error=server_error'` (catch block)
+- `apps/web/src/application/use-cases/auth/mobile/handle-mobile-callback.ts`
+  — 3 reasons via a **template-literal helper** `deny(error: string)`
+  that builds the URL as `` `${APP_REDIRECT_BASE}?error=${encodeURIComponent(error)}` ``:
+  - `deny('invalid_state')` × 3 call sites
+  - `deny('google_error')`
+  - `deny('access_denied')`
+
+The spec's §9 part-(a) grep test only covered `callback/route.ts`
+(missing the use-case file's 3 reasons), and the spec's §9 part-(b)
+"no `${`-prefixed template literals in callback/route.ts" is
+trivially satisfied (the template literal lives in the OTHER file,
+which the spec didn't grep). The spec's §14 risk bullet about
+literals-only assumption was correctly worried about the wrong file.
+
+Surfaced before writing the union; consulted the human; picked
+**option B — type-only enforcement**:
+
+1. Add `MobileAuthCallbackError` (`z.enum([...])`) to
+   `@travel-planner/shared`. Five values: `invalid_request`,
+   `server_error`, `invalid_state`, `google_error`, `access_denied`.
+2. Type `deny()`'s parameter in `handle-mobile-callback.ts` from
+   `string` to `MobileAuthCallbackError`. Three call sites now
+   compile-time-checked.
+3. Add a tiny local helper in `callback/route.ts`:
+   `buildErrorRedirect(reason: MobileAuthCallbackError): Response`
+   that builds `Response.redirect(\`travelplanner://auth?error=${reason}\`, 302)`.
+   Two emit sites refactored to use it.
+4. **No new architecture-test for the union.** `pnpm type-check`
+   subsumes the runtime grep — adding `deny('new_reason')` or
+   `buildErrorRedirect('new_reason')` where `'new_reason'` isn't in
+   the enum becomes a compile error. CI catches it.
+
+Spec §9's Unit table will lose the second + third architecture-test
+rows (the bidirectional union literals test and the no-template-
+literals test). Spec §3 AC#9 is satisfied by type-check.
+
+**Triage (filled at close-out):** likely spec-deviation #1.
+
+---
+
 
 ## Close-out triage summary
 
