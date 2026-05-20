@@ -468,6 +468,7 @@ the code change.
 | Added a new `AGENTS.md` at any level | Create sibling `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md`) in the same commit |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 | Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
+| A new `/api/v1/*` endpoint or error code | `docs/api-conventions.md` (vocabulary tables, naming, streaming-compat); `apps/web/src/app/api/v1/_lib/errors.ts` (`ApiErrorCode` union) |
 | Epic (add / status change / slice ledger update) | `docs/epics/README.md` index; the linked strategic ADR if any |
 | A slice of an epic shipped or changed status | The parent epic's §7 slice table and slice ledger |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |

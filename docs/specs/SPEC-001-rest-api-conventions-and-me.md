@@ -1,9 +1,10 @@
 # SPEC-001: REST API Conventions for v1 and `GET /api/v1/me`
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20
+**Completed:** 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 1
 
 ---
@@ -361,8 +362,27 @@ accepted in step 4. Number claimed at write time.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _none yet_ | | | |
+| 1 | `CookieSessionResult` returns `{ userId, email, name, isApproved }` instead of the spec's `{ userId, isApproved }`. | The helper already queried `email` for the anonymisation check; the handler needed `name` for its response body. Re-querying the same row from the handler would be wasteful. | Helper's contract widened. Slice 2's bearer-auth equivalent must return the same shape so handlers don't fork. | Yes — resolved in-flight. |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+**Things that worked well:**
+
+- **The 4-commit shape held.** Each step landed cleanly, the deliverable matched what the spec described, and no commit needed rework. The TDD ordering (tests-first) caught the helper-extraction problem in step 3 immediately (unit test couldn't import the helper because it transitively pulled in `next-auth`).
+- **Per-handler `respondWithError` + closed `ApiErrorCode` union does its job.** The `/me` handler's branching reads like a small switch statement; misspellings would have been compile errors. The vocabulary table in `docs/api-conventions.md` is the single source any future endpoint reviewer consults.
+- **Mocking only `auth()` was the right test seam.** Everything else — DB lookups, anonymisation detection, error envelope construction — exercises real code against real Postgres via Testcontainers. No mocked repositories, no fake error envelopes. The integration test reads as production-equivalent.
+
+**Patterns to repeat for slice 2 and beyond:**
+
+- **Extract pure helpers to their own file when callers transitively pull in heavy deps.** `isAnonymisedEmail` started inside `auth.ts`; pulling `next-auth` for a unit test that only wanted a string-comparison function was the wrong shape. Extraction took 60 seconds and produced a cleaner reference for ADR 031's marker.
+- **`requireCookieSession()` is deliberately scoped to `/api/v1/*`** — does *not* reuse `getAuthenticatedAccessContext()`, which loads organisations and collapses unapproved-vs-anonymised. Slice 2's `requireAuth()` (cookie OR bearer) should similarly stay scoped. The pull toward "one mega helper that covers every auth concern" is real and should be resisted.
+- **`vi.mocked(auth)` trips on next-auth's overloaded signature.** The `MockedAuth` type-alias pattern at the top of `route.int-test.ts` is the cleanest workaround. When the second v1 route ships in slice 2, consider extracting this into a shared test helper under `_lib/`.
+
+**What I'd do differently:**
+
+- The SPEC's §7 `CookieSessionResult` should have included `email` and `name` from the start. I missed this during grilling because I was thinking about auth-result shape, not response-body needs. Future SPECs: pair the helper's return type with the handler's response body in the same section.
+- The SPEC didn't pre-commit Cache-Control behaviour for 2xx responses. The conventions doc says no-store by default but the SPEC didn't call it out as a test. I added the test anyway; future SPECs should treat header expectations as first-class acceptance criteria.
+
+**Surprising existing behaviour:**
+
+- The local pnpm v11 environment is broken because `pnpm-workspace.yaml` carries stale placeholder values under `allowBuilds:`. CI runs v10 and is unaffected, but every fresh contributor on current pnpm will hit this wall on the first `pnpm install`. Logged as `TD-001` in `docs/tech-debt.md` with a concrete fix.

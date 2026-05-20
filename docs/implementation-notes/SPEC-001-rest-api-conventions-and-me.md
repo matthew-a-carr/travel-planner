@@ -27,7 +27,7 @@ email pattern, not a dedicated flag.
 Implementation impact: `requireCookieSession()` checks the resolved user's
 email against the ADR 031 pattern. If matched, returns the 410 response.
 
-**Triage (filled at close-out):**
+**Triage:** _see triage summary below_
 
 ---
 
@@ -53,7 +53,7 @@ For `/api/v1/me` I need a leaner helper that:
 but does its own user-row fetch and disposition. Org loading stays in the
 existing helper.
 
-**Triage (filled at close-out):**
+**Triage:** _see triage summary below_
 
 ### 2026-05-20 — step 2 — pnpm v11 local-environment block
 
@@ -78,7 +78,47 @@ as tech debt instead so a future small chore commit can fix it
 (probably: replace `allowBuilds` with `onlyBuiltDependencies` listing
 the deps that genuinely need build scripts, drop the placeholder).
 
-**Triage (filled at close-out):**
+**Triage:** _see triage summary below_
+
+---
+
+### 2026-05-20 — step 4 — `requireCookieSession()` extended with `email` and `name`
+
+**Step:** Step 4 (handler + integration tests)
+**Type:** deviation
+**Note:**
+
+SPEC §7 specified `CookieSessionResult` as `{ ok: true; userId; isApproved }`.
+While wiring the `/me` handler, realised the helper had already queried
+`{ email, isApproved }` to do the anonymisation check, but the handler
+needed `email` and `name` for its response body. Two options were either
+re-query in the handler (one extra SELECT for the same row) or extend the
+helper's success type with the row fields already loaded.
+
+Picked the latter. `CookieSessionResult` now carries `{ userId, email,
+name, isApproved }` on success. Avoids the double-query and keeps the
+handler trivial. Side-effect: slice 2's bearer-auth equivalent will need
+to return the same shape so handlers don't fork.
+
+**Triage:** _see triage summary below_
+
+---
+
+### 2026-05-20 — step 4 — next-auth `auth()` overload tripped `vi.mocked()`
+
+**Step:** Step 4 (handler + integration tests)
+**Type:** surprise
+**Note:**
+
+`vi.mocked(auth).mockResolvedValue(...)` failed type-check because
+next-auth's `auth` is overloaded (no-args session / middleware / handler)
+and `vi.mocked` picked the middleware overload. Worked around with a
+narrow `MockedAuth` type alias at the top of the test file targeting just
+the no-args session shape. Any future v1 route test mocking `auth()`
+should copy this pattern (probably worth a shared test helper at slice 2
+or 3 when a second route appears).
+
+**Triage:** _see triage summary below_
 
 ---
 
@@ -102,13 +142,17 @@ detection mechanism — easier to grep for than a private helper inside a
 larger file. If/when slice 7+ adds more shapes of "user deleted"
 detection, they live there too.
 
-**Triage (filled at close-out):**
+**Triage:** _see triage summary below_
 
 ---
 
 ## Close-out triage summary
 
-> Filled at the very end. One line per entry above plus where it landed.
-
 | Entry | Landed in |
 |-------|-----------|
+| 1 (pre-flight, anonymisation detection mechanism) | Discarded — the SPEC and ADR 050 already describe the behaviour; the email-pattern detection lives in `_lib/anonymised-email.ts` with a comment pointing at ADR 031. No reader needs the deviation surfaced beyond that. |
+| 2 (pre-flight, `requireCookieSession()` not reusing `getAuthenticatedAccessContext()`) | Spec post-implementation notes — useful context for whoever writes slice 2's bearer helper. |
+| 3 (step 2, pnpm v11 local block) | `docs/tech-debt.md` TD-001 — already filed during step 2. Out of scope for SPEC-001. |
+| 4 (step 3, extracted `isAnonymisedEmail` to its own file) | Spec post-implementation notes — small structural decision worth recording for future helper extractions in this area. |
+| 5 (step 4, `requireCookieSession()` extended to return `email` and `name`) | Spec **Implementation Deviations** table — changed the helper's contract vs. the spec's design (§7 listed only `userId` + `isApproved`). Resolved in-flight; no follow-up. |
+| 6 (step 4, next-auth `auth()` overload tripped `vi.mocked`) | Spec post-implementation notes — testing pattern future slices will inherit. |
