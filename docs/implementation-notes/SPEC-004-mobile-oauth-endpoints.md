@@ -210,7 +210,17 @@ for one consumer — local constant is fine.
 
 ## Close-out triage summary
 
-_(populated at close-out)_
+Triaged 2026-05-20 at SPEC close-out. Every step's note retained
+verbatim above as the raw record.
 
 | Entry | Landed in |
 |-------|-----------|
+| Step 1 — partial-index design call | Spec design (Storage & migrations); discarded after merge into design (no deviation) |
+| Step 2 — PKCE Result-type narrowing | Spec deviation #3 (kept locally; not worth widening shared helpers) |
+| Step 3 — chain-walk inlined inside transaction | Post-impl note (learning about `tx` typing); no deviation |
+| Step 4 — peek-before-lock on refresh | Spec deviation #2 (two RTTs on happy path; acceptable trade-off) |
+| Step 4 — separate `mobile_auth_states` table | Spec deviation #1 (additive, cleaner than nullable columns) |
+| Step 5 — DI wiring | Discarded (mechanical wiring, no deviation) |
+| Step 6 — `ApiErrorCode` extension | Post-impl note (canonical home for new codes); no deviation |
+| Step 7 — Postgres rate-limit thresholds | Codified by ADR-054; no deviation |
+| Step 8 — Sentry chain-revoke event | Spec acceptance #9 satisfied; no deviation |

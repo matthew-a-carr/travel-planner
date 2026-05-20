@@ -1,7 +1,9 @@
+import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import { makeRefreshMobileTokens } from '@/application/use-cases/auth/mobile/refresh-mobile-tokens';
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
+import { rateLimitOrReject } from '../_lib/with-rate-limit';
 
 const Body = z.object({
   refresh_token: z.string().min(1),
@@ -17,10 +19,24 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const container = getAppContainer();
+
+    const rateLimit = await rateLimitOrReject({
+      request,
+      endpoint: 'refresh',
+      repo: container.authRateLimitRepository,
+    });
+    if (rateLimit) return rateLimit;
+
     const refreshMobileTokens = makeRefreshMobileTokens({
       refreshTokenRepo: container.refreshTokenRepository,
       crypto: container.mobileAuthCrypto,
-      // Step 8 will wire Sentry here.
+      onChainRevoked: ({ userId, chainIds }) => {
+        Sentry.captureMessage('auth.refresh.chain_revoked', {
+          level: 'warning',
+          tags: { feature: 'mobile-auth', event: 'auth.refresh.chain_revoked' },
+          extra: { userId, chainLength: chainIds.length },
+        });
+      },
     });
 
     const result = await refreshMobileTokens(

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { makeExchangeMobileCode } from '@/application/use-cases/auth/mobile/exchange-mobile-code';
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
+import { rateLimitOrReject } from '../_lib/with-rate-limit';
 
 const Body = z.object({
   code: z.string().min(1),
@@ -18,6 +19,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const container = getAppContainer();
+
+    const rateLimit = await rateLimitOrReject({
+      request,
+      endpoint: 'exchange',
+      repo: container.authRateLimitRepository,
+    });
+    if (rateLimit) return rateLimit;
+
     const exchangeMobileCode = makeExchangeMobileCode({
       exchangeCodeRepo: container.mobileAuthExchangeCodeRepository,
       refreshTokenRepo: container.refreshTokenRepository,

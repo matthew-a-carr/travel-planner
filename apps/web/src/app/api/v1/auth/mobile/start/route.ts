@@ -3,6 +3,7 @@ import { makeStartMobileAuth } from '@/application/use-cases/auth/mobile/start-m
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
 import { buildMobileCallbackRedirectUri } from '../_lib/redirect-uri';
+import { rateLimitOrReject } from '../_lib/with-rate-limit';
 
 const Body = z.object({
   // PKCE S256 challenge — base64url, 43 chars when SHA-256 is encoded
@@ -20,6 +21,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const container = getAppContainer();
+
+    const rateLimit = await rateLimitOrReject({
+      request,
+      endpoint: 'start',
+      repo: container.authRateLimitRepository,
+    });
+    if (rateLimit) return rateLimit;
+
     const startMobileAuth = makeStartMobileAuth({
       stateRepo: container.mobileAuthStateRepository,
       google: container.googleOAuthClient,

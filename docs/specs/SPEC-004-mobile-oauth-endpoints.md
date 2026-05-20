@@ -1,9 +1,10 @@
 # SPEC-004: Mobile OAuth Endpoints (`/api/v1/auth/mobile/*`)
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20
+**Completed:** 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 3
 
 ---
@@ -513,7 +514,37 @@ No remaining open questions to grill.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
+| 1 | Added a fourth mini-table `mobile_auth_states` (state + code_challenge stash) alongside the three the spec named. | The spec implied state could piggyback on the exchange-code row, but that gives ugly nullable columns until callback fires. A small dedicated table is cleaner; 120s TTL + single-use + opportunistic GC. | Schema migration grew from 3 → 4 tables. No external-API or call-site changes. | Yes — design improvement, rolled into the spec design section. |
+| 2 | `decideRotation` peek before the locked rotate. | The use case peeks the row by hash before calling `RefreshTokenRepository.rotate` so we can catch `expired/revoked/unknown` cheaply without holding a `SELECT FOR UPDATE` lock. The locked path is only entered when the token is plausibly usable. | Two DB round-trips on the happy path instead of one. Acceptable for audience-of-two; can be unified later if it bites. | Yes — captured as a learning. |
+| 3 | Refresh-token Result type narrowing required defining `MISMATCH` constant inside `pkce.ts` rather than reusing `err('pkce_mismatch')`. | The shared `err<E>` helper widens to `string` in some inference contexts; a local typed constant compiles without widening shared types. | Local one-liner; no broader impact. | Yes — discarded after locally resolved. |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+Slice 3 landed on schedule (within EPIC-001 §7's 4–5d budget) across
+11 conventional-commit-sized steps. Key learnings worth carrying into
+later slices:
+
+- **Domain ports for crypto pay off.** Bundling `randomBase64url`,
+  `sha256Base64url`, `mintRefreshToken`, and `signAccessToken` into
+  one `MobileAuthCrypto` port kept use-case constructors readable and
+  let the application layer stay strictly free of `jose` / Web Crypto
+  imports. Worth repeating for any future slice that mixes signing
+  and hashing.
+- **Per-request transactions for serialisation.** The refresh-token
+  `SELECT … FOR UPDATE` test (concurrent rotation → exactly one
+  `rotated` + one `reused`) gave very high confidence in the
+  reuse-detection invariant. Worth keeping as a template for any
+  future "two clients race the same write" scenario.
+- **Always-redirect on callback.** Resisting the urge to return a
+  JSON envelope from `/auth/mobile/callback` was the right call —
+  the UA there is the system browser, not the app, so JSON would
+  hit the user as a wall of text. Same pattern applies to any future
+  OAuth-style redirect endpoint.
+- **ApiErrorCode extension as the canonical home for new codes.** Six
+  new auth-specific codes were added to the union with their status
+  mappings. The test pinning the codes-to-status map (`errors.test.ts`)
+  is doing real work; it caught the missing entries on the first
+  type-check after extending the union.
+
+Followed by 35 new unit tests and 45 new integration tests (across
+the repos, use cases, and routes) — no broken existing tests.
