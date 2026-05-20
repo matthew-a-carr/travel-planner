@@ -11,12 +11,19 @@ packages:
 #   - vite < 7.3.2 — three high/medium issues: arbitrary file read via
 #     WebSocket, path traversal in optimized deps .map handling, and
 #     server.fs.deny bypass. Stays on 7.x because vitest 4.x peers it.
+#   - protobufjs <= 7.5.7 — DoS via unbounded recursive JSON descriptor
+#     expansion (transitive via testcontainers → dockerode →
+#     @grpc/proto-loader).
+#   - ws < 8.20.1 — uninitialized memory disclosure (transitive via
+#     @vercel/postgres + drizzle-orm).
 #
 # These live here (not in package.json's `pnpm.overrides`) because pnpm
 # v11 dropped support for the package.json location.
 overrides:
   postcss: ^8.5.15
   vite: ^7.3.3
+  protobufjs: ^7.5.8
+  ws: ^8.20.1
 
 # pnpm v11 build-script policy. Each native dep below is allowed (true)
 # to run its postinstall, or denied (false). Without this map, pnpm v11
