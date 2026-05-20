@@ -1,0 +1,28 @@
+# Sign-in flow smoke test (SPEC-006). Asserts the app launches into
+# the sign-in screen with the right testIDs + button copy + no error
+# UI on first render.
+#
+# Does NOT tap the button and walk the OAuth flow — Google's OAuth
+# consent screen can't be driven by Maestro (anti-automation
+# protections + no scriptable test credentials), and CI doesn't run
+# a backend so a real tap would produce a "Could not reach the
+# server" generic error.
+#
+# State-machine transitions (idle ↔ in_flight ↔ error/success) are
+# covered by the jest + RNTL component tests in
+# __tests__/app/index.test.tsx. Maestro's role here is the
+# "app launches and renders correctly" smoke test.
+#
+# Run locally: `pnpm test:e2e:mobile`
+# CI: macOS runner via the mobile-e2e job (ADR-055), path-filtered to
+# apps/mobile/**.
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- assertVisible:
+    id: 'login-screen-root'
+- assertVisible:
+    id: 'login-google-button'
+- assertVisible: 'Sign in with Google'
+- assertNotVisible:
+    id: 'login-screen-error'
