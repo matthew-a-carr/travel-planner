@@ -3,130 +3,187 @@
 **Date:** YYYY-MM-DD
 **Status:** Draft | Approved | In Progress | Complete | Abandoned
 **Author:** [human / agent name]
-**Approved by:** [human name + date, or "—" if not yet approved]
+**Approved by:** [human name + date, or "—"]
+**Parent epic:** [EPIC-NNN link, or "—" if standalone]
+
+> A spec is one shippable unit. It either stands alone or is a slice of an
+> epic. If the work needs more than one spec to deliver demoable value, plan
+> the epic first via `plan-epic` and link from this field.
+>
+> **Fill in every section.** Use `N/A — [reason]` for sections that genuinely
+> don't apply (e.g. "Migration plan — N/A, no data change"). Don't delete
+> sections unless their inapplicability is so obvious that seeing them would
+> confuse a reader.
+
+---
 
 ## 1. Summary
 
-One-paragraph description of what this feature does from the user's perspective.
+One paragraph from the user's perspective. What changes for the user when
+this ships?
 
 ## 2. Motivation
 
-Why does this feature exist? What problem does it solve? Link to any Jira tickets,
-user feedback, or product goals.
+Why does this exist? What problem does it solve? Link to the parent epic,
+Jira ticket, user feedback, or product goal that drives it. If this slice
+inherits cross-cutting decisions from a parent epic, note them here rather
+than re-explaining them — link the epic's §10.
 
-## 3. Acceptance Criteria
+## 3. Acceptance criteria
 
-Numbered list of observable behaviours that define "done." These map directly
-to e2e tests.
+Numbered, observable behaviours that define done. Each maps to at least one
+test in §9. Use Given/When/Then where it sharpens the criterion; not all
+criteria need it.
 
-1. Given [context], when [action], then [expected outcome].
+1. Given …, when …, then …
 2. ...
 
-## 4. Domain Design
+## 4. Demo script
 
-### New/Modified Entities & Value Objects
+What you would literally walk through to show a reviewer the spec is done.
+Action-by-action. Forces the criteria above to translate into something
+concrete.
 
-| Entity/VO | Layer | File | Change |
-|-----------|-------|------|--------|
-| ... | domain | src/domain/... | New / Modified |
+1. ...
+2. ...
 
-### New/Modified Domain Functions
+## 5. Out of scope
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| ... | ... | Result<T, E> |
+Equal weight to acceptance. What this spec deliberately does **not** do, so
+reviewers (and future-you) don't widen the scope mid-implementation. If
+something is out of scope because the parent epic settled it, link the
+epic's §6 or §10 instead of re-arguing it.
 
-### Invariants
+- ...
 
-- List domain invariants this feature introduces or modifies.
+## 6. Prerequisites
 
-## 5. Application Layer
+What must be true before implementation starts. Other SPECs landed, env
+vars provisioned, secrets created, third-party accounts set up, feature
+flags toggled. If a prerequisite is unmet, the spec is not yet Approved.
 
-### Use Cases
+- ...
 
-| Use Case | Input | Output | Side Effects |
-|----------|-------|--------|--------------|
-| ... | ... | Result<T, E> | ... |
+## 7. Design
 
-### Repository Interface Changes
+How the change works. Subsections below are starting points — keep,
+combine, or replace them with whatever maps to the affected layers. For a
+web change inside `apps/web/`, the standard `domain → application →
+infrastructure → ui` decomposition usually fits. For mobile (`apps/mobile/`),
+shared packages (`packages/*`), or infra (`infra/`), use sections that
+match those structures instead.
 
-| Repository | Method | Signature |
-|------------|--------|-----------|
-| ... | ... | ... |
+### Data & domain
 
-## 6. Infrastructure
+New / changed types, entities, value objects, invariants. Reference the
+appropriate `AGENTS.md` for the affected layer.
 
-### Database Schema Changes
+### Behaviour
 
-Describe table/column changes. Include a migration plan if schema changes
-are non-trivial.
+New / changed use cases, services, handlers, components. Inputs, outputs,
+error envelopes, side effects.
 
-### External Service Integration
+### Storage & migrations
 
-Any new external APIs, providers, or services.
+Schema deltas, migration plan, backfill or zero-downtime considerations,
+rollback steps. State `N/A` if no storage change.
 
-## 7. UI/UX
+### External integrations
 
-### Routes & Pages
+New or changed third-party APIs, providers, or services. Note rate limits,
+auth flow, error handling, retries.
 
-| Route | Purpose |
-|-------|---------|
-| ... | ... |
+### UI / UX
 
-### Components
+Routes, pages, components, navigation. Responsive notes. Accessibility
+target (WCAG 2.1 AA — see ADR 007). State the keyboard and screen-reader
+behaviour, not just the visual.
 
-| Component | Purpose | Responsive Notes |
-|-----------|---------|-----------------|
-| ... | ... | ... |
+## 8. Security & data considerations
 
-### Accessibility
+Auth, authorisation, secrets, PII, data exposure surfaces, input
+validation, output escaping. State `N/A — [reason]` only if you're certain
+none apply.
 
-How does this feature meet WCAG 2.1 AA? Any specific ARIA requirements?
+- Threats considered: ...
+- Mitigations: ...
+- Secrets needed: ...
 
-## 8. Test Plan
+## 9. Test plan
 
-### E2E Tests (Playwright)
+Tests are written **before** implementation per CONSTITUTION.md §3.
 
-| Test File | Scenario |
-|-----------|----------|
-| tests/e2e/... | ... |
+### E2E (Playwright / Maestro / etc)
 
-### Unit Tests (Vitest)
+| Test file | Scenario |
 
-| Test File | What It Covers |
-|-----------|---------------|
-| src/domain/.../....test.ts | ... |
+### Integration (Vitest + Testcontainers, or platform equivalent)
 
-### Integration Tests (Vitest + Testcontainers)
+| Test file | What it covers |
 
-| Test File | What It Covers |
-|-----------|---------------|
-| src/application/.../....int-test.ts | ... |
+### Unit (Vitest, Jest, etc)
 
-## 9. Implementation Order
+| Test file | What it covers |
 
-Numbered sequence of implementation steps. Each step should be a
-committable unit of work. Follow the Constitution's TDD workflow:
-tests first, then minimum implementation.
+### Manual checks
 
-1. [ ] Step description → commit: `type(scope): message`
+Anything that can't be automated cheaply — usability, screen-reader passes,
+real-device install — listed so it's not silently skipped.
+
+## 10. Observability
+
+How will we know this works once deployed? Logs, metrics, traces, Sentry
+breadcrumbs. If the spec adds a meaningful new user flow, add at least one
+metric or log point so post-deploy verification is possible.
+
+- Logs: ...
+- Metrics: ...
+- Sentry / error reporting: ...
+
+## 11. Rollback / safety
+
+If this ships and breaks, how do we back out? Feature flag? Migration
+reversibility? Revert-and-deploy? State the procedure explicitly for any
+spec touching production data, auth, or money.
+
+## 12. Implementation order
+
+A sequence of small steps. Each step pairs *intent* with *verification* —
+the test or check that proves it's done — and is small enough to commit on
+its own. Follow CONSTITUTION.md §3: tests first, then minimum
+implementation.
+
+1. [ ] **Intent:** … **Verification:** … (test file or check)
 2. [ ] ...
 
-## 10. ADR Required?
+## 13. ADR triggers and tech-debt review
 
-Review the ADR trigger criteria from AGENTS.md:
-- [ ] New library or external tool?
-- [ ] CI pipeline change?
-- [ ] New project-wide standard?
-- [ ] Non-obvious architectural trade-off?
+### ADR?
 
-If any are checked: create the ADR before implementation begins.
+Review the ADR trigger criteria from `AGENTS.md`. Tick all that apply.
 
-**ADR:** [link or "none required"]
+- [ ] New library, external tool, or vendor
+- [ ] CI pipeline or workflow structural change
+- [ ] New project-wide standard
+- [ ] Non-obvious architectural trade-off
+- [ ] Cross-cutting decision not already settled by the parent epic
 
-## 11. Risks & Open Questions
+**ADRs to write:** [list, or "none required"]
 
-- List anything uncertain, risky, or requiring human judgment.
+### Tech debt
+
+- [ ] I reviewed `docs/tech-debt.md` and noted any items this spec touches
+  or could resolve.
+
+**Tech debt items addressed by this spec:** [list or "none"]
+
+## 14. Risks & open questions
+
+Anything uncertain, risky, or requiring human judgement. If an open
+question would change the design materially, **stop and re-grill** rather
+than guessing.
+
+- ...
 
 ---
 
@@ -134,11 +191,11 @@ If any are checked: create the ADR before implementation begins.
 
 > **Instruction to implementing agent:** During implementation, capture
 > deviations and observations as they happen in
-> `docs/implementation-notes/SPEC-NNN-<slug>.md` (rolling log). At close-out,
-> triage that log and populate this table with anything that changed the
-> design intent vs. this approved spec. Use the spec's Post-Implementation
-> Notes for learnings, and `docs/tech-debt.md` for unresolved debt that must
-> outlive the spec.
+> `docs/implementation-notes/SPEC-NNN-<slug>.md` (rolling log). At
+> close-out, triage that log and populate this table with anything that
+> changed the design intent vs. this approved spec. Use the spec's
+> Post-Implementation Notes for learnings, and `docs/tech-debt.md` for
+> unresolved debt that must outlive the spec.
 >
 > Be honest — this section is for learning, not blame.
 
@@ -148,5 +205,6 @@ If any are checked: create the ADR before implementation begins.
 
 ### Post-Implementation Notes
 
-_Free-form notes from the implementing agent about what they learned,
-what was surprising, or what they'd do differently next time._
+_Free-form notes from the implementing agent about what they learned, what
+was surprising, or what they'd do differently next time. Concrete enough
+that a future spec in this area can re-use the insight._

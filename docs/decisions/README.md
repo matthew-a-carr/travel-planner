@@ -57,3 +57,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [046](046-monorepo-layout.md) | Monorepo Layout — apps/ and packages/ | 2026-05-16 | Accepted |
 | [047](047-specification-driven-ai-development-lifecycle.md) | Specification-Driven AI Development Lifecycle | 2026-05-20 | Accepted |
 | [048](048-grilling-and-implementation-notes.md) | Grilling Step and Rolling Implementation Notes | 2026-05-20 | Accepted |
+| [049](049-epic-tier-for-multi-spec-initiatives.md) | Epic Tier for Multi-SPEC Initiatives | 2026-05-20 | Accepted |

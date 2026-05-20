@@ -18,6 +18,7 @@ travel-planner/
 ├── packages/         ← shared workspace packages (empty for now)
 ├── docs/             ← project-wide docs and ADRs
 │   ├── decisions/           ← Architecture Decision Records
+│   ├── epics/               ← multi-SPEC initiatives (ADR 049)
 │   ├── specs/               ← feature specifications (ADR 047)
 │   ├── implementation-notes/ ← per-spec rolling logs (ADR 048)
 │   └── tech-debt.md         ← tech debt register
@@ -137,10 +138,25 @@ ln -s AGENTS.md CLAUDE.md
 
 ---
 
-## Specification-driven development (ADR 047)
+## Specification-driven development (ADRs 047, 048, 049)
 
-Every non-trivial feature starts with a **spec**. The spec is the contract
-between the planning phase and the implementation phase.
+Two artefact tiers:
+
+- **Epic** (`docs/epics/EPIC-NNN-*.md`) — multi-SPEC initiative. Owns
+  vision, slicing, kill criteria, and cross-cutting decisions all child
+  SPECs inherit. (ADR 049.)
+- **Spec** (`docs/specs/SPEC-NNN-*.md`) — one shippable unit, either
+  standalone or a slice of an epic. (ADR 047.)
+
+### When to write an epic
+
+Write an epic when:
+- The work needs more than ~3 SPECs to deliver real user value.
+- Sequencing across SPECs matters — slice N unblocks slice N+1.
+- Cross-cutting decisions (auth, packaging, observability) should be
+  settled once rather than relitigated per SPEC.
+- There's a meaningful chance the work is killed or pivoted partway, and
+  pre-committing exit criteria matters.
 
 ### When to write a spec
 
@@ -156,18 +172,35 @@ Do NOT write a spec for:
 - Documentation-only changes
 - Refactors with no behaviour change
 
+### Epic lifecycle
+
+1. Confirm a strategic ADR exists (or draft it first). Epics implement
+   direction; they do not decide it.
+2. Invoke `plan-epic`. It grills at epic altitude (vision, slicing, kill
+   criteria, cross-cutting decisions, external constraints) and writes a
+   draft brief at `docs/epics/_draft-NNN-<slug>.md`.
+3. `plan-epic` copies the brief into `docs/epics/EPIC-NNN-<slug>.md` using
+   the epic template, sets status `Draft`, and updates `docs/epics/README.md`.
+4. Request human review and approval.
+5. **Do NOT begin any slice's SPEC until the epic is `Approved`.**
+
 ### Spec lifecycle
 
-1. **Grill the idea first** — invoke the `grill-me` skill on any non-trivial
+1. **If this spec is a slice of an epic**, read the epic first.
+   Cross-cutting decisions (§10) and non-goals (§6) are inherited and out
+   of scope for re-grilling.
+2. **Grill the idea first** — invoke the `grill-me` skill on any non-trivial
    idea before writing a spec. `plan-feature` then writes a draft brief at
    `docs/specs/_draft-NNN-<slug>.md` capturing refined scope, alternatives
    considered, and load-bearing decisions from the interview. (ADR 048.)
-2. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md` and use the
-   draft brief as the source of truth for scope and acceptance.
-3. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
-4. Set status: `Draft`.
-5. Request human review and approval.
-6. **Do NOT begin implementation until status is `Approved`.**
+3. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md` and use the
+   draft brief as the source of truth. Set `Parent epic` to the EPIC link if
+   applicable, else `—`.
+4. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
+5. Set status: `Draft`. If parented to an epic, update the epic's §7 slice
+   table and slice ledger.
+6. Request human review and approval.
+7. **Do NOT begin implementation until status is `Approved`.**
 
 ### During implementation
 
@@ -211,9 +244,11 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 ```
 .agents/skills/
 ├── grill-me/
-│   └── SKILL.md        ← "Grill me on [idea]" — interview before spec
+│   └── SKILL.md        ← "Grill me on [idea]" — interview before epic / spec
+├── plan-epic/
+│   └── SKILL.md        ← "Plan an epic for [initiative]"
 ├── plan-feature/
-│   └── SKILL.md        ← "Plan a feature for [idea]"
+│   └── SKILL.md        ← "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM"
 ├── implement-spec/
 │   └── SKILL.md        ← "Implement SPEC-NNN"
 └── review-tech-debt/
@@ -239,7 +274,8 @@ it here to keep them aligned.
 | Skill | Invocation | What it does |
 |-------|-----------|--------------|
 | [`grill-me`](./.agents/skills/grill-me/SKILL.md) | "Grill me on [idea]" | One-question-at-a-time interview until shared understanding |
-| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" | Invoke `grill-me` → write draft brief at `docs/specs/_draft-NNN-...` → write SPEC-NNN |
+| [`plan-epic`](./.agents/skills/plan-epic/SKILL.md) | "Plan an epic for [initiative]" | Grill at epic altitude → write EPIC-NNN. Does NOT write SPECs |
+| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM" | Grill at slice altitude → write SPEC-NNN, inheriting epic decisions if any |
 | [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → rolling notes → verification → triage at close-out |
 | [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | "Review tech debt" | Assess → categorise → report → act |
 
@@ -261,11 +297,13 @@ See the [Agent Skills specification](https://agentskills.io/specification) for
 the full format reference, and `.agents/skills/plan-feature/SKILL.md` for a
 working example.
 
-Specs, per-spec implementation notes, and the tech debt register live in
-`docs/specs/`, `docs/implementation-notes/`, and `docs/tech-debt.md`
-respectively. See [`docs/specs/README.md`](./docs/specs/README.md) for the
-full spec index and [`docs/implementation-notes/README.md`](./docs/implementation-notes/README.md)
-for the rolling-notes triage workflow.
+Epics, specs, per-spec implementation notes, and the tech debt register
+live in `docs/epics/`, `docs/specs/`, `docs/implementation-notes/`, and
+`docs/tech-debt.md` respectively. See
+[`docs/epics/README.md`](./docs/epics/README.md),
+[`docs/specs/README.md`](./docs/specs/README.md), and
+[`docs/implementation-notes/README.md`](./docs/implementation-notes/README.md)
+for the per-tier indexes and workflows.
 
 ---
 
@@ -430,6 +468,8 @@ the code change.
 | Added a new `AGENTS.md` at any level | Create sibling `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md`) in the same commit |
 | Any user-facing feature | `CHANGELOG.md` under `## [Unreleased]` |
 | Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
+| Epic (add / status change / slice ledger update) | `docs/epics/README.md` index; the linked strategic ADR if any |
+| A slice of an epic shipped or changed status | The parent epic's §7 slice table and slice ledger |
 | Sentry configuration or alerts | `docs/decisions/032-sentry-error-monitoring.md`, `docs/operations/sentry.md` |
 | Infrastructure modules or Terraform config (`infra/`) | `infra/README.md`, infrastructure specific ADRs |
 
@@ -441,6 +481,7 @@ setup steps no longer work end-to-end.
 
 Full rules → [`CONSTITUTION.md`](./CONSTITUTION.md)
 ADRs → [`docs/decisions/`](./docs/decisions/)
+Epics → [`docs/epics/`](./docs/epics/)
 Feature specs → [`docs/specs/`](./docs/specs/)
 Implementation notes → [`docs/implementation-notes/`](./docs/implementation-notes/)
 Tech debt → [`docs/tech-debt.md`](./docs/tech-debt.md)

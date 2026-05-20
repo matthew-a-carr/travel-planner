@@ -45,11 +45,11 @@ Actions delegate to.
   a new REST API extracted from the existing use cases.
 - **D. Native SwiftUI** — Swift app against the same extracted REST API.
 
-A full comparison, slice-by-slice refactor plan, endpoint inventory, test
-plan, and React Native testing strategy live in
-[`docs/ios-app-planning.md`](../ios-app-planning.md). This ADR records the
-strategic choice once made; until then it captures the framing and the
-default recommendation so future contributors land on the same context.
+A full comparison, slice plan, endpoint inventory, test plan, cross-cutting
+decisions, kill criteria, and open questions live in
+[`docs/epics/EPIC-001-ios-app.md`](../epics/EPIC-001-ios-app.md) (ADR 049,
+which operationalises this strategic ADR into shippable slices). This ADR
+records the strategic choice; the epic records the execution plan.
 
 ## Decision
 
@@ -62,30 +62,11 @@ The recommendation will be promoted to *Accepted* once confirmed, at which
 point this ADR will be edited to remove the "proposed" hedging and reflect
 the chosen sequence.
 
-The refactor will proceed in independent, shippable slices. The full slice
-plan is in the planning doc; the headline sequence to reach an installed
-authenticated iOS app on the author's iPhone is:
-
-0. Restructure to a pnpm monorepo with `apps/web/`, `apps/mobile/`, and
-   `packages/shared/`. (**ADR 046**)
-1. Add the first Route Handler — `GET /api/v1/me` — alongside a co-located
-   integration test. Define REST conventions: versioning prefix, error
-   envelope, status-code mapping for `Result<T, E>`. (**ADR 047**)
-2. Add bearer-token authentication accepted by Route Handlers in parallel
-   with the existing next-auth cookie session. (**ADR 048**)
-3. Add the four mobile OAuth endpoints implementing PKCE → JWT issuance,
-   refresh-token rotation, and reuse detection. Reuses ADR 029's access
-   policy unchanged.
-4. Add `packages/shared/` re-exporting domain types and zod schemas.
-5. Scaffold the Expo app under `apps/mobile/` with Expo Router. (**ADR 049**)
-6. Implement mobile sign-in UI consuming the PKCE endpoints; store tokens in
-   iOS Keychain via `expo-secure-store`.
-7. Implement an authenticated "me" screen — the milestone slice.
-8. Stand up mobile testing infrastructure: Jest + `@testing-library/
-   react-native` + `msw/native` for component tests; Maestro for E2E flows
-   against iOS Simulator. Path-filtered CI keeps web-only PRs fast.
-   (**ADR 050**)
-9. Wire Sentry React Native for observability. (**ADR 051**)
+The refactor proceeds in independent, shippable slices. Slice 0 (monorepo
+restructure) shipped via ADR 046. The remaining slices and their dependency
+order live in [EPIC-001 §7](../epics/EPIC-001-ios-app.md#7-vertical-slices),
+with cross-cutting decisions in §10, kill criteria in §9, and the open
+questions still pending in §13.
 
 Server Actions remain unchanged throughout. The web client continues to
 behave identically; both clients converge on the same use cases.
@@ -124,9 +105,12 @@ path until that account is acquired.
   Lock Screen, or Watch fidelity. If those become product priorities, a
   future ADR can supersede this one and migrate to Swift against the same
   Route Handlers (the API survives the UI swap because it is plain REST).
-- **Many follow-up ADRs.** The planning doc enumerates ADRs 046–051 plus a
-  set of deferred ADRs (API-client layering, push notifications, offline
-  strategy, deep links, App Store submission, mobile chart/map libraries).
+- **Many follow-up ADRs.** EPIC-001 §16 lists the likely ADRs each slice
+  will surface (REST conventions, mobile auth, Expo, mobile testing,
+  mobile observability) plus deferred ADRs (API-client layering, push
+  notifications, offline strategy, deep links, App Store submission,
+  mobile chart/map libraries). ADR numbers are claimed at write time, not
+  pre-allocated.
 
 ## Alternatives considered
 
@@ -162,9 +146,9 @@ path until that account is acquired.
 
 ## References
 
-- [`docs/ios-app-planning.md`](../ios-app-planning.md) — long-form planning
-  doc with comparison tables, slice-by-slice refactor plan, endpoint
-  inventory, test plan per endpoint, and React Native testing strategy.
+- [`docs/epics/EPIC-001-ios-app.md`](../epics/EPIC-001-ios-app.md) —
+  execution plan: slice plan, endpoint inventory, cross-cutting decisions,
+  kill criteria, open questions, React Native testing strategy.
 - [Building APIs with Next.js (Vercel, Feb 2025)](https://nextjs.org/blog/building-apis-with-nextjs)
 - [Server Actions config reference (Next.js docs)](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions)
 - ADR 007 — mobile-first responsive design (existing layout investment).
