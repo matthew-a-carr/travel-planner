@@ -38,9 +38,11 @@ allowBuilds:
   bufferutil: true
   cpu-features: true
   esbuild: true
+  msw: true
   protobufjs: true
   sharp: false
   ssh2: true
+  unrs-resolver: false
 
 # Legacy pnpm v10 silence list. v11 uses `allowBuilds:` above for the
 # same purpose, but keeping this list keeps CI (which still pins pnpm 10

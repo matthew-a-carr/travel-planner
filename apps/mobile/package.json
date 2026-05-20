@@ -1,0 +1,32 @@
+{
+  "name": "@travel-planner/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:unit": "jest",
+    "e2e": "maestro test .maestro/flows"
+  },
+  "dependencies": {
+    "expo": "^55.0.25",
+    "expo-router": "^55.0.15",
+    "expo-status-bar": "~2.2.0",
+    "react": "19.0.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^13.2.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "~19.0.10",
+    "jest": "^30.0.0",
+    "jest-expo": "^55.0.0",
+    "msw": "^2.7.0",
+    "react-test-renderer": "19.0.0",
+    "typescript": "~5.9.3"
+  }
+}

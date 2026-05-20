@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Travel Planner",
+    "slug": "travel-planner",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "travelplanner",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "dev.matthewcarr.travelplanner",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
