@@ -122,10 +122,10 @@ in parallel.
 | 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | [SPEC-002 (Complete)](../specs/SPEC-002-bearer-token-auth.md) | 1 | 2d | **Done** |
 | 3 | Mobile OAuth endpoints (PKCE start / callback / exchange / refresh) + `refresh_tokens` migration + auth-endpoint rate limiting | (foundation for lines 3–5) | _not yet planned_ | 2 | 4–5d | Not started |
 | 4 | `packages/shared/` re-exports domain types + zod schemas | (foundation for line 6) | _not yet planned_ | 0 (parallel to 1–3) | 1d | Not started |
-| 5 | Expo app skeleton in `apps/mobile/` — runs in Expo Go, shows "Hello, Travel Planner" | line 2 | _not yet planned_ | 0 (parallel to 1–3) | 2d | Not started |
+| 5 | Expo app skeleton in `apps/mobile/` + testing infra (merged with slice 8) — runs in Expo Go, shows "Hello, Travel Planner", Jest + Maestro harness, path-filtered CI | line 2 | [SPEC-003 (Approved)](../specs/SPEC-003-mobile-app-foundation.md) | 0 (parallel to 1–3) | 4–5d | Not started |
 | 6 | Mobile sign-in UI + PKCE flow + Keychain | lines 3–5 | _not yet planned_ | 3, 5 | 3–4d | Not started |
 | 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | _not yet planned_ | 4, 6 | 1–2d | Not started |
-| 8 | Mobile testing infrastructure — Jest + RNTL + msw/native + Maestro + path-filtered CI | n/a — invisible | _not yet planned_ | 7 | 3d | Not started |
+| 8 | ~~Mobile testing infrastructure~~ — **merged into slice 5 via SPEC-003** (epic-level deviation §16) | — | _merged_ | — | — | **Merged** |
 | 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _not yet planned_ | 7 | 1d | Not started |
 
 Budgets are calendar days of focused work, not elapsed. Used by the §9
@@ -334,11 +334,13 @@ mobile chart library, mobile map library, PWA decision.
 | 2026-05-20 | 1 | SPEC-001 | Done | ADR 050 Accepted; `/api/v1/me` shipped with 5 integration tests (+ 7 anonymised-email unit tests, 17 envelope helper unit tests). All verification green. EPIC §10 streaming-compat & rate-limit principles codified in conventions doc without exercising them yet. |
 | 2026-05-20 | 2 | SPEC-002 | Planned + Approved | Drafted via `plan-feature` + `grill-me`; approved same-day with user authorisation to implement. Locks HS256 signing, dedicated `AUTH_JWT_SIGNING_KEY` env var, 15m access / 30d refresh, minimal `{ sub, iat, exp, iss }` claims, three-helper composition (cookie / bearer / both), bearer-wins-when-both, single `unauthenticated` 401, cookie-only Playwright e2e, dev `pnpm auth:mint-token` CLI. Mobile-auth-model ADR drafted as part of step 2. |
 | 2026-05-20 | 2 | SPEC-002 | Done | ADR 051 Accepted; `/api/v1/me` accepts bearer alongside cookie via `requireAuth`; 13 integration tests pass (6 cookie + 6 bearer + 1 bearer-wins); 14 bearer-token unit tests; 1 Playwright e2e (cookie path); `pnpm auth:mint-token` CLI ships for dev. All verification green. Refresh-tokens table designed in ADR but migration deferred to slice 3. |
+| 2026-05-20 | 5 + 8 | SPEC-003 | Planned + Approved | User requested merging slice 5 (Expo skeleton) and slice 8 (mobile testing infra) so testing lands before slice 6 begins. Drafted via `plan-feature` + `grill-me`; approved same-day. Framework reality-check reaffirmed Expo over bare RN / SwiftUI; runner reality-check reaffirmed Jest over Vitest (speed advantage erodes on RN). Locks Expo SDK 55, manual scaffold, Metro `unstable_enableSymlinks`, Jest + RNTL + msw/native + Maestro test stack, path-filtered mobile CI jobs (first macOS runner), testID convention. Logged as Epic-level deviation #1 in §16. Slice 8 row in §7 marked Merged. |
 
 ## Epic-level deviations
 
 | # | Deviation | Reason | Impact on other slices | Resolved? |
 |---|-----------|--------|------------------------|-----------|
+| 1 | **Slice 5 and slice 8 merged into a single SPEC (SPEC-003).** Originally §7 split Expo scaffold (slice 5, 2d) and testing infra (slice 8, 3d). | Testing-from-day-one matches the web app's TDD discipline; doing slices 5 + 8 together costs roughly the same (~4–5d) as separate slices and means slice 6 + 7 ship with the testing harness already in place rather than retro-fitted. Surfaced by user feedback during SPEC-003's grilling pass. | Slice 8 row in §7 marked **Merged**. Sequencing rationale (§8) still holds — 5 is parallel to 1–3 and unblocks slice 6. Budget for the merged slice is ~4–5d (vs 2d + 3d separate). | Yes — see SPEC-003. |
 
 ## Post-epic notes
 
