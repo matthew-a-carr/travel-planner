@@ -6,7 +6,7 @@ import { resolveAuthenticatedUserId } from '@/infrastructure/organization/resolv
 import { isAnonymisedEmail } from './anonymised-email';
 import { respondWithError } from './errors';
 
-export type CookieSessionResult =
+export type AuthResult =
   | {
       readonly ok: true;
       readonly userId: string;
@@ -33,7 +33,7 @@ export type CookieSessionResult =
  * Slice 2 will introduce a `requireAuth()` that also accepts bearer tokens
  * and resolves to the same `User` row; this cookie-only helper stays focused.
  */
-export async function requireCookieSession(): Promise<CookieSessionResult> {
+export async function requireCookieSession(): Promise<AuthResult> {
   const session = await auth();
   const userId = await resolveAuthenticatedUserId(db, {
     id: session?.user?.id,
