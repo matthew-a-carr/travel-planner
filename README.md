@@ -20,6 +20,8 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | e2e tests | Playwright |
 | Package manager | pnpm |
 | Deployment | Vercel |
+| Mobile (iOS) | Expo SDK 55 + Expo Router + React Native 0.81 — Expo Go distribution for the audience-of-two phase (ADR 045 / 052) |
+| Mobile tests | Jest + jest-expo + `@testing-library/react-native` + msw/native + Maestro (E2E on iOS Simulator) |
 
 ## Local development
 
@@ -55,6 +57,32 @@ If `POSTGRES_URL` is missing, `pnpm dev` will:
 In local development, you can always use a one-click **Sign in locally (dev)** button
 without configuring Google OAuth. The **Sign in with Google** button only appears when
 `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set to real (non-placeholder) values.
+
+### Mobile (iOS) — running the app on your phone
+
+The mobile app lives under `apps/mobile/`. Per ADR 045 / 052 it
+distributes via **Expo Go** during the audience-of-two phase — no
+Apple Developer Program required.
+
+```bash
+pnpm dev:mobile         # starts Expo Metro; prints a QR code
+```
+
+On your iPhone:
+
+1. Install **Expo Go** from the App Store.
+2. Open Expo Go, tap "Scan QR code", point at the terminal.
+3. The Travel Planner app loads on your device.
+
+Test commands (also run from repo root):
+
+```bash
+pnpm mobile:test        # Jest + RNTL unit / component tests
+pnpm mobile:e2e         # Maestro E2E (requires Maestro + iOS Simulator)
+```
+
+See `apps/mobile/AGENTS.md` for the full mobile conventions
+(testID discipline, file-system routing, msw mocking).
 
 Production access is closed by default:
 - users must be pre-provisioned and approved before Google sign-in is allowed
