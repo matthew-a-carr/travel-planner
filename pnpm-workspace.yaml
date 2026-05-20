@@ -2,15 +2,42 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
-allowBuilds:
-  '@sentry/cli': set this to true or false
-  bufferutil: set this to true or false
-  cpu-features: set this to true or false
-  esbuild: set this to true or false
-  protobufjs: set this to true or false
-  sharp: set this to true or false
-  ssh2: set this to true or false
+# Forced-version overrides. Resolves Dependabot security alerts where a
+# transitive dependency (typically deep inside a framework like Next.js)
+# pins a vulnerable version we can't reach via a normal dep bump.
+#
+#   - postcss < 8.5.10 — XSS via Unescaped </style> in CSS stringify
+#     (Next.js 16.2.6 bundles 8.4.31 transitively).
+#   - vite < 7.3.2 — three high/medium issues: arbitrary file read via
+#     WebSocket, path traversal in optimized deps .map handling, and
+#     server.fs.deny bypass. Stays on 7.x because vitest 4.x peers it.
+#
+# These live here (not in package.json's `pnpm.overrides`) because pnpm
+# v11 dropped support for the package.json location.
+overrides:
+  postcss: ^8.5.15
+  vite: ^7.3.3
 
+# pnpm v11 build-script policy. Each native dep below is allowed (true)
+# to run its postinstall, or denied (false). Without this map, pnpm v11
+# refuses to install and v10 silently ignores it.
+#
+# When adding a new native dep, run `pnpm install` once — pnpm will
+# auto-append a `'pkg-name': set this to true or false` placeholder for
+# any new build script it sees. Replace the placeholder with an explicit
+# boolean before committing.
+allowBuilds:
+  '@sentry/cli': true
+  bufferutil: true
+  cpu-features: true
+  esbuild: true
+  protobufjs: true
+  sharp: false
+  ssh2: true
+
+# Legacy pnpm v10 silence list. v11 uses `allowBuilds:` above for the
+# same purpose, but keeping this list keeps CI (which still pins pnpm 10
+# via .github/workflows/ci.yml) silent.
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

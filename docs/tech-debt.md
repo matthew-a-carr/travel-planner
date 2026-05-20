@@ -15,10 +15,10 @@
 
 | ID | Date | Source Spec | Description | Severity | Owner |
 |----|------|-------------|-------------|----------|-------|
-| TD-001 | 2026-05-20 | SPEC-001 | `pnpm-workspace.yaml` has stale `allowBuilds:` placeholder entries (`'@sentry/cli': set this to true or false`) that block local installs on pnpm v11+. CI uses pnpm v10 and is unaffected, but every contributor on a fresh machine with current pnpm hits this. Fix: replace `allowBuilds:` with `onlyBuiltDependencies:` listing the deps that genuinely need build scripts (`@sentry/cli`, `bufferutil`, `cpu-features`, `esbuild`, `protobufjs`, `ssh2`), drop the placeholder values, leave `sharp` in `ignoredBuiltDependencies`. ~5 min chore. | Low | unowned |
+| — | — | — | _No outstanding items_ | — | — |
 
 ## Resolved Items
 
 | ID | Date Added | Date Resolved | Source Spec | Description | Resolution |
 |----|------------|---------------|-------------|-------------|------------|
-| — | — | — | — | _No resolved items yet_ | — |
+| TD-001 | 2026-05-20 | 2026-05-20 | SPEC-001 | `pnpm-workspace.yaml` had stale `allowBuilds:` placeholders blocking local installs on pnpm v11. | Replaced placeholders with explicit booleans (`true` for the deps whose postinstalls we need; `false` for `sharp`). Bundled with a Dependabot security pass: `postcss → 8.5.15` and `vite → 7.3.3` via `pnpm-workspace.yaml` `overrides:` + a direct `vite` devDep on `apps/web` because the override alone didn't dislodge the resolved 7.3.1. All 4 Dependabot alerts (2 high, 2 medium) closed. |
