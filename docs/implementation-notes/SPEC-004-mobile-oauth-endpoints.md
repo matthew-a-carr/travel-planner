@@ -38,6 +38,41 @@ breakage from adding the FK to `users` cascade.
 
 ---
 
+### 2026-05-20 17:20 — Step 3 (repos) done
+
+**Step:** Step 3 — Repository interfaces + Drizzle impls
+**Type:** decision
+**Note:**
+
+Four interfaces in `src/domain/auth/`:
+- `mobile-auth-state-repository.ts`
+- `mobile-auth-exchange-code-repository.ts`
+- `refresh-token-repository.ts` — `rotate()` is the load-bearing op,
+  contract requires transactional `SELECT … FOR UPDATE` semantics.
+- `auth-rate-limit-repository.ts` — `recordAndCount()` does insert +
+  windowed count in a single transaction; `gcOlderThan()` for explicit
+  pruning if the opportunistic GC ever proves insufficient.
+
+Four Drizzle impls + four `*.int-test.ts` files. 18 integration tests
+covering happy paths, lookups, idempotent revoke, GC, sliding-window
+correctness, and — critically — the concurrent-rotation test that
+fires two `rotate()` calls in `Promise.all` against the same hash and
+asserts the outcomes are exactly `['reused', 'rotated']`. The
+`SELECT … FOR UPDATE` lock serialises them as ADR 051 §2 requires.
+
+Small infrastructure decisions:
+- `truncateAll()` in `src/infrastructure/testing/helpers.ts` extended
+  with the four new tables so `beforeEach` clears them.
+- Inline-walked the chain inside the transaction in `rotate()` (rather
+  than a private helper) because the `tx` type from Drizzle's
+  `transaction` callback isn't the same as the top-level `Db` type —
+  inlining avoided dragging a `PgTransaction<…>` generic through the
+  helper signature.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 17:12 — Step 2 (domain) done; PKCE Result-type narrowing
 
 **Step:** Step 2 — Domain PKCE + rotation logic
