@@ -9,6 +9,21 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile app skeleton.** Expo SDK 55 + Expo Router app under
+  `apps/mobile/` showing a "Hello, Travel Planner" screen via Expo
+  Go on iPhone. App identifier `dev.matthewcarr.travelplanner`,
+  custom URL scheme `travelplanner://`. ADR 052 documents the
+  Expo + Metro + testing strategy.
+- **Mobile testing infrastructure.** Jest + jest-expo +
+  `@testing-library/react-native` + msw/native for component tests;
+  Maestro YAML flows under `.maestro/` for E2E. Four new
+  path-filtered CI jobs (Linux for lint/typecheck/unit, macOS for
+  Maestro E2E). Convention: every interactive element gets a stable
+  `testID` from day one.
+- **`pnpm dev:mobile` / `pnpm mobile:test` / `pnpm mobile:e2e`**
+  workspace scripts so the mobile dev loop is one command from the
+  repo root.
+
 - **REST API v1 baseline.** New `/api/v1/*` surface with versioned URL prefix,
   typed error envelope (`{ error: { code, message, details? } }`), and
   per-handler `Result<T, E>` → HTTP mapping. Conventions in

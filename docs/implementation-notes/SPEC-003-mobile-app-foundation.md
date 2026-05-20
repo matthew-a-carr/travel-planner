@@ -24,7 +24,7 @@ Pinned to `jest@^29.7.0` and `@types/jest@^29.5.14`. Will need to
 revisit when jest-expo ships Jest 30 support (likely Expo SDK 56 or
 its canary line — `jest-expo@next` is tagged 56.0.3).
 
-**Triage:** see triage summary below
+**Triage:** see triage summary below.
 
 ---
 
@@ -45,7 +45,7 @@ pnpm-aware defaults and Just Works™. Lesson: trust the preset; only
 override when there's evidence the default isn't matching what you
 need.
 
-**Triage:** see triage summary below
+**Triage:** see triage summary below.
 
 ### 2026-05-20 — step 5 — mobile-e2e CI job is a placeholder
 
@@ -76,7 +76,7 @@ arguably this is its own small chore-slice before slice 6, or it
 folds into slice 6 alongside the second Maestro flow (login).
 Capturing as tech debt so it isn't forgotten.
 
-**Triage:** see triage summary below
+**Triage:** see triage summary below.
 
 _(append further entries here as work proceeds)_
 
@@ -84,3 +84,6 @@ _(append further entries here as work proceeds)_
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 (step 3, Jest 30 → 29 pin for jest-expo SDK 55) | Spec **Implementation Deviations** table — design intent change (§7 listed jest ^30; pinned to ^29). Resolved in-flight; future jest-expo SDK 56 will likely reopen the version question. |
+| 2 (step 3, custom transformIgnorePatterns removed) | Spec **Post-Implementation Notes** — learning that jest-expo's preset has pnpm-aware defaults; trust the preset, only override with evidence. Worth recording for slice 6's first msw integration. |
+| 3 (step 5, mobile-e2e is a placeholder) | `docs/tech-debt.md` TD-002 — already filed during step 5. Out of scope for SPEC-003's close. |

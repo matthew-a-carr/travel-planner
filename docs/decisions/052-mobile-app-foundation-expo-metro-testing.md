@@ -1,7 +1,7 @@
 # ADR 052: Mobile Application Foundation — Expo, Metro, and Testing Strategy
 
 **Date:** 2026-05-20
-**Status:** Proposed
+**Status:** Accepted
 
 ## Context
 

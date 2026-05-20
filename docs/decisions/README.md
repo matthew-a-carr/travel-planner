@@ -60,4 +60,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [049](049-epic-tier-for-multi-spec-initiatives.md) | Epic Tier for Multi-SPEC Initiatives | 2026-05-20 | Accepted |
 | [050](050-rest-api-conventions-v1.md) | REST API Conventions for `/api/v1/*` | 2026-05-20 | Accepted |
 | [051](051-mobile-authentication-model.md) | Mobile Authentication Model | 2026-05-20 | Accepted |
-| [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Proposed |
+| [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Accepted |

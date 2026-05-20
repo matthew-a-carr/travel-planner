@@ -1,7 +1,7 @@
 # SPEC-003: Mobile App Foundation — Expo Skeleton + Testing Infra
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — **merged slice 5 + slice 8**
@@ -457,8 +457,31 @@ slices merges the ADRs.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _none yet_ | | | |
+| 1 | `jest` pinned to `^29.7.0` and `@types/jest` to `^29.5.14` instead of `^30.0.0` as the spec said. | jest-expo SDK 55 ships with Jest 29 internals (`@jest/globals: ^29.2.1`); Jest 30 broke its preset with `this._moduleMocker.clearMocksOnScope is not a function`. | Pin is upper-bound at 30, so a future jest-expo SDK 56 (already in canary) can pull us forward. | Yes — resolved in step 3. |
+| 2 | `mobile-e2e` CI job is a placeholder, not an end-to-end-executing job. | Spec §7 implicitly assumed a single `expo start` + `maestro test` invocation would work on macOS runners. Reality: Expo Go can't be sideloaded into CI simulators; need `expo prebuild` + EAS Local dev-client build first. | TD-002 logged; ~half-day chore. Slice 6's `login.yaml` flow will be similarly skipped in CI until TD-002 lands. | No — TD-002 outstanding. |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+**Things that worked well:**
+
+- **The 7-commit shape held**, even with the slice-5 + slice-8 merge. Each commit stays small (the Hello screen + Jest config is ~10 lines of code) and reviewable.
+- **Trusting `jest-expo`'s preset defaults paid off.** My initial custom `transformIgnorePatterns` (copied from random tutorials) didn't understand pnpm's `.pnpm/<pkg>@<ver>/node_modules/<pkg>/…` layout and failed; removing the override let the preset's own pnpm-aware patterns handle it. The lesson: when a project preset exists for your scenario, trust it first; only override with evidence.
+- **`unstable_enableSymlinks` + `watchFolders` worked on first try.** ADR 052's recommendation held up; no fallback to `node-linker=hoisted` was needed.
+- **TestID convention from day 1** paid off immediately. The Maestro flow targets `id: hello-screen-greeting` rather than visible text; the Jest test asserts both `getByTestId` and `getByText`. Slice 6 inherits this discipline directly.
+- **Path-filtered CI logic** with `dorny/paths-filter` + a `detect-changes` job + `needs: + if:` propagation is verbose but explicit. The shape will scale to more apps cleanly.
+
+**Patterns to repeat for slice 6 and beyond:**
+
+- **Co-located everything.** `app/index.tsx` + `app/index.test.tsx` lives together; slice 6's `app/login.tsx` + `app/login.test.tsx` + `.maestro/flows/login.yaml` will follow the same.
+- **Inline styles for now.** A styling library (NativeWind, Tamagui, restyle) is a real decision; deferring it until there's an actual UI vocabulary to justify the choice.
+- **Don't lock down `app.json` or `metro.config.js` casually.** Both are load-bearing for Expo Go + pnpm; changes need a smoke-test of `pnpm dev:mobile` + the Maestro flow.
+
+**What I'd do differently:**
+
+- **The mobile-e2e CI job should not have shipped as a placeholder.** Better options: either (a) defer the macOS job to its own chore slice with proper simulator + EAS dev-client setup, or (b) limit the job to "install Maestro, lint the YAML, exit" without claiming to run the flow. The current placeholder pretends to be the e2e job but isn't; a future reader could think mobile e2e is covered in CI when it isn't. TD-002 captures this honestly but it would have been cleaner to surface it before the slice merged.
+- **The SPEC pre-stated Jest 30 without checking jest-expo's peer deps.** Two minutes of `npm view jest-expo@55 dependencies` at SPEC-write time would have caught the version pin. Future SPECs that pin testing-stack versions should include a quick "what does the framework's recommended testing preset peer?" check.
+
+**Surprising existing behaviour:**
+
+- **pnpm v11 keeps re-appending `allowBuilds:` placeholders for new build-script-running deps.** When the mobile install pulled in `msw` and `unrs-resolver`, pnpm auto-added placeholder rows to `pnpm-workspace.yaml`. Expected from earlier slices but worth re-stating for future contributors who hit it on first install.
+- **Jest 30's "Unknown option" error message** was actually misleading — the test failure was Jest 30 vs jest-expo 29, not the config-key spelling. The two errors stacked and I went down the wrong rabbit hole briefly. Lesson: read the second error first.
