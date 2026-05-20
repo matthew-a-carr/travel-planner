@@ -99,6 +99,13 @@
       "when": 1778773400000,
       "tag": "0013_chat_messages_parts_jsonb",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1779293207868,
+      "tag": "0014_freezing_ultimates",
+      "breakpoints": true
     }
   ]
 }

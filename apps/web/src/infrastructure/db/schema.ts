@@ -1,3 +1,5 @@
+import { sql } from 'drizzle-orm';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import {
   boolean,
   date,
@@ -242,4 +244,93 @@ export const chatMessages = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [index('idx_chat_messages_thread_created').on(t.threadId, t.createdAt)],
+);
+
+// ─── Mobile auth (SPEC-004) ───────────────────────────────────────────────────
+
+/**
+ * `state` + `code_challenge` stash between `POST /auth/mobile/start` and
+ * `GET /auth/mobile/callback`. Single-use, 120s TTL, opportunistic GC.
+ * See SPEC-004 §7 and ADR 051 §3.
+ */
+export const mobileAuthStates = pgTable(
+  'mobile_auth_states',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    state: text('state').notNull().unique(),
+    codeChallenge: text('code_challenge').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  },
+  (t) => [index('idx_mobile_auth_states_expires_at').on(t.expiresAt)],
+);
+
+/**
+ * One-time exchange code minted in `/callback`, redeemed in `/exchange`.
+ * `code_hash` is sha256(cleartext); cleartext is given to the client once
+ * and never logged. PKCE binding is held in `code_challenge`. 120s TTL.
+ * See SPEC-004 §7 and ADR 051 §3.
+ */
+export const mobileAuthExchangeCodes = pgTable(
+  'mobile_auth_exchange_codes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    codeHash: text('code_hash').notNull().unique(),
+    codeChallenge: text('code_challenge').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('idx_mobile_auth_exchange_codes_expires_at').on(t.expiresAt),
+    index('idx_mobile_auth_exchange_codes_user_id').on(t.userId),
+  ],
+);
+
+/**
+ * Rotating refresh tokens with reuse detection per ADR 051 §2. `token_hash`
+ * is sha256(cleartext). Rotation sets `replaced_by_id` on the old row;
+ * presenting a token whose row already has `replaced_by_id` populated
+ * triggers chain revocation (walk `replaced_by_id` forward, set
+ * `revoked_at` on every link). 30d sliding TTL.
+ */
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    issuedAt: timestamp('issued_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    replacedById: uuid('replaced_by_id').references((): AnyPgColumn => refreshTokens.id),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('idx_refresh_tokens_user_id').on(t.userId),
+    index('idx_refresh_tokens_user_active')
+      .on(t.userId)
+      .where(sql`revoked_at IS NULL AND replaced_by_id IS NULL`),
+  ],
+);
+
+/**
+ * Postgres sliding-window rate limit for `/api/v1/auth/mobile/*` per
+ * SPEC-004 §3 + ADR 054. One row per request. Sliding window count is
+ * `SELECT COUNT(*) WHERE key = $1 AND occurred_at > now() - $window`.
+ * Opportunistic GC: delete rows older than 1h for the same key on each
+ * insert.
+ */
+export const authRateLimitAttempts = pgTable(
+  'auth_rate_limit_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    key: text('key').notNull(),
+    endpoint: text('endpoint').notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index('idx_auth_rate_limit_attempts_key_time').on(t.key, t.occurredAt)],
 );
