@@ -1,10 +1,10 @@
 # EPIC-001: iOS App — Expo + React Native against extracted REST API
 
 **Date:** 2026-05-20
-**Status:** Draft
+**Status:** Approved
 **Strategic ADR:** [045 — iOS App Strategy](../decisions/045-ios-app-strategy.md)
 **Owner:** Matt Carr
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-05-20 (after `grill-me` pass)
 
 > This epic operationalises ADR 045. It supersedes the previous freeform
 > planning doc `docs/ios-app-planning.md` (now removed) and adopts the
@@ -98,7 +98,8 @@ foundation this one creates.
 - **Native iOS features** — Widgets, Live Activities, Lock Screen, Watch,
   Apple Pay. Out of scope; if these become priorities, ADR 045's
   consequences section flags Swift migration as the future answer.
-- **Android.** Free side-effect of Expo, but not validated in this epic.
+- **Android.** Not on the roadmap yet. Stays as a potential future enablement
+  in the parking lot (§14); not validated, not designed for, not blocked.
 - **tRPC / ts-rest / GraphQL.** v1 of the API is plain Route Handlers per
   Vercel's own guidance. Layered RPC libraries are deferred to a separate
   ADR once ~10 endpoints exist.
@@ -114,18 +115,22 @@ here. The remaining slices reach the milestone (slice 7) and harden the
 foundation (slices 8–9). Slices 4 and 5 are independent of 1–3 and can run
 in parallel.
 
-| # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
-|---|-------|---------------------|--------------|------------|--------|
-| 0 | Monorepo restructure (`apps/web/`, `apps/mobile/`, `packages/*`) | n/a — invisible | _shipped, ADR 046_ | — | **Done** |
-| 1 | REST API conventions + first endpoint `GET /api/v1/me` (cookie auth only) | (foundation for line 6) | _not yet planned_ | 0 | Not started |
-| 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | _not yet planned_ | 1 | Not started |
-| 3 | Mobile OAuth endpoints (PKCE start / callback / exchange / refresh) | (foundation for lines 3–5) | _not yet planned_ | 2 | Not started |
-| 4 | `packages/shared/` re-exports domain types + zod schemas | (foundation for line 6) | _not yet planned_ | 0 (parallel to 1–3) | Not started |
-| 5 | Expo app skeleton in `apps/mobile/` — runs in Expo Go, shows "Hello, Travel Planner" | line 2 | _not yet planned_ | 0 (parallel to 1–3) | Not started |
-| 6 | Mobile sign-in UI + PKCE flow + Keychain | lines 3–5 | _not yet planned_ | 3, 5 | Not started |
-| 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | _not yet planned_ | 4, 6 | Not started |
-| 8 | Mobile testing infrastructure — Jest + RNTL + msw/native + Maestro + path-filtered CI | n/a — invisible | _not yet planned_ | 7 | Not started |
-| 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _not yet planned_ | 7 | Not started |
+| # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Budget | Status |
+|---|-------|---------------------|--------------|------------|--------|--------|
+| 0 | Monorepo restructure (`apps/web/`, `apps/mobile/`, `packages/*`) | n/a — invisible | _shipped, ADR 046_ | — | — | **Done** |
+| 1 | REST API conventions + first endpoint `GET /api/v1/me` (cookie auth only) | (foundation for line 6) | _not yet planned_ | 0 | 2d | Not started |
+| 2 | Bearer-token auth alongside cookie sessions | (foundation for line 6) | _not yet planned_ | 1 | 2d | Not started |
+| 3 | Mobile OAuth endpoints (PKCE start / callback / exchange / refresh) + `refresh_tokens` migration + auth-endpoint rate limiting | (foundation for lines 3–5) | _not yet planned_ | 2 | 4–5d | Not started |
+| 4 | `packages/shared/` re-exports domain types + zod schemas | (foundation for line 6) | _not yet planned_ | 0 (parallel to 1–3) | 1d | Not started |
+| 5 | Expo app skeleton in `apps/mobile/` — runs in Expo Go, shows "Hello, Travel Planner" | line 2 | _not yet planned_ | 0 (parallel to 1–3) | 2d | Not started |
+| 6 | Mobile sign-in UI + PKCE flow + Keychain | lines 3–5 | _not yet planned_ | 3, 5 | 3–4d | Not started |
+| 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | _not yet planned_ | 4, 6 | 1–2d | Not started |
+| 8 | Mobile testing infrastructure — Jest + RNTL + msw/native + Maestro + path-filtered CI | n/a — invisible | _not yet planned_ | 7 | 3d | Not started |
+| 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _not yet planned_ | 7 | 1d | Not started |
+
+Budgets are calendar days of focused work, not elapsed. Used by the §9
+"two consecutive slices each exceed twice their estimated budget" kill
+criterion.
 
 SPECs for each slice are created via `plan-feature` only when that slice is
 ready to begin. Earlier slices may be planned in detail; later slices stay
@@ -166,6 +171,12 @@ API surface.
   after every iOS update), kill slice 8 onwards and either fund the Apple
   Developer Program ($99/yr) for EAS Build-signed dev builds, or revert
   to PWA.
+- **If Expo Go fails to pair, install, or reliably re-launch on the
+  partner's iPhone during baseline testing before slice 7 closes**, pivot
+  to one of: (a) fast-track EPIC-002's TestFlight distribution into the
+  end of EPIC-001 (fund ADP early); (b) drop the partner's iPhone from
+  scope and treat her as a PWA / web-mobile user until EPIC-002 ships.
+  Decide on the day, log in the ledger.
 - **If the boilerplate per Route Handler hits ~20 lines and ~10 endpoints
   with significant duplication**, do not continue past slice 7 without a
   separate ADR considering ts-rest / tRPC layering.
@@ -186,7 +197,10 @@ re-litigate without flagging an epic-level deviation (§16).
 | Auth on Route Handlers | Cookie session OR bearer token — both resolve to the same `User` row. Existing ADR 029 access policy applies unchanged. | Lets web keep using next-auth cookies and mobile use JWTs without forking authorisation logic. |
 | Mobile auth model | PKCE → short-lived JWT access tokens + rotating refresh tokens with reuse detection. Tokens stored in iOS Keychain via `expo-secure-store`. | Standard mobile-OAuth pattern; refresh rotation + reuse detection contains stolen-token blast radius. |
 | Mobile framework | Expo + React Native, Expo Router. Distribution: Expo Go for development; EAS Build deferred until Apple Developer Program is funded. | ADR 045. |
-| Shared types | `packages/shared/` workspace package. Re-exports `apps/web/src/domain/**` and selected zod schemas. Both clients import from `@travel/shared`. | Single source of truth for types without coupling to a specific RPC protocol. |
+| Shared types | `packages/shared/` workspace package. Re-exports `apps/web/src/domain/**` and selected zod schemas. Both clients import from `@travel/shared`. | Single source of truth for types between web and mobile without coupling to a specific RPC protocol. |
+| Rate limiting | `/api/v1/auth/mobile/*` endpoints are rate-limited at the edge (slice 3). All authenticated `/api/v1/*` endpoints are unlimited in v1. | Auth endpoints are the only unauthenticated surface and the highest-risk for abuse / probing. Closed-auth (ADR 029) makes per-user rate limits on authenticated endpoints gold-plating for the audience-of-two. Revisit in a later ADR if abuse pattern changes. |
+| Refresh-token storage | New `refresh_tokens` table introduced in slice 3 via a generated Drizzle migration (`db:generate` + `db:migrate`, **not** `db:push`) per ADR 018. One row per active token; columns include token-hash, user FK, created_at, expires_at, and replaced_by_id for rotation chains. Schema specifics finalised at slice 3 SPEC time. | Keeping refresh tokens off the `user` table avoids bloat and supports reuse-detection chains cleanly. A real migration script (not `db:push`) is mandatory because slice 3 ships to production via Vercel's deploy migration gate (ADR 018). |
+| API streaming compatibility | Slice 1's REST conventions are designed to accommodate streaming responses (SSE-style) from day one — error envelope, naming, and status mapping must work for both unary JSON and SSE. **No streaming endpoint is built in EPIC-001.** | The AI chat (ADR 042) is a flagship feature and is in-scope for a future mobile epic. Designing conventions for both unary and streaming now avoids a v2 break later. |
 | Mobile test runner | Jest in `apps/mobile/`. Vitest stays in `apps/web/`. | RN ecosystem assumes Jest; fighting it for runner consistency is not worth it. |
 | Mobile E2E | Maestro YAML on iOS Simulator, path-filtered macOS CI job. | Small declarative schema → reliable LLM authorship; cheaper macOS minutes via path filter. |
 | Observability | Sentry React Native, same vendor as web (ADR 032). Source maps via EAS. | One observability story across surfaces. |
@@ -216,22 +230,36 @@ re-litigate without flagging an epic-level deviation (§16).
 
 | # | Question | Owner | Answer by slice |
 |---|----------|-------|----------------|
-| 1 | Is the iPhone version primarily for the author, or for the small invited-user set (ADR 029)? If the latter, Expo Go is not viable for them and EAS / App Store becomes mandatory earlier. | Matt | Before slice 6 — drives the auth-callback redirect strategy |
-| 2 | Is Android on the roadmap eventually? If yes, the Expo investment pays off twice; if no, future Swift migration becomes more attractive. | Matt | Before slice 5 — drives whether we keep RN universal idioms |
-| 3 | Are iOS-specific features (Widgets, Live Activities, Watch, Apple Pay) desired in any horizon? If yes, plan a Swift migration timeline. | Matt | Before this epic closes — informs the next-epic backlog |
-| 4 | Will we fund the Apple Developer Program in the next ~12 months? | Matt | Before slice 8 — drives whether EAS Build is part of slice 9 |
-| 5 | Should the mobile chat (`/api/trips/[id]/chat`) be in scope eventually? If yes, the slice 1 conventions must include streaming. | Matt | Before slice 1 ADR is drafted |
+| 1 | Can the partner actually install Expo Go on her iPhone, accept the project URL, and complete pairing reliably? Real-device check, not just theory. | Matt | Before slice 6 begins — feeds the §9 partner-device kill criterion |
+| 2 | Does the partner's iCloud / Google account on the iPhone she'll use match the Google account email she's pre-provisioned with in the `user` table? | Matt | Before slice 6 — one-line `SELECT` against prod or staging |
+
+§13 Q1–Q5 from the original draft were resolved in the 2026-05-20
+`grill-me` pass and are not re-listed here:
+
+- **Audience** → author + partner only; invited-user set deferred to a later epic.
+- **Android** → not on the roadmap yet (parking lot).
+- **iOS-specific features** → wanted eventually; informs the post-epic Swift migration discussion.
+- **ADP funding** → deferred to EPIC-002 (Option A in the grilling).
+- **Mobile chat in scope** → yes eventually; slice 1 conventions accommodate streaming from day one, no streaming endpoint built in EPIC-001.
 
 ## 14. Parking lot
 
 Distinct from non-goals — these are ideas that could become future epics
 once this one lands.
 
+- **EPIC-002 — trips list on mobile.** Confirmed as the immediate follow-up.
+  Its first slice funds the Apple Developer Program ($99/yr), configures
+  EAS Build, and distributes signed dev builds via TestFlight to both
+  phones. Per-user rate limits on authenticated endpoints get reconsidered
+  here.
 - PWA (Option A from ADR 045) — installable web shell with offline cache;
   one-week parallel project.
 - AI streaming on mobile — RN consumption of the existing
   `/api/trips/[id]/chat` SSE / streaming endpoint, including `fetch`
-  polyfill caveats and cancellation.
+  polyfill caveats and cancellation. Slice 1's conventions already
+  accommodate this.
+- Per-user rate limiting on authenticated `/api/v1/*` endpoints. Deferred;
+  closed-auth keeps the risk low for the EPIC-001 audience.
 - Map and chart libraries for mobile — Recharts and Leaflet don't work in
   RN; Victory Native and `react-native-maps` are the likely answers, one
   ADR each.
@@ -240,9 +268,15 @@ once this one lands.
   becomes its own work later.
 - Offline mode and conflict resolution for spend entries — its own design
   pass.
+- iOS-specific surfaces — Widgets, Live Activities, Lock Screen, Apple
+  Watch, Apple Pay. Wanted eventually per §13 resolution; triggers the
+  Swift migration discussion below.
+- Android validation. Not on the roadmap yet but not blocked. Expo gives
+  it free if/when the roadmap changes.
 - Swift / SwiftUI rewrite — the REST API survives the UI swap because it
-  is plain REST; remains the right answer if iOS becomes the primary
-  surface.
+  is plain REST. Remains the right answer if iOS-native surfaces (Widgets,
+  Live Activities, Watch) become product priorities — confirmed wanted
+  eventually per §13.
 
 ## 15. Risks
 
@@ -263,11 +297,12 @@ write time, not pre-allocated.
 
 | Slice | Likely ADR(s) | Notes |
 |-------|---------------|-------|
-| 1 | REST API conventions — versioning prefix, error envelope, `Result<T, E>` → HTTP mapping, naming, pagination | Sets the rules every later API slice inherits |
-| 2 | Mobile authentication model — PKCE + JWT access tokens + rotating refresh tokens + Keychain + reuse detection | Settles the auth model before the endpoints land |
-| 5 | Expo as the React Native framework and distribution path — Expo Go for dev, EAS Build deferred | Records the framework choice and the no-App-Store stance |
+| 1 | REST API conventions — versioning prefix, error envelope, `Result<T, E>` → HTTP mapping, naming, pagination, streaming compatibility | Sets the rules every later API slice inherits. Streaming compatibility is in scope for the conventions even though no streaming endpoint ships in EPIC-001. |
+| 2 | Mobile authentication model — PKCE + JWT access tokens + rotating refresh tokens (new `refresh_tokens` table) + Keychain + reuse detection | Settles the auth model before the endpoints land |
+| 3 | Edge rate-limiting policy for `/api/v1/auth/mobile/*` | Lands alongside the auth endpoints; keeps the rate-limit scope deliberate so we don't over-extend it later |
+| 5 | Expo as the React Native framework and distribution path — Expo Go for dev, EAS Build deferred to EPIC-002 | Records the framework choice and the no-App-Store stance |
 | 8 | Mobile testing strategy — Jest + RNTL + msw/native + Maestro + path-filtered CI | Records the test runner split (Jest mobile / Vitest web) |
-| 9 | Mobile observability — Sentry RN + source maps via EAS | Records the same-vendor / same-project choice |
+| 9 | Mobile observability — Sentry RN + source maps via EAS (source maps deferred until EPIC-002 brings EAS Build online) | Records the same-vendor / same-project choice |
 
 Deferred ADRs (post-epic, captured here so they're not lost): API client
 strategy (plain `fetch` vs ts-rest vs tRPC), push notifications,
@@ -292,7 +327,8 @@ mobile chart library, mobile map library, PWA decision.
 | Date | Slice # | SPEC | Status change | Notes |
 |------|---------|------|---------------|-------|
 | 2026-05-16 | 0 | n/a | Shipped | Monorepo restructure landed via ADR 046 before this epic was formalised. |
-| 2026-05-20 | — | — | Epic drafted | Replaces `docs/ios-app-planning.md`. Awaiting human approval. |
+| 2026-05-20 | — | — | Epic drafted | Replaces `docs/ios-app-planning.md`. |
+| 2026-05-20 | — | — | Approved | After `grill-me` pass: Option A (no ADP in EPIC-001), partner included in audience, streaming-compat in §10, refresh-token + rate-limit decisions added, §13 Q1–Q5 resolved. |
 
 ## Epic-level deviations
 
