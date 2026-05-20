@@ -82,6 +82,30 @@ the deps that genuinely need build scripts, drop the placeholder).
 
 ---
 
+### 2026-05-20 — step 3 — extracted `isAnonymisedEmail` to its own file
+
+**Step:** Step 3 (cookie-session helper)
+**Type:** decision
+**Note:**
+
+Original spec text had `isAnonymisedEmail` co-located in `auth.ts`. Unit
+test failed because importing from `auth.ts` transitively pulls in
+`next-auth` → which fails to resolve `next/server` in the unit-test
+environment.
+
+Extracted `isAnonymisedEmail` to `_lib/anonymised-email.ts` so it stays
+unit-testable in isolation. Documented the reason in the file header
+comment. `auth.ts` now imports it.
+
+Side benefit: the file becomes the canonical reference for ADR 031's
+detection mechanism — easier to grep for than a private helper inside a
+larger file. If/when slice 7+ adds more shapes of "user deleted"
+detection, they live there too.
+
+**Triage (filled at close-out):**
+
+---
+
 ## Close-out triage summary
 
 > Filled at the very end. One line per entry above plus where it landed.
