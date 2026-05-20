@@ -7,6 +7,7 @@
     "scheme": "travelplanner",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "platforms": ["ios"],
     "ios": {
       "bundleIdentifier": "dev.matthewcarr.travelplanner",
       "supportsTablet": false
