@@ -38,6 +38,45 @@ breakage from adding the FK to `users` cascade.
 
 ---
 
+### 2026-05-20 17:28 — Step 4 (use cases) done; pre-locked refresh peek decision
+
+**Step:** Step 4 — Use cases (4 of them)
+**Type:** decision
+**Note:**
+
+Four use cases via factory functions (`make<UseCase>(deps) → fn`):
+- `start-mobile-auth` — random `state`, persist with code_challenge, ask
+  fake Google client for an authorise URL.
+- `handle-mobile-callback` — state→exchange→ADR 029 access check→deep
+  link. Always-redirect-to-deep-link policy means even errors carry
+  `?error=…` rather than a JSON envelope (UA is the system browser,
+  not the app).
+- `exchange-mobile-code` — code lookup→PKCE compare→consume→mint
+  refresh + access. Deliberately does NOT consume the row on
+  `pkce_mismatch` so a legitimate retry within TTL still works.
+- `refresh-mobile-tokens` — peek first (catches revoked/expired/unknown
+  without holding the FOR UPDATE lock); then call `rotate()` for the
+  rotate vs reuse branch. Reuse path calls `onChainRevoked` callback
+  (defaults to no-op; step 8 wires Sentry).
+
+Real `MobileAuthCrypto` (web crypto + jose) lives in
+`src/infrastructure/auth/mobile-auth-crypto.ts`. Reuses
+`signAccessToken` from SPEC-002's bearer-token helper so JWT signing
+machinery is identical between cookie and mobile-bearer paths.
+
+Test infra: `FakeGoogleOAuthClient` in
+`src/infrastructure/testing/fake-google-oauth-client.ts` lets each
+test program `exchangeAuthCode`'s outcome and inspect the call
+sequence. Never hits real Google.
+
+18 use-case integration tests across 4 files; type-check + lint
+clean. All running against the same Testcontainers Postgres as
+existing tests — no new infra dep.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 17:20 — Step 3 (repos) done
 
 **Step:** Step 3 — Repository interfaces + Drizzle impls
