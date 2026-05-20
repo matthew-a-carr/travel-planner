@@ -34,6 +34,51 @@ warning noise on every run.
 
 ---
 
+### 2026-05-20 23:00 — Step 9: EAS Local → raw xcodebuild for CI dev-client build
+
+**Step:** Step 9 — TD-002 pay-down (mobile-e2e CI per ADR-055)
+**Type:** deviation
+
+**Note:**
+
+ADR-055 draft (committed alongside SPEC-006 planning) named
+`eas build --local --profile development --platform ios` as the
+build step. Started implementing it; found two friction points:
+
+1. `eas build --local` requires the project to be linked to an EAS
+   account (an `extra.eas.projectId` in `app.json`). Without it,
+   the CLI prompts; with `--non-interactive`, it errors. The
+   "linked" project can be a fictitious UUID for `--local` builds
+   (no cloud comms happens), but that's a hack and EAS upstream
+   could tighten the validation later.
+2. The EAS CLI isn't installed by default; needs `pnpm dlx eas-cli`
+   or a direct devDep. Adds a third-party tool to the CI critical
+   path that's only used for one step.
+
+Switched to raw `xcodebuild`: `expo prebuild --platform ios --clean`
+to generate `ios/`, `pod install` to fetch CocoaPods, then
+`xcodebuild -workspace ... -scheme ... -configuration Debug -sdk
+iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO`
+produces the `.app`. CocoaPods + Xcode + iOS Simulator are
+preinstalled on `macos-latest` GitHub runners — zero external
+account, zero new devDeps, zero new CLI tools.
+
+ADR-055 amended in the same commit as step 9's CI yaml: title
+rebadged to "Mobile E2E via Local Dev-Client Build in CI (`expo
+prebuild` + `xcodebuild`)"; Decision section §5 rewritten to
+describe the xcodebuild step. Filename unchanged to preserve the
+existing cross-references from SPEC-006.
+
+The job stays `continue-on-error: true` for week 1 — this is the
+first real run of the pipeline so failures (Xcode version drift,
+scheme name auto-derivation, simulator boot timing, CocoaPods
+mismatches) will surface in PR runs and be ironed out
+empirically.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 22:30 — Step ordering swap: 7 before 6 (signed-in placeholder lands first)
 
 **Step:** Step 7 → Step 6

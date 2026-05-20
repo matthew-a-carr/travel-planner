@@ -1,4 +1,4 @@
-# ADR 055: Mobile E2E via EAS Local Dev-Client Build in CI
+# ADR 055: Mobile E2E via Local Dev-Client Build in CI (`expo prebuild` + `xcodebuild`)
 
 **Date:** 2026-05-20
 **Status:** Accepted
@@ -61,16 +61,23 @@ The dev-client `.app` can then be installed into the simulator via
    to regenerate the `ios/` directory from `app.json` and the
    `expo-router` plugin. The `ios/` directory is **not** committed
    to source control — it's an ephemeral build artefact.
-4. Runs `pnpm --filter @travel-planner/mobile exec eas build --local --profile development --platform ios --non-interactive`
-   to produce a dev-client `.app` bundle in
-   `apps/mobile/build/<artifact-id>.app` (no EAS cloud minutes; runs
-   `xcodebuild` locally).
-5. Boots an iOS Simulator (`xcrun simctl boot "iPhone 15"` or the
-   currently-recommended Simulator name for SDK 54).
-6. Installs the bundle (`xcrun simctl install booted <artifact>.app`).
-7. Runs `pnpm test:e2e:mobile` (which expands to `maestro test .maestro/flows`).
-8. On failure, uploads Maestro's HTML report as a CI artifact (7-day
-   retention).
+4. Runs `pod install` in `apps/mobile/ios/` (CocoaPods is preinstalled
+   on `macos-latest` runners).
+5. Runs `xcodebuild -workspace TravelPlanner.xcworkspace -scheme
+   TravelPlanner -configuration Debug -sdk iphonesimulator
+   -derivedDataPath build CODE_SIGNING_ALLOWED=NO` from
+   `apps/mobile/ios/` to produce a dev-client `.app` for the iOS
+   Simulator. **The original ADR draft named `eas build --local`
+   here; switched to raw `xcodebuild` during step 9 implementation
+   when EAS Local was found to require an EAS project ID + an EAS
+   CLI session. The raw path has zero external-account dependency
+   and matches the durable-bias directive in `AGENTS.md`.**
+6. Boots an iOS Simulator (first available `iPhone` device on the
+   runner, via `xcrun simctl list devices available`).
+7. Installs the bundle (`xcrun simctl install booted <.app>`).
+8. Runs `pnpm test:e2e:mobile` (which expands to `maestro test .maestro/flows`).
+9. On failure, uploads Maestro's report directory as a CI artifact
+   (7-day retention).
 
 The job is marked **`continue-on-error: true` for the first week** of
 operation (per SPEC-006 §11) and promoted to blocking once it has a

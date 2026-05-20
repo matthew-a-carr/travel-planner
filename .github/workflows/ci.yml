@@ -229,6 +229,10 @@ jobs:
     runs-on: macos-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.mobile == 'true'
+    # Week 1 (SPEC-006 §11 + ADR-055): non-blocking while the pipeline
+    # shakes out. Promote to blocking once it has a stable track
+    # record — calendar reminder gates the promotion.
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
 
@@ -248,15 +252,76 @@ jobs:
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
-      - name: Start iOS Simulator + boot Expo build
-        # Detailed simulator + Expo boot wiring lands in a future ADR pass.
-        # For slice 5 the Maestro flow is committed but the runner step is a
-        # placeholder that documents the missing pieces (simulator UDID,
-        # `expo prebuild` for a dev client, etc.). Marked continue-on-error so
-        # the slice doesn't gate on infra we'll harden next.
-        continue-on-error: true
+      - name: Prebuild iOS native project
+        working-directory: apps/mobile
+        # `expo prebuild --clean` regenerates ios/ from app.json and the
+        # Expo plugins. ios/ is NOT committed — ephemeral per CI run.
+        run: pnpm exec expo prebuild --platform ios --clean
+
+      - name: Install CocoaPods dependencies
+        working-directory: apps/mobile/ios
+        # CocoaPods ships preinstalled on macos-latest runners.
+        run: pod install
+
+      - name: Build iOS Simulator .app via xcodebuild
+        # Per ADR-055: skip EAS Local for the build (no external account
+        # dependency); use raw xcodebuild against the prebuild output.
+        # `CODE_SIGNING_ALLOWED=NO` avoids requiring a developer cert
+        # for simulator builds.
+        working-directory: apps/mobile/ios
         run: |
-          echo "TODO(slice-5): wire Maestro against an Expo Go simulator boot."
-          echo "Slice 5 ships the YAML flow; full CI execution lands in the"
-          echo "next mobile-CI iteration."
-          maestro --version
+          WORKSPACE=$(ls -d *.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "Building workspace=$WORKSPACE scheme=$SCHEME"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Boot iOS Simulator
+        run: |
+          # Pick the first available iPhone simulator on the runner.
+          UDID=$(xcrun simctl list devices available --json | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for runtime, devs in devices.items():
+              if 'iOS' not in runtime:
+                  continue
+              for d in devs:
+                  if d.get('isAvailable') and 'iPhone' in d.get('name', ''):
+                      print(d['udid'])
+                      sys.exit(0)
+          sys.exit(1)
+          ")
+          if [ -z "$UDID" ]; then
+            echo "No available iPhone simulator found."
+            exit 1
+          fi
+          echo "Booting simulator $UDID"
+          xcrun simctl boot "$UDID" || true  # already-booted is fine
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Install dev-client .app on simulator
+        working-directory: apps/mobile/ios
+        run: |
+          APP_PATH=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 2 -name '*.app' -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found under build/Build/Products/Debug-iphonesimulator"
+            exit 1
+          fi
+          echo "Installing $APP_PATH"
+          xcrun simctl install booted "$APP_PATH"
+
+      - name: Run Maestro flows
+        run: pnpm test:e2e:mobile
+
+      - name: Upload Maestro report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-report
+          path: ~/.maestro/tests
+          retention-days: 7

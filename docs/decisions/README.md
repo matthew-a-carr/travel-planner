@@ -63,4 +63,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Accepted (§1 SDK pin, §3 Metro config, and §5 test layout amended by ADR 053) |
 | [053](053-expo-sdk-54-temporary-downgrade.md) | Temporary Downgrade to Expo SDK 54 (also strips ADR 052 §3 Metro overrides and relocates tests from `app/` to `__tests__/`) | 2026-05-20 | Accepted |
 | [054](054-edge-rate-limiting-postgres-sliding-window.md) | Edge Rate-Limiting via Postgres Sliding-Window Counter | 2026-05-20 | Accepted |
-| [055](055-mobile-e2e-via-eas-local-dev-client-in-ci.md) | Mobile E2E via EAS Local Dev-Client Build in CI | 2026-05-20 | Accepted |
+| [055](055-mobile-e2e-via-eas-local-dev-client-in-ci.md) | Mobile E2E via Local Dev-Client Build in CI (`expo prebuild` + `xcodebuild`) | 2026-05-20 | Accepted |
