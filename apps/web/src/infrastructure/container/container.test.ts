@@ -21,6 +21,12 @@ function createFakeContainer(): AppContainer {
     hashFn: ((s: string) => s) as AppContainer['hashFn'],
     chatMessageRepository: {} as AppContainer['chatMessageRepository'],
     chatAssistant: {} as AppContainer['chatAssistant'],
+    mobileAuthStateRepository: {} as AppContainer['mobileAuthStateRepository'],
+    mobileAuthExchangeCodeRepository: {} as AppContainer['mobileAuthExchangeCodeRepository'],
+    refreshTokenRepository: {} as AppContainer['refreshTokenRepository'],
+    authRateLimitRepository: {} as AppContainer['authRateLimitRepository'],
+    mobileAuthCrypto: {} as AppContainer['mobileAuthCrypto'],
+    googleOAuthClient: {} as AppContainer['googleOAuthClient'],
   };
 }
 

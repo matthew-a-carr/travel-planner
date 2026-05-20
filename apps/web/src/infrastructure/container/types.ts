@@ -5,6 +5,12 @@ import type { InviteEmailService } from '@/application/ports/invite-email-servic
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { TripNarrativeService } from '@/application/ports/trip-narrative-service';
+import type { AuthRateLimitRepository } from '@/domain/auth/auth-rate-limit-repository';
+import type { GoogleOAuthClient } from '@/domain/auth/google-oauth-client';
+import type { MobileAuthCrypto } from '@/domain/auth/mobile-auth-crypto';
+import type { MobileAuthExchangeCodeRepository } from '@/domain/auth/mobile-auth-exchange-code-repository';
+import type { MobileAuthStateRepository } from '@/domain/auth/mobile-auth-state-repository';
+import type { RefreshTokenRepository } from '@/domain/auth/refresh-token-repository';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
@@ -29,4 +35,12 @@ export type AppContainer = {
   readonly hashFn: (input: string) => string;
   readonly chatMessageRepository: ChatMessageRepository;
   readonly chatAssistant: ChatAssistantService;
+
+  // Mobile auth (SPEC-004 / ADR 051).
+  readonly mobileAuthStateRepository: MobileAuthStateRepository;
+  readonly mobileAuthExchangeCodeRepository: MobileAuthExchangeCodeRepository;
+  readonly refreshTokenRepository: RefreshTokenRepository;
+  readonly authRateLimitRepository: AuthRateLimitRepository;
+  readonly mobileAuthCrypto: MobileAuthCrypto;
+  readonly googleOAuthClient: GoogleOAuthClient;
 };

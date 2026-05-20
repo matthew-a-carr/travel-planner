@@ -38,6 +38,29 @@ breakage from adding the FK to `users` cascade.
 
 ---
 
+### 2026-05-20 17:30 — Step 5 (DI wiring) done
+
+**Step:** Step 5 — Container wiring + guard tests
+**Type:** decision
+**Note:**
+
+`AppContainer` gains six new keys: four mobile-auth repos +
+`mobileAuthCrypto` + `googleOAuthClient`. `createAppContainer`
+constructs `FetchGoogleOAuthClient` with `AUTH_GOOGLE_ID` /
+`AUTH_GOOGLE_SECRET` from `process.env`. Real implementation in
+`src/infrastructure/auth/google-oauth-client.ts` hits Google's HTTPS
+endpoints directly; FakeGoogleOAuthClient (already in
+`src/infrastructure/testing/`) is used by the use-case int-tests.
+
+`container.test.ts`'s `createFakeContainer` helper extended with
+the six new keys. Composition-root guard tests pass — no rogue
+`new Drizzle*Repository(...)` constructions outside the approved
+file.
+
+**Triage (filled at close-out):**
+
+---
+
 ### 2026-05-20 17:28 — Step 4 (use cases) done; pre-locked refresh peek decision
 
 **Step:** Step 4 — Use cases (4 of them)
