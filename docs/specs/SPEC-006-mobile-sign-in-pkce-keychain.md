@@ -1,9 +1,10 @@
 # SPEC-006: Mobile Sign-In UI + PKCE Flow + Keychain
 
 **Date:** 2026-05-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-20 (after `review-spec` pass + one round of patches, including drafting ADR-055)
+**Completed:** 2026-05-21
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 6
 
 ---
@@ -828,8 +829,87 @@ switch to EAS Build / TestFlight).
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| _to be filled at close-out_ |
+| 1 | **CI dev-client build switched from `eas build --local --profile development` (ADR-055 draft) to raw `xcodebuild`.** Same five-stage pipeline (prebuild → cocoapods → build → simulator install → maestro) but the build step uses Apple's toolchain directly instead of EAS Local. | `eas build --local` requires `extra.eas.projectId` in `app.json` plus an EAS CLI session — either real EAS auth or a fictitious-UUID hack. The EAS CLI is also a third-party tool we'd otherwise not depend on. Raw `xcodebuild` uses CocoaPods + Xcode + iOS Simulator which are preinstalled on `macos-latest` runners — zero external account, zero new devDeps. Matches the durable-bias directive in `AGENTS.md`. | None on §3 acceptance criteria — AC#12 still passes ("`mobile-e2e` runs Maestro for real on every PR"). ADR-055 amended in-place (title + Decision §5) to describe the chosen approach; filename unchanged to preserve cross-references. The `continue-on-error: true` stance from §11 still applies for week 1. | Yes — landed in commit 99473f3 (CI yaml + ADR-055 amendment). |
+| 2 | **HTTP mocking in mobile tests uses `jest.spyOn(globalThis, 'fetch')` instead of msw.** SPEC-006 §7 inherited "msw/native" from SPEC-003's anticipatory note; the actual `apps/mobile/__tests__/api/client.test.ts` + `sign-in-flow.test.ts` use a fetch spy with canned `Response` objects. | msw 2.x ships ESM-only transitive deps (`rettime`, `until-async`, `outvariant`, `@bundled-es-modules/*`, `headers-polyfill`, `is-node-process`) that jest-expo 54's inherited `transformIgnorePatterns` excludes from transformation. Making msw work needs ~10+ lines of jest config plus `moduleNameMapper` entries and ongoing maintenance as msw's transitive graph shifts. The fetch-spy has zero third-party surface area, no transform config, no ESM gotchas across RN upgrades. Durable-bias directive (`AGENTS.md`) applied. | `apps/mobile/__mocks__/` directory not created (and the `msw-server.ts` stub from this slice's first attempt was deleted). `apps/mobile/AGENTS.md` "API mocking" section rewritten to describe the fetch-spy pattern with a worked example. `msw` stays in `apps/mobile/devDependencies` (harmless; reactivate when a future spec finds a compelling case). All §3 acceptance criteria still pass — the test plan in §9 was carried out via the fetch-spy instead. | Yes — landed in commit a06ebd0 (step 4). |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+**Side-quest fixes (two pre-existing SPEC-003 bugs caught en route to
+step 4).** While wiring the apiClient tests:
+
+- `jest.config.js` had `setupFilesAfterEach: ['<rootDir>/jest.setup.ts']`.
+  Every jest run since SPEC-003 had been emitting a validation
+  warning ("Unknown option `setupFilesAfterEach`") because the canonical
+  name is `setupFilesAfterEnv` (cross-referenced against
+  `jest-config@29.7.0/build/ValidConfig.js`). One-character rename.
+- `jest.setup.ts` imported `'@testing-library/react-native/extend-expect'`,
+  which doesn't exist in RNTL v13 — the canonical subpath is
+  `'/matchers'`. The broken import was masked by the
+  `setupFilesAfterEach` typo above (jest silently skipped the whole
+  setup file). Fixed once the typo was, and matchers now actually
+  extend `expect`.
+
+Both fixes landed in commit `a06ebd0` (step 4) without changing slice
+6's design intent. Future contributors should not see those validation
+warnings any more.
+
+**Step-ordering swap during execution.** §12 listed step 6
+(`app/index.tsx` rewrite) before step 7 (`app/signed-in.tsx`
+placeholder). Executed in 7→6 order because `app.json`'s
+`experiments.typedRoutes: true` infers the valid route union from the
+`app/` directory contents — step 6's `router.replace({ pathname:
+'/signed-in', … })` wouldn't type-check until `signed-in.tsx`
+existed. Bundled as one commit (`1eedd5b`). No design intent change;
+flagged purely so future readers don't wonder why the file timeline
+doesn't match §12.
+
+**Durable-bias directive (codified in `AGENTS.md` "Decision-making
+bias") drove two real choices in this slice.** Slice planning Q10
+(TD-002 pay-down inside the slice instead of deferring further) was
+the direct trigger for the directive. Then in execution: (a) the
+msw → fetch-spy choice in step 4, (b) the EAS Local → raw
+xcodebuild choice in step 9. Both consciously picked the option
+with less third-party surface area / fewer external-account
+dependencies even when the more popular tool was "more nominally
+correct." The companion
+`feedback_prefer_durable_over_expedient.md` memory captures the
+framing for future sessions.
+
+**ADR-055 was drafted alongside SPEC-006 planning (per the
+`review-spec` Warning resolution) but its build-step Decision was
+amended at step 9 implementation time** when the chosen approach
+diverged. The amend-the-ADR-in-place pattern (filename unchanged,
+title + Decision §5 rewritten) preserves existing cross-references
+without inventing a "superseded by" anchor for a one-section pivot.
+A future ADR may rebadge if the build approach changes
+fundamentally; for incremental drift, in-place amend + an
+implementation-notes deviation entry is the right scale.
+
+**`continue-on-error: true` on `mobile-e2e` is week-1 only — needs
+a calendar gate to promote to blocking.** The first real run of
+the EAS-less build pipeline might fail on any of: Xcode-version
+drift on the `macos-latest` image, scheme name auto-derivation,
+simulator-boot timing, CocoaPods version mismatches. Letting it
+run non-blocking for a week and watching the PR signals is the
+right call. Promote to blocking once a few green runs accumulate
+— captured as a separate follow-up task outside this spec (not
+tech debt because it's operational tuning, not a design issue).
+
+**Code-on-disk under `apps/mobile/` after slice 6.** Three new
+directories — `src/auth/` (3 modules), `src/api/` (1 module),
+`__tests__/auth/` + `__tests__/api/` + `__tests__/app/` (new
+`signed-in.test.tsx`); two route files rewritten/added —
+`app/index.tsx` (rewrite of HelloScreen), `app/signed-in.tsx`
+(new); one Maestro flow added (`.maestro/flows/sign-in.yaml`) +
+the existing `launch.yaml` re-pointed at the new
+login-screen-root testID; one CI workflow rewritten (the
+`mobile-e2e` job). Total mobile test count went from 5 (slice 5)
+→ 46 (slice 6). Web-side tests stayed green throughout (49 / 410
+unit + 54 / 275 integration).
+
+**Commit count: 13 implementation commits matching the 13 spec
+steps, plus a `docs(agents)` durable-bias commit, a
+`docs(spec-006)` planning commit, a `chore(scripts)` `test:e2e`
+umbrella rename, and three small rebases over remote main
+(dependabot release-please + a small ADR-053 mobile platform
+restriction landed mid-flight).

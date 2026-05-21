@@ -30,7 +30,16 @@ Renamed to `setupFilesAfterEnv` in the same commit as the rest of
 step 4's plumbing. No behaviour change expected, just lose the
 warning noise on every run.
 
-**Triage (filled at close-out):**
+**Companion finding (same step 4 commit):** `jest.setup.ts` imported
+`'@testing-library/react-native/extend-expect'`, which doesn't exist
+in RNTL v13 — the canonical subpath is `'/matchers'`. The broken
+import had been silently masked by the setupFilesAfterEach typo
+(jest skipped the whole setup file). Fixed in the same commit.
+
+**Triage:** post-impl-note — both fixes are pre-existing SPEC-003
+bugs unrelated to slice 6's design. Captured under "Side-quest
+fixes" in the spec's Post-Implementation Notes; no design-deviation
+to log.
 
 ---
 
@@ -75,7 +84,10 @@ scheme name auto-derivation, simulator boot timing, CocoaPods
 mismatches) will surface in PR runs and be ironed out
 empirically.
 
-**Triage (filled at close-out):**
+**Triage:** spec-deviation #1 — diverges from ADR-055's original
+"EAS Local" draft. ADR-055 was amended in the same commit to
+match what landed; the deviation is captured both there and in
+the spec's Implementation Deviations table.
 
 ---
 
@@ -99,7 +111,8 @@ test), then step 6 (the meaty screen + state machine). No
 load-bearing dependency in either direction so the swap is
 mechanical.
 
-**Triage (filled at close-out):**
+**Triage:** post-impl-note — purely an execution-order observation;
+the spec's design intent stayed identical.
 
 ---
 
@@ -157,7 +170,9 @@ Consequences:
   drop the "uncomment the lifecycle hooks in jest.setup.ts" note;
   point at the fetch-spy pattern with a short example.
 
-**Triage (filled at close-out):**
+**Triage:** spec-deviation #2 — design diverges from SPEC-006 §7
+(which inherited "msw/native" from SPEC-003's anticipatory note).
+Captured in the spec's Implementation Deviations table.
 
 ---
 
@@ -167,3 +182,8 @@ Consequences:
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 — `setupFilesAfterEach` typo + RNTL `extend-expect` → `matchers` (pre-existing SPEC-003 bugs) | Post-Implementation Notes — "Side-quest fixes". |
+| 2 — Step 9 EAS Local → raw xcodebuild for CI dev-client build | Spec deviation #1 + ADR-055 amended in-place. |
+| 3 — Step ordering swap (7 before 6) | Post-Implementation Notes — execution-order observation. |
+| 4 — msw → `jest.spyOn(globalThis, 'fetch')` for HTTP mocking | Spec deviation #2. |
+
