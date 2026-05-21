@@ -102,8 +102,14 @@ about *today* go straight to `docs/tech-debt.md` with a back-reference.
   this is friction — but those features don't warrant a spec in the first
   place (ADR 047 already excludes them).
 - `_draft-NNN-<slug>.md` files briefly share the numbering pool with specs.
-  Convention: the draft brief is deleted (or renamed `.superseded.md`) when
-  the spec is committed.
+  Convention: the draft brief survives through `Draft → Approved → In
+  Progress` so reviewers and implementers can refer to it, and is **deleted**
+  when the SPEC reaches a terminal state (`Complete` or `Abandoned`) or when
+  the feature is rejected before a SPEC is written. Git history preserves
+  the brief; the SPEC number returns to the pool on rejection. Earlier
+  versions of this convention renamed the brief to `_draft-NNN-<slug>.superseded.md`
+  at SPEC commit time — that variant is deprecated; the directory should
+  only ever contain `_draft-NNN-<slug>.md` files for SPECs still in flight.
 
 **Trade-offs:**
 

@@ -116,4 +116,8 @@ This is the deliberate synthesis step the rolling log is designed for.
 20. Review the doc review table in `AGENTS.md` — update any docs that are now stale.
 21. Update `docs/specs/README.md` index with the new status.
 22. Leave the notes file in place — it's the raw record. Do not delete it.
-23. Present the completed work to the human for final review.
+23. **Delete the draft brief.** Remove `docs/specs/_draft-NNN-<slug>.md`
+    if it still exists. The SPEC itself is now the authoritative record;
+    git history preserves the brief. (Same rule applies if a spec is
+    being marked `Abandoned` rather than `Complete`.)
+24. Present the completed work to the human for final review.

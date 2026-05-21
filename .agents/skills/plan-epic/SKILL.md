@@ -112,8 +112,10 @@ strategic ADR is already the right level of detail.
 ## Submit for review
 
 17. Update `docs/epics/README.md` — add the new epic to the index table.
-18. Delete (or rename to `_draft-NNN-<slug>.superseded.md`) the draft
-    brief now that the epic supersedes it.
+18. **Leave the draft brief in place.** It survives alongside the epic
+    through `Draft → Approved → In Progress` so reviewers and slice
+    planners can refer to the grilling Q→A. It is deleted later when the
+    epic reaches a terminal state (`Complete` or `Abandoned`).
 19. Present the epic to the human for review.
 20. **STOP. Do not begin any slice's SPEC until the human sets epic status
     to `Approved`.**
@@ -125,6 +127,28 @@ strategic ADR is already the right level of detail.
     `grill-me` pass on just that question rather than guessing.
 23. Re-submit for review.
 24. Repeat until approved.
+
+## If the epic is rejected
+
+If the human rejects the epic before it enters `Approved`:
+
+- **Rejected at the brief stage** (no epic file written yet): delete
+  `docs/epics/_draft-NNN-<slug>.md`. Do not update the README index. The
+  epic number returns to the pool.
+- **Rejected at the `Draft` epic stage**: set the epic status to
+  `Abandoned`, update its row in `docs/epics/README.md`, delete the draft
+  brief. The epic file stays in the repo as the record of what was
+  considered.
+
+Git history preserves the brief if anyone later wants to revisit the
+rejected initiative.
+
+## When the epic reaches a terminal state
+
+When the epic transitions to `Complete` (all in-scope slices shipped or
+explicitly dropped) or `Abandoned` (kill criterion fires), delete
+`docs/epics/_draft-NNN-<slug>.md`. The epic file itself stays — it's the
+authoritative record.
 
 ## After approval — handoff to `plan-feature`
 

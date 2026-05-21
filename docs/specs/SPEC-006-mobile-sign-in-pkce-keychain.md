@@ -65,9 +65,10 @@ Inherited from EPIC-001 §10 (not re-litigated):
 - **Mobile test runner**: Jest (`jest-expo` preset) + RNTL + msw/native.
 - **Mobile E2E**: Maestro YAML, path-filtered macOS CI job.
 
-The grilling session resolved the slice-altitude design questions; see
-`docs/specs/_draft-006-mobile-sign-in-pkce-keychain.superseded.md` for
-the full Q→A trail. The load-bearing decisions:
+The grilling session resolved the slice-altitude design questions (full
+Q→A trail preserved in git history under
+`docs/specs/_draft-006-mobile-sign-in-pkce-keychain.superseded.md`).
+The load-bearing decisions:
 
 - Server-mediated PKCE (not `expo-auth-session`'s client-as-OAuth-client).
 - `expo-web-browser.openAuthSessionAsync` (not `Linking` + listener).

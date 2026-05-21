@@ -51,10 +51,10 @@ path to slice 6. Outside the auth slice's wire shapes, no other
 cross-app types exist yet — the package starts small.
 
 The grilling session resolved one substantive shape-of-the-package
-question and four mechanical ones; see the draft brief
-`docs/specs/_draft-005-shared-types-and-schemas.superseded.md` (rename
-applied at commit time) for the full Q→A trail. The one substantive
-decision: the package contains only wire shapes, not the full
+question and four mechanical ones (full Q→A trail in the pre-spec draft
+brief — preserved in git history under
+`docs/specs/_draft-005-shared-types-and-schemas.superseded.md`). The one
+substantive decision: the package contains only wire shapes, not the full
 `apps/web/src/domain/**`. That diverges from the literal phrasing of
 EPIC-001 §10 and is captured as an epic-level deviation in §16 of
 EPIC-001 (added in the same commit).
