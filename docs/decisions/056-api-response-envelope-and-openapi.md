@@ -1,11 +1,9 @@
 # ADR 056: REST API Response Envelope and OpenAPI Publication
 
 **Date:** 2026-05-21
-**Status:** Proposed
+**Status:** Accepted (supersedes [ADR 050](./050-rest-api-conventions-v1.md))
 
-> **Note:** This ADR is in `Proposed` state alongside SPEC-007 (`Draft`).
-> Promotion to `Accepted` follows SPEC-007's Draft → Approved gate. When
-> Accepted, this ADR supersedes ADR 050.
+> **Approved:** Matt Carr, 2026-05-21, alongside SPEC-007 acceptance.
 
 ## Context
 

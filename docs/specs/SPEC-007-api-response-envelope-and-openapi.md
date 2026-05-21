@@ -1,9 +1,9 @@
 # SPEC-007: Standardised API Response Envelope + OpenAPI 3.1 YAML
 
 **Date:** 2026-05-21
-**Status:** Draft
+**Status:** Approved
 **Author:** Claude (Opus 4.7) under Matt Carr direction
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-05-21
 **Parent epic:** —
 
 > Standalone spec. Not a slice of EPIC-001 (whose API conventions were
