@@ -37,3 +37,4 @@ Draft → Approved → In Progress → Complete
 | [005](SPEC-005-shared-types-and-schemas.md) | Shared Wire Types and Schemas (`@travel-planner/shared`) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [006](SPEC-006-mobile-sign-in-pkce-keychain.md) | Mobile Sign-In UI + PKCE Flow + Keychain | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [007](SPEC-007-api-response-envelope-and-openapi.md) | Standardised API Response Envelope + OpenAPI 3.1 YAML | — | 2026-05-21 | Approved |
+| [008](SPEC-008-mobile-home-screen-and-sign-out.md) | Mobile Home Screen + Sign-Out (EPIC-001 milestone slice) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-21 | Draft |
