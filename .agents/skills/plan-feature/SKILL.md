@@ -133,8 +133,10 @@ no behaviour change.
 20. **If the spec has a parent epic**, update that epic's §7 slice table
     (the relevant row's "Becomes SPEC" cell → `SPEC-NNN (Draft)`) and
     append a row to its slice ledger.
-21. Delete (or rename to `_draft-NNN-<slug>.superseded.md`) the draft brief
-    now that the spec supersedes it.
+21. **Leave the draft brief in place.** It survives alongside the SPEC
+    through `Draft → Approved → In Progress` so reviewers and implementers
+    can refer to the grilling Q→A. It is deleted later by `implement-spec`
+    when the SPEC reaches a terminal state (`Complete` or `Abandoned`).
 22. Present the spec (and the `review-spec` report) to the human for review.
 23. **STOP. Do not begin implementation until the human sets status to
     `Approved`.**
@@ -148,3 +150,20 @@ no behaviour change.
     gate applies to revised drafts.
 27. Re-submit for review.
 28. Repeat until approved.
+
+## If the feature is rejected
+
+If the human rejects the feature before a SPEC enters `Approved`:
+
+29. **Rejected at the brief stage** (no SPEC file written yet): delete
+    `docs/specs/_draft-NNN-<slug>.md`. Do not update the README index.
+    The SPEC number returns to the pool — the next `plan-feature` call
+    will pick the lowest unused number naturally.
+30. **Rejected at the `Draft` SPEC stage**: set the SPEC status to
+    `Abandoned`, update its row in `docs/specs/README.md`, delete the
+    draft brief, and (if the SPEC had a parent epic) note the abandonment
+    in the epic's §7 slice table and slice ledger. The SPEC file stays
+    in the repo as the record of what was considered.
+
+In both cases, git history preserves the brief if anyone later wants to
+revisit the rejected design.
