@@ -28,8 +28,11 @@ export type AuthResult =
  * - No session / user gone           → { ok: false, response: 401 unauthenticated }
  * - Anonymised user (ADR 031 marker) → { ok: false, response: 410 user_deleted }
  * - Authenticated user (any approval) → { ok: true, userId, email, name, isApproved }
+ *
+ * `request` is required so the 401 / 410 envelope can populate
+ * `request` / `instance` / `asof` per SPEC-007 / ADR 056.
  */
-export async function requireCookieSession(): Promise<AuthResult> {
+export async function requireCookieSession(request: Request): Promise<AuthResult> {
   const session = await auth();
   const userId = await resolveAuthenticatedUserId(db, {
     id: session?.user?.id,
@@ -37,8 +40,8 @@ export async function requireCookieSession(): Promise<AuthResult> {
     name: session?.user?.name ?? null,
   });
 
-  if (!userId) return unauthenticated();
-  return resolveUserRow(userId);
+  if (!userId) return unauthenticated(request);
+  return resolveUserRow(request, userId);
 }
 
 /**
@@ -51,15 +54,15 @@ export async function requireCookieSession(): Promise<AuthResult> {
 export async function requireBearerSession(request: Request): Promise<AuthResult> {
   const header = request.headers.get('authorization');
   const jwt = extractBearerToken(header);
-  if (jwt === null) return unauthenticated();
+  if (jwt === null) return unauthenticated(request);
 
   const verified = await verifyAccessToken(jwt);
   if (!verified.ok) {
     console.warn('[api/v1/auth] bearer verification failed', { reason: verified.error });
-    return unauthenticated();
+    return unauthenticated(request);
   }
 
-  return resolveUserRow(verified.value.userId);
+  return resolveUserRow(request, verified.value.userId);
 }
 
 /**
@@ -72,7 +75,7 @@ export async function requireAuth(request: Request): Promise<AuthResult> {
   if (header?.toLowerCase().startsWith('bearer ')) {
     return requireBearerSession(request);
   }
-  return requireCookieSession();
+  return requireCookieSession(request);
 }
 
 function extractBearerToken(header: string | null): string | null {
@@ -82,7 +85,7 @@ function extractBearerToken(header: string | null): string | null {
   return token.length > 0 ? token : null;
 }
 
-async function resolveUserRow(userId: string): Promise<AuthResult> {
+async function resolveUserRow(request: Request, userId: string): Promise<AuthResult> {
   const rows = await db
     .select({
       email: users.email,
@@ -94,12 +97,14 @@ async function resolveUserRow(userId: string): Promise<AuthResult> {
     .limit(1);
 
   const user = rows[0];
-  if (!user) return unauthenticated();
+  if (!user) return unauthenticated(request);
 
   if (isAnonymisedEmail(user.email, userId)) {
     return {
       ok: false,
-      response: respondWithError('user_deleted', 'This account has been deleted.'),
+      response: respondWithError(request, 'user_deleted', {
+        detail: 'This account has been deleted.',
+      }),
     };
   }
 
@@ -112,9 +117,9 @@ async function resolveUserRow(userId: string): Promise<AuthResult> {
   };
 }
 
-function unauthenticated(): AuthResult {
+function unauthenticated(request: Request): AuthResult {
   return {
     ok: false,
-    response: respondWithError('unauthenticated', 'No valid session.'),
+    response: respondWithError(request, 'unauthenticated', { detail: 'No valid session.' }),
   };
 }

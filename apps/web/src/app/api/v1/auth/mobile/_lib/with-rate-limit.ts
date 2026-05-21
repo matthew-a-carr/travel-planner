@@ -44,10 +44,9 @@ export async function rateLimitOrReject(input: RateLimitInput): Promise<Response
     windowMs: WINDOW_MS,
   });
   if (ipEndpoint.windowCount > IP_ENDPOINT_THRESHOLD) {
-    return respondWithError(
-      'rate_limited',
-      `Too many requests to /${endpoint}; try again in a few minutes.`,
-    );
+    return respondWithError(request, 'rate_limited', {
+      detail: `Too many requests to /${endpoint}; try again in a few minutes.`,
+    });
   }
 
   // IP-wide counter (covers any of the four endpoints).
@@ -58,7 +57,9 @@ export async function rateLimitOrReject(input: RateLimitInput): Promise<Response
     windowMs: WINDOW_MS,
   });
   if (ipAny.windowCount > IP_THRESHOLD) {
-    return respondWithError('rate_limited', 'Too many auth requests; try again in a few minutes.');
+    return respondWithError(request, 'rate_limited', {
+      detail: 'Too many auth requests; try again in a few minutes.',
+    });
   }
 
   // Optional per-user counter for /refresh.
@@ -70,10 +71,9 @@ export async function rateLimitOrReject(input: RateLimitInput): Promise<Response
       windowMs: WINDOW_MS,
     });
     if (userCount.windowCount > USER_THRESHOLD) {
-      return respondWithError(
-        'rate_limited',
-        'Too many refreshes for this account; try again later.',
-      );
+      return respondWithError(request, 'rate_limited', {
+        detail: 'Too many refreshes for this account; try again later.',
+      });
     }
   }
 
