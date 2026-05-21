@@ -97,11 +97,15 @@ LAN-IP dance goes away.
   exchange → /me-as-proof → storeTokens). Deps injected for testability.
   Returns `SignInResult = { success } | { cancelled } | { error }`.
 - `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
-  validating responses via `@travel-planner/shared` schemas. Wire-shape
-  drift throws loud; error envelopes parse via `apiErrorBodySchema`
-  with a defensive `{ code: 'internal' }` fallback for malformed
-  bodies. Network failures collapse to a generic "Could not reach the
-  server" envelope.
+  validating responses via `@travel-planner/shared` schemas. After
+  SPEC-007 / ADR 056 the wrapper expects every `/api/v1/*` body to
+  carry the standard envelope: 2xx bodies are parsed with
+  `apiSuccessSchema(responseSchema)` and `.data` is returned; 4xx/5xx
+  bodies are parsed with `apiErrorEnvelopeSchema` and the RFC 7807
+  `error` object (which still carries our closed `code` enum) is
+  returned. Wire-shape drift throws loud. Malformed error bodies and
+  network failures collapse to a synthetic `code: 'internal'`
+  `ApiError` so callers can dispatch on `error.code` uniformly.
 
 When adding a new authenticated `/api/v1/*` call:
 
