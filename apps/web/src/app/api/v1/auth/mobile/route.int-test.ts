@@ -10,7 +10,8 @@
  */
 
 import {
-  apiErrorBodySchema,
+  apiErrorEnvelopeSchema,
+  apiSuccessSchema,
   mobileAuthCallbackErrorSchema,
   mobileAuthExchangeResponseSchema,
   mobileAuthStartResponseSchema,
@@ -90,6 +91,9 @@ async function withFakeContainer(
   return { container };
 }
 
+const startSuccessEnvelope = apiSuccessSchema(mobileAuthStartResponseSchema);
+const exchangeSuccessEnvelope = apiSuccessSchema(mobileAuthExchangeResponseSchema);
+
 describe('/api/v1/auth/mobile/start', () => {
   it('400s on missing code_challenge', async () => {
     const { POST } = await import('./start/route');
@@ -103,11 +107,12 @@ describe('/api/v1/auth/mobile/start', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('validation_failed');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('validation_failed');
+    expect(parsed.error.instance).toBe('/api/v1/auth/mobile/start');
   });
 
-  it('returns 200 with authorise_url + state', async () => {
+  it('returns 200 envelope with data.authorise_url + data.state', async () => {
     const fake = new FakeGoogleOAuthClient();
     await withFakeContainer(fake);
     const { POST } = await import('./start/route');
@@ -124,9 +129,10 @@ describe('/api/v1/auth/mobile/start', () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    mobileAuthStartResponseSchema.parse(body);
-    expect(body.authorise_url).toContain('accounts.google.test');
-    expect(body.state).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const parsed = startSuccessEnvelope.parse(body);
+    expect(parsed.data.authorise_url).toContain('accounts.google.test');
+    expect(parsed.data.state).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(parsed.request.method).toBe('POST');
   });
 });
 
@@ -197,7 +203,7 @@ describe('/api/v1/auth/mobile/callback', () => {
 });
 
 describe('/api/v1/auth/mobile/exchange', () => {
-  it('happy path: mints access + refresh', async () => {
+  it('happy path: mints access + refresh wrapped in envelope', async () => {
     const cryptoImpl = new WebCryptoMobileAuthCrypto();
     const user = await seedUser(db, { isApproved: true });
     const verifier = cryptoImpl.randomBase64url(32);
@@ -225,10 +231,10 @@ describe('/api/v1/auth/mobile/exchange', () => {
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    mobileAuthExchangeResponseSchema.parse(body);
-    expect(typeof body.access_token).toBe('string');
-    expect(typeof body.refresh_token).toBe('string');
-    expect(typeof body.access_expires_at).toBe('string');
+    const parsed = exchangeSuccessEnvelope.parse(body);
+    expect(typeof parsed.data.access_token).toBe('string');
+    expect(typeof parsed.data.refresh_token).toBe('string');
+    expect(typeof parsed.data.access_expires_at).toBe('string');
   });
 
   it('400 pkce_mismatch when verifier does not match', async () => {
@@ -258,8 +264,8 @@ describe('/api/v1/auth/mobile/exchange', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('pkce_mismatch');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('pkce_mismatch');
   });
 });
 
@@ -276,8 +282,8 @@ describe('/api/v1/auth/mobile/refresh', () => {
     );
     expect(res.status).toBe(401);
     const body = await res.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('refresh_unknown');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('refresh_unknown');
   });
 
   it('400 validation_failed when body is empty', async () => {
@@ -292,7 +298,7 @@ describe('/api/v1/auth/mobile/refresh', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('validation_failed');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('validation_failed');
   });
 });
