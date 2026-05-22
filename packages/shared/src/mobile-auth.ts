@@ -94,3 +94,26 @@ export type MobileAuthRefreshRequest = z.infer<typeof mobileAuthRefreshRequestSc
  */
 export const mobileAuthRefreshResponseSchema = mobileAuthExchangeResponseSchema;
 export type MobileAuthRefreshResponse = z.infer<typeof mobileAuthRefreshResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/auth/mobile/revoke
+// ---------------------------------------------------------------------------
+
+/**
+ * Body sent by the mobile client to revoke a refresh-token chain
+ * (sign-out). Server marks the presented (active head) row as
+ * `revoked_at = now`; subsequent /refresh calls with that token
+ * return `refresh_revoked`. Predecessor rows in the chain are not
+ * touched here — any attempt to reuse them fires reuse-detection
+ * in /refresh and revokes the rest of the chain (ADR 054).
+ *
+ * Response is 204 No Content on success. The operation is
+ * idempotent — calling twice with the same token is also 204. The
+ * server intentionally returns 204 for unknown / malformed tokens
+ * too, since the endpoint promises "if you had a token, it's
+ * revoked now" rather than confirming token existence.
+ */
+export const mobileAuthRevokeRequestSchema = z.object({
+  refresh_token: z.string().min(1),
+});
+export type MobileAuthRevokeRequest = z.infer<typeof mobileAuthRevokeRequestSchema>;
