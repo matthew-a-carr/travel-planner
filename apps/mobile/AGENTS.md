@@ -245,10 +245,12 @@ they depend on (the prerequisite is "future-you ran a test before
 opening the next SPEC").
 
 - [x] **`mobile-e2e` CI job actually runs flows** — resolved by
-  SPEC-006 step 9 + ADR-055. The job now runs `expo prebuild` +
+  SPEC-006 step 9 + ADR-055. The job runs `expo prebuild` +
   `xcodebuild` + simulator install + Maestro flows on every
-  `apps/mobile/**`-touching PR. Marked `continue-on-error: true` for
-  week 1; promote to blocking after the calendar-gated review.
+  `apps/mobile/**`-touching PR. Promoted to blocking on 2026-05-22
+  after the Debug → Release build fix surfaced that the week-1
+  `continue-on-error: true` buffer was masking real failures
+  reaching `main`.
 - ~~**Partner-device Expo Go validation**~~ — resolved 2026-05-20
   per EPIC-001 §13 Q1: partner cannot reliably run Expo Go on her
   iPhone for the EPIC-001 demo loop, so the on-device demo line in
