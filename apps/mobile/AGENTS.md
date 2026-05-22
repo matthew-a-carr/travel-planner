@@ -16,8 +16,10 @@
 
 | Concern | Where |
 |---------|-------|
-| App entry | `app/_layout.tsx` (root Stack) |
-| Screens | `app/*.tsx` (Expo Router, file-system routing) |
+| App entry | `app/_layout.tsx` (root Stack + `AuthProvider` + `AuthGuard`) |
+| Screens | `app/(auth)/*.tsx` (signed-out) + `app/(app)/*.tsx` (signed-in) — Expo Router route groups |
+| Auth state | `src/auth/auth-context.tsx` (React Context, 3-state machine: `unknown \| signed_out \| signed_in`) |
+| Access tokens | `src/auth/get-access-token.ts` (proactive refresh + single-flight, 60s buffer) |
 | Component tests | `__tests__/` mirroring the `app/` tree (Expo Router treats every file in `app/` as a route — see ADR 053) |
 | E2E flows | `.maestro/flows/*.yaml` (one per user journey) |
 | API mocks | `jest.spyOn(globalThis, 'fetch')` inline per test (see "API mocking" section). |
@@ -73,53 +75,104 @@ LAN-IP dance goes away.
 
 - **`app/`** — Expo Router routes ONLY. Every file under `app/` is
   treated as a route by the router. Never put non-route logic or test
-  files here (ADR 053). Examples: `app/index.tsx` (sign-in screen),
-  `app/signed-in.tsx` (post-sign-in placeholder), `app/_layout.tsx`
-  (root Stack layout).
+  files here (ADR 053). Routes are partitioned into two **route groups**
+  (parens in the directory name are "silent" — they add no URL segment):
+  - `app/_layout.tsx` — root layout. Wraps in `<AuthProvider>` and
+    `<AuthGuard>`; holds the native splash via
+    `expo-splash-screen.preventAutoHideAsync()` until cold-start
+    resolves; redirects between the two groups based on auth state.
+  - `app/(auth)/sign-in.tsx` — sign-in screen at URL `/sign-in`.
+    Visible when `auth.status === 'signed_out'`.
+  - `app/(app)/index.tsx` — me screen at URL `/`. Visible when
+    `auth.status === 'signed_in'`. EPIC-002's trips list will live
+    under `(app)/` too.
+  - Both groups have a thin `_layout.tsx` (Stack with
+    `headerShown: false`).
+  - **Never create a bare `app/index.tsx`** — it would collide with
+    `app/(app)/index.tsx` (both resolve to `/`).
 - **`src/`** — Non-route logic modules, mirroring `apps/web/src/`'s
   convention. Today: `src/auth/` (PKCE primitives, Keychain wrapper,
-  sign-in orchestrator) and `src/api/` (fetch wrapper validating
-  responses via `@travel-planner/shared` schemas). Add new
-  subdirectories as feature areas land (e.g. `src/trips/` when slice 8's
-  trips list ships).
+  sign-in orchestrator, auth Context, proactive-refresh gateway) and
+  `src/api/` (fetch wrapper validating responses via
+  `@travel-planner/shared` schemas; supports 204 No Content for
+  endpoints like `/revoke`). Add new subdirectories as feature areas
+  land (e.g. `src/trips/` when EPIC-002's trips list ships).
 
-### Sign-in flow + API client (slice 6 / SPEC-006)
+### Auth machinery (slices 6 + 7 — SPEC-006 + SPEC-007)
 
 - `src/auth/pkce.ts` — `generateVerifier()` + `verifierToChallenge()`
   over `expo-crypto`. RFC 7636 base64url, 43-char SHA-256 hash.
-- `src/auth/keychain.ts` — `storeTokens()` + `clearTokens()` over
-  `expo-secure-store`. Three discrete keys for the
-  access/refresh/expires triple. **Slice 6 only writes**; `readTokens()`
-  is intentionally NOT exported and lands in slice 7 alongside cold-
-  start recovery.
+- `src/auth/keychain.ts` — `storeTokens()` + `readTokens()` +
+  `clearTokens()` over `expo-secure-store`. Three discrete keys for
+  the access/refresh/expires triple. `readTokens()` returns `null`
+  if any key is missing (partial-state defensive).
 - `src/auth/sign-in-flow.ts` — `runSignInFlow(deps)` orchestrates the
-  five-step server-mediated PKCE dance (start → browser modal →
-  exchange → /me-as-proof → storeTokens). Deps injected for testability.
-  Returns `SignInResult = { success } | { cancelled } | { error }`.
+  four-step server-mediated PKCE dance (start → browser modal →
+  exchange → return tokens). The slice-6 `/me`-as-proof + `storeTokens`
+  steps moved into `AuthProvider.signIn` (SPEC-007 §7.3 reshape).
+  Returns `SignInResult = { success; tokens } | { cancelled } |
+  { error }`.
+- `src/auth/get-access-token.ts` — proactive refresh gateway. Every
+  authenticated `/api/v1/*` call should route through here to obtain
+  its bearer. Reads Keychain; if `now < expires_at - 60s` returns
+  the current access token, else calls `/refresh` (single-flight via
+  module-level promise mutex). On refresh failure, clears Keychain
+  and returns `{ ok: false, reason: 'refresh_failed' }`. Single-flight
+  is load-bearing: ADR 054's reuse-detection would revoke the chain
+  on a duplicate `/refresh` with the same refresh token.
+- `src/auth/auth-context.tsx` — React Context owning the 3-state
+  auth machine. Cold-start in `useEffect` on mount: getAccessToken
+  → /me → state transition. ALL /me failures collapse to signed_out
+  + clear Keychain (Q8 in SPEC-007). `signIn(tokens)` runs storeTokens
+  → /me with rollback on failure. `signOut()` reads tokens first,
+  flips state + clears Keychain optimistically, then fire-and-forget
+  POST `/api/v1/auth/mobile/revoke` in the background.
 - `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
-  validating responses via `@travel-planner/shared` schemas. Wire-shape
-  drift throws loud; error envelopes parse via `apiErrorBodySchema`
-  with a defensive `{ code: 'internal' }` fallback for malformed
-  bodies. Network failures collapse to a generic "Could not reach the
-  server" envelope.
+  validating responses via `@travel-planner/shared` schemas. The
+  `responseSchema` parameter is optional — omit it for endpoints
+  that return 204 No Content (e.g. `/revoke`). On 204, returns
+  `{ ok: true; data: undefined }`. Wire-shape drift throws loud;
+  error envelopes parse via `apiErrorBodySchema` with a defensive
+  `{ code: 'internal' }` fallback for malformed bodies. Network
+  failures collapse to a generic "Could not reach the server"
+  envelope.
 
 When adding a new authenticated `/api/v1/*` call:
 
 1. Import the request + response schemas from `@travel-planner/shared`
    (or extend the shared package if the wire shape is new).
-2. Use `apiPost` / `apiGet` from `src/api/client.ts`. Pass the
-   response schema; the wrapper does `.parse()` automatically.
-3. Read the bearer from Keychain via the slice 7+ `readTokens()` once
-   it exists. (Slice 6 only calls `/me` immediately after
-   `/exchange` with the freshly-minted access token in memory.)
+2. Obtain the bearer via `getAccessToken()` — never call
+   `readTokens()` directly. The gateway handles refresh + single-flight.
+3. Use `apiPost` / `apiGet` from `src/api/client.ts`. Pass the
+   response schema; the wrapper does `.parse()` automatically. Omit
+   it for 204 endpoints.
 
-### File-system routing (Expo Router)
+### File-system routing (Expo Router) + auth groups
 
-- `app/index.tsx` is the entry screen.
-- `app/<name>.tsx` is a route at `/<name>`.
+- Route groups (parens in the directory name) are silent — they add
+  no URL segment. So `app/(app)/index.tsx` is at `/` and
+  `app/(auth)/sign-in.tsx` is at `/sign-in`.
+- **No bare `app/index.tsx`** — it would collide with
+  `app/(app)/index.tsx` at URL `/`.
+- `app/<name>.tsx` is a route at `/<name>` (when not inside a group).
 - `app/<name>/<sub>.tsx` is a nested route.
-- `app/_layout.tsx` wraps a directory with a layout component.
+- `app/_layout.tsx` wraps a directory with a layout component. The
+  root `_layout.tsx` holds the AuthGuard + splash logic.
 - Modal/transparent presentations: see Expo Router docs.
+
+### AuthGuard
+
+`app/_layout.tsx`'s `<AuthGuard>` uses the canonical Expo Router
+pattern (`useSegments()` + `useRouter()` in a `useEffect`) to keep
+the active route in sync with `auth.status`:
+
+- `auth.status === 'unknown'` → no redirect; native splash held.
+- `auth.status === 'signed_in'` + inside `(auth)/` → `replace('/')`.
+- `auth.status === 'signed_out'` + inside `(app)/` → `replace('/sign-in')`.
+
+The splash hides once auth leaves 'unknown'. MeScreen at
+`app/(app)/index.tsx` returns `null` while auth is 'unknown' or
+'signed_out', so the splash is what the user sees during cold-start.
 
 ### TestID convention (load-bearing for Maestro)
 
@@ -147,10 +200,16 @@ RNTL's Node-only `console` / `util` requires into the native bundle
 and crashes the bundler (see ADR 053).
 
 For `app/foo.tsx` the test lives at `__tests__/app/foo.test.tsx` and
-imports the source as `from '../../app/foo'`. Use
+imports the source as `from '../../app/foo'`. Route-group screens
+mirror the same shape: `app/(auth)/sign-in.tsx` →
+`__tests__/app/(auth)/sign-in.test.tsx`, importing
+`from '../../../app/(auth)/sign-in'`. Use
 `@testing-library/react-native` queries (`screen.getByTestId`,
-`screen.getByText`, etc.). Extend-expect matchers (`toBeOnTheScreen`,
-`toHaveTextContent`) are wired in `jest.setup.ts`.
+`screen.getByText`, etc.) and `fireEvent.press(element)` for
+`Pressable` interactions (NOT `element.props.onPress()` — RNTL
+doesn't surface onPress as a prop). Extend-expect matchers
+(`toBeOnTheScreen`, `toHaveTextContent`) are wired in
+`jest.setup.ts`.
 
 ```tsx
 // __tests__/app/my-screen.test.tsx

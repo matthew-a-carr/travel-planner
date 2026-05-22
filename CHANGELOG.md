@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Mobile:** Authenticated "me" home screen — after sign-in, the iPhone
+  app shows "Hello, {name}" with your email and a working **Sign out**
+  button. Cold-starting the app after sign-in lands you directly on the
+  home screen (no re-OAuth) using stored Keychain tokens; expired access
+  tokens are refreshed transparently in the background. (SPEC-007 —
+  milestone slice of EPIC-001.)
+- **API:** New `POST /api/v1/auth/mobile/revoke` endpoint that revokes
+  a mobile refresh-token chain on sign-out. Returns `204 No Content`;
+  idempotent and non-revealing (unknown and already-revoked tokens are
+  also 204).
+
 ## [1.16.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.16.0...v1.16.1) (2026-05-20)
 
 

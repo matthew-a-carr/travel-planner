@@ -1,9 +1,10 @@
 # SPEC-007: Mobile Authenticated "Me" Screen + Sign-Out
 
 **Date:** 2026-05-22
-**Status:** In Progress
+**Status:** Complete
 **Author:** Matt Carr (with Claude Opus 4.7 via `plan-feature` + `grill-me`)
 **Approved by:** Matt Carr, 2026-05-22 (after `review-spec` pass + in-place patches)
+**Completed:** 2026-05-22
 **Parent epic:** [EPIC-001 — iOS App](../epics/EPIC-001-ios-app.md) — slice 7 (milestone)
 
 ---
@@ -1366,7 +1367,80 @@ have triggers pegged to EPIC-002 events.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
+| 1 | **Use case test convention: `revoke-mobile-tokens.int-test.ts` (not `.test.ts`).** SPEC §9 specified a unit test file. | `apps/web/src/application/AGENTS.md` says "every use case must have a co-located integration test (`.int-test.ts`)" and all four existing mobile auth use cases follow that. Wrote a real integration test against Testcontainers Postgres + `DrizzleRefreshTokenRepository`. | All §3 AC for `/revoke` still verified, just via integration test rather than unit test. Test count: 55/278 → 55/281 integration after step 3. | Yes. |
+| 2 | **Crypto method name: `sha256Base64url` (not pseudocode `hashRefreshToken`).** SPEC §7.1's revoke use case pseudocode named the wrong method. | The actual `MobileAuthCrypto` port exposes `sha256Base64url(input)` — was used by `refreshMobileTokens` for the same purpose. Used the correct method. | Zero impact on design intent ("hash the presented cleartext, look it up, revoke"); SPEC §7.1 text remains slightly inaccurate but the implementation is correct. | Yes. |
+| 3 | **Route int-test consolidated into `apps/web/src/app/api/v1/auth/mobile/route.int-test.ts`** (added a new `describe('/api/v1/auth/mobile/revoke')` block), not a new per-route file as SPEC §9 specified. | All four existing mobile auth endpoints share that one file with separate describe blocks. Per-endpoint files would fork the pattern unhelpfully. | Seven new tests added to the consolidated file: 204 happy + 204 idempotent + 204 unknown + 2 × 400 validation_failed + 2 × cross-endpoint round-trip (revoke→refresh refresh_revoked; revoke active head, then predecessor→refresh_reused via reuse-detection). | Yes. |
+| 4 | **No explicit 429 rate-limit test for `/revoke` route.** SPEC §3 AC #17 + §9 case (e) called for one. | The existing `/refresh` route int-test has no 429 test for the same reason: rate-limit machinery is shared across all four endpoints via `_lib/with-rate-limit.ts` and has its own int-test at `drizzle-auth-rate-limit-repository.int-test.ts`. `/revoke`'s wiring is byte-identical to `/refresh`'s. Adding a 429 test here would test the shared helper a fifth time. | AC #17 is verified-by-shared-test rather than by a /revoke-specific test. If the wiring drifts, the int-test files for `start/exchange/refresh/revoke` would all break together. | Yes — documented justification, not a debt item. |
+| 5 | **`expo-splash-screen` was not actually a transitive Expo dep.** SPEC §6 prerequisites + §7.3 design assumed it was already available. | Installed via `pnpm exec expo install expo-splash-screen` (resolves to `~31.0.13` for SDK 54). Adds one entry to `apps/mobile/package.json`. Used `expo install` rather than `pnpm add` to keep version aligned with Expo's bundled-native-modules manifest. | Adds one runtime dep to mobile. Lockfile diff bounded — `expo install` chose the SDK 54-compatible version. | Yes. |
 
 ### Post-Implementation Notes
 
-_To be written at close-out._
+**Phase C → Phase D sequencing via transitional bridge.** After
+step 12 landed `AuthProvider`, the existing `app/index.tsx` and
+`app/signed-in.tsx` no longer type-checked (they referenced the
+removed `SignInResult.email` field + `apiGet`/`storeTokens` deps).
+CONSTITUTION §10 requires every commit to leave the codebase in a
+working state. Rather than balloon the Phase C commit, added a
+transitional bridge: wrap root layout in `<AuthProvider>` (without
+the AuthGuard logic), have the sign-in screen call
+`auth.signIn(result.tokens)` then navigate to `/signed-in`, and
+have the placeholder read email from `useAuth().me.email`. This
+left Phase D as a 100% mechanical `git mv` restructure with no
+design decisions inside it — Phase D's commit shows exactly the
+file moves + the route-group `_layout.tsx` stubs + the real me
+screen, nothing else. Worth repeating for future big-restructure
+slices: separate "make the new thing work in place" from "move
+the files."
+
+**RNTL `fireEvent.press()` ergonomics.** Initial AuthProvider test
+pattern called `screen.getByTestId('x').props.onPress()` directly
+to trigger Pressable handlers. That fails — RNTL doesn't surface
+`onPress` as a prop on the queried element. The correct API is
+`fireEvent.press(element)`. Documented in `apps/mobile/AGENTS.md`'s
+"Component testing" section so future test authors don't burn the
+same ~5 minutes.
+
+**Predecessor revocation via reuse-detection.** SPEC-007 §1's
+design claim was that single-row revoke at the active head is
+sufficient because reuse-detection in `/refresh` covers
+predecessors. This was load-bearing for the "no `findChainIds`
+needed" simplification (review-spec Critical #1). The
+cross-endpoint integration test
+(`route.int-test.ts:'cross-endpoint: /refresh on an un-revoked
+predecessor triggers reuse-detection'`) exercises the claim
+end-to-end with real Postgres: rotate normally → revoke active
+head → present predecessor to `/refresh` → expect `refresh_reused`.
+Green. The design holds.
+
+**Test count deltas across the slice:**
+
+| Phase | Web int | Web unit | Mobile |
+|-------|---------|----------|--------|
+| Baseline (post SPEC-006) | 54 / 275 | 49 / 410 | 7 / 46 |
+| Phase A — server-side /revoke | 55 / 285 (+10) | 49 / 410 (no change) | 7 / 46 |
+| Phase B — apiClient 204 + readTokens + getAccessToken | 55 / 285 | 49 / 410 | 8 / 61 (+15) |
+| Phase C — sign-in-flow reshape + AuthProvider + bridge | 55 / 285 | 49 / 410 | 9 / 72 (+11 net: +12 from auth-context, −2 from sign-in-flow shrink, +1 net adjustments) |
+| Phase D — route restructure + me screen | 55 / 285 | 49 / 410 | 9 / 75 (+3 net: +5 me-screen, −2 from deleted signed-in test) |
+
+Web side stays exactly unchanged in unit count (49 / 410 — slice
+adds no web-side unit tests; all new use-case coverage is integration).
+Mobile + integration tests are where the SPEC's design lives.
+
+**Final commit count: 8 step commits plus the planning docs commit
+and the Phase A deviation notes commit (10 total in this slice).**
+Each commit a working state; lint + type-check + tests green between.
+
+**EPIC-001 §3 DoD status after this slice:**
+
+| Checkbox | Status |
+|---|---|
+| Author's iPhone has app installed via Expo Go | Will be re-verified by manual dry-run §9 |
+| Author signs in with Google via PKCE → JWT in iOS Keychain | ✅ Shipped in SPEC-006 |
+| Home screen shows the authenticated user's name | ✅ Shipped in this slice |
+| Mobile testing infrastructure (Jest + RNTL + Maestro CI) | ✅ Shipped in SPEC-003 |
+| Sentry RN + EAS source maps | ❌ Slice 9 (not started) |
+| Web app behaves identically | ✅ All web tests stay green |
+| All pre-existing tests stay green | ✅ Web 49/410 unit + 54→55/275→285 int |
+
+Slice 9 (Sentry RN) is the only remaining EPIC-001 work after
+SPEC-007 closes; the user-visible milestone is met.

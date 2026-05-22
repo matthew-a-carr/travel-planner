@@ -41,15 +41,19 @@ rationale).
 The epic is **Complete** when:
 
 - [ ] The author's iPhone has the Travel Planner app installed via Expo Go.
-- [ ] The author signs in with Google using PKCE → JWT in iOS Keychain.
-- [ ] The home screen shows the authenticated user's name (the milestone
-      slice).
-- [ ] Mobile testing infrastructure exists: Jest + RNTL component tests run
+      (Confirmed for the implementation harness via Simulator; final
+      on-device dry-run pending per SPEC-007 §9 manual checks.)
+- [x] The author signs in with Google using PKCE → JWT in iOS Keychain.
+      (SPEC-006, 2026-05-21.)
+- [x] The home screen shows the authenticated user's name (the milestone
+      slice). (SPEC-007, 2026-05-22.)
+- [x] Mobile testing infrastructure exists: Jest + RNTL component tests run
       in CI on Linux; Maestro E2E runs on macOS only when `apps/mobile/**`
-      changes.
-- [ ] Sentry React Native is wired with source maps via EAS.
-- [ ] The web app behaves identically to today (no regression).
-- [ ] All pre-existing tests stay green at every slice merge.
+      changes. (SPEC-003 + SPEC-006 TD-002 pay-down.)
+- [ ] Sentry React Native is wired with source maps via EAS. (Slice 9 —
+      not started.)
+- [x] The web app behaves identically to today (no regression).
+- [x] All pre-existing tests stay green at every slice merge.
 
 Trips, spend, chat, organisations, and any post-milestone screens are
 **not** the bar for this epic — they're follow-up epics built on the
@@ -124,7 +128,7 @@ in parallel.
 | 4 | `packages/shared/` workspace package for wire types + zod schemas (narrowed from "re-exports domain types") | (foundation for line 6) | [SPEC-005 (Complete)](../specs/SPEC-005-shared-types-and-schemas.md) | 0 (parallel to 1–3) | 1d | **Done** |
 | 5 | Expo app skeleton in `apps/mobile/` + testing infra (merged with slice 8) — runs in Expo Go, shows "Hello, Travel Planner", Jest + Maestro harness, path-filtered CI | line 2 | [SPEC-003 (Complete)](../specs/SPEC-003-mobile-app-foundation.md) | 0 (parallel to 1–3) | 4–5d | **Done** |
 | 6 | Mobile sign-in UI + PKCE flow + Keychain | lines 3–5 | [SPEC-006 (Complete)](../specs/SPEC-006-mobile-sign-in-pkce-keychain.md) | 3, 5 | 4–5d (bumped from 3–4d to include TD-002 pay-down) | **Done** |
-| 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | [SPEC-007 (Approved)](../specs/SPEC-007-mobile-authenticated-me-and-signout.md) | 4, 6 | 2–3d (bumped from 1–2d to absorb new `/revoke` endpoint) | Approved |
+| 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | [SPEC-007 (Complete)](../specs/SPEC-007-mobile-authenticated-me-and-signout.md) | 4, 6 | 2–3d (bumped from 1–2d to absorb new `/revoke` endpoint) | **Done** |
 | 8 | ~~Mobile testing infrastructure~~ — **merged into slice 5 via SPEC-003** (epic-level deviation §16) | — | _merged_ | — | — | **Merged** |
 | 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _not yet planned_ | 7 | 1d | Not started |
 
@@ -351,6 +355,7 @@ mobile chart library, mobile map library, PWA decision.
 | 2026-05-21 | 6 | SPEC-006 | Done | Mobile sign-in flow shipped end-to-end. `apps/mobile/src/auth/` (pkce, keychain, sign-in-flow) + `src/api/client.ts` + rewritten `app/index.tsx` sign-in screen + `app/signed-in.tsx` placeholder. Test count: 5 mobile (slice 5) → 46 mobile (slice 6) across 7 suites. Web stayed green throughout (49 / 410 unit + 54 / 275 integration; build clean). TD-002 paid down — `mobile-e2e` CI job now runs `expo prebuild` → `pod install` → `xcodebuild iphonesimulator` → `xcrun simctl install` → `pnpm test:e2e:mobile`; `continue-on-error: true` for week 1 (calendar-gated promotion). Two deviations logged in SPEC §Implementation Deviations: (1) raw `xcodebuild` over `eas build --local` (ADR-055 amended in-place); (2) `jest.spyOn(fetch)` over msw for HTTP mocking. Both consciously chose less-third-party-surface options per the durable-bias directive in AGENTS.md (which itself was codified in this slice). Two pre-existing SPEC-003 bugs caught + fixed en route: jest `setupFilesAfterEach` → `setupFilesAfterEnv` typo, and RNTL v13 `extend-expect` → `matchers` subpath rename. Final commit count: 13 step commits + 1 docs(agents) + 1 docs(spec-006) + 1 chore(scripts). Slice 7 (the "Hello, name" milestone) is now the only thing left between EPIC-001 and its definition-of-done. |
 | 2026-05-22 | 7 | SPEC-007 | Planned (Draft) | Drafted via `plan-feature` + `grill-me`. Nine slice-altitude decisions locked: (1) server-side `POST /api/v1/auth/mobile/revoke` endpoint (durable-bias over local-only Keychain clear; schema already supports it via `refresh_tokens.revoked_at` + `revokeChain`); single-row revoke is sufficient because reuse-detection covers predecessors. (2) Expo Router route groups `(auth)` / `(app)` with `expo-splash-screen.preventAutoHideAsync()` held until cold-start resolves; me screen at `(app)/index.tsx`; no bare `app/index.tsx` (would collide). (3) Proactive refresh with 60s buffer + single-flight via module-level promise mutex (avoids reuse-detection race that reactive 401-retry creates). (4) React Context for auth state — three-state machine (`unknown | signed_out | signed_in`). (5) Me screen: greeting + email always visible + sign-out + defensive approval banner; name-fallback "Hello!" + email; no avatar. (6) Unit-heavy tests (Jest + RNTL); no new Maestro flow (cannot drive me screen without bypassing slice 6's Google-OAuth barrier); 4 manual on-device dry-runs. (7) AuthProvider owns ALL `/me` calls — `sign-in-flow.ts` reshape returns tokens only. (8) All cold-start `/me` failures collapse to signed_out + clear Keychain (audience accepts wifi-blip-forces-reOAuth trade-off). (9) Minimal visuals — defer branding to a future polish SPEC. Also: `apiClient.ts` extends to handle 204 No Content (generic improvement reusable by EPIC-002's delete endpoints). `review-spec` ran — two Criticals (`findChainIds` invented API; route-collision between `app/index.tsx` and `app/(app)/index.tsx`) + four Warnings, all patched in-place before approval. Awaiting human approval. |
 | 2026-05-22 | 7 | SPEC-007 | Approved | Approved by Matt Carr same-day after `review-spec` patches landed. Awaiting "begin implementation" signal. |
+| 2026-05-22 | 7 | SPEC-007 | Done | Milestone slice shipped end-to-end. Server side: `POST /api/v1/auth/mobile/revoke` endpoint + `revokeMobileTokens` use case + shared `mobileAuthRevokeRequestSchema`. Mobile side: `apiClient` 204 handling + `keychain.readTokens()` + `get-access-token.ts` (proactive refresh + single-flight) + `auth-context.tsx` (React Context, 3-state machine, single owner of /me calls) + route restructure into `(auth)/sign-in.tsx` + `(app)/index.tsx` (the me screen) + root `_layout.tsx` AuthGuard with `expo-splash-screen` held during cold-start. Five spec deviations logged (`.int-test.ts` vs `.test.ts`; `sha256Base64url` vs `hashRefreshToken`; consolidated route int-test file; 429 test skipped per consistency with `/refresh`; `expo-splash-screen` installed). Two post-impl notes (Phase C transitional bridge sequencing; `fireEvent.press()` ergonomics in AGENTS.md). Test count: web int 54/275 → 55/285 (+10); web unit 49/410 unchanged; mobile 7/46 → 9/75 (+29). Full verification suite green: lint, db:check:migrations, type-check (3 workspaces), test:unit, test:integration, web `pnpm build`. Slice 9 (Sentry RN) is the only remaining EPIC-001 work — the user-visible milestone is met. |
 
 ## Epic-level deviations
 
