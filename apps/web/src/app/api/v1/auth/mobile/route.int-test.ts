@@ -23,6 +23,7 @@ import {
 } from '@/infrastructure/container/create-test-app-container';
 import { DrizzleMobileAuthExchangeCodeRepository } from '@/infrastructure/db/repositories/drizzle-mobile-auth-exchange-code-repository';
 import { DrizzleMobileAuthStateRepository } from '@/infrastructure/db/repositories/drizzle-mobile-auth-state-repository';
+import { DrizzleRefreshTokenRepository } from '@/infrastructure/db/repositories/drizzle-refresh-token-repository';
 import { FakeGoogleOAuthClient } from '@/infrastructure/testing/fake-google-oauth-client';
 import {
   createTestDb,
@@ -294,5 +295,232 @@ describe('/api/v1/auth/mobile/refresh', () => {
     const body = await res.json();
     apiErrorBodySchema.parse(body);
     expect(body.error.code).toBe('validation_failed');
+  });
+});
+
+describe('/api/v1/auth/mobile/revoke', () => {
+  const HOUR_MS = 60 * 60 * 1000;
+
+  it('204 + marks the presented row revoked_at when given a valid token', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const user = await seedUser(db, { isApproved: true });
+    const now = new Date('2026-05-22T10:00:00Z');
+
+    const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);
+    const { cleartext, hash } = await cryptoImpl.mintRefreshToken();
+    await refreshTokenRepo.create({
+      userId: user.id,
+      tokenHash: hash,
+      issuedAt: now,
+      expiresAt: new Date(now.getTime() + 30 * 24 * HOUR_MS),
+    });
+
+    const { POST } = await import('./revoke/route');
+    const res = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: cleartext }),
+      }),
+    );
+
+    expect(res.status).toBe(204);
+    // 204 responses have no body — verify the read is empty.
+    const text = await res.text();
+    expect(text).toBe('');
+
+    const row = await refreshTokenRepo.findByTokenHash(hash);
+    expect(row?.revokedAt).not.toBeNull();
+  });
+
+  it('204 + idempotent on already-revoked token (earlier revoked_at preserved)', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const user = await seedUser(db, { isApproved: true });
+    const firstAt = new Date('2026-05-22T10:00:00Z');
+
+    const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);
+    const { cleartext, hash } = await cryptoImpl.mintRefreshToken();
+    await refreshTokenRepo.create({
+      userId: user.id,
+      tokenHash: hash,
+      issuedAt: firstAt,
+      expiresAt: new Date(firstAt.getTime() + 30 * 24 * HOUR_MS),
+    });
+
+    const { POST } = await import('./revoke/route');
+
+    // First revoke.
+    const first = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: cleartext }),
+      }),
+    );
+    expect(first.status).toBe(204);
+    const firstRow = await refreshTokenRepo.findByTokenHash(hash);
+    const firstRevokedAt = firstRow?.revokedAt;
+    expect(firstRevokedAt).not.toBeNull();
+
+    // Second revoke — same token, should be 204 and not change revoked_at.
+    const second = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: cleartext }),
+      }),
+    );
+    expect(second.status).toBe(204);
+    const secondRow = await refreshTokenRepo.findByTokenHash(hash);
+    expect(secondRow?.revokedAt?.getTime()).toBe(firstRevokedAt?.getTime());
+  });
+
+  it('204 for unknown / never-existed token (no leakage)', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const { POST } = await import('./revoke/route');
+    const res = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: 'never-existed-cleartext' }),
+      }),
+    );
+    expect(res.status).toBe(204);
+  });
+
+  it('400 validation_failed on missing refresh_token field', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const { POST } = await import('./revoke/route');
+    const res = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }),
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    apiErrorBodySchema.parse(body);
+    expect(body.error.code).toBe('validation_failed');
+  });
+
+  it('400 validation_failed on empty refresh_token string', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const { POST } = await import('./revoke/route');
+    const res = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: '' }),
+      }),
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    apiErrorBodySchema.parse(body);
+    expect(body.error.code).toBe('validation_failed');
+  });
+
+  it('cross-endpoint: /refresh after /revoke returns 401 refresh_revoked', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const user = await seedUser(db, { isApproved: true });
+    const now = new Date('2026-05-22T10:00:00Z');
+
+    const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);
+    const { cleartext, hash } = await cryptoImpl.mintRefreshToken();
+    await refreshTokenRepo.create({
+      userId: user.id,
+      tokenHash: hash,
+      issuedAt: now,
+      expiresAt: new Date(now.getTime() + 30 * 24 * HOUR_MS),
+    });
+
+    // Sign-out via /revoke.
+    const { POST: revokePOST } = await import('./revoke/route');
+    const revokeRes = await revokePOST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: cleartext }),
+      }),
+    );
+    expect(revokeRes.status).toBe(204);
+
+    // Try to use the same refresh token.
+    const { POST: refreshPOST } = await import('./refresh/route');
+    const refreshRes = await refreshPOST(
+      new Request('http://localhost/api/v1/auth/mobile/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: cleartext }),
+      }),
+    );
+    expect(refreshRes.status).toBe(401);
+    const body = await refreshRes.json();
+    apiErrorBodySchema.parse(body);
+    expect(body.error.code).toBe('refresh_revoked');
+
+    // Verify the row carries revoked_at after revoke.
+    const row = await refreshTokenRepo.findByTokenHash(hash);
+    expect(row?.revokedAt).not.toBeNull();
+  });
+
+  it('cross-endpoint: /refresh on an un-revoked predecessor triggers reuse-detection', async () => {
+    await withFakeContainer(new FakeGoogleOAuthClient());
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const user = await seedUser(db, { isApproved: true });
+    const t0 = new Date('2026-05-22T10:00:00Z');
+
+    // Seed the original refresh token.
+    const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);
+    const { cleartext: original, hash: originalHash } = await cryptoImpl.mintRefreshToken();
+    await refreshTokenRepo.create({
+      userId: user.id,
+      tokenHash: originalHash,
+      issuedAt: t0,
+      expiresAt: new Date(t0.getTime() + 30 * 24 * HOUR_MS),
+    });
+
+    // Rotate normally via /refresh — `original` becomes predecessor.
+    const { POST: refreshPOST } = await import('./refresh/route');
+    const rotateRes = await refreshPOST(
+      new Request('http://localhost/api/v1/auth/mobile/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: original }),
+      }),
+    );
+    expect(rotateRes.status).toBe(200);
+    const rotated = mobileAuthExchangeResponseSchema.parse(await rotateRes.json());
+
+    // Sign out the active head via /revoke.
+    const { POST: revokePOST } = await import('./revoke/route');
+    const revokeRes = await revokePOST(
+      new Request('http://localhost/api/v1/auth/mobile/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: rotated.refresh_token }),
+      }),
+    );
+    expect(revokeRes.status).toBe(204);
+
+    // Predecessor (`original`) was rotated but NOT explicitly revoked by /revoke.
+    // Presenting it should trigger reuse-detection in /refresh.
+    const reuseRes = await refreshPOST(
+      new Request('http://localhost/api/v1/auth/mobile/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: original }),
+      }),
+    );
+    expect(reuseRes.status).toBe(401);
+    const reuseBody = await reuseRes.json();
+    apiErrorBodySchema.parse(reuseBody);
+    expect(reuseBody.error.code).toBe('refresh_reused');
   });
 });
