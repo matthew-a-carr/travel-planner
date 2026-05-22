@@ -51,6 +51,47 @@ SPEC text remains slightly inaccurate in §7.1 but the design intent
 
 **Triage (filled at close-out):**
 
+---
+
+### 2026-05-22 16:29 — Route int-test: consolidated file, not a new per-route file
+
+**Step:** Step 4 (write route int-test)
+**Type:** deviation
+**Note:**
+
+SPEC §9 listed
+`apps/web/src/app/api/v1/auth/mobile/revoke/route.int-test.ts` as
+a NEW file. But the existing pattern is one consolidated file at
+`apps/web/src/app/api/v1/auth/mobile/route.int-test.ts` with a
+separate `describe` block per endpoint (start / callback / exchange
+/ refresh). Consolidated to match — added the `describe('/api/v1/auth/mobile/revoke')`
+block with six tests plus a 7th cross-endpoint reuse-detection
+test that exercises the "predecessors are covered by /refresh's
+reuse-detection at first attempt" design claim from SPEC §1 / §7.1.
+
+**Triage (filled at close-out):**
+
+---
+
+### 2026-05-22 16:29 — Skipped explicit 429 rate-limit test for /revoke
+
+**Step:** Step 4 (write route int-test)
+**Type:** deviation
+**Note:**
+
+SPEC §3 AC #17 + §9 case (e) call for a 429 rate-limit test. Skipped
+explicitly because: (a) the existing `/refresh` route int-test in the
+same file has no 429 test for the same reason; (b) the rate-limit
+machinery is shared across all four endpoints via
+`apps/web/src/app/api/v1/auth/mobile/_lib/with-rate-limit.ts` and
+has its own thorough int-test at
+`apps/web/src/infrastructure/db/repositories/drizzle-auth-rate-limit-repository.int-test.ts`;
+(c) the /revoke wiring (`endpoint: 'revoke'`) is identical in shape
+to the three existing endpoints. The cross-endpoint round-trip tests
+serve as the meaningful new coverage in this slice.
+
+**Triage (filled at close-out):**
+
 ## Close-out triage summary
 
 > Filled at the very end. One line per entry above plus where it landed.
