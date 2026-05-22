@@ -33,10 +33,18 @@ export type ApiSuccess<T> = { ok: true; data: T };
 export type ApiFailure = { ok: false; error: ApiErrorBody['error'] };
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
 
-export async function apiPost<T>(
+/**
+ * `responseSchema` is optional. When omitted, the wrapper still
+ * resolves to `{ ok: true; data: undefined }` on 2xx — callers
+ * for endpoints that don't return a useful body (e.g. 204
+ * No Content from POST /api/v1/auth/mobile/revoke) can skip the
+ * schema entirely. When supplied, the body is parsed and any
+ * shape drift throws loud.
+ */
+export async function apiPost<T = undefined>(
   path: string,
   body: unknown,
-  responseSchema: ZodType<T>,
+  responseSchema?: ZodType<T>,
   bearer?: string,
 ): Promise<ApiResult<T>> {
   return request(path, responseSchema, {
@@ -46,9 +54,9 @@ export async function apiPost<T>(
   });
 }
 
-export async function apiGet<T>(
+export async function apiGet<T = undefined>(
   path: string,
-  responseSchema: ZodType<T>,
+  responseSchema?: ZodType<T>,
   bearer?: string,
 ): Promise<ApiResult<T>> {
   return request(path, responseSchema, {
@@ -65,7 +73,7 @@ type RequestOptions = {
 
 async function request<T>(
   path: string,
-  responseSchema: ZodType<T>,
+  responseSchema: ZodType<T> | undefined,
   { method, body, bearer }: RequestOptions,
 ): Promise<ApiResult<T>> {
   const headers: Record<string, string> = {};
@@ -73,9 +81,22 @@ async function request<T>(
   if (bearer !== undefined) headers.Authorization = `Bearer ${bearer}`;
 
   let response: Response;
-  let payload: unknown;
   try {
     response = await fetch(`${BASE_URL}${path}`, { method, headers, body });
+  } catch {
+    return networkFailure();
+  }
+
+  // 204 No Content — no body to parse. Skip the json() call entirely
+  // (empty bodies fail JSON.parse, which would otherwise collapse to
+  // networkFailure via the catch below). Used by /revoke (sign-out)
+  // and any future delete-style endpoint.
+  if (response.status === 204) {
+    return { ok: true, data: undefined as T };
+  }
+
+  let payload: unknown;
+  try {
     payload = await response.json();
   } catch {
     return networkFailure();
@@ -89,6 +110,9 @@ async function request<T>(
     return malformedEnvelopeFallback();
   }
 
+  if (responseSchema === undefined) {
+    return { ok: true, data: undefined as T };
+  }
   return { ok: true, data: responseSchema.parse(payload) };
 }
 

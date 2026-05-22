@@ -19,7 +19,7 @@ jest.mock('expo-secure-store', () => {
 });
 
 import * as SecureStore from 'expo-secure-store';
-import { clearTokens, storeTokens } from '../../src/auth/keychain';
+import { clearTokens, readTokens, storeTokens } from '../../src/auth/keychain';
 
 type SecureStoreMock = typeof SecureStore & {
   __mockStore: Map<string, string>;
@@ -100,5 +100,58 @@ describe('clearTokens', () => {
     // Maps return undefined on missing keys; SecureStore.deleteItemAsync
     // on a missing key resolves normally. Test the wrapper doesn't throw.
     await expect(clearTokens()).resolves.toBeUndefined();
+  });
+});
+
+describe('readTokens', () => {
+  it('returns the full bundle when all three keys are present', async () => {
+    await storeTokens({
+      access_token: 'eyJaccess',
+      refresh_token: 'opaque-refresh',
+      access_expires_at: '2026-05-22T12:15:00.000Z',
+    });
+
+    const tokens = await readTokens();
+
+    expect(tokens).toEqual({
+      access_token: 'eyJaccess',
+      refresh_token: 'opaque-refresh',
+      access_expires_at: '2026-05-22T12:15:00.000Z',
+    });
+  });
+
+  it('returns null when no tokens have been written', async () => {
+    const tokens = await readTokens();
+    expect(tokens).toBeNull();
+  });
+
+  it('returns null when only access_token is present (partial-state defensive)', async () => {
+    mockedStore.__mockStore.set('travel_planner.access_token', 'only-access');
+    const tokens = await readTokens();
+    expect(tokens).toBeNull();
+  });
+
+  it('returns null when only refresh_token is present (partial-state defensive)', async () => {
+    mockedStore.__mockStore.set('travel_planner.refresh_token', 'only-refresh');
+    const tokens = await readTokens();
+    expect(tokens).toBeNull();
+  });
+
+  it('returns null when only access_expires_at is present (partial-state defensive)', async () => {
+    mockedStore.__mockStore.set('travel_planner.access_expires_at', '2026-05-22T12:00:00.000Z');
+    const tokens = await readTokens();
+    expect(tokens).toBeNull();
+  });
+
+  it('returns null after clearTokens()', async () => {
+    await storeTokens({
+      access_token: 'a',
+      refresh_token: 'b',
+      access_expires_at: 'c',
+    });
+    await clearTokens();
+
+    const tokens = await readTokens();
+    expect(tokens).toBeNull();
   });
 });

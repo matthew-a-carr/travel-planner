@@ -14,14 +14,16 @@ import * as SecureStore from 'expo-secure-store';
  * - `travel_planner.refresh_token`    — opaque rotating token.
  * - `travel_planner.access_expires_at` — ISO 8601 UTC timestamp string.
  *
- * Slice 6 (SPEC-006) only writes these. A `readTokens()` helper is
- * deliberately NOT exported — slice 7 introduces it alongside the
- * cold-start recovery path.
+ * `readTokens()` (added in slice 7) returns the full bundle when
+ * all three keys are present, or `null` if any are missing. Partial
+ * state from an interrupted earlier flow is treated as no-state.
  */
 
 const ACCESS_TOKEN_KEY = 'travel_planner.access_token';
 const REFRESH_TOKEN_KEY = 'travel_planner.refresh_token';
 const ACCESS_EXPIRES_AT_KEY = 'travel_planner.access_expires_at';
+
+export type StoredTokens = MobileAuthExchangeResponse;
 
 export async function storeTokens(tokens: MobileAuthExchangeResponse): Promise<void> {
   await Promise.all([
@@ -29,6 +31,16 @@ export async function storeTokens(tokens: MobileAuthExchangeResponse): Promise<v
     SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refresh_token),
     SecureStore.setItemAsync(ACCESS_EXPIRES_AT_KEY, tokens.access_expires_at),
   ]);
+}
+
+export async function readTokens(): Promise<StoredTokens | null> {
+  const [access_token, refresh_token, access_expires_at] = await Promise.all([
+    SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+    SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+    SecureStore.getItemAsync(ACCESS_EXPIRES_AT_KEY),
+  ]);
+  if (!access_token || !refresh_token || !access_expires_at) return null;
+  return { access_token, refresh_token, access_expires_at };
 }
 
 export async function clearTokens(): Promise<void> {

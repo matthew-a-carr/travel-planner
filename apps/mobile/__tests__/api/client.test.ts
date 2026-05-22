@@ -124,6 +124,37 @@ describe('apiPost', () => {
 
     await expect(apiPost('/api/v1/echo', {}, echoResponseSchema)).rejects.toThrow();
   });
+
+  it('handles 204 No Content with no schema (sign-out / revoke pattern)', async () => {
+    mockFetch(new Response(null, { status: 204 }));
+
+    const result = await apiPost('/api/v1/auth/mobile/revoke', { refresh_token: 'opaque' });
+
+    expect(result).toEqual({ ok: true, data: undefined });
+  });
+
+  it('handles 204 No Content even when a schema is supplied (short-circuits parse)', async () => {
+    mockFetch(new Response(null, { status: 204 }));
+
+    // Schema is passed but the 204 short-circuit means body-read never
+    // happens, so the schema is never invoked.
+    const result = await apiPost('/api/v1/echo', {}, echoResponseSchema);
+
+    expect(result).toEqual({ ok: true, data: undefined });
+  });
+
+  it('returns data: undefined on a 200 body when schema is omitted', async () => {
+    mockFetch(
+      new Response(JSON.stringify({ message: 'ignored' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    const result = await apiPost('/api/v1/echo', {});
+
+    expect(result).toEqual({ ok: true, data: undefined });
+  });
 });
 
 describe('apiGet', () => {
