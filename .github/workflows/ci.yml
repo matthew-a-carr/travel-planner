@@ -243,20 +243,71 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Cache the slow-to-rebuild outputs: the generated ios/ project
+      # (Pods + xcodebuild DerivedData), the CocoaPods download cache,
+      # and the Maestro CLI install. Key on the source-of-truth files
+      # that determine the native build's contents: pnpm-lock, the
+      # mobile app's package.json, and app.json (Expo plugins + native
+      # config). When any of those change, the cache is invalidated and
+      # the next run rebuilds from scratch.
+      - name: Cache mobile native build outputs
+        id: mobile-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/mobile/ios
+            ~/Library/Caches/CocoaPods
+            ~/.maestro
+          key: mobile-e2e-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/mobile/package.json', 'apps/mobile/app.json') }}
+          restore-keys: |
+            mobile-e2e-${{ runner.os }}-
+
       - name: Install Maestro
+        if: steps.mobile-cache.outputs.cache-hit != 'true'
+        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: Add Maestro to PATH
+        run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # Start booting the simulator in the background as early as
+      # possible — boot takes ~60s on a fresh runner and is independent
+      # of the build, so overlapping it with prebuild + pod install +
+      # xcodebuild claws that minute back.
+      - name: Boot iOS Simulator (background)
         run: |
-          curl -fsSL "https://get.maestro.mobile.dev" | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+          UDID=$(xcrun simctl list devices available --json | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          for runtime, devs in devices.items():
+              if 'iOS' not in runtime:
+                  continue
+              for d in devs:
+                  if d.get('isAvailable') and 'iPhone' in d.get('name', ''):
+                      print(d['udid'])
+                      sys.exit(0)
+          sys.exit(1)
+          ")
+          if [ -z "$UDID" ]; then
+            echo "No available iPhone simulator found."
+            exit 1
+          fi
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          echo "Booting simulator $UDID (background)"
+          xcrun simctl boot "$UDID" || true  # already-booted is fine
 
       - name: Prebuild iOS native project
         working-directory: apps/mobile
-        # `expo prebuild --clean` regenerates ios/ from app.json and the
-        # Expo plugins. ios/ is NOT committed — ephemeral per CI run.
-        run: pnpm exec expo prebuild --platform ios --clean
+        # Drop `--clean` so the cached ios/ Pods + DerivedData survive
+        # across runs. Expo's incremental prebuild updates only changed
+        # files; the cache key already invalidates on app.json /
+        # package.json drift, so stale-state risk is bounded.
+        run: pnpm exec expo prebuild --platform ios
 
       - name: Install CocoaPods dependencies
         working-directory: apps/mobile/ios
-        # CocoaPods ships preinstalled on macos-latest runners.
+        # CocoaPods ships preinstalled on macos-latest runners. On a
+        # cache hit `pod install` matches Podfile.lock and is a no-op
+        # in a few seconds; on a miss it does the full install.
         run: pod install
 
       - name: Build iOS Simulator .app via xcodebuild
@@ -286,28 +337,8 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Boot iOS Simulator
-        run: |
-          # Pick the first available iPhone simulator on the runner.
-          UDID=$(xcrun simctl list devices available --json | python3 -c "
-          import json, sys
-          devices = json.load(sys.stdin)['devices']
-          for runtime, devs in devices.items():
-              if 'iOS' not in runtime:
-                  continue
-              for d in devs:
-                  if d.get('isAvailable') and 'iPhone' in d.get('name', ''):
-                      print(d['udid'])
-                      sys.exit(0)
-          sys.exit(1)
-          ")
-          if [ -z "$UDID" ]; then
-            echo "No available iPhone simulator found."
-            exit 1
-          fi
-          echo "Booting simulator $UDID"
-          xcrun simctl boot "$UDID" || true  # already-booted is fine
-          xcrun simctl bootstatus "$UDID" -b
+      - name: Wait for iOS Simulator to finish booting
+        run: xcrun simctl bootstatus "$SIM_UDID" -b
 
       - name: Install dev-client .app on simulator
         working-directory: apps/mobile/ios
