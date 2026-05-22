@@ -3,6 +3,7 @@ import type { SignInResult } from '../../src/auth/sign-in-flow';
 
 const mockRouterReplace = jest.fn();
 const mockRunSignInFlow: jest.Mock<Promise<SignInResult>, []> = jest.fn();
+const mockSignIn = jest.fn();
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockRouterReplace }),
@@ -16,11 +17,26 @@ jest.mock('../../src/auth/sign-in-flow', () => ({
   runSignInFlow: (...args: unknown[]) => mockRunSignInFlow(...(args as [])),
 }));
 
+jest.mock('../../src/auth/auth-context', () => ({
+  useAuth: () => ({
+    status: 'signed_out',
+    signIn: mockSignIn,
+    signOut: jest.fn(),
+  }),
+}));
+
 import SignInScreen from '../../app/index';
+
+const fixtureTokens = {
+  access_token: 'eyJaccess',
+  refresh_token: 'opaque-refresh',
+  access_expires_at: '2026-05-22T12:15:00.000Z',
+};
 
 beforeEach(() => {
   mockRouterReplace.mockReset();
   mockRunSignInFlow.mockReset();
+  mockSignIn.mockReset().mockResolvedValue(undefined);
 });
 
 describe('SignInScreen — idle render', () => {
@@ -35,18 +51,16 @@ describe('SignInScreen — idle render', () => {
 });
 
 describe('SignInScreen — success branch', () => {
-  it('navigates to /signed-in with the email param', async () => {
-    mockRunSignInFlow.mockResolvedValueOnce({ status: 'success', email: 'matt@example.com' });
+  it('hands tokens to auth.signIn and navigates to /signed-in', async () => {
+    mockRunSignInFlow.mockResolvedValueOnce({ status: 'success', tokens: fixtureTokens });
 
     render(<SignInScreen />);
     fireEvent.press(screen.getByTestId('login-google-button'));
 
     await waitFor(() => {
-      expect(mockRouterReplace).toHaveBeenCalledWith({
-        pathname: '/signed-in',
-        params: { email: 'matt@example.com' },
-      });
+      expect(mockSignIn).toHaveBeenCalledWith(fixtureTokens);
     });
+    expect(mockRouterReplace).toHaveBeenCalledWith('/signed-in');
     expect(screen.queryByTestId('login-screen-error')).toBeNull();
   });
 });
@@ -62,6 +76,7 @@ describe('SignInScreen — cancellation branch', () => {
       expect(mockRunSignInFlow).toHaveBeenCalledTimes(1);
     });
     expect(mockRouterReplace).not.toHaveBeenCalled();
+    expect(mockSignIn).not.toHaveBeenCalled();
     expect(screen.queryByTestId('login-screen-error')).toBeNull();
     expect(screen.getByText('Sign in with Google')).toBeOnTheScreen();
   });
@@ -82,6 +97,7 @@ describe('SignInScreen — access_denied branch', () => {
     expect(errorView).toHaveTextContent(
       'Sign-in is restricted. Ask the app admin to approve your account.',
     );
+    expect(mockSignIn).not.toHaveBeenCalled();
     expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 });
@@ -99,13 +115,14 @@ describe('SignInScreen — generic error branch', () => {
 
     const errorView = await screen.findByTestId('login-screen-error');
     expect(errorView).toHaveTextContent('Sign-in failed. Try again. [code: pkce_mismatch]');
+    expect(mockSignIn).not.toHaveBeenCalled();
     expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 
   it('re-enables the button so the user can retry', async () => {
     mockRunSignInFlow
       .mockResolvedValueOnce({ status: 'error', reason: 'generic', code: 'rate_limited' })
-      .mockResolvedValueOnce({ status: 'success', email: 'matt@example.com' });
+      .mockResolvedValueOnce({ status: 'success', tokens: fixtureTokens });
 
     render(<SignInScreen />);
     fireEvent.press(screen.getByTestId('login-google-button'));
@@ -117,5 +134,6 @@ describe('SignInScreen — generic error branch', () => {
       expect(mockRouterReplace).toHaveBeenCalledTimes(1);
     });
     expect(mockRunSignInFlow).toHaveBeenCalledTimes(2);
+    expect(mockSignIn).toHaveBeenCalledTimes(1);
   });
 });

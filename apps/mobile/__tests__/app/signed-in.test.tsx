@@ -1,12 +1,25 @@
 import { render, screen } from '@testing-library/react-native';
 import SignedInScreen from '../../app/signed-in';
 
-jest.mock('expo-router', () => ({
-  useLocalSearchParams: jest.fn().mockReturnValue({ email: 'matt@example.com' }),
+const mockUseAuth = jest.fn();
+
+jest.mock('../../src/auth/auth-context', () => ({
+  useAuth: () => mockUseAuth(),
 }));
 
+beforeEach(() => {
+  mockUseAuth.mockReset();
+});
+
 describe('SignedInScreen', () => {
-  it('renders the email from the route param', () => {
+  it('renders the email from auth context when signed_in', () => {
+    mockUseAuth.mockReturnValue({
+      status: 'signed_in',
+      me: { id: 'u1', email: 'matt@example.com', name: 'Matt', isApproved: true },
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+    });
+
     render(<SignedInScreen />);
     expect(screen.getByTestId('signed-in-screen-email')).toHaveTextContent(
       'Signed in as matt@example.com.',
@@ -14,6 +27,12 @@ describe('SignedInScreen', () => {
   });
 
   it('exposes the screen-root testID for Maestro', () => {
+    mockUseAuth.mockReturnValue({
+      status: 'signed_in',
+      me: { id: 'u1', email: 'matt@example.com', name: 'Matt', isApproved: true },
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+    });
     render(<SignedInScreen />);
     expect(screen.getByTestId('signed-in-screen-root')).toBeOnTheScreen();
   });

@@ -3,8 +3,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { apiGet, apiPost } from '../src/api/client';
-import { storeTokens } from '../src/auth/keychain';
+import { apiPost } from '../src/api/client';
+import { useAuth } from '../src/auth/auth-context';
 import { generateVerifier, verifierToChallenge } from '../src/auth/pkce';
 import { runSignInFlow } from '../src/auth/sign-in-flow';
 
@@ -31,21 +31,25 @@ type ScreenState =
 
 export default function SignInScreen() {
   const router = useRouter();
+  const auth = useAuth();
   const [state, setState] = useState<ScreenState>({ status: 'idle' });
 
   const onSignInPress = async (): Promise<void> => {
     setState({ status: 'in_flight' });
     const result = await runSignInFlow({
       apiPost,
-      apiGet,
       openAuthSession: WebBrowser.openAuthSessionAsync,
       generateVerifier,
       verifierToChallenge,
-      storeTokens,
     });
 
     if (result.status === 'success') {
-      router.replace({ pathname: '/signed-in', params: { email: result.email } });
+      // Hand the tokens to AuthProvider — it persists, calls /me,
+      // and transitions to signed_in (or rolls back to signed_out on
+      // /me failure). Then navigate to the placeholder; Phase D will
+      // restructure routes so this becomes /(app)/.
+      await auth.signIn(result.tokens);
+      router.replace('/signed-in');
       return;
     }
     if (result.status === 'cancelled') {
