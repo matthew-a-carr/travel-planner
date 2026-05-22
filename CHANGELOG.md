@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.17.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.16.1...v1.17.0) (2026-05-22)
+
+
+### Features
+
+* **spec-006:** apiClient.ts + fetch-spy tests (step 4) ([d41ca18](https://github.com/matthew-a-carr/travel-planner/commit/d41ca182c5440fe8be70891282f6767078d8bd65))
+* **spec-006:** install expo-web-browser, expo-crypto, expo-secure-store (step 1) ([084c928](https://github.com/matthew-a-carr/travel-planner/commit/084c92886724957878aeba6b499aec5536024d11))
+* **spec-006:** keychain.ts write-only wrapper over expo-secure-store (step 3) ([a87b5fb](https://github.com/matthew-a-carr/travel-planner/commit/a87b5fb30dfab5a54849ed8b99f070f1f050f773))
+* **spec-006:** mobile-side PKCE crypto via expo-crypto (step 2) ([90d7fbb](https://github.com/matthew-a-carr/travel-planner/commit/90d7fbb99dc71bf8f692429a3967095cd9957e24))
+* **spec-006:** sign-in flow orchestrator + branch tests (step 5) ([64bd66e](https://github.com/matthew-a-carr/travel-planner/commit/64bd66e325998156131a86e32464e99656e680eb))
+* **spec-006:** sign-in screen + signed-in placeholder + launch flow update (steps 6+7) ([1eedd5b](https://github.com/matthew-a-carr/travel-planner/commit/1eedd5bd6b0771e004e2967e0865acbbb4c1876a))
+* **spec-007:** server + mobile envelope reshape (steps 3–7) ([#105](https://github.com/matthew-a-carr/travel-planner/issues/105)) ([b43a40f](https://github.com/matthew-a-carr/travel-planner/commit/b43a40f19fc442d59d2b2bbc942de0c9c8ca8e55))
+
+
+### Bug Fixes
+
+* **mobile:** declare babel-preset-expo as devDependency ([c8c1dcd](https://github.com/matthew-a-carr/travel-planner/commit/c8c1dcd150a4a0612f79b1f2c930c693ef82aec3))
+
 ## [1.16.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.16.0...v1.16.1) (2026-05-20)
 
 
