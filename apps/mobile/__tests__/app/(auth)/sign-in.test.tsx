@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import type { SignInResult } from '../../src/auth/sign-in-flow';
+import type { SignInResult } from '../../../src/auth/sign-in-flow';
 
 const mockRouterReplace = jest.fn();
 const mockRunSignInFlow: jest.Mock<Promise<SignInResult>, []> = jest.fn();
@@ -13,11 +13,11 @@ jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
 }));
 
-jest.mock('../../src/auth/sign-in-flow', () => ({
+jest.mock('../../../src/auth/sign-in-flow', () => ({
   runSignInFlow: (...args: unknown[]) => mockRunSignInFlow(...(args as [])),
 }));
 
-jest.mock('../../src/auth/auth-context', () => ({
+jest.mock('../../../src/auth/auth-context', () => ({
   useAuth: () => ({
     status: 'signed_out',
     signIn: mockSignIn,
@@ -25,7 +25,7 @@ jest.mock('../../src/auth/auth-context', () => ({
   }),
 }));
 
-import SignInScreen from '../../app/index';
+import SignInScreen from '../../../app/(auth)/sign-in';
 
 const fixtureTokens = {
   access_token: 'eyJaccess',
@@ -60,7 +60,7 @@ describe('SignInScreen — success branch', () => {
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith(fixtureTokens);
     });
-    expect(mockRouterReplace).toHaveBeenCalledWith('/signed-in');
+    expect(mockRouterReplace).toHaveBeenCalledWith('/');
     expect(screen.queryByTestId('login-screen-error')).toBeNull();
   });
 });

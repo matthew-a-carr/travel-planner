@@ -3,15 +3,22 @@ import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { apiPost } from '../src/api/client';
-import { useAuth } from '../src/auth/auth-context';
-import { generateVerifier, verifierToChallenge } from '../src/auth/pkce';
-import { runSignInFlow } from '../src/auth/sign-in-flow';
+import { apiPost } from '../../src/api/client';
+import { useAuth } from '../../src/auth/auth-context';
+import { generateVerifier, verifierToChallenge } from '../../src/auth/pkce';
+import { runSignInFlow } from '../../src/auth/sign-in-flow';
 
 /**
- * Sign-in screen for SPEC-006. Renders the "Sign in with Google"
- * button; on press, drives `runSignInFlow` with the production deps
- * and navigates to `/signed-in` on success.
+ * Sign-in screen — `/sign-in` (lives under the `(auth)` route group
+ * per SPEC-007's restructure). Renders the "Sign in with Google"
+ * button; on press, drives `runSignInFlow`, hands the returned
+ * tokens to AuthProvider.signIn, and navigates to `/` (which lives
+ * under the `(app)` group — the me screen).
+ *
+ * AuthGuard in the root layout would navigate automatically when
+ * the auth state flips to signed_in, but we also call
+ * `router.replace('/')` here as belt-and-braces in case the effect
+ * lags by a frame.
  *
  * Three-state local discriminant — `idle` | `in_flight` | `error` —
  * keeps the UI mapping trivial. The OS browser modal covers the screen
@@ -45,11 +52,11 @@ export default function SignInScreen() {
 
     if (result.status === 'success') {
       // Hand the tokens to AuthProvider — it persists, calls /me,
-      // and transitions to signed_in (or rolls back to signed_out on
-      // /me failure). Then navigate to the placeholder; Phase D will
-      // restructure routes so this becomes /(app)/.
+      // and transitions to signed_in (or rolls back to signed_out
+      // on /me failure). AuthGuard navigates automatically when
+      // state flips; the explicit replace below is belt-and-braces.
       await auth.signIn(result.tokens);
-      router.replace('/signed-in');
+      router.replace('/');
       return;
     }
     if (result.status === 'cancelled') {
