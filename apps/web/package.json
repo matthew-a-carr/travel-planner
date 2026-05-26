@@ -24,15 +24,15 @@
     "auth:mint-token": "tsx scripts/mint-token.ts"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.187",
+    "@ai-sdk/react": "^3.0.193",
     "@auth/drizzle-adapter": "^1.11.2",
     "@sentry/nextjs": "^10.53.1",
     "@travel-planner/shared": "workspace:*",
     "@vercel/analytics": "^2.0.1",
     "@vercel/postgres": "^0.10.0",
-    "ai": "^6.0.185",
+    "ai": "^6.0.191",
     "drizzle-orm": "^0.45.2",
-    "geist": "^1.7.0",
+    "geist": "^1.7.1",
     "jose": "^6.2.3",
     "leaflet": "^1.9.4",
     "next": "16.2.6",
@@ -42,7 +42,7 @@
     "react-dom": "19.2.6",
     "react-leaflet": "^5.0.0",
     "recharts": "^3.8.1",
-    "resend": "^6.12.3",
+    "resend": "^6.12.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -62,7 +62,7 @@
     "typescript": "^5.9.3",
     "vite": "^7.3.3",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.6",
+    "vitest": "^4.1.7",
     "vitest-mock-extended": "^4.0.0"
   }
 }
