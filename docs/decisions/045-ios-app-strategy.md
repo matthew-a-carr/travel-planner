@@ -1,7 +1,7 @@
 # ADR 045: iOS App Strategy
 
 **Date:** 2026-05-16
-**Status:** Proposed
+**Status:** Accepted (2026-05-30 — validated by EPIC-001's shipped milestone; see [ADR 058](./058-mobile-phase-2-read-only-data.md). Deferred items — TestFlight / App Store / APNs / native OAuth — remain deferred to a future strategic ADR.)
 
 ## Context
 
