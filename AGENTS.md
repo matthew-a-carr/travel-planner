@@ -2,6 +2,10 @@
 
 > Read [`CONSTITUTION.md`](./CONSTITUTION.md) before writing any code.
 > This file is the operational quick-reference. The constitution is the law.
+> The constitution inherits the shared
+> [`engineering-principles`](https://github.com/matthew-a-carr/engineering-principles)
+> plugin (cite principles by anchor — P5, C8, T3); use its `apply-principles`
+> skill before a non-trivial change and `architecture-review` on a diff.
 
 ---
 

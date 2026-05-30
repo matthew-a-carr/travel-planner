@@ -3,6 +3,18 @@
 > **Read this before writing any code.**
 > It defines the non-negotiable engineering standards. Deviations require an ADR in `docs/decisions/`.
 
+> **Cross-repo principles.** This project inherits the shared engineering
+> principles defined in
+> [`matthew-a-carr/engineering-principles`](https://github.com/matthew-a-carr/engineering-principles),
+> installed as a Claude Code plugin (marketplace `matthew-a-carr`). Its tiers —
+> `principles/constitution.md` (P1–P33), `principles/cloud-native.md`,
+> `principles/tech-stack.md` — load in every session and are surfaced by the
+> `apply-principles` (ground a change before writing) and `architecture-review`
+> (review a diff) skills. Those principles are the cross-repo foundation; this
+> constitution is the project-local elaboration. Where they genuinely conflict,
+> surface it rather than silently blending (behavioural Rule 6) and record the
+> resolution as an ADR.
+
 ---
 
 ## 1. The Harness
