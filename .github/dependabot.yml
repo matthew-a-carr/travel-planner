@@ -13,6 +13,22 @@ updates:
       prefix-development: chore
     labels:
       - dependencies
+    # Held dependencies — see the cited ADRs / tech-debt entries. These are
+    # deliberate pins, not neglect; remove the ignore when the hold lifts.
+    ignore:
+      # Expo SDK family pinned to SDK 54 until App Store Expo Go supports a
+      # newer SDK (or a later epic funds EAS Build). ADR 053 / TD-003. A major
+      # bump here jumps the RN / jest-expo toolchain out of lockstep.
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      # TypeScript 6 on hold pending ecosystem readiness (drizzle-kit, vitest,
+      # next swc, biome). TD-006. Minor/patch within 5.x still flow.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     # Group all minor and patch updates into a single PR to reduce noise.
     # Major versions still land as individual PRs so breaking-change
     # changelogs can be reviewed separately.
