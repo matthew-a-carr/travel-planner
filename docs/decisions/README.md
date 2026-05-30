@@ -53,7 +53,7 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [042](042-conversational-trip-assistant.md) | Conversational Trip Assistant — Per-Trip Streaming Drawer | 2026-05-09 | Accepted |
 | [043](043-trip-narrative-on-overview.md) | Trip Narrative on the Overview Card | 2026-05-14 | Accepted |
 | [044](044-ai-assisted-trip-creation.md) | AI-Assisted Trip Creation | 2026-05-15 | Accepted |
-| [045](045-ios-app-strategy.md) | iOS App Strategy | 2026-05-16 | Proposed |
+| [045](045-ios-app-strategy.md) | iOS App Strategy | 2026-05-16 | Accepted (2026-05-30; deferred items carried forward per ADR 058) |
 | [046](046-monorepo-layout.md) | Monorepo Layout — apps/ and packages/ | 2026-05-16 | Accepted |
 | [047](047-specification-driven-ai-development-lifecycle.md) | Specification-Driven AI Development Lifecycle | 2026-05-20 | Accepted (trigger model superseded by ADR 057) |
 | [048](048-grilling-and-implementation-notes.md) | Grilling Step and Rolling Implementation Notes | 2026-05-20 | Grilling superseded by ADR 057; rolling implementation notes retained |
@@ -66,3 +66,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [055](055-mobile-e2e-via-eas-local-dev-client-in-ci.md) | Mobile E2E via Local Dev-Client Build in CI (`expo prebuild` + `xcodebuild`) | 2026-05-20 | Accepted |
 | [056](056-api-response-envelope-and-openapi.md) | REST API Response Envelope and OpenAPI Publication | 2026-05-21 | Accepted |
 | [057](057-autonomous-workflow-and-remote-execution.md) | Autonomous Workflow and Remote-Only Execution | 2026-05-23 | Accepted |
+| [058](058-mobile-phase-2-read-only-data.md) | Mobile Phase 2 — Read-Only Data over the Existing Foundation | 2026-05-30 | Accepted |
