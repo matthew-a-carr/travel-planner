@@ -7,6 +7,14 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Fixed
+
+- **Mobile:** Cold-start could hang on the native splash and never reach the
+  sign-in screen — the `AuthGuard` redirect now waits for the root navigator
+  to mount before navigating (an unguarded `router.replace` was being dropped),
+  and the cold-start auth check fails safe to signed-out if it throws instead
+  of stranding the app on `unknown`. Fixes the `sign-in` Maestro e2e timeout.
+
 ### Changed
 
 - **Process:** Adopted an issue-driven autonomous workflow (ADR 057). Open a
