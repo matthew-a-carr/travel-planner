@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.18.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.17.0...v1.18.0) (2026-05-30)
+
+
+### Features
+
+* **api:** POST /api/v1/auth/mobile/revoke endpoint (steps 4-5) ([cfbb059](https://github.com/matthew-a-carr/travel-planner/commit/cfbb0598ed2e8dfc31750233a33bac485055a865))
+* **api:** revokeMobileTokens use case + integration test (steps 2-3) ([0e17741](https://github.com/matthew-a-carr/travel-planner/commit/0e17741e812c7ce38f584a3c0673f72b9ddc6e0d))
+* **mobile:** auth machinery — 204 + readTokens + proactive refresh (steps 6-9) ([5397614](https://github.com/matthew-a-carr/travel-planner/commit/53976143f47e33ce9dc00f570f3ac395fd6341dc))
+* **mobile:** route restructure into (auth)/(app) + Me screen (steps 13-17) ([fe5dde4](https://github.com/matthew-a-carr/travel-planner/commit/fe5dde42afb51d68fe0241fac2e6ef49304f168b))
+* **mobile:** sign-in-flow reshape + AuthProvider (steps 10-12, Phase C) ([db087d1](https://github.com/matthew-a-carr/travel-planner/commit/db087d166d38ae895bfd086084d245ccf9263513))
+* **shared:** add mobileAuthRevokeRequestSchema for sign-out (step 1) ([1b931de](https://github.com/matthew-a-carr/travel-planner/commit/1b931de092ecb68fdeea2012c2b7c8257de1c4ce))
+* **spec-008:** OpenAPI 3.1 publication for /api/v1 (zod-native generator) ([#117](https://github.com/matthew-a-carr/travel-planner/issues/117)) ([12028d4](https://github.com/matthew-a-carr/travel-planner/commit/12028d4466c49ddd03a1e3f09271b9810d890167))
+* **workflow:** land autonomous issue-driven spec workflow (ADR 057) ([#115](https://github.com/matthew-a-carr/travel-planner/issues/115)) ([69e2683](https://github.com/matthew-a-carr/travel-planner/commit/69e2683af463a2bc4fc87619c34b4c84782d8391))
+
+
+### Bug Fixes
+
+* **mobile:** cold-start hang stranding the sign-in screen (mobile-e2e) ([#116](https://github.com/matthew-a-carr/travel-planner/issues/116)) ([121509b](https://github.com/matthew-a-carr/travel-planner/commit/121509b72ddc365556ce4be3df898d9e46b397f0))
+
 ## [Unreleased]
 
 ### Added
