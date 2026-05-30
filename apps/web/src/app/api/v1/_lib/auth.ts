@@ -30,7 +30,7 @@ export type AuthResult =
  * - Authenticated user (any approval) → { ok: true, userId, email, name, isApproved }
  *
  * `request` is required so the 401 / 410 envelope can populate
- * `request` / `instance` / `asof` per SPEC-007 / ADR 056.
+ * `request` / `instance` / `asof` per SPEC-008 / ADR 056.
  */
 export async function requireCookieSession(request: Request): Promise<AuthResult> {
   const session = await auth();

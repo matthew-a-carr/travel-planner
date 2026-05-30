@@ -129,7 +129,7 @@ LAN-IP dance goes away.
   POST `/api/v1/auth/mobile/revoke` in the background.
 - `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
   validating responses via `@travel-planner/shared` schemas. After
-  SPEC-007 / ADR 056 the wrapper expects every `/api/v1/*` body to
+  SPEC-008 / ADR 056 the wrapper expects every `/api/v1/*` body to
   carry the standard envelope: 2xx bodies are parsed with
   `apiSuccessSchema(responseSchema)` and `.data` is returned; 4xx/5xx
   bodies are parsed with `apiErrorEnvelopeSchema` and the RFC 7807

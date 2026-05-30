@@ -46,7 +46,7 @@ function mockFetchSequence(...responses: (Response | Error)[]): jest.SpyInstance
   return spy;
 }
 
-// SPEC-007 / ADR 056: every /api/v1/* 2xx body is the success envelope
+// SPEC-008 / ADR 056: every /api/v1/* 2xx body is the success envelope
 // { data, request, asof, version }. apiPost unwraps `.data`.
 function successEnvelope<T>(data: T): Record<string, unknown> {
   return {

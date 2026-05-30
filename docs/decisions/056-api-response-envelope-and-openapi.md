@@ -3,7 +3,7 @@
 **Date:** 2026-05-21
 **Status:** Accepted (supersedes [ADR 050](./050-rest-api-conventions-v1.md))
 
-> **Approved:** Matt Carr, 2026-05-21, alongside SPEC-007 acceptance.
+> **Approved:** Matt Carr, 2026-05-21, alongside SPEC-008 acceptance.
 
 ## Context
 
@@ -180,7 +180,7 @@ the load-bearing decisions.
 
 ## References
 
-- [SPEC-007](../specs/SPEC-007-api-response-envelope-and-openapi.md)
+- [SPEC-008](../specs/SPEC-008-api-response-envelope-and-openapi.md)
 - [ADR 050 — REST API Conventions for `/api/v1/*`](./050-rest-api-conventions-v1.md) (superseded by this ADR on Accept)
 - [RFC 7807 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc7807)
 - [RFC 3339 — Date and Time on the Internet](https://www.rfc-editor.org/rfc/rfc3339)

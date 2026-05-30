@@ -1,6 +1,6 @@
 /**
  * Single-source-of-truth for the published API envelope's `version`
- * field (per SPEC-007 / ADR 056).
+ * field (per SPEC-008 / ADR 056).
  *
  * Manually kept in sync with `packages/shared/package.json#version` —
  * a unit test in `envelope.test.ts` enforces the equality so a

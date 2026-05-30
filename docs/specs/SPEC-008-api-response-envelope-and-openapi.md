@@ -1,4 +1,4 @@
-# SPEC-007: Standardised API Response Envelope + OpenAPI 3.1 YAML
+# SPEC-008: Standardised API Response Envelope + OpenAPI 3.1 YAML
 
 **Date:** 2026-05-21
 **Status:** Approved
@@ -429,9 +429,9 @@ Each step pairs **intent** with **verification** and is small enough to
 commit on its own. Tests precede implementation per CONSTITUTION.md §3.
 
 1. [ ] **Intent:** Materialise this spec + draft brief + ADR 056 stub into source so reviewers can comment in-line.
-       **Verification:** `docs/specs/SPEC-007-*.md` + `docs/specs/_draft-007-*.md` + `docs/decisions/056-*.md` (Status: Draft) exist; `docs/specs/README.md` updated; `pnpm lint` green. — *Done by this commit.*
+       **Verification:** `docs/specs/SPEC-008-*.md` + `docs/specs/_draft-008-*.md` + `docs/decisions/056-*.md` (Status: Draft) exist; `docs/specs/README.md` updated; `pnpm lint` green. — *Done by this commit.*
 
-2. [ ] **STOP — Draft → Approved gate.** Human reviews SPEC-007 and ADR 056. Implementation pauses here.
+2. [ ] **STOP — Draft → Approved gate.** Human reviews SPEC-008 and ADR 056. Implementation pauses here.
 
 3. [ ] **Intent:** Add envelope schemas to `@travel-planner/shared`; bump package version to `1.1.0`.
        **Verification:** `packages/shared/src/envelope.test.ts` covering `requestEchoSchema`, `asof` regex, `apiSuccessSchema<T>`, `apiErrorSchema`, `apiErrorEnvelopeSchema`. `pnpm --filter @travel-planner/shared test` green. `pnpm type-check` green across workspace.
@@ -457,14 +457,14 @@ commit on its own. Tests precede implementation per CONSTITUTION.md §3.
 10. [ ] **Intent:** Rewrite the affected sections of `docs/api-conventions.md` (Success envelope, Error envelope, Request echo, Versioning of the envelope). Update `CLAUDE.md` doc-review table. Update `docs/decisions/050-*.md` status to `Superseded by ADR 056`. Set ADR 056 status to `Accepted`. Update `docs/decisions/README.md`. CHANGELOG entry under `## [Unreleased]`.
        **Verification:** `pnpm lint` green. Doc-only commit; reviewable as a single read.
 
-11. [ ] **Intent:** Add SPEC-007 Playwright e2e test.
+11. [ ] **Intent:** Add SPEC-008 Playwright e2e test.
        **Verification:** `apps/web/tests/e2e/api-v1-envelope.spec.ts` green via `pnpm test:e2e:web`.
 
 12. [ ] **Intent:** Full verification suite (root): `pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration && POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build && pnpm test:e2e:web && pnpm openapi:check`. Plus mobile filter. Plus manual demo §4.
        **Verification:** All exit 0; demo §4 walks cleanly.
 
-13. [ ] **Intent:** Triage rolling notes file (`docs/implementation-notes/SPEC-007-api-response-envelope-and-openapi.md`) → deviations table / post-impl notes / tech debt (request correlation ID, swagger UI hosting).
-       **Verification:** SPEC-007 status updated to `Complete`. `docs/tech-debt.md` updated as needed.
+13. [ ] **Intent:** Triage rolling notes file (`docs/implementation-notes/SPEC-008-api-response-envelope-and-openapi.md`) → deviations table / post-impl notes / tech debt (request correlation ID, swagger UI hosting).
+       **Verification:** SPEC-008 status updated to `Complete`. `docs/tech-debt.md` updated as needed.
 
 ## 13. ADR triggers and tech-debt review
 
@@ -497,7 +497,7 @@ commit on its own. Tests precede implementation per CONSTITUTION.md §3.
 ## Implementation Deviations
 
 > Populated at close-out by the implementing agent. Rolling notes live in
-> `docs/implementation-notes/SPEC-007-api-response-envelope-and-openapi.md`.
+> `docs/implementation-notes/SPEC-008-api-response-envelope-and-openapi.md`.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|

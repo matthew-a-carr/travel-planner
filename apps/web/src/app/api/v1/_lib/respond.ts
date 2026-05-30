@@ -1,6 +1,6 @@
 /**
  * Server-side helpers for the standardised `/api/v1/*` response
- * envelope (SPEC-007 / ADR 056).
+ * envelope (SPEC-008 / ADR 056).
  *
  * - `respondWithData` builds a 2xx envelope around a typed resource.
  * - `buildRequestEcho` is the shared echo builder reused by

@@ -261,7 +261,7 @@ describe('ENVELOPE_VERSION', () => {
     expect(ENVELOPE_VERSION).toBe(pkg.version);
   });
 
-  it('is currently 1.1.0 (first release under SPEC-007)', () => {
+  it('is currently 1.1.0 (first release under SPEC-008)', () => {
     expect(ENVELOPE_VERSION).toBe('1.1.0');
   });
 });

@@ -1,7 +1,7 @@
 /**
  * Thin `fetch` wrapper for `/api/v1/*` calls from the mobile app.
  *
- * Reshaped in SPEC-007 for the standardised response envelope: every
+ * Reshaped in SPEC-008 for the standardised response envelope: every
  * 2xx body is `{ data: <T>, request, asof, version, meta? }`; every
  * non-2xx body is RFC 7807 + closed `code` (`{ error: { type, title,
  * status, detail, instance, code, details? }, request, asof,

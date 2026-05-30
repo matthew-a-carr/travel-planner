@@ -15,7 +15,7 @@ import { runSignInFlow, type SignInDeps } from '../../src/auth/sign-in-flow';
 /**
  * Build a minimal-but-complete ApiError shape for mocking apiClient
  * failures. The orchestrator only dispatches on `error.code`, but the
- * SPEC-007 envelope's TypeScript contract requires the full RFC 7807
+ * SPEC-008 envelope's TypeScript contract requires the full RFC 7807
  * fields.
  */
 function apiError(code: ApiErrorCode, detail: string): ApiError {

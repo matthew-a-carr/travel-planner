@@ -1,7 +1,7 @@
 # Draft Brief — Standardised API Response Envelope + OpenAPI 3.1 YAML
 
 **Status:** Brief (pre-spec)
-**Will become:** SPEC-007
+**Will become:** SPEC-008
 
 ## Idea (one paragraph)
 

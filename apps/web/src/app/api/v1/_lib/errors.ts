@@ -1,6 +1,6 @@
 /**
  * Server-side error envelope helper for `/api/v1/*` responses
- * (SPEC-007 / ADR 056).
+ * (SPEC-008 / ADR 056).
  *
  * The error code vocabulary, envelope schema, and the runtime zod
  * schema live in `@travel-planner/shared` so the mobile client can

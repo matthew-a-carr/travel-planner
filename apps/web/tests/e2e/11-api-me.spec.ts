@@ -16,7 +16,7 @@ import { expect, test } from '@playwright/test';
  * overrides storageState to an empty one, following the pattern in
  * auth.spec.ts.
  *
- * Updated for SPEC-007 / ADR 056: every response now carries the
+ * Updated for SPEC-008 / ADR 056: every response now carries the
  * standard envelope. Success bodies are parsed via
  * apiSuccessSchema(meResponseSchema); error bodies via
  * apiErrorEnvelopeSchema.

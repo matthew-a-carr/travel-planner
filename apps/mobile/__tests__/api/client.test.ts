@@ -3,7 +3,7 @@
  * each test installs its own canned response and asserts the wrapper's
  * behaviour. See SPEC-006 deviation log for why we're not using msw.
  *
- * After SPEC-007 / ADR 056 every /api/v1/* response carries the new
+ * After SPEC-008 / ADR 056 every /api/v1/* response carries the new
  * envelope: 2xx bodies have `data` + `request` + `asof` + `version`;
  * non-2xx bodies have `error` (RFC 7807 + closed `code`) + the same
  * siblings.

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { apiErrorCodeSchema } from './api-errors';
 
 /**
- * Standardised `/api/v1/*` response envelope schemas (SPEC-007 / ADR 056).
+ * Standardised `/api/v1/*` response envelope schemas (SPEC-008 / ADR 056).
  *
  * Every `/api/v1/*` response — success or error — carries `request`,
  * `asof`, and `version` siblings around its primary payload. Success
