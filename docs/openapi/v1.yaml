@@ -1,0 +1,429 @@
+openapi: 3.1.0
+info:
+  title: Travel Planner API
+  version: 1.1.0
+  description: Versioned `/api/v1/*` surface. Every 2xx body is the standard
+    success envelope `{ data, request, asof, version, meta? }`; every non-2xx
+    body is RFC 7807 Problem Details plus a closed `code` enum
+    (`ApiErrorEnvelope`). See ADR 056.
+servers:
+  - url: https://travel-planner.app
+    description: Production
+paths:
+  /api/v1/me:
+    get:
+      summary: Current authenticated user
+      security:
+        - bearerAuth: []
+        - cookieSession: []
+      responses:
+        "200":
+          description: The authenticated user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeSuccessEnvelope"
+        "401":
+          description: No valid session or bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Authenticated but not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+  /api/v1/auth/mobile/start:
+    post:
+      summary: Begin the mobile server-mediated PKCE flow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileAuthStartRequest"
+      responses:
+        "200":
+          description: Authorise URL + opaque state.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileAuthStartSuccessEnvelope"
+        "400":
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "429":
+          description: Rate limited.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+  /api/v1/auth/mobile/exchange:
+    post:
+      summary: Exchange the one-time code for a token pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileAuthExchangeRequest"
+      responses:
+        "200":
+          description: Access + refresh token pair.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileAuthTokenSuccessEnvelope"
+        "400":
+          description: Invalid code, expired exchange code, or PKCE mismatch.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "429":
+          description: Rate limited.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+  /api/v1/auth/mobile/refresh:
+    post:
+      summary: Rotate the refresh token for a new pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileAuthRefreshRequest"
+      responses:
+        "200":
+          description: A new access + refresh token pair.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileAuthTokenSuccessEnvelope"
+        "401":
+          description: Refresh token reused, expired, revoked, or unknown.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "429":
+          description: Rate limited.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+  /api/v1/auth/mobile/revoke:
+    post:
+      summary: Revoke a refresh-token chain (sign-out)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileAuthRevokeRequest"
+      responses:
+        "204":
+          description: Revoked (idempotent; also 204 for unknown/already-revoked tokens —
+            non-revealing).
+        "400":
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "429":
+          description: Rate limited.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieSession:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+  schemas:
+    RequestEcho:
+      type: object
+      properties:
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+        path:
+          type: string
+          minLength: 1
+        path_params:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties:
+            type: string
+        query_params:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+      required:
+        - method
+        - path
+        - path_params
+        - query_params
+      additionalProperties: false
+    ApiError:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+          minLength: 1
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+          minLength: 1
+        instance:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          enum:
+            - validation_failed
+            - bad_request
+            - unauthenticated
+            - forbidden
+            - not_found
+            - conflict
+            - user_deleted
+            - gone
+            - rate_limited
+            - internal
+            - unavailable
+            - invalid_exchange_code
+            - pkce_mismatch
+            - refresh_reused
+            - refresh_expired
+            - refresh_revoked
+            - refresh_unknown
+        details:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+        - code
+      additionalProperties: false
+    ApiErrorEnvelope:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiError"
+        request:
+          $ref: "#/components/schemas/RequestEcho"
+        asof:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+      required:
+        - error
+        - request
+        - asof
+        - version
+      additionalProperties: false
+    MeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          minLength: 1
+        name:
+          anyOf:
+            - type: string
+            - type: "null"
+        isApproved:
+          type: boolean
+      required:
+        - id
+        - email
+        - name
+        - isApproved
+      additionalProperties: false
+    MobileAuthStartRequest:
+      type: object
+      properties:
+        code_challenge:
+          type: string
+          minLength: 43
+          maxLength: 128
+      required:
+        - code_challenge
+      additionalProperties: false
+    MobileAuthStartResponse:
+      type: object
+      properties:
+        authorise_url:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+      required:
+        - authorise_url
+        - state
+      additionalProperties: false
+    MobileAuthExchangeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+        code_verifier:
+          type: string
+          minLength: 43
+          maxLength: 128
+      required:
+        - code
+        - code_verifier
+      additionalProperties: false
+    MobileAuthTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+        refresh_token:
+          type: string
+          minLength: 1
+        access_expires_at:
+          type: string
+          minLength: 1
+      required:
+        - access_token
+        - refresh_token
+        - access_expires_at
+      additionalProperties: false
+    MobileAuthRefreshRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+      required:
+        - refresh_token
+      additionalProperties: false
+    MobileAuthRevokeRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+      required:
+        - refresh_token
+      additionalProperties: false
+    MeSuccessEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MeResponse"
+        request:
+          $ref: "#/components/schemas/RequestEcho"
+        asof:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+        meta:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - data
+        - request
+        - asof
+        - version
+      additionalProperties: false
+    MobileAuthStartSuccessEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MobileAuthStartResponse"
+        request:
+          $ref: "#/components/schemas/RequestEcho"
+        asof:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+        meta:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - data
+        - request
+        - asof
+        - version
+      additionalProperties: false
+    MobileAuthTokenSuccessEnvelope:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MobileAuthTokenResponse"
+        request:
+          $ref: "#/components/schemas/RequestEcho"
+        asof:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+        meta:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - data
+        - request
+        - asof
+        - version
+      additionalProperties: false

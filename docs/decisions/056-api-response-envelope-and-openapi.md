@@ -97,10 +97,19 @@ the load-bearing decisions.
    `info.version`. Single source of truth.
 
 6. **OpenAPI 3.1 YAML publication:** `docs/openapi/v1.yaml` is generated
-   by `apps/web/scripts/generate-openapi.ts` using
-   `@asteasolutions/zod-to-openapi`. The YAML is **committed** to the
-   repository. CI runs `pnpm openapi:check` and fails on drift between
+   by `apps/web/scripts/generate-openapi.ts`. The YAML is **committed** to
+   the repository. CI runs `pnpm openapi:check` and fails on drift between
    the committed YAML and the schemas in `@travel-planner/shared`.
+
+   > **Amendment (2026-05-30, SPEC-008 implementation):** the generator uses
+   > **zod v4's native `z.toJSONSchema(..., { target: 'draft-2020-12' })`**,
+   > not `@asteasolutions/zod-to-openapi` as originally written here. The repo
+   > is on zod v4 (that library is zod-v3-era); OAS 3.1 components are JSON
+   > Schema 2020-12, which zod v4 emits directly. Shared schemas are registered
+   > in a zod registry (so refs resolve to `#/components/schemas/...`); `info`
+   > and `paths` are hand-assembled and serialized with `yaml`. No extra
+   > schema-library dependency and no per-schema `.openapi()` annotations. See
+   > SPEC-008 deviation #1.
 
 7. **Content type:** All responses use `application/json`. The
    `application/problem+json` media type defined by RFC 7807 is
