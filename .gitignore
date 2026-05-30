@@ -52,3 +52,5 @@ next-env.d.ts
 !.claude/hooks/
 .claude/hooks/*
 !.claude/hooks/session-start.sh
+!.claude/routines/
+!.claude/routines/**

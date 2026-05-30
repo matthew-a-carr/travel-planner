@@ -7,8 +7,9 @@
 **Parent epic:** [EPIC-NNN link, or "—" if standalone]
 
 > A spec is one shippable unit. It either stands alone or is a slice of an
-> epic. If the work needs more than one spec to deliver demoable value, plan
-> the epic first via `plan-epic` and link from this field.
+> epic. If the work needs more than one spec to deliver demoable value, file a
+> `claude:plan-epic` issue first (the `draft-epic` routine drafts the EPIC) and
+> link from this field.
 >
 > **Fill in every section.** Use `N/A — [reason]` for sections that genuinely
 > don't apply (e.g. "Migration plan — N/A, no data change"). Don't delete

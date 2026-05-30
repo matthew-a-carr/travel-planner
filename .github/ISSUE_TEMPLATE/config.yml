@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Bug report
+    url: https://github.com/matthew-a-carr/travel-planner/issues/new
+    about: Bug fixes don't need a SPEC. Open a plain issue.
+  - name: Operations runbook for the autonomous workflow
+    url: https://github.com/matthew-a-carr/travel-planner/blob/main/docs/operations/autonomous-workflow.md
+    about: How the issue → SPEC → PR → implementation routines are wired up.

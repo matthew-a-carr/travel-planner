@@ -7,6 +7,25 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Changed
+
+- **Process:** Adopted an issue-driven autonomous workflow (ADR 057). Open a
+  GitHub issue with the Feature request or Epic template; cloud-hosted Claude
+  Code routines draft the SPEC/EPIC, open a PR for review, accept review
+  feedback via PR labels, and implement merged + labelled SPECs. Slack DMs
+  only on blockers. Local execution is reserved for physical-iPhone Expo Go
+  validation and manual debugging. The interactive `grill-me` /
+  `plan-feature` / `plan-epic` skills were retired from this repo; the new
+  `draft-spec` and `revise-spec` skills replace them, and `implement-spec`
+  was rewired to fire on a merged spec PR with the `claude:implement` label.
+  Operations runbook: `docs/operations/autonomous-workflow.md`.
+- Pinned `engineering-principles@matthew-a-carr` and
+  `dev-skills@matthew-a-carr` in `.claude/settings.json` via the
+  `matthew-a-carr/claude-plugins` marketplace, so every session (interactive
+  and routine) auto-loads the constitution, cloud-native, tech-stack,
+  behavioural-rules, and the `apply-principles` + `architecture-review`
+  skills (plus the dev-skills bag) regardless of user-level configuration.
+
 ### Added
 
 - **Mobile:** Authenticated "me" home screen — after sign-in, the iPhone

@@ -3,7 +3,7 @@ name: review-spec
 description: >
   Cross-artefact consistency and quality review of an approved or draft SPEC.
   Use when the user says "review SPEC-NNN," before `implement-spec` runs, or
-  at the end of `plan-feature` before requesting human approval. Checks the
+  by `draft-spec` / `revise-spec` before opening or updating a spec PR. Checks the
   SPEC against the constitution, ADRs, parent epic (if any), and tech debt
   register. Read-only — produces a structured report, never edits files.
 ---
@@ -174,13 +174,15 @@ Rules:
 - If **Critical** is empty and **Warnings** is empty, verdict is *Ready for
   implementation*.
 - If any **Critical** is present, verdict is *Needs revision*.
-- If a Critical finding can only be resolved by re-grilling (e.g. genuine
-  unresolved design question surfaced too late), verdict is *Blocked* and
-  recommend re-invoking `grill-me` on the specific point.
+- If a Critical finding can only be resolved by deeper design work (e.g. a
+  genuine unresolved design question surfaced too late), verdict is *Blocked*:
+  surface the question in the SPEC's §Open Questions and let the PR review
+  loop (`revise-spec` + `claude:revise-now`) resolve it, or fall back to an
+  interactive `dev-skills:grill-me` session on the specific point.
 
 ## Do not
 
 - Do **not** edit the SPEC, the epic, ADRs, or the tech debt register.
 - Do **not** invoke `implement-spec` even if the verdict is Ready —
   proceeding is a human decision.
-- Do **not** invoke `plan-feature` to rewrite the SPEC. Report and stop.
+- Do **not** invoke `draft-spec` / `revise-spec` to rewrite the SPEC. Report and stop.

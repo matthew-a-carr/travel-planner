@@ -1,7 +1,7 @@
 # ADR 048: Grilling Step and Rolling Implementation Notes
 
 **Date:** 2026-05-20
-**Status:** Accepted
+**Status:** Grilling step **superseded** by [ADR 057 — Autonomous Workflow and Remote-Only Execution](./057-autonomous-workflow-and-remote-execution.md); rolling implementation notes mechanism retained.
 **Extends:** [ADR 047 — Specification-Driven AI Development Lifecycle](./047-specification-driven-ai-development-lifecycle.md)
 
 ## Context

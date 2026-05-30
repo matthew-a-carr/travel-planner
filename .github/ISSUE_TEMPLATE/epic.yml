@@ -1,0 +1,80 @@
+name: Epic (auto-spec, multi-SPEC initiative)
+description: Describe a multi-SPEC initiative. The plan-epic routine will turn this into an EPIC PR.
+title: "epic: "
+labels: ["claude:plan-epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Opening this issue fires the **draft-epic routine** (per ADR 057). Use this when the work needs more than ~3 SPECs to deliver value, sequencing across SPECs matters, or cross-cutting decisions need pre-committing.
+
+        For a single feature, use the Feature request template instead.
+  - type: input
+    id: vision
+    attributes:
+      label: Vision (one sentence)
+      description: What's the outcome this epic delivers?
+      placeholder: "The mobile app reaches feature parity with the web app for [scope]."
+    validations:
+      required: true
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of done
+      description: How will you know the epic is finished? Should be observable.
+      placeholder: |
+        - All web features in scope are usable from the mobile app via Expo Go.
+        - ...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope (in / out)
+      description: Coarse-grained. SPEC-level scope happens per slice.
+      placeholder: |
+        **In scope:**
+        -
+
+        **Out of scope:**
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: kill_criteria
+    attributes:
+      label: Kill criteria
+      description: When would you walk away? Pre-commit these so the routine doesn't paper over them later.
+      placeholder: |
+        - If [external dep] doesn't materialise by [date], kill.
+        - If [metric] doesn't move after slice N, kill.
+    validations:
+      required: true
+  - type: textarea
+    id: strategic_adr
+    attributes:
+      label: Strategic ADR (if any)
+      description: Epics implement direction; they don't decide it. If a strategic ADR already exists, link it. If one is needed first, say so.
+      placeholder: "ADR-045 (or 'needs a strategic ADR first — see notes')"
+  - type: textarea
+    id: cross_cutting
+    attributes:
+      label: Cross-cutting decisions to pre-commit
+      description: Things every slice will inherit. Auth model, observability vendor, packaging strategy, etc.
+      placeholder: |
+        - Auth: bearer tokens via /api/v1/auth/mobile (SPEC-002).
+        - Packaging: Expo Go for EPIC-001; TestFlight/EAS deferred.
+  - type: textarea
+    id: rough_slices
+    attributes:
+      label: Rough slice list (best guess)
+      description: The routine will refine this. Aim for slices that ship value individually.
+      placeholder: |
+        1. Slice 1 — ...
+        2. Slice 2 — ...
+        3. Slice 3 — ...
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        When you submit, the `claude:plan-epic` label fires the **draft-epic routine**. The PR will draft `docs/epics/EPIC-NNN-<slug>.md` with a slice ledger. To approve, merge the EPIC PR — the routine will then file one `claude:plan` issue per slice for individual SPEC drafting.
