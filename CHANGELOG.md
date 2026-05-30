@@ -7,6 +7,21 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Added
+
+- **API:** Published OpenAPI 3.1 contract for `/api/v1/*` at
+  `docs/openapi/v1.yaml`, generated from the `@travel-planner/shared` zod
+  schemas via `pnpm openapi:generate`. CI runs `pnpm openapi:check` to reject
+  drift between the schemas and the committed spec. (SPEC-008 / ADR 056.)
+
+### Fixed
+
+- **Mobile:** Cold-start could hang on the native splash and never reach the
+  sign-in screen — the `AuthGuard` redirect now waits for the root navigator
+  to mount before navigating (an unguarded `router.replace` was being dropped),
+  and the cold-start auth check fails safe to signed-out if it throws instead
+  of stranding the app on `unknown`. Fixes the `sign-in` Maestro e2e timeout.
+
 ### Changed
 
 - **Process:** Adopted an issue-driven autonomous workflow (ADR 057). Open a

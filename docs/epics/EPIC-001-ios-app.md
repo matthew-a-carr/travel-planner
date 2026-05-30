@@ -1,10 +1,14 @@
 # EPIC-001: iOS App — Expo + React Native against extracted REST API
 
 **Date:** 2026-05-20
-**Status:** Approved
+**Status:** Complete
 **Strategic ADR:** [045 — iOS App Strategy](../decisions/045-ios-app-strategy.md)
 **Owner:** Matt Carr
 **Approved by:** Matt Carr, 2026-05-20 (after `grill-me` pass)
+**Closed:** 2026-05-30 — slices 0–7 shipped (8 merged into 5). Slice 9
+(Sentry RN + EAS source maps) deferred to EPIC-002: it is gated on EAS
+Build, which this epic explicitly scopes out (§14 cost table, §10
+cross-cutting). The user-visible milestone (slice 7) is met.
 
 > This epic operationalises ADR 045. It supersedes the previous freeform
 > planning doc `docs/ios-app-planning.md` (now removed) and adopts the
@@ -50,8 +54,8 @@ The epic is **Complete** when:
 - [x] Mobile testing infrastructure exists: Jest + RNTL component tests run
       in CI on Linux; Maestro E2E runs on macOS only when `apps/mobile/**`
       changes. (SPEC-003 + SPEC-006 TD-002 pay-down.)
-- [ ] Sentry React Native is wired with source maps via EAS. (Slice 9 —
-      not started.)
+- [→] Sentry React Native is wired with source maps via EAS. (Slice 9 —
+      **deferred to EPIC-002**: needs EAS Build, which this epic scopes out.)
 - [x] The web app behaves identically to today (no regression).
 - [x] All pre-existing tests stay green at every slice merge.
 
@@ -130,7 +134,7 @@ in parallel.
 | 6 | Mobile sign-in UI + PKCE flow + Keychain | lines 3–5 | [SPEC-006 (Complete)](../specs/SPEC-006-mobile-sign-in-pkce-keychain.md) | 3, 5 | 4–5d (bumped from 3–4d to include TD-002 pay-down) | **Done** |
 | 7 | Authenticated "me" screen + sign-out (**milestone slice**) | lines 6–7 | [SPEC-007 (Complete)](../specs/SPEC-007-mobile-authenticated-me-and-signout.md) | 4, 6 | 2–3d (bumped from 1–2d to absorb new `/revoke` endpoint) | **Done** |
 | 8 | ~~Mobile testing infrastructure~~ — **merged into slice 5 via SPEC-003** (epic-level deviation §16) | — | _merged_ | — | — | **Merged** |
-| 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _not yet planned_ | 7 | 1d | Not started |
+| 9 | Mobile observability — Sentry RN + EAS source maps | n/a — invisible | _deferred → EPIC-002_ | 7 | 1d | **Deferred → EPIC-002** (gated on EAS Build) |
 
 Budgets are calendar days of focused work, not elapsed. Used by the §9
 "two consecutive slices each exceed twice their estimated budget" kill
@@ -368,4 +372,25 @@ mobile chart library, mobile map library, PWA decision.
 
 ## Post-epic notes
 
-_To be written when the epic closes._
+**Closed 2026-05-30.** Slices 0–7 shipped (slice 8 merged into slice 5 per
+§16 deviation #1). The user-visible milestone — sign in on the iPhone and see
+your authenticated "me" screen with working sign-out — was delivered by slice
+7 (SPEC-007).
+
+**Slice 9 (Mobile observability — Sentry RN + EAS source maps) deferred to
+EPIC-002.** As written, slice 9 requires EAS source-map upload, and
+`@sentry/react-native`'s native crash reporting + source maps need a custom
+dev/EAS build. This epic deliberately scopes EAS Build *out* (Expo Go only —
+ADR 053 / TD-003; §14 cost table: "EAS Build … Deferred. Not part of this
+epic"). Slice 9 is therefore gated on the exact EAS Build / Apple Developer
+Program work that EPIC-002 owns, and is carried there rather than shipped as a
+throwaway Expo-Go-only half. Decision recorded with Matt, 2026-05-30.
+
+EPIC-002 inherits, at minimum: native on-device OAuth (TD-004), EAS Build +
+TestFlight distribution, Sentry RN + source maps (this slice 9), and the
+mobile data-loading feature set (surfacing the web `trip` / `timeline` /
+`spending` domain).
+
+| Date | Slice | SPEC | Status | Notes |
+|------|-------|------|--------|-------|
+| 2026-05-30 | 9 | — | Deferred | Carried to EPIC-002 (gated on EAS Build). EPIC-001 closed at 8/9 slices; milestone met. |

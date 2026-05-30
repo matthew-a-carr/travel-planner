@@ -21,34 +21,73 @@
   an existing `code`. Adding a field, adding a `code`, or widening a value
   enumeration is back-compat and stays under `v1`.
 
-## Error envelope
+## Response envelope (ADR 056 / SPEC-008)
 
-Every non-2xx response uses this exact JSON shape:
+Every `/api/v1/*` response — success **and** error — is wrapped in a
+standard envelope so clients dispatch uniformly. The schemas are the
+single source of truth in `packages/shared/src/envelope.ts`; the published
+contract is generated from them at [`docs/openapi/v1.yaml`](./openapi/v1.yaml)
+(run `pnpm openapi:generate`; CI runs `pnpm openapi:check` to reject drift).
+
+### Success envelope (2xx)
+
+```json
+{
+  "data": { /* the endpoint's resource shape */ },
+  "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
+  "asof": "2026-05-21T18:00:00.000Z",
+  "version": "1.1.0",
+  "meta": { /* optional, endpoint-specific */ }
+}
+```
+
+- `data` is the endpoint's payload (e.g. `MeResponse`).
+- `request` echoes the request for correlation. `path_params` / `query_params`
+  are always objects (never null). Headers are **never** echoed (PII safety).
+- `asof` is the server timestamp in RFC 3339 UTC with millisecond precision
+  (`YYYY-MM-DDTHH:mm:ss.sssZ`).
+- `version` is the envelope semver, tracking `packages/shared`'s
+  `ENVELOPE_VERSION`.
+- `meta` is optional and free-form per endpoint.
+- Built server-side with `respondWithData(request, data, meta?)` from
+  `apps/web/src/app/api/v1/_lib/respond.ts`. `204 No Content` endpoints
+  (e.g. `/revoke`) carry no body and skip the envelope.
+
+### Error envelope (non-2xx) — RFC 7807 + closed `code`
 
 ```json
 {
   "error": {
-    "code": "snake_case_identifier",
-    "message": "Human-readable string, safe to display to end users.",
+    "type": "https://travel-planner.app/errors/validation_failed",
+    "title": "Validation failed",
+    "status": 400,
+    "detail": "Human-readable string, safe to display to end users.",
+    "instance": "/api/v1/me",
+    "code": "validation_failed",
     "details": { /* optional, code-specific structured data */ }
-  }
+  },
+  "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
+  "asof": "2026-05-21T18:00:00.000Z",
+  "version": "1.1.0"
 }
 ```
 
-- `code` is a member of `ApiErrorCode` (zod `z.enum` plus inferred TS
-  union; source of truth at `packages/shared/src/api-errors.ts` so the
-  mobile client can parse the envelope against the same definition; the
-  server-side `respondWithError` helper and `STATUS_BY_CODE` map live in
-  `apps/web/src/app/api/v1/_lib/errors.ts`). Misspelling is a compile
-  error.
-- `message` is a sentence-cased string, no trailing period required.
-  Generic enough not to leak server internals. Safe for direct display.
-- `details` is optional. When present, its shape is determined by the
-  `code` (see vocabulary table below). Free-form per code; document each
-  shape here when you add one.
-
-2xx responses do not use the envelope — they return the resource shape
-directly.
+- The inner `error` is [RFC 7807 Problem Details](https://www.rfc-editor.org/rfc/rfc7807)
+  (`type`, `title`, `status`, `detail`, `instance`) plus our closed `code`
+  enum so clients keep compile-time-exhaustive switching.
+- `code` is a member of `ApiErrorCode` (zod `z.enum` + inferred TS union;
+  source of truth `packages/shared/src/api-errors.ts`). The server-side
+  `respondWithError` helper, `STATUS_BY_CODE`, `TYPE_URI_BY_CODE`, and
+  `DEFAULT_TITLE_BY_CODE` maps live in
+  `apps/web/src/app/api/v1/_lib/errors.ts`. Misspelling is a compile error.
+- `type` is one stable URI per `code` (`https://travel-planner.app/errors/<code>`);
+  renaming a URI is a major-version envelope change.
+- `detail` is sentence-cased, generic enough not to leak server internals,
+  safe for direct display.
+- `details` is optional; its shape is determined by the `code` (see
+  vocabulary table below).
+- `request` / `asof` / `version` are the same siblings as the success
+  envelope.
 
 ## Code → HTTP status vocabulary
 
@@ -81,8 +120,10 @@ errors to API error codes via a small `switch` statement. Reasons:
   contexts.
 - Per-handler mapping keeps the API surface reviewable in one file.
 
-Use `respondWithError(code, message?, details?)` to build the response.
-Never construct an error response by hand.
+Use `respondWithError(request, code, { detail?, details?, title? })` to build
+the response (it populates `type` / `status` / `title` / the `request` echo /
+`asof` / `version` from the `code` and the `Request`). Never construct an
+error response by hand.
 
 ## Path naming
 
@@ -120,11 +161,11 @@ matching HTTP status.
 
 **In-stream errors** (anything after the response started 200 OK and
 headers were committed) are emitted as a final SSE event of type `error`
-whose `data:` payload is the standard envelope:
+whose `data:` payload is the standard error envelope:
 
 ```
 event: error
-data: {"code":"unavailable","message":"AI gateway temporarily unavailable."}
+data: {"error":{"type":"https://travel-planner.app/errors/unavailable","title":"Service unavailable","status":503,"detail":"AI gateway temporarily unavailable.","instance":"/api/v1/trips/{id}/chat/stream","code":"unavailable"},"request":{"method":"POST","path":"/api/v1/trips/{id}/chat/stream","path_params":{"id":"…"},"query_params":{}},"asof":"2026-05-21T18:00:00.000Z","version":"1.1.0"}
 
 ```
 
