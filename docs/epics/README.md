@@ -20,7 +20,8 @@ Write an epic when:
   pre-committing exit criteria matters.
 
 Do **not** write an epic for:
-- Single-SPEC features (use `plan-feature` directly).
+- Single-SPEC features (open a Feature request issue with label
+  `claude:plan` instead).
 - Tactical refactors with no user-facing demo.
 - Anything where the strategic ADR is already the right level of detail
   and slicing is obvious.
@@ -28,17 +29,24 @@ Do **not** write an epic for:
 ## Lifecycle
 
 ```
-Draft → Approved → In Progress → Complete
-                                → Abandoned (kill criterion hit, or pivoted)
+Issue opened (claude:plan-epic)
+  → draft-spec routine writes EPIC-NNN → opens epic PR
+    → human reviews / labels claude:revise-now → revise loop
+      → epic PR merged → human files claude:plan issues for each slice
+        → each slice flows through the standard SPEC lifecycle
 ```
 
 1. Strategic ADR exists (or is drafted alongside).
-2. `plan-epic` skill grills at epic altitude → writes EPIC-NNN.
-3. Human approves the epic.
-4. For each slice, when ready: `plan-feature` for that slice's SPEC,
-   inheriting the epic's cross-cutting decisions. The child SPEC links
-   back to the epic; the epic's slice table tracks SPEC status.
-5. `implement-spec` for each SPEC as normal.
+2. Open an issue with the **Epic** template (label `claude:plan-epic`). The
+   `draft-spec` skill (epic mode) writes EPIC-NNN on a `claude/epic-NNN-*`
+   branch and opens a PR. Per ADR 057.
+3. Human reviews. Feedback loop runs via PR comments + `claude:revise-now`
+   label.
+4. Merge the epic PR. The routine does NOT auto-file slice issues — Matt
+   files one `claude:plan` issue per slice (or asks a follow-up routine
+   run to file them).
+5. Each slice flows through the standard SPEC lifecycle (see
+   `docs/specs/README.md`).
 6. Epic-level deviations (changes to cross-cutting decisions or slice
    order) are logged in the epic; per-slice deviations stay in the SPEC.
 7. Epic marked Complete when all in-scope slices are shipped or

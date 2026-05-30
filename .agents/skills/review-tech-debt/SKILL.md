@@ -34,7 +34,7 @@ any new feature spec. Also suitable for periodic (e.g. weekly) scheduled reviews
    |----------|--------|
    | **Resolved incidentally** | Move to Resolved Items table with explanation |
    | **Quick fix** (< 1 hour) | Propose fixing it directly, no spec needed |
-   | **Needs a spec** | Recommend writing a spec via the `plan-feature` skill |
+   | **Needs a spec** | Recommend filing a `claude:plan` issue so the `draft-spec` routine drafts a spec |
    | **Accept and defer** | Document why it's acceptable to defer, update severity if needed |
    | **No longer relevant** | Move to Resolved Items with "no longer applicable" |
 
@@ -51,7 +51,9 @@ any new feature spec. Also suitable for periodic (e.g. weekly) scheduled reviews
 7. For approved quick fixes: implement them directly, following the TDD workflow
    from CONSTITUTION.md §3 and the verification steps from the `implement-spec` skill.
 
-8. For items needing a spec: invoke the `plan-feature` skill for each one.
+8. For items needing a spec: file a `claude:plan` GitHub issue for each one
+   (the `draft-spec` routine drafts the spec PR), or draft it directly via
+   the `draft-spec` skill in an interactive session.
 
 ## Update the register
 

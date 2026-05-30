@@ -136,9 +136,10 @@ Budgets are calendar days of focused work, not elapsed. Used by the §9
 "two consecutive slices each exceed twice their estimated budget" kill
 criterion.
 
-SPECs for each slice are created via `plan-feature` only when that slice is
-ready to begin. Earlier slices may be planned in detail; later slices stay
-intentionally vague until the preceding learnings come in.
+SPECs for each slice are drafted by the `draft-spec` routine (from a
+`claude:plan` issue) only when that slice is ready to begin. Earlier slices may
+be planned in detail; later slices stay intentionally vague until the preceding
+learnings come in.
 
 ## 8. Sequencing rationale
 

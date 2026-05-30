@@ -6,29 +6,32 @@ New specs follow the template in [`_template.md`](./_template.md).
 See [AGENTS.md](../../AGENTS.md) for the spec-driven development workflow and
 [CONSTITUTION.md](../../CONSTITUTION.md) §3 for TDD rules.
 
-Pre-spec draft briefs (produced by `plan-feature` after invoking the
-`grill-me` skill — ADR 048) live alongside specs as `_draft-NNN-<slug>.md`.
-They survive through `Draft → Approved → In Progress` so reviewers and
-implementers can refer to the grilling Q→A, and are **deleted** when the
-SPEC reaches a terminal state (`Complete` or `Abandoned`) or when the
-feature is rejected before a SPEC is ever written. Git history preserves
-the brief for archaeology; the SPEC number returns to the pool on rejection.
-Per-spec rolling implementation notes live in
+Per ADR 057, SPECs are drafted by the `draft-spec` routine in response to a
+GitHub issue labelled `claude:plan`. Pre-spec draft briefs from the previous
+interactive flow no longer exist — the issue body itself is the input the
+routine consumes. Per-spec rolling implementation notes live in
 [`../implementation-notes/`](../implementation-notes/).
 
 ## Lifecycle
 
 ```
-Draft → Approved → In Progress → Complete
-                               → Abandoned (if cancelled)
+Issue opened (claude:plan)
+  → draft-spec routine opens a spec PR → status: Draft (PR labelled claude:revise)
+    → review comments + claude:revise-now → revise-spec routine pushes updates
+      → merge spec PR with claude:implement → status: Approved (implicit)
+        → implement-spec routine → status: In Progress
+          → impl PR merged → status: Complete
+                          → Abandoned (if cancelled)
 ```
 
-- **Draft** — spec written, awaiting human review.
-- **Approved** — human has reviewed and approved. Implementation may begin.
-- **In Progress** — implementation underway.
+- **Draft** — SPEC written by `draft-spec`, awaiting human review on the
+  spec PR.
+- **Approved** — spec PR merged with `claude:implement` (no separate status
+  string in the SPEC body — the routine simply moves on).
+- **In Progress** — `implement-spec` is running.
 - **Complete** — all acceptance criteria met, verification suite green,
-  deviations logged.
-- **Abandoned** — spec cancelled before or during implementation.
+  deviations triaged.
+- **Abandoned** — spec PR closed without merge, or impl PR closed.
 
 ## Index
 

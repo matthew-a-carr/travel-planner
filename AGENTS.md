@@ -9,6 +9,49 @@
 
 ---
 
+## Execution environment — Claude Code remote sessions only
+
+Per [ADR 057](./docs/decisions/057-autonomous-workflow-and-remote-execution.md),
+**all routines and the default interactive flow run on Claude Code Web**
+(claude.ai/code) — Anthropic-managed cloud sessions. Matt's local Mac is
+reserved for two narrow cases:
+
+- Physical-iPhone Expo Go validation (a routine can't reach a real device).
+- Manual debugging when a routine flags a blocker and Matt wants to drive
+  the session interactively from a terminal.
+
+What this means in practice:
+
+- The `pnpm dev` / `pnpm dev:mobile` instructions below are kept for human-
+  driven local sessions but **routines never run them**. Routines run
+  `pnpm lint && pnpm type-check && pnpm test:unit && pnpm test:integration
+  && pnpm build` and rely on CI's `mobile-e2e` job (ADR 055) for the
+  Maestro/iOS Simulator gate.
+- `.claude/hooks/session-start.sh` is gated on `CLAUDE_CODE_REMOTE=true` —
+  cloud sessions bootstrap Docker + Terraform + gh + pnpm install +
+  Playwright automatically; local sessions skip the bootstrap.
+- Two plugins are pinned in `.claude/settings.json` via the
+  `matthew-a-carr` marketplace (`matthew-a-carr/claude-plugins`):
+  - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
+    tech-stack, behavioural-rules, plus the `apply-principles` and
+    `architecture-review` skills.
+  - `dev-skills@matthew-a-carr` — TDD loop, handoff, design grilling,
+    GitHub PR helpers, CLI design, etc. The autonomous routines don't
+    depend on these but they're available if an interactive session
+    wants them.
+  The pin lives in the repo (not just Matt's user-level config) so any
+  session/clone *requests* both. Loading is **best-effort**, not guaranteed:
+  a marketplace plugin may need a trust prompt that a headless routine can't
+  answer, so `apply-principles` / `architecture-review` may silently not load
+  in a routine run. Skills treat them as best-effort (the routine still
+  succeeds without them); verify via a `Run now` + transcript read, and if a
+  routine ever genuinely *depends* on one, vendor it into `.agents/skills/`
+  the way `grill-me` was.
+
+Operations runbook: [`docs/operations/autonomous-workflow.md`](./docs/operations/autonomous-workflow.md).
+
+---
+
 ## Repo layout
 
 This is a pnpm monorepo (ADR 046). The web application lives at
@@ -156,8 +199,8 @@ solution, default to the durable option. Examples:
 - Correct an architectural pattern as part of the feature that exposed
   it, not as drive-by churn after the fact.
 
-When presenting options during `plan-feature` grilling or in-flight
-deviations, **lead with the durable choice as the recommendation**, even
+When `draft-spec` lists §Open Questions or `implement-spec` logs a
+deviation, **lead with the durable choice as the recommendation**, even
 if it costs more upfront. The "quick" option still belongs in the table
 for transparency — just not as the default.
 
@@ -175,15 +218,31 @@ the team's memory of why it's there is not.
 
 ---
 
-## Specification-driven development (ADRs 047, 048, 049)
+## Autonomous workflow (ADRs 047, 049, 057)
 
-Two artefact tiers:
+Per ADR 057, the lifecycle is **issue-driven and routine-executed**. Humans
+act at the submission and review gates; the loop in between runs on Claude
+Code Web. The interactive `grill-me` / `plan-feature` / `plan-epic` flow
+documented in earlier revisions of this file is **superseded** by the issue-
+template + routine model below.
+
+```
+Matt opens issue (claude:plan or claude:plan-epic)
+  → draft-spec / draft-epic routine opens a spec/epic PR
+    → Matt reviews PR, drops comments, labels claude:revise-now
+      → revise-spec routine rewrites and pushes
+        → Matt merges spec PR with claude:implement label
+          → implement-spec routine opens an implementation PR (claude:done)
+            → Matt merges impl PR
+```
+
+Two artefact tiers (unchanged from ADRs 047 / 049):
 
 - **Epic** (`docs/epics/EPIC-NNN-*.md`) — multi-SPEC initiative. Owns
   vision, slicing, kill criteria, and cross-cutting decisions all child
-  SPECs inherit. (ADR 049.)
+  SPECs inherit.
 - **Spec** (`docs/specs/SPEC-NNN-*.md`) — one shippable unit, either
-  standalone or a slice of an epic. (ADR 047.)
+  standalone or a slice of an epic.
 
 ### When to write an epic
 
@@ -195,113 +254,119 @@ Write an epic when:
 - There's a meaningful chance the work is killed or pivoted partway, and
   pre-committing exit criteria matters.
 
+Open an issue with the **Epic** template (label `claude:plan-epic`).
+
 ### When to write a spec
 
-Write a spec when:
+Write a spec (open an issue with the **Feature request** template, label
+`claude:plan`) when:
 - Adding a new user-facing feature
 - Making a significant change to domain logic
 - Adding a new integration or external service
 - Any change that would benefit from up-front design
 
 Do NOT write a spec for:
-- Bug fixes (unless the fix reveals a design problem)
+- Bug fixes (unless the fix reveals a design problem) — open a plain issue
 - Dependency bumps
 - Documentation-only changes
 - Refactors with no behaviour change
 
-### Epic lifecycle
+### How feedback flows
 
-1. Confirm a strategic ADR exists (or draft it first). Epics implement
-   direction; they do not decide it.
-2. Invoke `plan-epic`. It grills at epic altitude (vision, slicing, kill
-   criteria, cross-cutting decisions, external constraints) and writes a
-   draft brief at `docs/epics/_draft-NNN-<slug>.md`.
-3. `plan-epic` copies the brief into `docs/epics/EPIC-NNN-<slug>.md` using
-   the epic template, sets status `Draft`, and updates `docs/epics/README.md`.
-4. Request human review and approval.
-5. **Do NOT begin any slice's SPEC until the epic is `Approved`.**
+- **Drafted SPEC PR not quite right?** Drop review comments on the PR, then
+  apply label `claude:revise-now`. The `revise-spec` routine rewrites and
+  removes the label.
+- **Drafted SPEC is wrong on a fundamental axis?** Close the spec PR with a
+  comment explaining; close the source issue or re-open with refined wording.
+  The routine doesn't second-guess closes.
+- **SPEC drafted with §Open Questions you want answered before merging?**
+  Reply on the PR inline, then apply `claude:revise-now`. The routine
+  resolves the questions in the same loop.
+- **Approval = merge with `claude:implement`.** Merging the spec PR with that
+  label fires the implement routine.
+- **Implementation hit a wall?** The routine applies `claude:blocked` and
+  Slack DMs Matt with the one-liner.
 
-### Spec lifecycle
+### Capture cheap, triage deliberate (unchanged from ADR 048)
 
-1. **If this spec is a slice of an epic**, read the epic first.
-   Cross-cutting decisions (§10) and non-goals (§6) are inherited and out
-   of scope for re-grilling.
-2. **Grill the idea first** — invoke the `grill-me` skill on any non-trivial
-   idea before writing a spec. `plan-feature` then writes a draft brief at
-   `docs/specs/_draft-NNN-<slug>.md` capturing refined scope, alternatives
-   considered, and load-bearing decisions from the interview. (ADR 048.)
-3. Copy `docs/specs/_template.md` → `docs/specs/SPEC-NNN-title.md` and use the
-   draft brief as the source of truth. Set `Parent epic` to the EPIC link if
-   applicable, else `—`.
-4. Fill in **every** section (use "N/A — [reason]" for inapplicable sections).
-5. Set status: `Draft`. If parented to an epic, update the epic's §7 slice
-   table and slice ledger.
-6. **Invoke `review-spec`** to check the draft against the constitution,
-   ADRs, parent epic, and tech debt register. Address any **Critical**
-   findings before requesting human review.
-7. Request human review and approval.
-8. **Do NOT begin implementation until status is `Approved`.**
+The rolling implementation-notes mechanism is retained. `implement-spec`
+appends timestamped entries to
+`docs/implementation-notes/SPEC-NNN-<slug>.md` as it works, then triages
+them at close-out into the spec's deviations table, post-impl notes,
+`docs/tech-debt.md`, or discarded.
 
-### During implementation
+### Interactive planning in a remote session
 
-- Follow the implementation order in the spec.
-- **Capture cheap, triage deliberate.** Append observations, deviations,
-  surprises, decisions, and blockers to
-  `docs/implementation-notes/SPEC-NNN-<slug>.md` as they happen — one
-  timestamped entry per observation. Do **not** edit the spec's deviations
-  table or `docs/tech-debt.md` mid-flight; those are populated at close-out.
-  (ADR 048.)
-- When unsure about a deviation: **STOP and consult the human.**
-- One exception: cross-cutting hazards (security, data loss, broken
-  invariant) that another contributor must know about *today* go straight to
-  `docs/tech-debt.md` with a back-reference to the notes entry.
+The autonomous loop is the default, but interactive planning in a remote
+Claude Code Web session is **fully supported** — open a session against
+`travel-planner`, talk through the feature, get a SPEC PR by the end of the
+conversation. The agent will:
 
-### After implementation
+1. Invoke `dev-skills:grill-me` to interview you one question at a time
+   until the design is sharp (use the same skill for "break this work
+   down for implementation"). For epics, the grill is at epic altitude
+   (vision, slicing, kill criteria, cross-cutting decisions); for slices,
+   at slice altitude (acceptance, demo script, prerequisites).
+2. File a `claude:plan` or `claude:plan-epic` GitHub issue with the
+   grilled brief as the body, so the source-of-truth lives where the
+   autonomous flow expects it.
+3. Continue straight into the `draft-spec` / `draft-epic` skill —
+   drafting the SPEC/EPIC and opening the PR in the same session, no need
+   to wait for the routine. The issue gets `claude:planned` so the
+   routine won't redo the work.
 
-- Run the full verification suite (see "Verification" section above).
-- **Triage the rolling notes file.** For every entry in
-  `docs/implementation-notes/SPEC-NNN-<slug>.md`, pick a landing place:
-  the spec's Implementation Deviations table (design intent changed), the
-  spec's Post-Implementation Notes (learnings), `docs/tech-debt.md` (debt
-  that outlives the spec), or discarded (resolved already). Fill in the
-  triage summary table at the bottom of the notes file.
-- Update spec status → `Complete`.
-- Leave the notes file in place as the raw record.
+From your end it feels like a single conversation: "plan a feature that
+does X" → some back-and-forth questions → "here's PR #N for review." The
+PR then flows through the standard revise / merge / implement loop.
+
+This is also the right entry point when:
+
+- You want to brainstorm and aren't sure if it's a SPEC or an epic yet
+  (the agent picks based on grilling output).
+- You're driving a routine session manually because it hit a blocker —
+  the session URL is at `claude.ai/code/session_XXX`; pause it and
+  continue interactively.
 
 ### Tech debt review
 
-Before planning a new spec, review `docs/tech-debt.md`. If any outstanding
-items are relevant to the new feature or can be addressed alongside it,
-include them in the spec's implementation order.
+Before drafting a new spec, the `draft-spec` routine reads `docs/tech-debt.md`
+and includes any items relevant to the new feature in the SPEC's
+Implementation Order. The `weekly-tech-debt` routine triages the register
+on Sundays.
 
-### Skills — step-by-step invocation
+### Skills
 
-Each phase of the lifecycle has a corresponding skill in `.agents/skills/`.
 Skills follow the [Open Skills format](https://agentskills.io/specification):
 each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 (`name` + `description`) and a markdown body with step-by-step instructions.
 
 ```
 .agents/skills/
-├── grill-me/
-│   └── SKILL.md        ← "Grill me on [idea]" — interview before epic / spec
-├── plan-epic/
-│   └── SKILL.md        ← "Plan an epic for [initiative]"
-├── plan-feature/
-│   └── SKILL.md        ← "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM"
+├── draft-spec/
+│   └── SKILL.md        ← Issue (claude:plan) → SPEC PR (autonomous)
+├── draft-epic/
+│   └── SKILL.md        ← Issue (claude:plan-epic) → EPIC PR (autonomous)
+├── revise-spec/
+│   └── SKILL.md        ← PR + review comments → updated SPEC/EPIC (autonomous)
 ├── implement-spec/
-│   └── SKILL.md        ← "Implement SPEC-NNN"
+│   └── SKILL.md        ← Merged spec PR → implementation PR (autonomous)
 ├── review-spec/
-│   └── SKILL.md        ← "Review SPEC-NNN" — cross-artefact consistency check
+│   └── SKILL.md        ← Read-only consistency check
 └── review-tech-debt/
-    └── SKILL.md        ← "Review tech debt"
+    └── SKILL.md        ← Triage tech-debt register
 ```
 
-`grill-me` is vendored from the upstream
-[`matthew-a-carr/agent-scripts`](https://github.com/matthew-a-carr/agent-scripts)
-plugin so the lifecycle works in any environment without a separate plugin
-install (ADR 048). If you change the canonical version upstream, re-vendor
-it here to keep them aligned.
+Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`):
+
+- `apply-principles` — ground a change in the principles before writing.
+  Called by `draft-spec` and `implement-spec` during pre-flight.
+- `architecture-review` — review a diff against the principles. Called by
+  `draft-spec` and `revise-spec` after writing.
+
+The old `grill-me` / `plan-feature` / `plan-epic` skills were removed when
+the autonomous flow landed. `grill-me` is still available via the user-level
+`dev-skills@matthew-a-carr` plugin (also auto-loaded) if an interactive session
+genuinely needs it — it's just no longer part of the default lifecycle.
 
 #### How skills work
 
@@ -315,12 +380,12 @@ it here to keep them aligned.
 
 | Skill | Invocation | What it does |
 |-------|-----------|--------------|
-| [`grill-me`](./.agents/skills/grill-me/SKILL.md) | "Grill me on [idea]" | One-question-at-a-time interview until shared understanding |
-| [`plan-epic`](./.agents/skills/plan-epic/SKILL.md) | "Plan an epic for [initiative]" | Grill at epic altitude → write EPIC-NNN. Does NOT write SPECs |
-| [`plan-feature`](./.agents/skills/plan-feature/SKILL.md) | "Plan a feature for [idea]" / "Plan slice N of EPIC-MMM" | Grill at slice altitude → write SPEC-NNN, inheriting epic decisions if any |
-| [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates Draft → Approved and Approved → implementation |
-| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | "Implement SPEC-NNN" | TDD → rolling notes → verification → triage at close-out |
-| [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | "Review tech debt" | Assess → categorise → report → act |
+| [`draft-spec`](./.agents/skills/draft-spec/SKILL.md) | Routine on `Issue opened` + label `claude:plan`; or "draft a spec from issue #NNN" | Read issue → draft SPEC → open PR with §Open Questions |
+| [`draft-epic`](./.agents/skills/draft-epic/SKILL.md) | Routine on `Issue opened` + label `claude:plan-epic`; or "draft an epic from issue #NNN" | Read issue → draft EPIC (slice table, kill criteria, cross-cutting decisions) → open PR. Does NOT auto-file slice issues |
+| [`revise-spec`](./.agents/skills/revise-spec/SKILL.md) | Routine on PR labelled `claude:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
+| [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates draft → ready-for-review and merged → implementation |
+| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | Routine on merged spec PR with label `claude:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `claude:done` |
+| [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | Weekly routine; or "review tech debt" | Assess → categorise → report → act |
 
 #### Adding a new skill
 
@@ -337,8 +402,8 @@ description: >               # 1–1024 chars; describes WHAT it does and WHEN t
 ```
 
 See the [Agent Skills specification](https://agentskills.io/specification) for
-the full format reference, and `.agents/skills/plan-feature/SKILL.md` for a
-working example.
+the full format reference, and `.agents/skills/draft-spec/SKILL.md` for a
+working autonomous-flow example.
 
 Epics, specs, per-spec implementation notes, and the tech debt register
 live in `docs/epics/`, `docs/specs/`, `docs/implementation-notes/`, and
@@ -348,22 +413,34 @@ live in `docs/epics/`, `docs/specs/`, `docs/implementation-notes/`, and
 [`docs/implementation-notes/README.md`](./docs/implementation-notes/README.md)
 for the per-tier indexes and workflows.
 
+Routine configuration (one-time setup): [`docs/operations/autonomous-workflow.md`](./docs/operations/autonomous-workflow.md).
+
 ---
 
 ## Adding a feature — standard sequence
 
-1. Write or review the **feature spec** (`docs/specs/`). Get human approval.
+The default path is the autonomous flow described above: open an issue with
+the Feature request template (label `claude:plan`), review the SPEC PR the
+routine opens, merge with `claude:implement`. The remaining steps below are
+what the `implement-spec` routine performs — listed here for reference and
+for the rare case where you're driving implementation interactively.
+
+1. Read the approved (merged) **feature spec** (`docs/specs/`).
 2. Write the Playwright e2e test first (`tests/e2e/`).
 3. Write domain unit tests (`*.test.ts` alongside the domain file). For use-case and
    repository layer changes, also write integration tests (`*.int-test.ts` in the same
    directory).
 4. Implement minimum code to make tests pass.
-5. Log any deviations from the spec in its "Implementation Deviations" table.
+5. Append observations / deviations to
+   `docs/implementation-notes/SPEC-NNN-<slug>.md` as they happen; triage at
+   close-out into the spec's deviations table, post-impl notes, tech-debt,
+   or discarded.
 6. Run the verification commands above.
 7. Update `CHANGELOG.md` under `## [Unreleased]`.
 8. **Review and patch any docs that describe stale state** (see Doc review below).
 9. **Write an ADR** if the change meets the trigger criteria below.
-10. Commit with a [Conventional Commit](https://www.conventionalcommits.org/) message.
+10. Open the implementation PR with label `claude:done` and a Conventional
+    Commit title — Matt reviews and merges.
 
 ---
 

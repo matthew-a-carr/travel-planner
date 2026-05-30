@@ -1,38 +1,75 @@
 ---
 name: implement-spec
 description: >
-  Implement an approved feature specification. Use when the user says "implement
-  SPEC-NNN," "build the feature in SPEC-NNN," or references an approved spec.
-  Follows the spec's implementation order using TDD, logs deviations, runs the
-  full verification suite, and closes out the spec with post-implementation notes
-  and tech debt capture.
+  Implement an approved feature specification. Triggered by a routine when a
+  spec PR is merged with the `claude:implement` label (per ADR 057), or by a
+  human asking "implement SPEC-NNN" interactively. Follows the spec's
+  implementation order using TDD, logs deviations, runs the full verification
+  suite, opens an implementation PR with label `claude:done`, and closes out
+  the spec with post-implementation notes and tech debt capture.
 ---
 
 # Implement a Spec
 
 ## When to use
 
-Use this skill when asked to implement an approved spec from `docs/specs/`.
-The spec must have status `Approved` before implementation begins.
+Use this skill when:
+
+- A Claude Code routine fires on `PR merged` with the `claude:implement`
+  label on the merged spec PR (per ADR 057). This is the default trigger.
+- A human asks "implement SPEC-NNN" in an interactive session.
+
+In both cases the SPEC must already be on `main` (the spec PR has been
+merged). The label `claude:implement` on the merged PR is what gates routine
+execution.
+
+## Tool conventions (read this first)
+
+Same as `draft-spec/SKILL.md` — `git` + `pnpm` for local ops,
+`mcp__github__*` for remote ops (no `gh` CLI), and
+`mcp__claude_ai_Slack__slack_send_message` with `channel:
+"$SLACK_NOTIFY_USER"` for blocker DMs. Skills from the
+engineering-principles plugin (`apply-principles`, `architecture-review`)
+are best-effort: if not loaded, log a warning and continue.
+
+## Inputs
+
+- `MERGED_PR_NUMBER` — the spec PR that just merged (from the trigger
+  event).
+- `REPO` — from `NOTIFY_REPO` env var or the trigger event.
+
+If not set, derive via `mcp__github__list_pull_requests` filtered to
+`state: closed`, `merged: true`, label `claude:implement`, picking the
+most recently merged whose linked SPEC doesn't yet have an open impl PR.
 
 ## Pre-flight
 
-1. Read the spec file (`docs/specs/SPEC-NNN-title.md`) end-to-end.
-2. **Verify status is `Approved`.** If not, STOP — do not implement unapproved specs.
+1. Resolve the SPEC file from the merged PR via
+   `mcp__github__pull_request_read` — the SPEC path is in the PR body or
+   among the changed files.
+2. Read the spec file (`docs/specs/SPEC-NNN-title.md`) end-to-end.
 3. **Invoke the `review-spec` skill** as a final gate. The spec may have
-   been approved before later ADRs, epic changes, or tech debt entries
+   been merged before later ADRs, epic changes, or tech debt entries
    landed. Refuse to start if the verdict is **Needs revision** or
-   **Blocked** — return to the human with the report; do not proceed and
-   do not silently patch the spec. Warnings can be acknowledged inline in
-   the implementation notes file rather than blocking.
-4. Read `AGENTS.md` and `CONSTITUTION.md` to confirm current engineering standards.
+   **Blocked** — apply `claude:blocked` to the SPEC's source issue via
+   `mcp__github__add_issue_labels`, comment with the report via
+   `mcp__github__create_issue_comment`, Slack DM `$SLACK_NOTIFY_USER` via
+   `mcp__claude_ai_Slack__slack_send_message`, and stop. Warnings can be
+   acknowledged inline in the implementation notes file rather than
+   blocking.
+4. Read `AGENTS.md` and `CONSTITUTION.md` to confirm current engineering
+   standards.
 5. Read the layer-specific `AGENTS.md` files for any layers this spec touches.
-6. Set the spec status to `In Progress`.
-7. **Open the implementation notes file.** Copy
+6. **Try** to apply the engineering-principles plugin's `apply-principles`
+   skill against the SPEC so implementation stays grounded. If the plugin
+   isn't loaded, set `principles_unavailable=true` and continue — note in
+   the impl PR body's Notes section.
+7. Create an implementation branch: `git checkout -b claude/impl-NNN-<slug>`.
+   Set the spec status to `In Progress` in a first commit on this branch.
+8. **Open the implementation notes file.** Copy
    `docs/implementation-notes/_template.md` →
    `docs/implementation-notes/SPEC-NNN-<slug>.md`. Fill in the header (spec
-   link, start date). Leave the entries list empty — you'll append to it as
-   you work. This file is your rolling log; keep it open in a tab.
+   link, start date). Leave the entries list empty — append as you work.
 
 ## Implement
 
@@ -80,11 +117,23 @@ is where deviation logs go to die.
     ```bash
     pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
     ```
-13. If any check fails, fix it before proceeding. If stuck, consult the human.
+13. If any check fails, attempt to fix it. **Retry the full suite up to 3
+    times.** If still failing after 3 attempts, stop, apply `claude:blocked`
+    to the impl PR (open it as draft first if needed), comment on the PR
+    with the verification output and a one-line root-cause guess, and
+    Slack DM `$SLACK_NOTIFY_USER` via `mcp__claude_ai_Slack__slack_send_message` with the PR link + the blocker line.
+    Do not skip tests or use `--no-verify` to push through. Do not
+    silently delete or `.skip` failing tests (per behavioural-rules Rule 9
+    — fail loud).
 14. Run e2e tests if the spec includes e2e acceptance criteria:
     ```bash
     pnpm test:e2e
     ```
+    Mobile-only e2e (Maestro) does **not** run in cloud routines — that's
+    CI's job on a macOS runner (per ADR 055 and the apps/mobile/AGENTS.md
+    remote-only section). For mobile slices, the impl PR's `mobile-e2e`
+    CI job is the gate; the routine confirms the job is configured but
+    doesn't run Maestro locally.
 15. Verify the production build:
     ```bash
     POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build
@@ -115,9 +164,49 @@ This is the deliberate synthesis step the rolling log is designed for.
 19. Update `CHANGELOG.md` under `## [Unreleased]` if user-facing changes were made.
 20. Review the doc review table in `AGENTS.md` — update any docs that are now stale.
 21. Update `docs/specs/README.md` index with the new status.
-22. Leave the notes file in place — it's the raw record. Do not delete it.
-23. **Delete the draft brief.** Remove `docs/specs/_draft-NNN-<slug>.md`
-    if it still exists. The SPEC itself is now the authoritative record;
-    git history preserves the brief. (Same rule applies if a spec is
-    being marked `Abandoned` rather than `Complete`.)
-24. Present the completed work to the human for final review.
+22. **If this slice has a parent epic, update that epic** in the same
+    commit:
+    - §7 Slice table: set the row's Status to `Complete` and link the
+      impl PR.
+    - Slice ledger: append a row dated today: `SPEC-NNN complete (PR #N)`.
+    - If this is the milestone slice or the final scoped slice, flag in
+      the PR body that the epic itself may be ready to mark Complete —
+      but **do not** mark the epic Complete autonomously. That's a
+      human decision.
+23. Leave the notes file in place — it's the raw record. Do not delete it.
+
+## Open the implementation PR
+
+24. Push the `claude/impl-NNN-<slug>` branch via `git push`.
+25. Open the PR via `mcp__github__create_pull_request`:
+    - Title: `feat(spec-NNN): <slug>` (or `fix`, `refactor` as appropriate per
+      Conventional Commits — CONSTITUTION §15).
+    - Body: link to the SPEC, link to the merged spec PR, summary of
+      changes, the §Post-Implementation Notes verbatim, a checklist of
+      verification commands run + their outcome. If this slice has a
+      parent epic, link the epic and call out its status (e.g. "This is
+      slice 3/9 of EPIC-002; epic remains in progress."). Include a Notes
+      section if `principles_unavailable=true`.
+    - Label `claude:done` via `mcp__github__add_issue_labels`.
+26. For mobile slices, note in the PR body that physical-iPhone Expo Go
+    validation is **manual** (Matt does it before merging) — the routine
+    can't reach a physical device. CI's `mobile-e2e` job covers the
+    Simulator + Maestro gate.
+
+The routine ends here. Matt reviews the PR and merges. On merge, the impl
+PR closes the SPEC's lifecycle automatically (the SPEC was already set to
+`Complete` in step 18).
+
+## Block / escalate
+
+If at any step the work can't proceed safely:
+
+- Apply `claude:blocked` to the open impl PR (or the source SPEC PR if no
+  impl PR exists yet) via `mcp__github__add_issue_labels`.
+- Comment on the PR via `mcp__github__create_issue_comment` with the
+  specific blocker — one line problem, one line proposed resolution, link
+  to the verification output or the offending diff.
+- Slack DM `$SLACK_NOTIFY_USER` via `mcp__claude_ai_Slack__slack_send_message`
+  with the PR link + the one-liner.
+- Do not push partial-state branches without a draft PR + the blocker
+  comment. A silent half-done branch is worse than a loud failure.

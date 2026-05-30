@@ -28,9 +28,33 @@
 | App identifier | `app.json` → `expo.ios.bundleIdentifier` (`dev.matthewcarr.travelplanner`) |
 | URL scheme | `app.json` → `expo.scheme` (`travelplanner://`) |
 
-## Dev loop
+## Where mobile work runs (ADR 057)
 
-From the repo root:
+The mobile app is built **by Claude Code Web routines** (the autonomous flow
+in the root `AGENTS.md`). Local execution on Matt's Mac is reserved for two
+things:
+
+- **Physical-iPhone Expo Go validation** — manual, Matt runs `pnpm dev:mobile`
+  and scans the QR with the Expo Go app on his iPhone. The routine can't
+  reach a real device, so this is always a human step before merging a
+  mobile impl PR.
+- **Interactive debugging when a routine is blocked.**
+
+Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
+— Linux remote sessions can't. What they run on a mobile slice:
+
+- `pnpm lint && pnpm type-check:mobile && pnpm test:mobile` for unit /
+  component tests on every change.
+- `pnpm build` is web-only; mobile has no separate "build" gate in cloud
+  routines.
+- The impl PR's CI **`mobile-e2e`** job (ADR 055) does `expo prebuild +
+  xcodebuild + Maestro flows` on a macOS runner. That's the iOS Simulator
+  gate — if it fails on the routine's PR, Matt picks it up via the standard
+  CI-failure email + the routine's `claude:blocked` flow.
+
+## Dev loop (manual / human-driven only)
+
+From the repo root, when Matt is driving locally:
 
 ```bash
 pnpm dev:mobile        # starts Expo Metro; prints QR code
