@@ -35,6 +35,6 @@
     "jest-expo": "^54.0.17",
     "msw": "^2.14.6",
     "react-test-renderer": "19.1.0",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.3"
   }
 }
