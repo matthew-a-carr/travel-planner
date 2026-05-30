@@ -64,28 +64,36 @@ export function AuthProvider({ children }: PropsWithChildren): ReactElement {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const access = await getAccessToken();
-      if (cancelled) return;
+      try {
+        const access = await getAccessToken();
+        if (cancelled) return;
 
-      if (!access.ok) {
-        // 'no_tokens' → nothing in Keychain; 'refresh_failed' → getAccessToken
-        // already called clearTokens. Either way: signed_out.
-        setState({ status: 'signed_out' });
-        return;
+        if (!access.ok) {
+          // 'no_tokens' → nothing in Keychain; 'refresh_failed' → getAccessToken
+          // already called clearTokens. Either way: signed_out.
+          setState({ status: 'signed_out' });
+          return;
+        }
+
+        const me = await apiGet('/api/v1/me', meResponseSchema, access.token);
+        if (cancelled) return;
+
+        if (!me.ok) {
+          // Q8 in SPEC-007: ALL /me failures collapse to signed_out +
+          // clear Keychain. Audience accepts wifi-blip → re-OAuth.
+          await clearTokens();
+          setState({ status: 'signed_out' });
+          return;
+        }
+
+        setState({ status: 'signed_in', me: me.data });
+      } catch {
+        // Defensive: cold-start must always leave 'unknown' so the
+        // AuthGuard can hide the splash. An unhandled throw here (e.g.
+        // a Keychain read error) would otherwise strand the app on the
+        // splash forever. Fail safe to signed_out → the sign-in screen.
+        if (!cancelled) setState({ status: 'signed_out' });
       }
-
-      const me = await apiGet('/api/v1/me', meResponseSchema, access.token);
-      if (cancelled) return;
-
-      if (!me.ok) {
-        // Q8 in SPEC-007: ALL /me failures collapse to signed_out +
-        // clear Keychain. Audience accepts wifi-blip → re-OAuth.
-        await clearTokens();
-        setState({ status: 'signed_out' });
-        return;
-      }
-
-      setState({ status: 'signed_in', me: me.data });
     })();
     return () => {
       cancelled = true;

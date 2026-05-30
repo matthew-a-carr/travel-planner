@@ -195,6 +195,19 @@ describe('AuthProvider — cold-start', () => {
     });
     expect(mockClearTokens).toHaveBeenCalledTimes(1);
   });
+
+  it('(g) cold-start throws → signed_out, never stranded on unknown', async () => {
+    // An unhandled throw in cold-start (e.g. a Keychain read error) must
+    // still leave 'unknown' so AuthGuard hides the splash — otherwise the
+    // app hangs on the splash forever (the mobile-e2e stuck-screen bug).
+    mockGetAccessToken.mockRejectedValue(new Error('keychain unavailable'));
+
+    renderProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('status').props.children).toBe('signed_out');
+    });
+  });
 });
 
 describe('AuthProvider — signIn', () => {
