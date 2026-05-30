@@ -59,4 +59,4 @@ for rationale.
 
 | Epic | Title | Strategic ADR | Status |
 |------|-------|---------------|--------|
-| [001](EPIC-001-ios-app.md) | iOS App — Expo + React Native against extracted REST API | [045](../decisions/045-ios-app-strategy.md) | Approved |
+| [001](EPIC-001-ios-app.md) | iOS App — Expo + React Native against extracted REST API | [045](../decisions/045-ios-app-strategy.md) | Complete |
