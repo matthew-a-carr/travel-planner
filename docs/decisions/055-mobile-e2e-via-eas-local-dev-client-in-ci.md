@@ -64,14 +64,24 @@ The dev-client `.app` can then be installed into the simulator via
 4. Runs `pod install` in `apps/mobile/ios/` (CocoaPods is preinstalled
    on `macos-latest` runners).
 5. Runs `xcodebuild -workspace TravelPlanner.xcworkspace -scheme
-   TravelPlanner -configuration Debug -sdk iphonesimulator
+   TravelPlanner -configuration Release -sdk iphonesimulator
    -derivedDataPath build CODE_SIGNING_ALLOWED=NO` from
-   `apps/mobile/ios/` to produce a dev-client `.app` for the iOS
+   `apps/mobile/ios/` to produce a self-contained `.app` for the iOS
    Simulator. **The original ADR draft named `eas build --local`
    here; switched to raw `xcodebuild` during step 9 implementation
    when EAS Local was found to require an EAS project ID + an EAS
    CLI session. The raw path has zero external-account dependency
    and matches the durable-bias directive in `AGENTS.md`.**
+   **`Release` (not `Debug`):** Release runs the
+   "Bundle React Native code and images" Xcode build phase, which
+   invokes `react-native-xcode.sh` to bundle the JS and embed it in
+   the `.app`. Debug builds skip this phase and rely on the Metro
+   packager being reachable at launch; in CI Metro isn't running, so
+   a Debug build boots into the "No script URL provided" red error
+   screen and Maestro's `login-screen-root` assertion fails. The
+   alternative — starting Metro in the background before Maestro —
+   adds a packager lifecycle to the CI script and a flake surface
+   that Release avoids by being self-contained.
 6. Boots an iOS Simulator (first available `iPhone` device on the
    runner, via `xcrun simctl list devices available`).
 7. Installs the bundle (`xcrun simctl install booted <.app>`).
@@ -79,13 +89,38 @@ The dev-client `.app` can then be installed into the simulator via
 9. On failure, uploads Maestro's report directory as a CI artifact
    (7-day retention).
 
-The job is marked **`continue-on-error: true` for the first week** of
-operation (per SPEC-006 §11) and promoted to blocking once it has a
-stable track record. A calendar reminder gates the promotion.
+The job is **blocking**. It originally shipped with
+`continue-on-error: true` for a week-1 burn-in (per SPEC-006 §11) and
+was promoted to blocking on 2026-05-22 alongside the Debug → Release
+build fix — the week-1 buffer had been masking the missing-JS-bundle
+regression on `main`, so the lever stopped being protective and
+started being a hole.
 
-The expected cost is **~5–10 minutes of macOS runner time per
-affected PR**, billing at GitHub's $0.08/minute (~$0.40–0.80 per
-run). Path filtering caps the rate.
+The expected cost is **~4–6 minutes of macOS runner time per
+affected PR** on cache hit, **~9–10 minutes on cache miss**, billing
+at GitHub's $0.08/minute. Path filtering caps the rate.
+
+**Build/test pipeline optimisations (2026-05-22):**
+
+- `apps/mobile/ios/` (Pods + xcodebuild DerivedData),
+  `~/Library/Caches/CocoaPods`, and `~/.maestro` are all restored
+  from `actions/cache@v4`, keyed on
+  `pnpm-lock.yaml + apps/mobile/package.json + apps/mobile/app.json`.
+  These three files are the source of truth for the native build's
+  contents; any drift invalidates the cache.
+- `expo prebuild` runs **without** `--clean` so the cached `ios/`
+  survives. The Expo CLI does an incremental update; the cache key
+  itself is the stale-state guard.
+- The iOS Simulator is booted **in the background** at the start of
+  the job, so its ~60-second cold boot overlaps with prebuild, pod
+  install, and xcodebuild instead of running sequentially.
+- Only `sign-in.yaml` is kept in `.maestro/flows/` — the original
+  `launch.yaml` was a strict subset (same testID assertions + button
+  text), and Maestro paid the XCTest harness setup + app-launch cost
+  twice for redundant coverage.
+
+The combined effect is roughly halving the median runtime on warm
+caches.
 
 EAS Local is the **deliberate intermediate step** between the
 placeholder (TD-002) and EAS Build / TestFlight (deferred to
@@ -111,19 +146,22 @@ this ADR likely survives unchanged.
 
 **What becomes harder:**
 
-- Every affected PR now pays 5–10 minutes of macOS runner time
-  (~$0.40–0.80). Path filter limits the exposure to
-  mobile-touching PRs. Validate the cost band after the first 10
-  affected PRs; if it overshoots, re-plan (e.g. cache `ios/`
-  prebuild output across runs, or move to a self-hosted Mac runner).
+- Every affected PR pays 4–6 min (cache hit) or 9–10 min
+  (cache miss) of macOS runner time. Path filter limits the
+  exposure to mobile-touching PRs. Validate the cost band after
+  the first 10 affected PRs; if it overshoots, the next lever
+  is moving to a self-hosted Mac runner.
 - The pipeline has a new flake surface: macOS runner Xcode version
   drift, simulator-boot failures, EAS Local build environment
-  inconsistencies. Mitigated by `continue-on-error: true` for week 1
-  and the artifact upload on failure.
-- `expo prebuild --clean` regenerates `ios/` from scratch each run.
-  Caching the `~/Library/Caches/expo-prebuild` directory between
-  runs may halve build time but is optional first-pass; tune after
-  the cost-band validation period.
+  inconsistencies. The Maestro report artifact is uploaded on
+  failure to support post-mortem; the original `continue-on-error`
+  buffer was retired on 2026-05-22 (see Decision).
+- Cache poisoning is a new failure mode. If a corrupted DerivedData
+  or Pods directory lands in the cache, subsequent runs will
+  inherit it until the cache key changes. Mitigation: the key is
+  scoped to `runner.os + lockfile hash`, so any lockfile or
+  manifest churn rotates the entry; manual recovery is "bump any
+  one of the three keyed files" or invalidate via the Actions UI.
 
 **Trade-offs:**
 
@@ -153,6 +191,8 @@ this ADR likely survives unchanged.
   alongside that work.
 - Cost-band validation after 10 affected PRs. If the macOS minutes
   meaningfully overshoot the $0.40–0.80 band, re-plan.
-- macOS runner flakiness in week 1. If `continue-on-error: true`
-  surfaces more than ~1 flake per 5 runs, drop back to local-only
-  Maestro + reopen TD-002 with the failure mode documented.
+- macOS runner flakiness post-promotion. If more than ~1 flake per
+  5 runs reaches `main`, reintroduce `continue-on-error: true` as a
+  short-term buffer while the flake source is fixed, or drop back to
+  local-only Maestro + reopen TD-002 with the failure mode
+  documented.

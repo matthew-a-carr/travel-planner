@@ -128,14 +128,19 @@ LAN-IP dance goes away.
   flips state + clears Keychain optimistically, then fire-and-forget
   POST `/api/v1/auth/mobile/revoke` in the background.
 - `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
-  validating responses via `@travel-planner/shared` schemas. The
-  `responseSchema` parameter is optional — omit it for endpoints
-  that return 204 No Content (e.g. `/revoke`). On 204, returns
-  `{ ok: true; data: undefined }`. Wire-shape drift throws loud;
-  error envelopes parse via `apiErrorBodySchema` with a defensive
-  `{ code: 'internal' }` fallback for malformed bodies. Network
-  failures collapse to a generic "Could not reach the server"
-  envelope.
+  validating responses via `@travel-planner/shared` schemas. After
+  SPEC-007 / ADR 056 the wrapper expects every `/api/v1/*` body to
+  carry the standard envelope: 2xx bodies are parsed with
+  `apiSuccessSchema(responseSchema)` and `.data` is returned; 4xx/5xx
+  bodies are parsed with `apiErrorEnvelopeSchema` and the RFC 7807
+  `error` object (which still carries our closed `code` enum) is
+  returned. The `responseSchema` parameter is optional — omit it for
+  endpoints with no useful body (e.g. `/revoke`, which returns 204 No
+  Content); the wrapper then resolves to `{ ok: true; data: undefined }`
+  and skips envelope parsing. Wire-shape drift throws loud. Malformed
+  error bodies and network failures collapse to a synthetic
+  `code: 'internal'` `ApiError` so callers can dispatch on `error.code`
+  uniformly.
 
 When adding a new authenticated `/api/v1/*` call:
 
@@ -300,10 +305,12 @@ they depend on (the prerequisite is "future-you ran a test before
 opening the next SPEC").
 
 - [x] **`mobile-e2e` CI job actually runs flows** — resolved by
-  SPEC-006 step 9 + ADR-055. The job now runs `expo prebuild` +
+  SPEC-006 step 9 + ADR-055. The job runs `expo prebuild` +
   `xcodebuild` + simulator install + Maestro flows on every
-  `apps/mobile/**`-touching PR. Marked `continue-on-error: true` for
-  week 1; promote to blocking after the calendar-gated review.
+  `apps/mobile/**`-touching PR. Promoted to blocking on 2026-05-22
+  after the Debug → Release build fix surfaced that the week-1
+  `continue-on-error: true` buffer was masking real failures
+  reaching `main`.
 - ~~**Partner-device Expo Go validation**~~ — resolved 2026-05-20
   per EPIC-001 §13 Q1: partner cannot reliably run Expo Go on her
   iPhone for the EPIC-001 demo loop, so the on-device demo line in

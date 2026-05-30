@@ -1,36 +1,37 @@
-import { type ApiErrorBody, apiErrorBodySchema } from '@travel-planner/shared';
-import type { ZodType } from 'zod';
-
 /**
  * Thin `fetch` wrapper for `/api/v1/*` calls from the mobile app.
  *
- * Validates response bodies against the shared `@travel-planner/shared`
- * schemas — same source of truth the web integration tests use. On
- * server-side wire drift (response body doesn't match the schema), the
- * underlying `responseSchema.parse(...)` throws so the bug surfaces
- * loud rather than silently corrupting downstream state.
+ * Reshaped in SPEC-007 for the standardised response envelope: every
+ * 2xx body is `{ data: <T>, request, asof, version, meta? }`; every
+ * non-2xx body is RFC 7807 + closed `code` (`{ error: { type, title,
+ * status, detail, instance, code, details? }, request, asof,
+ * version }`).
  *
- * Error envelopes (`{ error: { code, message, details? } }`) are
- * parsed via `apiErrorBodySchema`. If a 4xx/5xx response carries a
- * malformed body that doesn't match the envelope, the client falls
- * back to `{ code: 'internal', message: 'Unexpected error.' }` rather
- * than throwing — that way the orchestrator can render generic-error
- * UX instead of crashing.
+ * Both shapes are runtime-validated against `@travel-planner/shared`.
+ * On wire-shape drift the underlying `.parse(...)` throws so the bug
+ * surfaces loud rather than silently corrupting downstream state.
  *
- * Network failures (`fetch` rejects, or `res.json()` chokes on a
- * non-JSON body) are caught and surfaced as
- * `{ code: 'internal', message: 'Could not reach the server.' }`.
+ * If a 4xx/5xx response carries a malformed body that doesn't match
+ * the error envelope, the client falls back to a synthetic
+ * `code: 'internal'` failure so the orchestrator can render generic-
+ * error UX instead of crashing. Network failures (fetch rejects or
+ * res.json() chokes on a non-JSON body) collapse to the same.
  *
- * `EXPO_PUBLIC_API_BASE_URL` is the build-time env var pointing at the
- * server (defaults to `http://localhost:3000` for Simulator dev).
- * `pnpm dev:mobile` workflows on a real device should export it as
- * the Mac's LAN IP (see `apps/mobile/AGENTS.md`).
+ * Callers dispatch on `error.code` (the closed enum) regardless of
+ * whether the failure came from the server or from a fallback.
+ *
+ * `EXPO_PUBLIC_API_BASE_URL` is the build-time env var pointing at
+ * the server (defaults to `http://localhost:3000` for Simulator dev).
  */
+
+import type { ApiError, ApiErrorCode } from '@travel-planner/shared';
+import { apiErrorEnvelopeSchema, apiSuccessSchema } from '@travel-planner/shared';
+import type { ZodType } from 'zod';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
 export type ApiSuccess<T> = { ok: true; data: T };
-export type ApiFailure = { ok: false; error: ApiErrorBody['error'] };
+export type ApiFailure = { ok: false; error: ApiError };
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
 
 /**
@@ -84,13 +85,13 @@ async function request<T>(
   try {
     response = await fetch(`${BASE_URL}${path}`, { method, headers, body });
   } catch {
-    return networkFailure();
+    return { ok: false, error: synthesiseError('internal', 'Could not reach the server.', path) };
   }
 
   // 204 No Content — no body to parse. Skip the json() call entirely
-  // (empty bodies fail JSON.parse, which would otherwise collapse to
-  // networkFailure via the catch below). Used by /revoke (sign-out)
-  // and any future delete-style endpoint.
+  // (empty bodies fail JSON.parse, which would otherwise collapse to a
+  // synthetic 'internal' error via the catch below). Used by /revoke
+  // (sign-out) and any future delete-style endpoint.
   if (response.status === 204) {
     return { ok: true, data: undefined as T };
   }
@@ -99,33 +100,42 @@ async function request<T>(
   try {
     payload = await response.json();
   } catch {
-    return networkFailure();
+    return { ok: false, error: synthesiseError('internal', 'Could not reach the server.', path) };
   }
 
   if (!response.ok) {
-    const parsed = apiErrorBodySchema.safeParse(payload);
+    const parsed = apiErrorEnvelopeSchema.safeParse(payload);
     if (parsed.success) {
       return { ok: false, error: parsed.data.error };
     }
-    return malformedEnvelopeFallback();
+    return { ok: false, error: synthesiseError('internal', 'Unexpected error.', path) };
   }
 
+  // No schema → no useful body to unwrap (e.g. a non-204 2xx from a
+  // delete-style endpoint). Skip envelope parsing entirely.
   if (responseSchema === undefined) {
     return { ok: true, data: undefined as T };
   }
-  return { ok: true, data: responseSchema.parse(payload) };
+  const envelopeSchema = apiSuccessSchema(responseSchema);
+  // .parse() throws on success-body wire-shape drift — intentional.
+  const successEnvelope = envelopeSchema.parse(payload);
+  return { ok: true, data: successEnvelope.data };
 }
 
-function networkFailure(): ApiFailure {
+/**
+ * Build a synthetic ApiError when the failure originated client-side
+ * (network down, malformed body) so the type contract is uniform.
+ * Status is a placeholder (500) — semantically there isn't a real
+ * HTTP status when the server never replied, but the envelope schema
+ * requires one.
+ */
+function synthesiseError(code: ApiErrorCode, detail: string, path: string): ApiError {
   return {
-    ok: false,
-    error: { code: 'internal', message: 'Could not reach the server.' },
-  };
-}
-
-function malformedEnvelopeFallback(): ApiFailure {
-  return {
-    ok: false,
-    error: { code: 'internal', message: 'Unexpected error.' },
+    type: `https://travel-planner.app/errors/${code}`,
+    title: 'Internal server error',
+    status: 500,
+    detail,
+    instance: path,
+    code,
   };
 }

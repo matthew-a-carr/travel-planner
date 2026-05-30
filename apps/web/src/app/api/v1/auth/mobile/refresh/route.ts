@@ -3,14 +3,18 @@ import { mobileAuthRefreshRequestSchema as Body } from '@travel-planner/shared';
 import { makeRefreshMobileTokens } from '@/application/use-cases/auth/mobile/refresh-mobile-tokens';
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
+import { respondWithData } from '../../../_lib/respond';
 import { rateLimitOrReject } from '../_lib/with-rate-limit';
 
 export async function POST(request: Request): Promise<Response> {
   try {
     const parsed = Body.safeParse(await safeJson(request));
     if (!parsed.success) {
-      return respondWithError('validation_failed', 'Invalid request body.', {
-        issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+      return respondWithError(request, 'validation_failed', {
+        detail: 'Invalid request body.',
+        details: {
+          issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+        },
       });
     }
 
@@ -43,30 +47,32 @@ export async function POST(request: Request): Promise<Response> {
     if (!result.ok) {
       switch (result.error) {
         case 'refresh_reused':
-          return respondWithError(
-            'refresh_reused',
-            'Refresh token was reused; the chain has been revoked.',
-          );
+          return respondWithError(request, 'refresh_reused', {
+            detail: 'Refresh token was reused; the chain has been revoked.',
+          });
         case 'refresh_expired':
-          return respondWithError('refresh_expired', 'Refresh token has expired.');
+          return respondWithError(request, 'refresh_expired', {
+            detail: 'Refresh token has expired.',
+          });
         case 'refresh_revoked':
-          return respondWithError('refresh_revoked', 'Refresh token was revoked.');
+          return respondWithError(request, 'refresh_revoked', {
+            detail: 'Refresh token was revoked.',
+          });
         case 'refresh_unknown':
-          return respondWithError('refresh_unknown', 'Refresh token is unknown.');
+          return respondWithError(request, 'refresh_unknown', {
+            detail: 'Refresh token is unknown.',
+          });
       }
     }
 
-    return Response.json(
-      {
-        access_token: result.value.accessToken,
-        refresh_token: result.value.refreshToken,
-        access_expires_at: result.value.accessExpiresAt.toISOString(),
-      },
-      { headers: { 'Cache-Control': 'no-store' } },
-    );
+    return respondWithData(request, {
+      access_token: result.value.accessToken,
+      refresh_token: result.value.refreshToken,
+      access_expires_at: result.value.accessExpiresAt.toISOString(),
+    });
   } catch (error) {
     console.error('[api/v1/auth/mobile/refresh] unexpected error', error);
-    return respondWithError('internal', 'An unexpected error occurred.');
+    return respondWithError(request, 'internal', { detail: 'An unexpected error occurred.' });
   }
 }
 

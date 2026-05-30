@@ -1,4 +1,4 @@
-import { apiErrorBodySchema, meResponseSchema } from '@travel-planner/shared';
+import { apiErrorEnvelopeSchema, apiSuccessSchema, meResponseSchema } from '@travel-planner/shared';
 import { SignJWT } from 'jose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { signAccessToken } from '@/infrastructure/auth/bearer-token';
@@ -60,8 +60,10 @@ function requestWithoutAuth(): Request {
   return new Request('http://localhost/api/v1/me');
 }
 
+const meSuccessEnvelope = apiSuccessSchema(meResponseSchema);
+
 describe('GET /api/v1/me — cookie path', () => {
-  it('returns 200 with the user shape for an approved user', async () => {
+  it('returns 200 with the user shape wrapped in the success envelope for an approved user', async () => {
     const user = await seedUser(db, {
       email: 'matt@example.com',
       name: 'Matt Carr',
@@ -76,13 +78,15 @@ describe('GET /api/v1/me — cookie path', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('no-store');
     const body = await response.json();
-    meResponseSchema.parse(body);
-    expect(body).toEqual({
+    const parsed = meSuccessEnvelope.parse(body);
+    expect(parsed.data).toEqual({
       id: user.id,
       email: 'matt@example.com',
       name: 'Matt Carr',
       isApproved: true,
     });
+    expect(parsed.request.path).toBe('/api/v1/me');
+    expect(parsed.request.method).toBe('GET');
   });
 
   it('returns 200 with isApproved:false for an authenticated-but-unapproved user', async () => {
@@ -99,8 +103,8 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(200);
     const pendingBody = await response.json();
-    meResponseSchema.parse(pendingBody);
-    expect(pendingBody).toEqual({
+    const parsed = meSuccessEnvelope.parse(pendingBody);
+    expect(parsed.data).toEqual({
       id: user.id,
       email: 'pending@example.com',
       name: 'Pending User',
@@ -125,9 +129,10 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(410);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('user_deleted');
-    expect(typeof body.error.message).toBe('string');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('user_deleted');
+    expect(typeof parsed.error.detail).toBe('string');
+    expect(parsed.error.instance).toBe('/api/v1/me');
   });
 
   it('returns 401 unauthenticated when there is no session', async () => {
@@ -135,8 +140,8 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(401);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('unauthenticated');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('unauthenticated');
   });
 
   it('returns 401 unauthenticated when the session points at a user that no longer exists', async () => {
@@ -149,8 +154,8 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(401);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('unauthenticated');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('unauthenticated');
   });
 
   it('returns 500 internal with a generic envelope when an unexpected error occurs', async () => {
@@ -162,14 +167,14 @@ describe('GET /api/v1/me — cookie path', () => {
 
     expect(response.status).toBe(500);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('internal');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('internal');
     expect(JSON.stringify(body)).not.toContain('boom from auth()');
   });
 });
 
 describe('GET /api/v1/me — bearer path', () => {
-  it('returns 200 with the user shape for a valid bearer + approved user', async () => {
+  it('returns 200 with the user shape wrapped in envelope for a valid bearer + approved user', async () => {
     const user = await seedUser(db, {
       email: 'mobile@example.com',
       name: 'Mobile Matt',
@@ -181,8 +186,8 @@ describe('GET /api/v1/me — bearer path', () => {
 
     expect(response.status).toBe(200);
     const bearerBody = await response.json();
-    meResponseSchema.parse(bearerBody);
-    expect(bearerBody).toEqual({
+    const parsed = meSuccessEnvelope.parse(bearerBody);
+    expect(parsed.data).toEqual({
       id: user.id,
       email: 'mobile@example.com',
       name: 'Mobile Matt',
@@ -202,10 +207,8 @@ describe('GET /api/v1/me — bearer path', () => {
 
     expect(response.status).toBe(200);
     const unapprovedBearerBody = await response.json();
-    meResponseSchema.parse(unapprovedBearerBody);
-    expect(unapprovedBearerBody).toMatchObject({
-      isApproved: false,
-    });
+    const parsed = meSuccessEnvelope.parse(unapprovedBearerBody);
+    expect(parsed.data.isApproved).toBe(false);
   });
 
   it('returns 410 user_deleted for a valid bearer pointing at an anonymised user', async () => {
@@ -223,8 +226,8 @@ describe('GET /api/v1/me — bearer path', () => {
 
     expect(response.status).toBe(410);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('user_deleted');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('user_deleted');
   });
 
   it('returns 401 for an expired bearer (no detail leaked)', async () => {
@@ -246,8 +249,8 @@ describe('GET /api/v1/me — bearer path', () => {
 
     expect(response.status).toBe(401);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('unauthenticated');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('unauthenticated');
     // Single unauthenticated code, no expired/invalid sub-codes leak.
     expect(JSON.stringify(body)).not.toContain('expired');
   });
@@ -256,8 +259,8 @@ describe('GET /api/v1/me — bearer path', () => {
     const response = await GET(requestWithBearer('not-a-jwt'));
     expect(response.status).toBe(401);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('unauthenticated');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('unauthenticated');
   });
 
   it('returns 401 for a bearer signed with a different key', async () => {
@@ -278,8 +281,8 @@ describe('GET /api/v1/me — bearer path', () => {
 
     expect(response.status).toBe(401);
     const body = await response.json();
-    apiErrorBodySchema.parse(body);
-    expect(body.error.code).toBe('unauthenticated');
+    const parsed = apiErrorEnvelopeSchema.parse(body);
+    expect(parsed.error.code).toBe('unauthenticated');
   });
 });
 
@@ -305,8 +308,8 @@ describe('GET /api/v1/me — bearer-wins when both are present', () => {
 
     expect(response.status).toBe(200);
     const body = await response.json();
-    meResponseSchema.parse(body);
-    expect(body.id).toBe(bearerUser.id);
-    expect(body.email).toBe('bearer@example.com');
+    const parsed = meSuccessEnvelope.parse(body);
+    expect(parsed.data.id).toBe(bearerUser.id);
+    expect(parsed.data.email).toBe('bearer@example.com');
   });
 });

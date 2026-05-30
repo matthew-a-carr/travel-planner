@@ -46,13 +46,31 @@ function mockFetchSequence(...responses: (Response | Error)[]): jest.SpyInstance
   return spy;
 }
 
+// SPEC-007 / ADR 056: every /api/v1/* 2xx body is the success envelope
+// { data, request, asof, version }. apiPost unwraps `.data`.
+function successEnvelope<T>(data: T): Record<string, unknown> {
+  return {
+    data,
+    request: {
+      method: 'POST',
+      path: '/api/v1/auth/mobile/refresh',
+      path_params: {},
+      query_params: {},
+    },
+    asof: '2026-05-21T18:00:00.000Z',
+    version: '1.1.0',
+  };
+}
+
 function freshRefreshResponse(suffix: string): Response {
   return new Response(
-    JSON.stringify({
-      access_token: `new-access-${suffix}`,
-      refresh_token: `new-refresh-${suffix}`,
-      access_expires_at: '2030-01-01T00:00:00.000Z',
-    }),
+    JSON.stringify(
+      successEnvelope({
+        access_token: `new-access-${suffix}`,
+        refresh_token: `new-refresh-${suffix}`,
+        access_expires_at: '2030-01-01T00:00:00.000Z',
+      }),
+    ),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
   );
 }
@@ -125,7 +143,22 @@ describe('getAccessToken', () => {
     mockFetchSequence(
       new Response(
         JSON.stringify({
-          error: { code: 'refresh_revoked', message: 'Refresh token was revoked.' },
+          error: {
+            type: 'https://travel-planner.app/errors/refresh_revoked',
+            title: 'Unauthorized',
+            status: 401,
+            detail: 'Refresh token was revoked.',
+            instance: '/api/v1/auth/mobile/refresh',
+            code: 'refresh_revoked',
+          },
+          request: {
+            method: 'POST',
+            path: '/api/v1/auth/mobile/refresh',
+            path_params: {},
+            query_params: {},
+          },
+          asof: '2026-05-21T18:00:00.000Z',
+          version: '1.1.0',
         }),
         { status: 401, headers: { 'Content-Type': 'application/json' } },
       ),

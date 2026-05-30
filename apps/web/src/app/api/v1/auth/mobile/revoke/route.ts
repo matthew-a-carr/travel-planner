@@ -22,8 +22,11 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const parsed = Body.safeParse(await safeJson(request));
     if (!parsed.success) {
-      return respondWithError('validation_failed', 'Invalid request body.', {
-        issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+      return respondWithError(request, 'validation_failed', {
+        detail: 'Invalid request body.',
+        details: {
+          issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+        },
       });
     }
 
@@ -49,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
     });
   } catch (error) {
     console.error('[api/v1/auth/mobile/revoke] unexpected error', error);
-    return respondWithError('internal', 'An unexpected error occurred.');
+    return respondWithError(request, 'internal', { detail: 'An unexpected error occurred.' });
   }
 }
 

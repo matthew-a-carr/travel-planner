@@ -1,7 +1,7 @@
 # ADR 050: REST API Conventions for `/api/v1/*`
 
 **Date:** 2026-05-20
-**Status:** Accepted
+**Status:** Superseded by [ADR 056](./056-api-response-envelope-and-openapi.md)
 
 ## Context
 

@@ -21,12 +21,29 @@ jest.mock('../../src/api/client', () => ({
 }));
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import type { ApiError, ApiErrorCode } from '@travel-planner/shared';
 import type React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { apiGet, apiPost } from '../../src/api/client';
 import { AuthProvider, useAuth } from '../../src/auth/auth-context';
 import { getAccessToken } from '../../src/auth/get-access-token';
 import { clearTokens, readTokens, storeTokens } from '../../src/auth/keychain';
+
+/**
+ * Build a minimal-but-complete ApiError for mocking apiGet failures.
+ * AuthProvider only dispatches on `result.ok`, but the SPEC-007 / ADR
+ * 056 envelope's TypeScript contract requires the full RFC 7807 fields.
+ */
+function apiError(code: ApiErrorCode, detail: string): ApiError {
+  return {
+    type: `https://travel-planner.app/errors/${code}`,
+    title: 'Mock title',
+    status: 401,
+    detail,
+    instance: '/api/v1/me',
+    code,
+  };
+}
 
 const mockGetAccessToken = getAccessToken as jest.MockedFunction<typeof getAccessToken>;
 const mockReadTokens = readTokens as jest.MockedFunction<typeof readTokens>;
@@ -153,7 +170,7 @@ describe('AuthProvider — cold-start', () => {
     mockGetAccessToken.mockResolvedValue({ ok: true, token: 'eyJaccess' });
     mockApiGet.mockResolvedValue({
       ok: false,
-      error: { code: 'unauthenticated', message: 'No session found.' },
+      error: apiError('unauthenticated', 'No session found.'),
     });
 
     renderProvider();
@@ -168,7 +185,7 @@ describe('AuthProvider — cold-start', () => {
     mockGetAccessToken.mockResolvedValue({ ok: true, token: 'eyJaccess' });
     mockApiGet.mockResolvedValue({
       ok: false,
-      error: { code: 'internal', message: 'Could not reach the server.' },
+      error: apiError('internal', 'Could not reach the server.'),
     });
 
     renderProvider();
@@ -217,7 +234,7 @@ describe('AuthProvider — signIn', () => {
 
     mockApiGet.mockResolvedValueOnce({
       ok: false,
-      error: { code: 'unauthenticated', message: 'No session found.' },
+      error: apiError('unauthenticated', 'No session found.'),
     });
 
     await act(async () => {

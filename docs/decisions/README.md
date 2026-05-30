@@ -58,9 +58,10 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [047](047-specification-driven-ai-development-lifecycle.md) | Specification-Driven AI Development Lifecycle | 2026-05-20 | Accepted |
 | [048](048-grilling-and-implementation-notes.md) | Grilling Step and Rolling Implementation Notes | 2026-05-20 | Accepted |
 | [049](049-epic-tier-for-multi-spec-initiatives.md) | Epic Tier for Multi-SPEC Initiatives | 2026-05-20 | Accepted |
-| [050](050-rest-api-conventions-v1.md) | REST API Conventions for `/api/v1/*` | 2026-05-20 | Accepted |
+| [050](050-rest-api-conventions-v1.md) | REST API Conventions for `/api/v1/*` | 2026-05-20 | Superseded by ADR 056 |
 | [051](051-mobile-authentication-model.md) | Mobile Authentication Model | 2026-05-20 | Accepted |
 | [052](052-mobile-app-foundation-expo-metro-testing.md) | Mobile Application Foundation — Expo, Metro, and Testing Strategy | 2026-05-20 | Accepted (§1 SDK pin, §3 Metro config, and §5 test layout amended by ADR 053) |
 | [053](053-expo-sdk-54-temporary-downgrade.md) | Temporary Downgrade to Expo SDK 54 (also strips ADR 052 §3 Metro overrides and relocates tests from `app/` to `__tests__/`) | 2026-05-20 | Accepted |
 | [054](054-edge-rate-limiting-postgres-sliding-window.md) | Edge Rate-Limiting via Postgres Sliding-Window Counter | 2026-05-20 | Accepted |
 | [055](055-mobile-e2e-via-eas-local-dev-client-in-ci.md) | Mobile E2E via Local Dev-Client Build in CI (`expo prebuild` + `xcodebuild`) | 2026-05-20 | Accepted |
+| [056](056-api-response-envelope-and-openapi.md) | REST API Response Envelope and OpenAPI Publication | 2026-05-21 | Accepted |

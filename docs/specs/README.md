@@ -7,8 +7,12 @@ See [AGENTS.md](../../AGENTS.md) for the spec-driven development workflow and
 [CONSTITUTION.md](../../CONSTITUTION.md) §3 for TDD rules.
 
 Pre-spec draft briefs (produced by `plan-feature` after invoking the
-`grill-me` skill — ADR 048) live alongside specs as `_draft-NNN-<slug>.md`
-and are deleted (or renamed `.superseded.md`) once the SPEC is committed.
+`grill-me` skill — ADR 048) live alongside specs as `_draft-NNN-<slug>.md`.
+They survive through `Draft → Approved → In Progress` so reviewers and
+implementers can refer to the grilling Q→A, and are **deleted** when the
+SPEC reaches a terminal state (`Complete` or `Abandoned`) or when the
+feature is rejected before a SPEC is ever written. Git history preserves
+the brief for archaeology; the SPEC number returns to the pool on rejection.
 Per-spec rolling implementation notes live in
 [`../implementation-notes/`](../implementation-notes/).
 
@@ -37,3 +41,4 @@ Draft → Approved → In Progress → Complete
 | [005](SPEC-005-shared-types-and-schemas.md) | Shared Wire Types and Schemas (`@travel-planner/shared`) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [006](SPEC-006-mobile-sign-in-pkce-keychain.md) | Mobile Sign-In UI + PKCE Flow + Keychain | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-20 | Complete |
 | [007](SPEC-007-mobile-authenticated-me-and-signout.md) | Mobile Authenticated "Me" Screen + Sign-Out (milestone slice) | [EPIC-001](../epics/EPIC-001-ios-app.md) | 2026-05-22 | Complete |
+| [007](SPEC-007-api-response-envelope-and-openapi.md) | Standardised API Response Envelope + OpenAPI 3.1 YAML | — | 2026-05-21 | Approved |

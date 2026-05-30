@@ -2,14 +2,18 @@ import { mobileAuthExchangeRequestSchema as Body } from '@travel-planner/shared'
 import { makeExchangeMobileCode } from '@/application/use-cases/auth/mobile/exchange-mobile-code';
 import { getAppContainer } from '@/infrastructure/container';
 import { respondWithError } from '../../../_lib/errors';
+import { respondWithData } from '../../../_lib/respond';
 import { rateLimitOrReject } from '../_lib/with-rate-limit';
 
 export async function POST(request: Request): Promise<Response> {
   try {
     const parsed = Body.safeParse(await safeJson(request));
     if (!parsed.success) {
-      return respondWithError('validation_failed', 'Invalid request body.', {
-        issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+      return respondWithError(request, 'validation_failed', {
+        detail: 'Invalid request body.',
+        details: {
+          issues: parsed.error.issues.map((i) => ({ path: i.path, message: i.message })),
+        },
       });
     }
 
@@ -36,29 +40,24 @@ export async function POST(request: Request): Promise<Response> {
     if (!result.ok) {
       switch (result.error) {
         case 'invalid_exchange_code':
-          return respondWithError(
-            'invalid_exchange_code',
-            'Exchange code is unknown, already used, or expired.',
-          );
+          return respondWithError(request, 'invalid_exchange_code', {
+            detail: 'Exchange code is unknown, already used, or expired.',
+          });
         case 'pkce_mismatch':
-          return respondWithError(
-            'pkce_mismatch',
-            'The supplied code_verifier does not match the stored code_challenge.',
-          );
+          return respondWithError(request, 'pkce_mismatch', {
+            detail: 'The supplied code_verifier does not match the stored code_challenge.',
+          });
       }
     }
 
-    return Response.json(
-      {
-        access_token: result.value.accessToken,
-        refresh_token: result.value.refreshToken,
-        access_expires_at: result.value.accessExpiresAt.toISOString(),
-      },
-      { headers: { 'Cache-Control': 'no-store' } },
-    );
+    return respondWithData(request, {
+      access_token: result.value.accessToken,
+      refresh_token: result.value.refreshToken,
+      access_expires_at: result.value.accessExpiresAt.toISOString(),
+    });
   } catch (error) {
     console.error('[api/v1/auth/mobile/exchange] unexpected error', error);
-    return respondWithError('internal', 'An unexpected error occurred.');
+    return respondWithError(request, 'internal', { detail: 'An unexpected error occurred.' });
   }
 }
 

@@ -9,7 +9,25 @@
  * the caller hands them to the auth context.
  */
 
+import type { ApiError, ApiErrorCode } from '@travel-planner/shared';
 import { runSignInFlow, type SignInDeps } from '../../src/auth/sign-in-flow';
+
+/**
+ * Build a minimal-but-complete ApiError shape for mocking apiClient
+ * failures. The orchestrator only dispatches on `error.code`, but the
+ * SPEC-007 envelope's TypeScript contract requires the full RFC 7807
+ * fields.
+ */
+function apiError(code: ApiErrorCode, detail: string): ApiError {
+  return {
+    type: `https://travel-planner.app/errors/${code}`,
+    title: 'Mock title',
+    status: 400,
+    detail,
+    instance: '/api/v1/mock',
+    code,
+  };
+}
 
 function deps(overrides: Partial<SignInDeps> = {}): SignInDeps {
   return {
@@ -195,7 +213,7 @@ describe('runSignInFlow — /exchange failure', () => {
         .mockResolvedValueOnce(startResponse)
         .mockResolvedValueOnce({
           ok: false,
-          error: { code: 'pkce_mismatch', message: 'The verifier did not match.' },
+          error: apiError('pkce_mismatch', 'The verifier did not match.'),
         }),
       openAuthSession: jest.fn().mockResolvedValue({
         type: 'success',
@@ -220,7 +238,7 @@ describe('runSignInFlow — /start failure', () => {
       verifierToChallenge: jest.fn().mockResolvedValue('challenge-xyz'),
       apiPost: jest.fn().mockResolvedValueOnce({
         ok: false,
-        error: { code: 'rate_limited', message: 'Slow down.' },
+        error: apiError('rate_limited', 'Slow down.'),
       }),
     });
 
