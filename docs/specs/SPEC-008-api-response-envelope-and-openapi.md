@@ -1,7 +1,7 @@
 # SPEC-008: Standardised API Response Envelope + OpenAPI 3.1 YAML
 
 **Date:** 2026-05-21
-**Status:** Approved
+**Status:** In Progress
 **Author:** Claude (Opus 4.7) under Matt Carr direction
 **Approved by:** Matt Carr, 2026-05-21
 **Parent epic:** —
