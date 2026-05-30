@@ -29,6 +29,17 @@ updates:
       # next swc, biome). TD-006. Minor/patch within 5.x still flow.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # React Native stack is version-locked to the Expo SDK (ADR 053 / TD-003)
+      # — Expo manages these via `expo install --fix`. Dependabot classifies RN
+      # minor jumps (e.g. 0.81→0.85) as "minor", so they slip into the group
+      # and break the mobile build out of SDK lockstep (see #114 / #121). Hold
+      # minor + major; patch within the SDK's pinned line still flows.
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "react-native-*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "react-test-renderer"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
     # Group all minor and patch updates into a single PR to reduce noise.
     # Major versions still land as individual PRs so breaking-change
     # changelogs can be reviewed separately.
