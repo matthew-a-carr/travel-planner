@@ -253,7 +253,7 @@ jobs:
       # the next run rebuilds from scratch.
       - name: Cache mobile native build outputs
         id: mobile-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             apps/mobile/ios
