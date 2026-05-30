@@ -13,7 +13,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@travel-planner/shared": "workspace:*",
-    "expo": "^54.0.34",
+    "expo": "^56.0.8",
     "expo-crypto": "~15.0.9",
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
