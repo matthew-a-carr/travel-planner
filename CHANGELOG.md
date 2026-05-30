@@ -7,6 +7,13 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Added
+
+- **API:** Published OpenAPI 3.1 contract for `/api/v1/*` at
+  `docs/openapi/v1.yaml`, generated from the `@travel-planner/shared` zod
+  schemas via `pnpm openapi:generate`. CI runs `pnpm openapi:check` to reject
+  drift between the schemas and the committed spec. (SPEC-008 / ADR 056.)
+
 ### Changed
 
 - **Process:** Adopted an issue-driven autonomous workflow (ADR 057). Open a

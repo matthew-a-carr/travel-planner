@@ -24,7 +24,7 @@ already exports `apiSuccessSchema` / `apiErrorEnvelopeSchema` / `requestEchoSche
 client unwraps `.data`. This implementation only covers the OpenAPI half
 (step 8 onward).
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** post-impl-note (SPEC-008 §Post-Implementation Notes).
 
 ---
 
@@ -44,7 +44,7 @@ zod-v3-era dependency, no per-schema `.openapi()` annotations**. Avoids
 fighting the toolchain (cf. TD-006's TS6 hold rationale). ADR 056 should be
 amended to record the zod-native mechanism.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** spec-deviation #1 (+ ADR 056 amendment flagged).
 
 ---
 
@@ -58,7 +58,7 @@ envelope shape (`data`/`request`/`asof`/`version`, `asof` RFC-3339-ms regex,
 `version` === `ENVELOPE_VERSION`) and the RFC 7807 + `code` 401 envelope. No
 separate duplicate file written.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** spec-deviation #3.
 
 ---
 
@@ -68,6 +68,7 @@ separate duplicate file written.
 
 | Entry | Landed in |
 |-------|-----------|
-| 1 | |
-| 2 | |
-| 3 | |
+| 1 (envelope half pre-shipped) | SPEC-008 §Post-Implementation Notes |
+| 2 (zod-native generator) | SPEC-008 deviation #1 (+ ADR 056 amendment flagged) |
+| 3 (e2e already covered) | SPEC-008 deviation #3 |
+| — (vitest scripts include) | SPEC-008 deviation #2 |

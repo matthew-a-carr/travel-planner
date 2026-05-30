@@ -6,14 +6,15 @@ export default defineConfig({
   test: {
     projects: [
       {
-        // Unit project — pure domain functions and architecture checks.
+        // Unit project — pure domain functions, architecture checks, and
+        // build-tooling scripts (e.g. the OpenAPI generator).
         // Matches all *.test.ts files, excluding *.int-test.ts.
         // No Docker required; runs instantly.
         plugins: [tsconfigPaths()],
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['src/**/*.test.ts'],
+          include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
           exclude: ['**/node_modules/**', 'src/**/*.int-test.ts'],
         },
       },

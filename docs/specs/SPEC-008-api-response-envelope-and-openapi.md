@@ -1,7 +1,7 @@
 # SPEC-008: Standardised API Response Envelope + OpenAPI 3.1 YAML
 
 **Date:** 2026-05-21
-**Status:** In Progress
+**Status:** Complete
 **Author:** Claude (Opus 4.7) under Matt Carr direction
 **Approved by:** Matt Carr, 2026-05-21
 **Parent epic:** —
@@ -501,8 +501,23 @@ commit on its own. Tests precede implementation per CONSTITUTION.md §3.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _to be filled_ | | | |
+| 1 | OpenAPI generated via zod v4's native `z.toJSONSchema` (registry → `#/components/schemas/$ref`s + hand-assembled `info`/`paths`, serialized with `yaml`) instead of the spec's `@asteasolutions/zod-to-openapi` + per-schema `.openapi()` annotations. | Repo is on zod v4; that library is zod-v3-era. OAS 3.1 components are JSON Schema 2020-12, which `z.toJSONSchema(..., { target: 'draft-2020-12' })` emits directly. No extra schema-library dependency, no annotation of the shared schemas. Human sign-off 2026-05-30. | None on the published contract (same OAS 3.1 output). **ADR 056 should be amended** to record the zod-native mechanism. Shared schemas stay annotation-free. | Yes |
+| 2 | Vitest `unit` project `include` extended from `src/**/*.test.ts` to also cover `scripts/**/*.test.ts`. | The generator lives in `apps/web/scripts/` (alongside `check-migrations-transactional.ts`); its test must run under `pnpm test:unit`. | Build-tooling tests now run in the unit project. No effect on the architecture boundary (scripts/ is not a layer). | Yes |
+| 3 | No new `api-v1-envelope.spec.ts` Playwright test written (spec step 11). | The envelope e2e is already covered by `apps/web/tests/e2e/11-api-me.spec.ts` (added with the envelope reshape merge): success envelope shape + `asof`/`version` + RFC 7807 401. A duplicate would add no coverage. | None — coverage already present. | Yes |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+- The success/error **envelope half (steps 3–7)** shipped before this work via
+  the origin/main merge (commit `b43a40f`) and the SPEC-007↔008 renumber.
+  This implementation delivered only the **OpenAPI half** (steps 8–10);
+  steps 11–12's envelope e2e + reshapes were already on `main`.
+- Component design: reusable pieces (`RequestEcho`, `ApiError`,
+  `ApiErrorEnvelope`) and the payload shapes are registered once; per-endpoint
+  success envelopes (`MeSuccessEnvelope`, `MobileAuthStartSuccessEnvelope`,
+  `MobileAuthTokenSuccessEnvelope`) `$ref` their `data` component rather than
+  inlining it. The shared `/exchange` + `/refresh` response is one component
+  (`MobileAuthTokenResponse`) since they're the same schema.
+- `pnpm openapi:check` runs inside the CI `lint` job (sub-second; not worth a
+  parallel job slot) — schema drift now fails CI.
+- Deferred (unchanged from spec §Deferred): request correlation ID, hosted
+  Swagger/Redoc UI. No tech-debt entries opened.

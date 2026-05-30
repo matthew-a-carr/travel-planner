@@ -14,6 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "openapi:check": "tsx scripts/generate-openapi.ts --check",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "tsx src/infrastructure/db/migrate.ts",
@@ -63,6 +65,7 @@
     "vite": "^7.3.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.6",
-    "vitest-mock-extended": "^4.0.0"
+    "vitest-mock-extended": "^4.0.0",
+    "yaml": "^2.9.0"
   }
 }
