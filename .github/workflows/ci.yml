@@ -352,8 +352,29 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install booted "$APP_PATH"
 
+      # Retry the flows up to 3 attempts. The cold-sim launch of a Release
+      # RN bundle is intermittently unreliable on CI runners (transient app
+      # crash on launch + cold-start latency) even on code that passes on
+      # `main` — see the mobile-e2e flakiness investigation. Each attempt is
+      # a fresh `launchApp`, so a retry recovers a transient launch failure.
+      # This is flakiness tolerance, NOT masking a deterministic bug: a
+      # persistent failure still fails all 3 attempts (and the crash-
+      # diagnostics upload below captures a real crash for triage).
       - name: Run Maestro flows
-        run: pnpm test:e2e:mobile
+        run: |
+          for attempt in 1 2 3; do
+            echo "::group::Maestro attempt $attempt"
+            if pnpm test:e2e:mobile; then
+              echo "::endgroup::"
+              echo "Maestro passed on attempt $attempt"
+              exit 0
+            fi
+            echo "::endgroup::"
+            echo "::warning::Maestro attempt $attempt failed"
+            xcrun simctl terminate "$SIM_UDID" dev.matthewcarr.travelplanner 2>/dev/null || true
+          done
+          echo "::error::Maestro failed after 3 attempts"
+          exit 1
 
       - name: Upload Maestro report on failure
         if: failure()
@@ -362,3 +383,18 @@ jobs:
           name: maestro-report
           path: ~/.maestro/tests
           retention-days: 7
+
+      # Capture iOS crash reports so a *persistent* app crash (one that
+      # survives all 3 retries) is diagnosable — the Maestro report alone
+      # doesn't include the native crash stack. Both the host path and the
+      # simulator's own DiagnosticReports are collected.
+      - name: Upload iOS crash diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-crash-diagnostics
+          path: |
+            ~/Library/Logs/DiagnosticReports/
+            ~/Library/Developer/CoreSimulator/Devices/${{ env.SIM_UDID }}/data/Library/Logs/DiagnosticReports/
+          retention-days: 7
+          if-no-files-found: ignore
