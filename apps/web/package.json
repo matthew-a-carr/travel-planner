@@ -31,7 +31,6 @@
     "@sentry/nextjs": "^10.53.1",
     "@travel-planner/shared": "workspace:*",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/postgres": "^0.10.0",
     "ai": "^6.0.185",
     "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
