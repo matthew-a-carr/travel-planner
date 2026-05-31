@@ -298,11 +298,29 @@ jobs:
 
       - name: Prebuild iOS native project
         working-directory: apps/mobile
-        # Drop `--clean` so the cached ios/ Pods + DerivedData survive
-        # across runs. Expo's incremental prebuild updates only changed
-        # files; the cache key already invalidates on app.json /
-        # package.json drift, so stale-state risk is bounded.
-        run: pnpm exec expo prebuild --platform ios
+        env:
+          CACHE_HIT: ${{ steps.mobile-cache.outputs.cache-hit }}
+        # On an EXACT cache hit (`cache-hit == 'true'` — primary key matched,
+        # i.e. the lockfile/package.json/app.json are unchanged, as on `main`
+        # or a re-run) the cached ios/ Pods + DerivedData match the dependency
+        # graph, so an incremental prebuild is safe and fast.
+        #
+        # On a key MISS — which is EVERY dependency PR, since the lockfile hash
+        # changes — `actions/cache` falls back to a `restore-keys` prefix match
+        # and reports `cache-hit == 'false'`. That restored ios/ is from a
+        # DIFFERENT dependency graph; an incremental (non-`--clean`) prebuild
+        # builds on top of that stale Pods/DerivedData state and produces an
+        # app that crashes or hangs on launch (the root cause of the
+        # mobile-e2e "flakiness" — TD-009). Force a clean regeneration here so
+        # the native build always matches the actual dependencies.
+        run: |
+          if [ "$CACHE_HIT" = "true" ]; then
+            echo "Exact cache hit — incremental prebuild"
+            pnpm exec expo prebuild --platform ios
+          else
+            echo "Cache key miss (deps changed / restore-key fallback) — clean prebuild to avoid stale native state"
+            pnpm exec expo prebuild --platform ios --clean
+          fi
 
       - name: Install CocoaPods dependencies
         working-directory: apps/mobile/ios
