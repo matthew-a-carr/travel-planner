@@ -16,11 +16,22 @@
 # Run locally: `pnpm test:e2e:mobile`
 # CI: macOS runner via the mobile-e2e job (ADR-055), path-filtered to
 # apps/mobile/**.
+#
+# First assertion uses extendedWaitUntil (60s) rather than a bare
+# assertVisible: cold-start holds the native splash while AuthProvider
+# resolves auth (getAccessToken → no tokens → signed_out) and AuthGuard
+# redirects to /sign-in. On a cold CI simulator (first boot + JS bundle
+# eval + auth + navigation) that can exceed Maestro's ~30s default wait,
+# which flaked even after the cold-start stuck-state fix. The screen does
+# appear — it just needs headroom. (Not masking a hang: with the stuck
+# state already fixed, 60s is latency tolerance, not a papered-over bug.)
 appId: dev.matthewcarr.travelplanner
 ---
 - launchApp
-- assertVisible:
-    id: 'login-screen-root'
+- extendedWaitUntil:
+    visible:
+      id: 'login-screen-root'
+    timeout: 60000
 - assertVisible:
     id: 'login-google-button'
 - assertVisible: 'Sign in with Google'
