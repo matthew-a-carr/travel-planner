@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.18.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.18.0...v1.18.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* **ci:** clean-prebuild mobile-e2e on cache-key miss (real fix for TD-009) ([#133](https://github.com/matthew-a-carr/travel-planner/issues/133)) ([eb1d803](https://github.com/matthew-a-carr/travel-planner/commit/eb1d80365568c032886d363340bbfeedd184015f))
+
 ## [1.18.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.17.0...v1.18.0) (2026-05-30)
 
 
