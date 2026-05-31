@@ -1,10 +1,10 @@
 # EPIC-002: Mobile Read-Only Data — Trips on the Phone
 
 **Date:** 2026-05-30
-**Status:** Draft
+**Status:** Approved
 **Strategic ADR:** [058 — Mobile Phase 2: Read-Only Data over the Existing Foundation](../decisions/058-mobile-phase-2-read-only-data.md)
 **Owner:** Matt Carr
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-05-31
 
 > Operationalises ADR 058. Builds directly on EPIC-001 (the iOS shell, auth,
 > and `/api/v1/*` foundation, now Complete) and on SPEC-008 / ADR 056 (the
@@ -81,7 +81,7 @@ maps are **not** the bar for this epic (see §6).
 
 | # | Slice | Demo line(s) | Becomes SPEC | Depends on | Budget | Status |
 |---|-------|--------------|--------------|------------|--------|--------|
-| 1 | `GET /api/v1/trips` (list) — use-case read path + shared `tripSummary` schema + OpenAPI regen + integration tests | 1–2 | _not yet planned_ | — | 2d | Not started |
+| 1 | `GET /api/v1/trips` (list) — use-case read path + shared `tripSummary` schema + OpenAPI regen + integration tests | 1–2 | [SPEC-009 (Draft)](../specs/SPEC-009-trips-list-endpoint.md) | — | 2d | Draft |
 | 2 | `GET /api/v1/trips/{id}` (detail: trip + timeline + spend) — shared schema + integration tests | 3 | _not yet planned_ | 1 | 2–3d | Not started |
 | 3 | Mobile **trips list** screen — `src/trips/` data hook + list UI + states (loading/empty/error) + tests | 1–2 | _not yet planned_ | 1 | 2–3d | Not started |
 | 4 | Mobile **trip detail** screen — timeline + spend rendering (**milestone slice**) | 3 | _not yet planned_ | 2, 3 | 3–4d | Not started |
@@ -137,8 +137,8 @@ trips) before the richer detail screen lands.
 > Resolved on the EPIC PR / at slice grilling. Each leads with a recommendation.
 
 1. **Trip-detail endpoint composition — one `GET /trips/{id}` returning trip + timeline + spend, vs separate sub-resource endpoints (`/trips/{id}/timeline`, `/trips/{id}/spend`)?** *Recommend one composite detail endpoint for the mobile milestone (one round-trip, simpler screen); split into sub-resources later if payload size or independent refresh demands it.* Cost of wrong: a second endpoint and a mobile re-fetch later.
-2. **Exact trip-authorisation rule for a bearer caller.** *Recommend reusing the web's existing owner + org-shared visibility unchanged.* Cost of wrong: either over-exposure (security) or under-exposure (missing trips) — must be verified against the current use-case checks before slice 1.
-3. **Pagination now vs deferred.** *Recommend deferred (unpaginated list, `meta.pagination` reserved).* Cost of wrong: a backwards-compatible `meta` addition later (low — additive per ADR 056 SemVer).
+2. **Exact trip-authorisation rule for a bearer caller.** **RESOLVED (2026-05-31, slice 1 / SPEC-009):** reuse the web's existing org-scoped visibility — the caller sees trips in the organisations they're a member of (`organizationRepository.findOrganizationsForUser`), no per-endpoint reimplementation. (Note: visibility is org-membership-based; the original "owner + org-shared" wording is subsumed by org membership.)
+3. **Pagination now vs deferred.** **RESOLVED (2026-05-31, slice 1 / SPEC-009):** deferred — unpaginated list for v1; `meta.pagination` reserved per ADR 056 (additive when needed).
 4. **Spend representation on the detail screen — full burndown vs a summary?** *Recommend a summary (budget vs spent/committed) for the milestone; the burndown chart is a richer later slice (charting on RN is its own decision).* Cost of wrong: a follow-up slice.
 
 ## 14. Parking lot
@@ -168,6 +168,8 @@ Likely ADRs this epic surfaces: a React Native data-fetching/caching approach (i
 | Date | Slice | SPEC | Status | Notes |
 |------|-------|------|--------|-------|
 | 2026-05-30 | — | — | Drafted | EPIC-002 drafted (interactive, under ADR 058). Awaiting human review of §13 Open Questions + slice table. |
+| 2026-05-31 | — | — | Approved | Approved by Matt. §13 Q2 (bearer trip-authz → reuse org-scoped visibility) + Q3 (pagination → deferred) resolved for slice 1; Q1/Q4 left open for slices 2/4. |
+| 2026-05-31 | 1 | SPEC-009 | Draft | Slice 1 (`GET /api/v1/trips`) drafted as SPEC-009. |
 
 ## Epic-level deviations
 
