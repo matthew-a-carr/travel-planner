@@ -1,10 +1,18 @@
 name: Publish skills to Tessl
 
 # Claims + keeps the repo's agent skills in sync with the matthew-a-carr Tessl
-# workspace (per docs.tessl.io "claim a skill"). The repo is the source of
-# truth; this Action republishes on every change to .agents/skills/** so Tessl
-# reflects the repo rather than reindexing it. Requires the TESSL_TOKEN repo
-# secret (a Publisher-role API key).
+# workspace (per docs.tessl.io "claim a skill"). The repo is the source of truth.
+#
+# Triggering: only on a push to main that touches .agents/skills/** (the
+# `on.push.paths` filter below). A change elsewhere never runs this workflow.
+#
+# Scope: the `detect` job publishes ONLY the skill directories that actually
+# changed in the push — because publishing without --skip-evals runs an eval
+# (server-side, costs credits + minutes), so re-publishing all 12 on a one-skill
+# change would be wasteful. A manual run (workflow_dispatch) publishes every
+# skill (use it for a full refresh).
+#
+# Requires the TESSL_TOKEN repo secret (a Publisher-role API key).
 
 on:
   push:
@@ -22,24 +30,49 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      skills: ${{ steps.changed.outputs.skills }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changed
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          all() { ls -1 .agents/skills; }
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            names=$(all)                       # manual run → full refresh
+          elif [ -z "${BEFORE:-}" ] \
+            || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            names=$(all)                       # first push / unknown base → all
+          else
+            names=$(git diff --name-only "$BEFORE" "$SHA" -- '.agents/skills/' \
+              | awk -F/ 'NF>=3 {print $3}' | sort -u)
+          fi
+          # Keep only directories that actually carry a skill manifest.
+          keep=""
+          for n in $names; do
+            [ -f ".agents/skills/$n/.tessl-plugin/plugin.json" ] && keep="$keep $n"
+          done
+          json=$(printf '%s\n' $keep | grep -v '^$' | jq -R . | jq -cs .)
+          echo "skills=$json" >> "$GITHUB_OUTPUT"
+          echo "Will publish: $json"
+
   publish:
+    needs: detect
+    if: ${{ needs.detect.outputs.skills != '[]' && needs.detect.outputs.skills != '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        skill:
-          - babysit-pr
-          - deploy-smoke-test
-          - draft-epic
-          - draft-spec
-          - implement-spec
-          - review-implementation
-          - review-spec
-          - review-tech-debt
-          - revise-spec
-          - sync-docs
-          - triage-dependabot
-          - write-adr
+        skill: ${{ fromJSON(needs.detect.outputs.skills) }}
     steps:
       - uses: actions/checkout@v4
       - uses: tesslio/setup-tessl@v2
@@ -47,4 +80,11 @@ jobs:
           token: ${{ secrets.TESSL_TOKEN }}
       - name: Publish ${{ matrix.skill }}
         working-directory: .agents/skills/${{ matrix.skill }}
-        run: tessl plugin publish --skip-evals --bump patch
+        # No --skip-evals: each skill ships its evals/ scenarios, so the publish
+        # uploads them and starts an eval run bound to the new version — that's
+        # what populates the Impact/Evals panels on the registry page. Eval runs
+        # execute server-side on Tessl, so no model/gateway creds are needed here
+        # (only TESSL_TOKEN). Trade-off vs the old --skip-evals: each publish now
+        # costs solver credits + a few minutes of (async) eval time — which is
+        # why the detect job limits this to the skills that actually changed.
+        run: tessl plugin publish --bump patch
