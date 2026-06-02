@@ -24,11 +24,13 @@ remote Claude Code Web session. Two entry modes:
 to "plan a feature", "draft a spec for X", or "break down X for
 implementation". No `ISSUE_NUMBER` is set. The skill:
 
-1. Invokes `grill-me` from the `dev-skills@matthew-a-carr` plugin to
-   interview the user until shared understanding (one question at a time,
-   no batch).
-2. Files a GitHub issue with the `claude:plan` label and the grilled
-   brief as the body (so the autonomous flow has a record).
+1. Takes the feature description the user gives in conversation as the
+   source of truth. There is no turn-by-turn interview — capture what
+   they've said and push any unresolved ambiguity into the SPEC's §Open
+   Questions section for the PR review loop to settle, exactly as routine
+   mode handles an underspecified issue.
+2. Files a GitHub issue with the `claude:plan` label and that description
+   as the body (so the autonomous flow has a record).
 3. Continues directly into drafting the SPEC PR rather than waiting for
    the routine to fire (the issue's `claude:planned` label, applied at
    step 23 below, also prevents the routine from racing this run).
@@ -47,7 +49,7 @@ slice. Do not write a SPEC for work that should be an epic.
 | Mode | What to expect |
 |---|---|
 | Routine | `ISSUE_NUMBER` + `REPO` (from `NOTIFY_REPO` env var, or the routine's connected repo) provided in the trigger event. |
-| Interactive | Nothing — the user describes the feature in conversation. Grill via `dev-skills:grill-me` before proceeding. After grilling, file the issue yourself (`mcp__github__create_issue` with label `claude:plan` and the grilled brief as the body) so step 23 below has something to back-link to. |
+| Interactive | Nothing — the user describes the feature in conversation. Take that description as the source of truth (no turn-by-turn interview); file the issue yourself (`mcp__github__create_issue` with label `claude:plan` and the description as the body) so step 23 below has something to back-link to. Push any unresolved ambiguity into §Open Questions rather than blocking. |
 
 In routine mode, if those env vars somehow aren't set, derive them via
 `mcp__github__list_issues` filtered by label `claude:plan` and `state:open`,

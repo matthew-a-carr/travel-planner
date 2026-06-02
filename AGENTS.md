@@ -302,27 +302,29 @@ Claude Code Web session is **fully supported** — open a session against
 `travel-planner`, talk through the feature, get a SPEC PR by the end of the
 conversation. The agent will:
 
-1. Invoke `dev-skills:grill-me` to interview you one question at a time
-   until the design is sharp (use the same skill for "break this work
-   down for implementation"). For epics, the grill is at epic altitude
-   (vision, slicing, kill criteria, cross-cutting decisions); for slices,
-   at slice altitude (acceptance, demo script, prerequisites).
-2. File a `claude:plan` or `claude:plan-epic` GitHub issue with the
-   grilled brief as the body, so the source-of-truth lives where the
-   autonomous flow expects it.
+1. For a **feature/slice**, take the description you give in conversation
+   as the source of truth — there's no turn-by-turn interview; the
+   `draft-spec` skill records any unresolved ambiguity in the SPEC's §Open
+   Questions section for the PR review loop to settle. For an **epic**,
+   `draft-epic` still runs `dev-skills:grill-me` at epic altitude (vision,
+   slicing, kill criteria, cross-cutting decisions) before drafting.
+2. File a `claude:plan` or `claude:plan-epic` GitHub issue with that
+   description (or the grilled epic brief) as the body, so the
+   source-of-truth lives where the autonomous flow expects it.
 3. Continue straight into the `draft-spec` / `draft-epic` skill —
    drafting the SPEC/EPIC and opening the PR in the same session, no need
    to wait for the routine. The issue gets `claude:planned` so the
    routine won't redo the work.
 
 From your end it feels like a single conversation: "plan a feature that
-does X" → some back-and-forth questions → "here's PR #N for review." The
-PR then flows through the standard revise / merge / implement loop.
+does X" → "here's PR #N for review," with any open questions surfaced in
+the PR for a slice (or grilled up front for an epic). The PR then flows
+through the standard revise / merge / implement loop.
 
 This is also the right entry point when:
 
 - You want to brainstorm and aren't sure if it's a SPEC or an epic yet
-  (the agent picks based on grilling output).
+  (the agent picks based on what you describe).
 - You're driving a routine session manually because it hit a blocker —
   the session URL is at `claude.ai/code/session_XXX`; pause it and
   continue interactively.
