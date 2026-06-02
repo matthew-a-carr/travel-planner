@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/triage-dependabot",
+  "description": "Repo-aware triage of open Dependabot PRs. Applies this repo's hard-won dependency rules (the Expo-SDK-managed lockstep set, the TS6 / Vite8 holds, dev-only security transitives, the mobile-e2e cache interaction) to recommend merge / hold / close / escalate per PR. Use when a human says \"triage the dependabot PRs\" or \"look at dependabot PR #NNN\". Conservative by default: recommends, and only merges green minor/patch PRs when explicitly asked.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}

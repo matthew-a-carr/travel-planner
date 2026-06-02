@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/draft-epic",
+  "description": "Draft an EPIC from a GitHub issue and open a PR for review. Use when triggered by a routine on `Issue opened` with label `claude:plan-epic`, or when a user asks to \"draft an epic from issue #NNN\". Non-interactive — proceeds on best interpretation and surfaces unresolved questions in the EPIC's §Open Questions section rather than blocking. The PR review loop resolves ambiguity. Does NOT write child SPECs — slice SPECs are drafted lazily by the `draft-spec` routine when the human files one `claude:plan` issue per slice after the EPIC PR is merged.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/sync-docs",
+  "description": "Diff-driven doc-staleness sweep. Maps every changed path against the \"Doc review — keeping docs true\" table in AGENTS.md, runs the load-bearing generated-artifact checks (OpenAPI, AGENTS.md/CLAUDE.md symlinks, ADR index), and patches stale prose docs in the same change. Use when called by `implement-spec` / `review-implementation` at close-out, or when a human says \"sync the docs\" / \"make sure the docs are still true after this change\".",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}

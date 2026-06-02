@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/review-tech-debt",
+  "description": "Review and triage the tech debt register. Use when the user says \"review tech debt,\" before planning a new feature, or on a periodic schedule. Reads docs/tech-debt.md, assesses each item's relevance and severity, categorises actions, and reports recommendations to the human.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}
