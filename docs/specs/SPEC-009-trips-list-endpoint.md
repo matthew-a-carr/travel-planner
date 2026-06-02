@@ -18,9 +18,12 @@
 A new `GET /api/v1/trips` endpoint returns the trips visible to the
 authenticated bearer caller — every trip in an organisation the user belongs
 to — as an array of `TripSummary` objects, wrapped in the standard success
-envelope (`{ data: TripSummary[], request, asof, version }`, ADR 056). The
-wire shape is a new `tripSummary` schema in `@travel-planner/shared`, and the
-endpoint is added to the generated OpenAPI spec. Read-only; no pagination.
+envelope (`{ data: TripSummary[], request, asof, version }`, ADR 056). Each
+`TripSummary` carries the trip's own fields plus a **derived date range**
+(earliest/latest destination dates) so the slice-3 list can show trip dates
+per EPIC-002 §4. The wire shape is a new `tripSummary` schema in
+`@travel-planner/shared`, and the endpoint is added to the generated OpenAPI
+spec. Read-only; no pagination.
 
 ## 2. Motivation
 
@@ -42,14 +45,19 @@ domain aggregate over the bearer-authenticated v1 surface.
 3. **Given** a user who belongs to no organisation / has no trips, **when**
    they call the endpoint, **then** the response is 200 with `data: []`
    (empty list, not 404).
-4. **Given** an invalid/absent bearer token, **when** they call the endpoint,
+4. **Given** a trip whose destinations carry dates, **when** it is listed,
+   **then** its `TripSummary.startDate` equals the earliest destination
+   `startDate` and `endDate` the latest destination `endDate` (ISO 8601
+   strings); **and** a trip with no destinations (or none carrying a given
+   date) returns `null` for the corresponding field.
+5. **Given** an invalid/absent bearer token, **when** they call the endpoint,
    **then** the response is 401 with the RFC 7807 + `code: "unauthenticated"`
    error envelope.
-5. **Given** the `@travel-planner/shared` schemas changed, **when**
+6. **Given** the `@travel-planner/shared` schemas changed, **when**
    `pnpm openapi:check` runs in CI, **then** it passes only if
    `docs/openapi/v1.yaml` includes the `/api/v1/trips` path + `TripSummary`
    component and was regenerated.
-6. Integration tests assert criteria 1–4 against real Postgres.
+7. Integration tests assert criteria 1–5 against real Postgres.
 
 ## 4. Demo script
 
@@ -62,6 +70,7 @@ domain aggregate over the bearer-authenticated v1 surface.
      "data": [
        { "id": "…", "name": "Japan 2026", "status": "planning",
          "totalBudget": { "amountPence": 500000, "currency": "GBP" },
+         "startDate": "2026-09-01", "endDate": "2026-09-21",
          "organizationId": "…", "updatedAt": "2026-05-30T…Z" }
      ],
      "request": { "method": "GET", "path": "/api/v1/trips", "path_params": {}, "query_params": {} },
@@ -77,7 +86,9 @@ domain aggregate over the bearer-authenticated v1 surface.
 - **Mobile trips list screen** — EPIC-002 slice 3.
 - **Pagination / filtering / sorting** — unpaginated for v1 (EPIC-002 §10, Q3); `meta.pagination` reserved per ADR 056.
 - **Writes / create / edit** — read-only per ADR 058.
-- **Destinations, fixed costs, timeline, spend aggregates** on the summary (see §Open Questions).
+- **Destination list, destination count, fixed costs, timeline, spend
+  aggregates** on the summary. Only a **derived start/end date range** is
+  included (the minimum required by the EPIC-002 §4 list demo — see §7).
 
 ## 6. Prerequisites
 
@@ -90,23 +101,43 @@ domain aggregate over the bearer-authenticated v1 surface.
 ### Data & domain
 
 - New wire schema `tripSummarySchema` in `packages/shared/src/` (e.g. `trip.ts`),
-  exported via the package index. Proposed fields (the LIST projection of the
-  domain `Trip`): `id`, `name`, `status` (`planning|active|completed`),
-  `totalBudget` (`{ amountPence: number, currency: 'GBP'|'USD'|'EUR'|'AUD' }`),
-  `organizationId`, `updatedAt` (ISO string). See §Open Questions for the exact
-  set (the domain `Trip` carries no date range or destination count — those
-  live on `Destination`).
-- Map domain `Trip` → `TripSummary` in the application layer (Money → `{amountPence, currency}`; `Date` → ISO string).
+  exported via the package index. Fields (the LIST projection of the domain
+  `Trip` + a derived date range):
+  - `id: string`
+  - `name: string`
+  - `status: 'planning' | 'active' | 'completed'`
+  - `totalBudget: { amountPence: number; currency: 'GBP'|'USD'|'EUR'|'AUD' }`
+  - `startDate: string | null` — ISO 8601; the **earliest** non-null
+    `startDate` across the trip's destinations, else `null`.
+  - `endDate: string | null` — ISO 8601; the **latest** non-null `endDate`
+    across the trip's destinations, else `null`.
+  - `organizationId: string`
+  - `updatedAt: string` — ISO 8601.
+
+  `startDate`/`endDate` are independently nullable: a trip with no
+  destinations (or destinations carrying only one of the two dates) yields
+  `null` for the missing side. Destination *count*, fixed costs, timeline and
+  spend stay out (§5).
+- Map domain `Trip` → `TripSummary` in the application layer (Money →
+  `{amountPence, currency}`; `Date` → ISO string; date range derived from the
+  trip's destinations, see Behaviour).
 
 ### Behaviour
 
-- `GET /api/v1/trips`: `requireAuth(request)` → resolve the user's organisations
-  via `organizationRepository.findOrganizationsForUser(userId)` → collect trips
-  via `tripRepository.findAllByOrganization(orgId)` for each → map to
-  `TripSummary[]` → `respondWithData(request, summaries)`.
-- New application use case `listTripsForUser(userId)` composing the existing
-  `findOrganizationsForUser` + `findAllByOrganization` repository methods (no
-  new repository method — see §Open Questions). Returns the mapped DTOs.
+- `GET /api/v1/trips`: `requireAuth(request)` → `listTripsForUser(userId)` →
+  `respondWithData(request, summaries)`.
+- New application use case `listTripsForUser(userId)`:
+  1. `organizationRepository.findOrganizationsForUser(userId)` → org IDs.
+  2. `tripRepository.findAllByOrganization(orgId)` for each org → the trips.
+  3. `destinationRepository.findByTrips(tripIds)` — a new **batch** method
+     (single `WHERE trip_id IN (…)` query) — to avoid an N+1 over trips. Group
+     destinations by `tripId` in the use case and derive each trip's min
+     `startDate` / max `endDate`.
+  4. Map each `Trip` (+ its derived range) → `TripSummary`. Returns the DTOs.
+- The use case still composes domain repositories (no bespoke joined-summary
+  query); the only new repository surface is the batch `findByTrips`. See §14
+  for the rejected alternatives (per-trip `findByTrip` N+1; a single joined
+  `findTripSummariesForUser`).
 
 ### Storage & migrations
 
@@ -129,6 +160,9 @@ domain aggregate over the bearer-authenticated v1 surface.
 - Bearer auth via `requireAuth` (rejects unauthenticated with the 401 envelope).
 - `totalBudget` is the only potentially-sensitive field; it's the user's own
   org data, so in-scope for a member. No PII beyond what `/me` already exposes.
+- The destination read (`findByTrips`) is keyed on trip IDs already resolved
+  through the org-membership filter — it introduces no new exposure surface,
+  and only the derived date range (not the destination rows) reaches the wire.
 - No query params are trusted/echoed beyond the envelope's `query_params` echo.
 
 ## 9. Test plan
@@ -142,12 +176,21 @@ domain aggregate over the bearer-authenticated v1 surface.
 
 - `apps/web/src/app/api/v1/trips/route.int-test.ts` (new): success envelope
   shape + `data` is `TripSummary[]`; org-scoped visibility isolation (two
-  users/orgs); empty list for a user with no trips; 401 on bad bearer.
+  users/orgs); empty list for a user with no trips; 401 on bad bearer;
+  **date-range derivation** — a trip with dated destinations exposes
+  min `startDate` / max `endDate`, a trip with none exposes `null`/`null`.
+- `apps/web/src/application/use-cases/list-trips-for-user.int-test.ts` (new):
+  the use case composes orgs → trips → destinations and maps to `TripSummary`
+  (visibility + date derivation), against real Postgres.
+- `drizzle-destination-repository.int-test.ts` (existing — extend): the new
+  `findByTrips(tripIds)` batch method returns destinations for the given trips
+  and only those (empty array for unknown/empty IDs).
 
 ### Unit (Vitest, Jest)
 
 - `packages/shared/src/trip.test.ts` (new): `tripSummarySchema` parses a valid
-  summary, rejects malformed (bad status, missing budget).
+  summary (including `startDate`/`endDate` present and `null`), rejects
+  malformed (bad status, missing budget, non-ISO date).
 - `apps/web/scripts/generate-openapi.test.ts` (existing — extend): asserts the
   `/api/v1/trips` path + `TripSummary` component are present and refs resolve.
 
@@ -169,21 +212,29 @@ domain aggregate over the bearer-authenticated v1 surface.
 ## 12. Implementation order
 
 1. **Intent:** Add `tripSummarySchema` + `TripSummary` type to
-   `@travel-planner/shared`; bump package as needed.
+   `@travel-planner/shared` (incl. nullable ISO `startDate`/`endDate`); bump
+   package as needed.
    **Verify:** `packages/shared/src/trip.test.ts` green; `pnpm type-check`.
-2. **Intent:** Add `listTripsForUser(userId)` use case (composes
-   `findOrganizationsForUser` + `findAllByOrganization`; maps to `TripSummary`).
-   **Verify:** use-case integration test (visibility + mapping) green.
-3. **Intent:** Add `GET /api/v1/trips/route.ts` (`requireAuth` →
-   `listTripsForUser` → `respondWithData`).
-   **Verify:** `route.int-test.ts` (criteria 1–4) green.
-4. **Intent:** Add the endpoint to the OpenAPI generator (path + `TripSummary`
+2. **Intent:** Add `findByTrips(tripIds: string[]): Promise<Destination[]>` to
+   `DestinationRepository` (domain interface) + the Drizzle implementation
+   (single `WHERE trip_id IN (…)` query). Update existing repository mocks.
+   **Verify:** `drizzle-destination-repository.int-test.ts` (batch read) green.
+3. **Intent:** Add `listTripsForUser(userId)` use case — composes
+   `findOrganizationsForUser` + `findAllByOrganization` + `findByTrips`; groups
+   destinations by trip; derives min `startDate`/max `endDate`; maps to
+   `TripSummary`.
+   **Verify:** `list-trips-for-user.int-test.ts` (visibility + date derivation
+   + mapping) green.
+4. **Intent:** Add `GET /api/v1/trips/route.ts` (`requireAuth` →
+   `listTripsForUser` → `respondWithData`), wired via the composition root.
+   **Verify:** `route.int-test.ts` (criteria 1–5) green.
+5. **Intent:** Add the endpoint to the OpenAPI generator (path + `TripSummary`
    + `TripsListSuccessEnvelope` component); run `pnpm openapi:generate`.
    **Verify:** `pnpm openapi:check` green; generator test asserts the path/component.
-5. **Intent:** Full verification suite + docs (api-conventions vocabulary if a
+6. **Intent:** Full verification suite + docs (api-conventions vocabulary if a
    new code is introduced — none expected; CHANGELOG `## [Unreleased]`).
    **Verify:** `pnpm lint && db:check:migrations && type-check && test:unit && test:integration && openapi:check` green.
-6. **Intent:** Close-out — triage notes, set status Complete, update EPIC-002
+7. **Intent:** Close-out — triage notes, set status Complete, update EPIC-002
    §7 slice 1 row + ledger.
 
 ## 13. ADR triggers and tech-debt review
@@ -196,35 +247,47 @@ domain aggregate over the bearer-authenticated v1 surface.
 
 ### Tech debt
 
-- No new tech debt anticipated. (If `findAllByOrganization`-per-org proves a
-  perf concern at scale, a `findAllForUser` repository method is the follow-up —
-  noted in §Open Questions, not pre-committed.)
+- No new tech debt anticipated. The batch `findByTrips` removes the N+1 over
+  trips for the date derivation; trips are still fetched per org via
+  `findAllByOrganization` (audience-of-one, few orgs). If that fan-out or the
+  trips→destinations join ever bites, a single joined
+  `findTripSummariesForUser` query is the follow-up — flagged in §14, not
+  pre-committed.
 
 ## 14. Risks & open questions
 
 **Risks:** low — additive read endpoint reusing existing repos + the proven
-envelope. The only real risk is getting org-scoped visibility wrong; criterion 2's
-isolation test is the guard.
+envelope, plus one small new batch repo method. The main risk is getting
+org-scoped visibility wrong (criterion 2's isolation test is the guard); a
+secondary risk is mishandling the nullable date derivation for trips with no /
+partially-dated destinations (criterion 4's test is the guard).
 
 ### Open Questions
 
-1. **`TripSummary` field set.** *Chosen:* `id`, `name`, `status`, `totalBudget`
-   (`{amountPence, currency}`), `organizationId`, `updatedAt` — the domain
-   `Trip`'s own fields. *Rejected:* including a **date range** and
-   **destination count**, which live on `Destination` and need an aggregate
-   join. *Cost of wrong:* if the slice-3 mobile list design wants dates/counts,
-   a follow-up adds them (backwards-compatible per ADR 056 SemVer — additive).
-   *Recommend:* ship the Trip-only projection now; add aggregates if the list UI needs them.
-2. **`listTripsForUser` composition.** *Chosen:* compose existing
-   `findOrganizationsForUser` + `findAllByOrganization` in the use case.
-   *Rejected:* a new `TripRepository.findAllForUser(userId)` (one joined query).
-   *Cost of wrong:* N+1-ish reads if a user is in many orgs (unlikely — audience
-   of one, few orgs). *Recommend:* compose now; add the repo method only if perf bites.
-3. **`totalBudget` wire shape.** *Chosen:* structured `{ amountPence, currency }`
-   (money-as-pence convention; client formats). *Rejected:* a pre-formatted
-   string (e.g. `"£5,000"`). *Cost of wrong:* clients re-format / locale issues.
-   *Recommend:* structured — consistent with the domain and with future
-   currency/locale handling on the client.
+_All three review-focus questions were resolved on PR #132 (interactive
+review). No open questions remain. Resolutions recorded below for rationale._
+
+1. **`TripSummary` field set — RESOLVED: include a derived date range.**
+   *Decision:* the domain `Trip`'s own fields (`id`, `name`, `status`,
+   `totalBudget`, `organizationId`, `updatedAt`) **plus** a derived nullable
+   `startDate`/`endDate` (min/max over the trip's destinations). *Why:*
+   EPIC-002 §4's list demo shows trip dates, and the `Trip` aggregate has none
+   — deriving them in this slice (which owns the list contract) avoids a
+   guaranteed follow-up. *Still rejected:* destination **count** and the
+   destination list (no demo need; additive later per ADR 056 SemVer if a
+   future UI wants them).
+2. **`listTripsForUser` composition — RESOLVED: compose + batch destinations.**
+   *Decision:* compose `findOrganizationsForUser` + `findAllByOrganization` in
+   the use case, and add a batch `DestinationRepository.findByTrips(tripIds)`
+   (one `IN` query) for the date derivation. *Rejected:* per-trip `findByTrip`
+   (N+1 over trips), and a single joined `findTripSummariesForUser` (bespoke
+   projection query — premature for audience-of-one). *Cost of wrong:* if the
+   per-org trip fan-out bites at scale, the joined query is the additive
+   follow-up (§13).
+3. **`totalBudget` wire shape — RESOLVED: structured `{ amountPence, currency }`.**
+   *Decision:* structured money-as-pence; the client formats. *Rejected:* a
+   pre-formatted string (e.g. `"£5,000"`) — would force re-formatting and
+   create locale issues. Consistent with the domain `Money` type.
 
 ## Implementation Deviations
 
