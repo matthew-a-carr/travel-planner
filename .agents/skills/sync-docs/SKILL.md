@@ -82,24 +82,30 @@ hard miss:
 
 ## Step 5 — Report
 
-9. Output a short summary:
+9. Output the report using **exactly** this structure — these headings
+   verbatim, the real path count substituted into the `##` heading, the diff
+   command you ran on the record, and no renamed/added/dropped sections:
 
    ```markdown
    ## Doc sync — <N> paths changed
 
-   **Generated artifacts**
-   - OpenAPI: regenerated docs/openapi/v1.yaml | clean | n/a
-   - Symlinks / ADR index / CHANGELOG: <result>
+   _Diff: `git diff --staged --name-only` (or `git diff main...HEAD --name-only`)_
 
-   **Prose docs**
+   ### Generated artifacts
+   - OpenAPI: regenerated docs/openapi/v1.yaml | clean | n/a
+   - Symlinks: <result> | n/a
+   - ADR index: <result> | n/a
+   - CHANGELOG: <result> | n/a
+
+   ### Prose docs
    - <doc> — patched: <one line> | stale, needs <X> | clean
 
-   **Unresolved** (couldn't fix safely)
+   ### Unresolved (couldn't fix safely)
    - <doc> — <why, what's needed>
    ```
 
-   If everything was already true, say so explicitly ("all matched rows
-   already accurate") — silence reads as "didn't check".
+   If everything was already true, keep the headings and say so explicitly under
+   each ("all matched rows already accurate") — silence reads as "didn't check".
 
 ## Do not
 

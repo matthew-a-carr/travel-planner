@@ -31,6 +31,13 @@ Same as the other autonomous skills — `git` for local ops,
 "$SLACK_NOTIFY_USER"` for blocker DMs. Plugin skills are best-effort
 (continue with a warning if not loaded).
 
+**Two ordering invariants, every run:**
+1. Push the revision commit BEFORE posting any PR comments (replies cite the
+   commit SHA).
+2. Remove the `claude:revise-now` label **LAST** — only after the push AND every
+   comment have succeeded, on both the happy path (step 19) and the blocked path
+   ("If blocked" step 3). Removing it earlier can race a re-label webhook.
+
 ## Inputs
 
 - `PR_NUMBER` — the PR number that just received the label (from the
@@ -114,10 +121,15 @@ label `claude:revise-now`, `state: open`, most recently labeled.
 
 12. Edit the SPEC file in place. Preserve sections the reviewer didn't touch.
 13. Update §Open Questions:
-    - Remove items the reviewer resolved.
+    - **Delete** items the reviewer resolved — remove the lines entirely. Do
+      NOT strike them through or leave a "Resolved" note; a resolved question is
+      no longer open and must not appear here. If the resolution changed the
+      SPEC, fold it into the affected section (e.g. §Acceptance), not a tombstone.
     - Add new items the reviewer surfaced.
-    - Each item still needs the same three lines: choice / alternative /
-      cost of being wrong.
+    - Each item is exactly three labelled lines — no extra sub-bullets:
+      - **Choice:** <the decision being proposed>
+      - **Alternative:** <the rejected option>
+      - **Cost of being wrong:** <what breaks if the choice is wrong>
 14. If a comment implies an ADR is now needed (per AGENTS.md "When to write
     an ADR"), draft it on the same branch.
 15. Re-run the engineering-principles `architecture-review` skill against the
@@ -163,7 +175,8 @@ Causes:
 
 In those cases:
 
-1. Do **not** push a revision commit.
+1. Make **no** changes to the SPEC/EPIC — do not commit, do not push, do not
+   stage edits. A blocked outcome leaves the branch exactly as found.
 2. Post a top-level PR comment via `mcp__github__create_issue_comment`:
    "Blocked: <one-line reason>. Need: <the concrete input>." Keep specific.
 3. Apply label `claude:blocked` to the PR via

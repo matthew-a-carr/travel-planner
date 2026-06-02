@@ -77,6 +77,23 @@ For each finding record severity: **Critical** (blocks merge), **Warning**
 Constitution / ADR / architecture violations are **Critical** by default and
 cannot be downgraded by reinterpretation — surface them and let the human decide.
 
+**These are ALWAYS Critical — never soften to Warning/Suggestion or relabel as
+"High"/"Major"/"Minor"/"a DI smell", however small the diff:**
+
+1. `domain/` importing `application/`, `infrastructure/`, or any npm package.
+2. `application/` importing `infrastructure/` — a cross-layer **import** breach,
+   not merely a DI nit.
+3. A repository interface in `infrastructure/`, or an implementation in `domain/`.
+4. `new Drizzle*Repository(...)` outside the composition root, or `src/app/**`
+   constructing deps instead of `getAppContainer()` (ADR 028).
+5. A test `.skip`/`xit`/`xfail`/`.only`/commented-out, **or** a test that mocks
+   the database for a use-case/repository layer (the mock is its own Critical,
+   separate from any downstream consequence).
+6. A new library / tool / dependency with no ADR added in the diff → also
+   recommend invoking `write-adr`.
+7. Money as float/decimal/string instead of integer pence; a fallible domain op
+   that throws instead of `Result<T, E>`.
+
 ### Pass 1 — SPEC fidelity
 
 - Every acceptance criterion in the SPEC's §3 should be satisfied by the diff
@@ -182,6 +199,12 @@ of green with skipped/failing checks underneath → **Critical**.
 Produce a structured report. In routine mode, post it as a PR review comment
 via `mcp__github__*`; in interactive/self-review mode, return it to the caller.
 
+**Use the template below verbatim.** The four section headings (`## Critical`,
+`## Warnings`, `## Suggestions`, `## Passes with no findings`) and the Verdict —
+exactly one of `Ready to merge`, `Needs changes`, `Blocked` — are a fixed
+contract. Do **not** invent a severity taxonomy ("High/Medium/Low",
+"Major/Minor") or reword the verdict ("Request Changes", "Approve").
+
 ```markdown
 # Review of impl PR #NNN — SPEC-NNN <title>
 
@@ -203,6 +226,14 @@ via `mcp__github__*`; in interactive/self-review mode, return it to the caller.
 Rules:
 - One bullet per finding, prefixed with the file path (+ line) or SPEC section.
 - Quote the offending snippet where the literal text matters.
+- **Before recording a finding, confirm the thing is actually wrong.** A correct
+  ADR-index row, a correct `CHANGELOG.md` `## [Unreleased]` entry, or correct
+  `getAppContainer()` DI wiring is a **pass, not a finding** — flagging it is a
+  false positive that costs reviewer trust. When unsure, verify against the
+  cited ADR/convention before flagging.
+- **The `## Passes with no findings` section is required, not optional** —
+  positively acknowledge the conventions the diff got right so correct work
+  isn't mistaken for an omission.
 - No Critical and no Warning → verdict *Ready to merge*.
 - Any Critical → verdict *Needs changes*.
 - A Critical that needs a design decision the SPEC never resolved → *Blocked*:

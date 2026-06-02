@@ -22,11 +22,14 @@ This skill composes with the others: `review-implementation` / `code-review`
 PRs, triage with `triage-dependabot` first — don't babysit a PR that touches a
 version-locked family.
 
-## Tool conventions
+## Tool conventions (read this first)
 
 - **Local**: `git` for branch ops + commits, `pnpm` for verification.
-- **Remote GitHub**: `mcp__github__*` (read PR, comments, checks, reply, merge).
-  Prefer these over `gh` for parity with the autonomous skills.
+- **Remote GitHub operations** (read PR, read/reply to comment threads, poll
+  check status, merge): use the `mcp__github__*` MCP tools provided by the
+  Claude GitHub App. **Do not use the `gh` CLI** — it has known auth issues in
+  scheduled routines (anthropics/claude-code#42743), and the autonomous skills
+  standardise on the MCP tools.
 - This skill **does not** override branch protection. If required checks fail or
   a review requests changes, it stops — it never merges with `--admin`.
 
@@ -61,16 +64,18 @@ version-locked family.
    && pnpm test:integration`. If a wire schema / `/api/v1/*` shape changed, run
    `pnpm openapi:check` (regenerate if needed). Never push a failing local gate.
 7. Commit with a Conventional Commit message and `git push` to the PR branch.
-8. Reply to each thread via `mcp__github__*`: on accepted comments, say what
+8. Reply to each thread via `mcp__github__create_issue_comment` (or the
+   review-comment reply tool for inline threads): on accepted comments, say what
    changed (and resolve the thread if appropriate); on rejected comments, post
    the reasoning. Do not silently ignore a comment — every thread gets a
    response (Rule 9).
 
 ## Step 4 — Wait for green
 
-9. Poll the PR's check runs (`mcp__github__pull_request_read` / status) until
-   every **required** check concludes. To pace the wait in an interactive
-   session, use the `/loop` skill or a short `ScheduleWakeup`; don't busy-wait.
+9. Poll the PR's check runs via `mcp__github__pull_request_read` (it returns
+   check/status state) until every **required** check concludes — do not shell
+   out to `gh api`. To pace the wait in an interactive session, use the `/loop`
+   skill or a short `ScheduleWakeup`; don't busy-wait.
 10. If a check **fails**: read its logs, reproduce locally, fix (with a test),
     push, and return to step 9. Bound this to **3 fix attempts** — if still red
     after 3, stop and escalate (Step 6).
@@ -84,11 +89,16 @@ version-locked family.
 12. Merge **only when all of**: required checks green, no review requesting
     changes (approvals satisfied if required), no merge conflict, branch up to
     date with base. Merge via `mcp__github__merge_pull_request` with
-    **squash**, a Conventional Commit title (release-please consumes these for
-    the changelog/version), and delete the head branch.
-13. If the PR carries a `claude:*` lifecycle label or closes an issue/SPEC,
-    confirm the linkage resolved (e.g. an impl PR's merge completes the SPEC
-    lifecycle per `implement-spec`). Report the merge commit + what landed.
+    **squash** and delete the head branch. The squash title must be a valid
+    Conventional Commit (`feat(scope):`, `fix(scope):`, `docs:`, `chore:`,
+    `ci:`, …) — release-please parses it for the changelog/version. If the PR
+    title already conforms, reuse it; if not, **rewrite** it into a conforming
+    subject derived from what the PR does. Never pass a non-conforming title
+    through unchanged.
+13. **After the merge lands**, if the PR carries a `claude:*` lifecycle label or
+    closes an issue/SPEC, verify the linkage actually resolved (the closing
+    issue/SPEC moved to closed, the lifecycle label advanced) — don't assume the
+    merge did it. Report the merge commit + what landed.
 
 ## Step 6 — Escalate instead of forcing
 
