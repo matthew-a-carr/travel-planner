@@ -1,0 +1,50 @@
+name: Publish skills to Tessl
+
+# Claims + keeps the repo's agent skills in sync with the matthew-a-carr Tessl
+# workspace (per docs.tessl.io "claim a skill"). The repo is the source of
+# truth; this Action republishes on every change to .agents/skills/** so Tessl
+# reflects the repo rather than reindexing it. Requires the TESSL_TOKEN repo
+# secret (a Publisher-role API key).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.agents/skills/**'
+      - '.github/workflows/tessl-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tessl-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        skill:
+          - babysit-pr
+          - deploy-smoke-test
+          - draft-epic
+          - draft-spec
+          - implement-spec
+          - review-implementation
+          - review-spec
+          - review-tech-debt
+          - revise-spec
+          - sync-docs
+          - triage-dependabot
+          - write-adr
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tesslio/setup-tessl@v2
+        with:
+          token: ${{ secrets.TESSL_TOKEN }}
+      - name: Publish ${{ matrix.skill }}
+        working-directory: .agents/skills/${{ matrix.skill }}
+        run: tessl plugin publish --skip-evals --bump patch

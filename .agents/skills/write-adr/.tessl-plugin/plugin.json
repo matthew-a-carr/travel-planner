@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/write-adr",
+  "description": "Write a new Architecture Decision Record following CONSTITUTION §7, wire it into the `docs/decisions/README.md` index, and update the status lines of any ADR it supersedes. Use when a change meets an ADR trigger in AGENTS.md (\"When to write an ADR\"), when a human says \"write an ADR for X\", or when called by `implement-spec` / `draft-spec` at the point a decision is made. Edits files — it creates the ADR and the index row in the same change as the code it documents.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}

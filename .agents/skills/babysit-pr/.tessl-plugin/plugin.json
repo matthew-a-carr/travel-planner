@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/babysit-pr",
+  "description": "Drive a PR to merge: address review comments (human + Copilot), push fixes, wait for CI to go green, then squash-merge. Use when a human says \"babysit PR #NNN\", \"address the comments and merge when green\", or \"get this PR landed\". Pushes and merges — invoking it IS the authorization to do so. Refuses to merge on red CI, unresolved blocking reviews, or conflicts; escalates instead.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}

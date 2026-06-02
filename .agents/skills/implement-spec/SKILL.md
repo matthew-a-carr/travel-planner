@@ -162,7 +162,19 @@ This is the deliberate synthesis step the rolling log is designed for.
     - Post-Implementation Notes section written.
 
 19. Update `CHANGELOG.md` under `## [Unreleased]` if user-facing changes were made.
-20. Review the doc review table in `AGENTS.md` — update any docs that are now stale.
+20. **Decisions & docs** — in this same branch, before the index/epic updates:
+    a. **ADR** — if the change meets a trigger (AGENTS.md "When to write an
+       ADR" — new library/tool, CI structural change, dependency-management
+       change, project-wide standard, schema-strategy change, non-obvious
+       trade-off), invoke the `write-adr` skill: it writes the ADR
+       (CONSTITUTION §7 template), the `docs/decisions/README.md` index row, and
+       any supersession status lines. If no trigger is met, note "no ADR — no
+       trigger met" in the PR body rather than skipping silently (Rule 9).
+    b. **Doc sync** — invoke the `sync-docs` skill: it walks the AGENTS.md
+       doc-review table over the changed paths and runs the load-bearing
+       generated-artifact checks (OpenAPI regen → `docs/openapi/v1.yaml`,
+       AGENTS.md/CLAUDE.md symlinks, ADR index, CHANGELOG). Patch any stale doc
+       in this branch.
 21. Update `docs/specs/README.md` index with the new status.
 22. **If this slice has a parent epic, update that epic** in the same
     commit:
@@ -174,6 +186,13 @@ This is the deliberate synthesis step the rolling log is designed for.
       but **do not** mark the epic Complete autonomously. That's a
       human decision.
 23. Leave the notes file in place — it's the raw record. Do not delete it.
+
+## Self-review
+
+Before opening the PR, **invoke the `review-implementation` skill** on the
+working diff (self-review mode). Fix any **Critical** findings; carry
+**Warnings** into the PR body so the human reviewer sees them. This mirrors
+`draft-spec` → `review-spec`.
 
 ## Open the implementation PR
 

@@ -1,0 +1,8 @@
+{
+  "name": "matthew-a-carr/review-spec",
+  "description": "Cross-artefact consistency and quality review of an approved or draft SPEC. Use when the user says \"review SPEC-NNN,\" before `implement-spec` runs, or by `draft-spec` / `revise-spec` before opening or updating a spec PR. Checks the SPEC against the constitution, ADRs, parent epic (if any), and tech debt register. Read-only — produces a structured report, never edits files.",
+  "skills": [
+    "."
+  ],
+  "version": "0.1.0"
+}
