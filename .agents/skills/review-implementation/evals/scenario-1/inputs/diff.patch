@@ -1,0 +1,94 @@
+diff --git a/apps/web/src/domain/notification-preferences.ts b/apps/web/src/domain/notification-preferences.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/domain/notification-preferences.ts
+@@ -0,0 +1,15 @@
++export class NotificationPreferences {
++  constructor(
++    public readonly userId: string,
++    public bookingConfirmations: boolean = true,
++    public promotionalEmails: boolean = true,
++  ) {}
++
++  disableAll(): NotificationPreferences {
++    this.bookingConfirmations = false;
++    this.promotionalEmails = false;
++    return this;
++  }
++}
+
+diff --git a/apps/web/src/infrastructure/notification-preferences-repository.ts b/apps/web/src/infrastructure/notification-preferences-repository.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/infrastructure/notification-preferences-repository.ts
+@@ -0,0 +1,20 @@
++import { db } from './db';
++import { NotificationPreferences } from '../domain/notification-preferences';
++import nodemailer from 'nodemailer';
++
++// Repository interface (co-located with implementation for convenience)
++export interface INotificationPreferencesRepository {
++  findByUserId(userId: string): Promise<NotificationPreferences | null>;
++  save(prefs: NotificationPreferences): Promise<void>;
++}
++
++export class DrizzleNotificationPreferencesRepository implements INotificationPreferencesRepository {
++  async findByUserId(userId: string): Promise<NotificationPreferences | null> {
++    const row = await db.query.notificationPreferences.findFirst({ where: (p) => p.userId === userId });
++    if (!row) return null;
++    return new NotificationPreferences(row.userId, row.bookingConfirmations, row.promotionalEmails);
++  }
++
++  async save(prefs: NotificationPreferences): Promise<void> {
++    await db.insert('notification_preferences').values({ ...prefs });
++  }
++}
+
+diff --git a/apps/web/src/application/update-notification-preferences-use-case.ts b/apps/web/src/application/update-notification-preferences-use-case.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/application/update-notification-preferences-use-case.ts
+@@ -0,0 +1,20 @@
++import { DrizzleNotificationPreferencesRepository } from '../infrastructure/notification-preferences-repository';
++
++export class UpdateNotificationPreferencesUseCase {
++  private repo: DrizzleNotificationPreferencesRepository;
++
++  constructor() {
++    this.repo = new DrizzleNotificationPreferencesRepository();
++  }
++
++  async execute(userId: string, updates: Record<string, boolean>) {
++    let prefs = await this.repo.findByUserId(userId);
++    if (!prefs) {
++      const { NotificationPreferences } = await import('../domain/notification-preferences');
++      prefs = new NotificationPreferences(userId);
++    }
++    Object.assign(prefs, updates);
++    await this.repo.save(prefs);
++    return prefs;
++  }
++}
+
+diff --git a/package.json b/package.json
+index aaa..bbb 100644
+--- a/package.json
++++ b/package.json
+@@ -10,6 +10,7 @@
+   "dependencies": {
+     "next": "14.0.0",
+     "react": "18.0.0",
++    "nodemailer": "^6.9.0",
+     "drizzle-orm": "0.29.0"
+   }
+ }
+
+diff --git a/docs/decisions/README.md b/docs/decisions/README.md
+index ccc..ddd 100644
+--- a/docs/decisions/README.md
++++ b/docs/decisions/README.md
+@@ -5,3 +5,4 @@
+ | ADR-028 | Runtime DI via container | Accepted |
+ | ADR-038 | Money as integer pence | Accepted |
+ | ADR-056 | API envelope standard | Accepted |
++| ADR-053 | Mobile/Expo conventions | Accepted |

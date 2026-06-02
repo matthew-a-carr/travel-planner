@@ -1,0 +1,76 @@
+{
+  "context": "Tests whether the agent produces a correctly structured review report that applies the right severity levels, identifies the specific violations present in the diff (money as float, throw instead of Result, db mock, skipped test, endpoint returns 201 not 200, domain importing infrastructure), and remains read-only throughout.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Report file exists",
+      "description": "A file named review-report.md exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict field present",
+      "description": "The report contains a Verdict line with one of: Ready to merge, Needs changes, or Blocked",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict is Needs changes",
+      "description": "The verdict is 'Needs changes' (not Ready to merge or Blocked), given the Critical findings in the diff",
+      "max_score": 5
+    },
+    {
+      "name": "Report sections present",
+      "description": "The report contains all four sections: ## Critical, ## Warnings, ## Suggestions, ## Passes with no findings",
+      "max_score": 5
+    },
+    {
+      "name": "Money-as-float Critical",
+      "description": "The report flags the money stored as a float (refundAmount = booking.totalPence * 1.0) as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Throw-instead-of-Result Critical",
+      "description": "The report flags the domain service using throw instead of returning Result<T, E> as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Mocked-database Critical",
+      "description": "The report flags the test mocking the database (jest.mock('../infrastructure/db')) as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Skipped-test Critical",
+      "description": "The report flags the xit() skipped test as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Domain-imports-infrastructure Critical",
+      "description": "The report flags domain/refundService.ts importing from '../infrastructure/db' as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Endpoint status code",
+      "description": "The report flags the endpoint returning HTTP 201 instead of 200 (contradicting §3 AC-4 and the SPEC) as a finding (Critical or Warning)",
+      "max_score": 5
+    },
+    {
+      "name": "TODO/FIXME warning",
+      "description": "The report flags the TODO comment left in the diff as a Warning",
+      "max_score": 5
+    },
+    {
+      "name": "CHANGELOG warning",
+      "description": "The report flags the CHANGELOG.md ## [Unreleased] section as not having a proper user-facing entry as a Warning",
+      "max_score": 5
+    },
+    {
+      "name": "Finding path prefixes",
+      "description": "Each finding in the report is prefixed with a file path or SPEC section reference (e.g., apps/web/src/domain/refundService.ts or §3 AC-4)",
+      "max_score": 5
+    },
+    {
+      "name": "Read-only — no code edits",
+      "description": "The agent does NOT produce any modified source code files, patches, or fix attempts — only the review-report.md",
+      "max_score": 10
+    }
+  ]
+}

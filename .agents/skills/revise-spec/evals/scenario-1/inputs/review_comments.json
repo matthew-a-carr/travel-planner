@@ -1,0 +1,44 @@
+{
+  "pr_number": 17,
+  "head_branch": "claude/spec-017-search",
+  "last_revise_commit": {
+    "sha": "f9e8d7c",
+    "author_date": "2026-05-30T14:00:00Z"
+  },
+  "inline_review_comments": [
+    {
+      "id": 2101,
+      "created_at": "2026-05-31T10:05:00Z",
+      "path": "docs/specs/SPEC-017-search.md",
+      "line": 18,
+      "body": "The 200ms p95 target is too tight. Given async index latency we should set 400ms.",
+      "user": "reviewer-a"
+    },
+    {
+      "id": 2102,
+      "created_at": "2026-05-31T10:08:00Z",
+      "path": "docs/specs/SPEC-017-search.md",
+      "line": 18,
+      "body": "200ms is already generous — if anything we should tighten to 100ms to stay competitive. Don't loosen it.",
+      "user": "reviewer-b"
+    },
+    {
+      "id": 2103,
+      "created_at": "2026-05-31T10:15:00Z",
+      "path": "docs/specs/SPEC-017-search.md",
+      "line": 28,
+      "body": "We should use application-level events for index updates — it gives us better observability and fits the event-sourcing pattern we're adopting in EPIC-012.",
+      "user": "matt"
+    },
+    {
+      "id": 2104,
+      "created_at": "2026-05-31T10:20:00Z",
+      "path": "docs/specs/SPEC-017-search.md",
+      "line": 35,
+      "body": "Should we add French stemming support? The Paris office uses the product.",
+      "user": "reviewer-c"
+    }
+  ],
+  "pr_level_review_comments": [],
+  "issue_comments": []
+}

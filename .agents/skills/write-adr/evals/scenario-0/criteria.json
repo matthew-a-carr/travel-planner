@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent writes a correct ADR for a library-choice decision: confirms the trigger, allocates the right next number, names a self-describing kebab-case file, uses the exact three-section template with Status Accepted, adds the README index row, and uses the docs(adr-NNN) commit format — without restating implementation detail.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "ADR warranted — library choice",
+      "description": "States an ADR IS warranted and names the trigger as choosing a library / external tool (per the AGENTS.md 'When to write an ADR' triggers).",
+      "max_score": 10
+    },
+    {
+      "name": "Correct next number (058)",
+      "description": "Allocates number 058 (highest on main is 057, so +1), zero-padded to three digits.",
+      "max_score": 10
+    },
+    {
+      "name": "Self-describing kebab-case filename",
+      "description": "Filename is like `058-recharts-charting-library.md` (or similar) — kebab-case and conveys the subject from the filename alone. A vague name like `058-charts.md` or `058-dashboard.md` does NOT satisfy this.",
+      "max_score": 12
+    },
+    {
+      "name": "Exactly the three required sections",
+      "description": "The ADR body has the three sections Context, Decision, and Consequences (and only adds an 'Alternatives considered' subsection under Decision, if any).",
+      "max_score": 12
+    },
+    {
+      "name": "Status is Accepted",
+      "description": "The Status line is `Accepted` (the ADR ships alongside the implementing change), not `Proposed`.",
+      "max_score": 8
+    },
+    {
+      "name": "Decision stated as fact",
+      "description": "The Decision section states the chosen design (Recharts) as a fact, not as an ongoing deliberation interleaved with rejected options.",
+      "max_score": 8
+    },
+    {
+      "name": "README index row added",
+      "description": "Provides the exact new index row for docs/decisions/README.md in the form `| [058](058-...md) | <Title> | <YYYY-MM-DD> | Accepted |`, placed in number order.",
+      "max_score": 12
+    },
+    {
+      "name": "Commit message format",
+      "description": "Commit message follows `docs(adr-058): <decision>` (or explicitly folds the ADR into the feature commit on the same branch).",
+      "max_score": 10
+    },
+    {
+      "name": "Alternatives handled cleanly",
+      "description": "If Victory/Chart.js are mentioned, they appear as a brief 'Alternatives considered' note under Decision rather than being interleaved with the chosen design.",
+      "max_score": 5
+    },
+    {
+      "name": "Consequences names trade-offs",
+      "description": "The Consequences section names what becomes easier or harder and what was given up — not just benefits.",
+      "max_score": 5
+    },
+    {
+      "name": "No implementation detail",
+      "description": "The ADR captures the decision and its trade-offs; it does NOT restate code-level implementation detail that belongs in the diff or implementation notes.",
+      "max_score": 8
+    }
+  ]
+}

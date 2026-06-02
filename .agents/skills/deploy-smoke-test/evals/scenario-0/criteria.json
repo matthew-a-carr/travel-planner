@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent produces a smoke test automation script that correctly implements all the verification steps from the skill: git commit identification, vercel CLI deployment inspection, HTTP canary checks with proper curl flags and routes, x-vercel-error header check, and correct failure conditions.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "git rev-parse usage",
+      "description": "Script uses `git rev-parse --short HEAD` (or equivalent) to identify the expected commit SHA",
+      "max_score": 8
+    },
+    {
+      "name": "vercel ls for deployments",
+      "description": "Script uses `vercel ls` or equivalent Vercel REST API call to list recent deployments",
+      "max_score": 8
+    },
+    {
+      "name": "vercel inspect usage",
+      "description": "Script uses `vercel inspect <deployment-url>` to check deployment details",
+      "max_score": 8
+    },
+    {
+      "name": "READY state check",
+      "description": "Script checks that deployment state is READY (not BUILDING, ERROR, or CANCELED)",
+      "max_score": 8
+    },
+    {
+      "name": "Commit SHA comparison",
+      "description": "Script compares the deployment's git commit SHA against the local HEAD SHA and treats a mismatch as a failure finding",
+      "max_score": 10
+    },
+    {
+      "name": "curl flags for HTTP canary",
+      "description": "Script uses curl with -sS -o /dev/null -w \"%{http_code}\" (or equivalent flags) for canary HTTP checks",
+      "max_score": 8
+    },
+    {
+      "name": "Home page canary",
+      "description": "Script performs a canary check against the root / path of the production URL",
+      "max_score": 8
+    },
+    {
+      "name": "API 401 canary",
+      "description": "Script performs a canary check against an /api/v1/* route (e.g. /api/v1/me) WITHOUT a bearer token, expecting a 401 response (not 500)",
+      "max_score": 10
+    },
+    {
+      "name": "x-vercel-error check",
+      "description": "Script checks that the x-vercel-error header is NOT present in responses (to detect Vercel error pages)",
+      "max_score": 8
+    },
+    {
+      "name": "5xx treated as failure",
+      "description": "Script treats any 5xx HTTP status code as a failure condition",
+      "max_score": 8
+    },
+    {
+      "name": "No /health endpoint URL",
+      "description": "Script does NOT attempt to canary a /health, /healthz, or similar invented health endpoint URL",
+      "max_score": 8
+    },
+    {
+      "name": "VERCEL_TOKEN support",
+      "description": "Script supports VERCEL_TOKEN environment variable for non-interactive use (e.g. used in vercel ls or API call)",
+      "max_score": 8
+    }
+  ]
+}

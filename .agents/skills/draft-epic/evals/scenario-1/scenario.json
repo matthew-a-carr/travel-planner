@@ -1,0 +1,1 @@
+{ "description": "Blocked-path triage: ADR status, scope, slice count", "include": ["./inputs"] }

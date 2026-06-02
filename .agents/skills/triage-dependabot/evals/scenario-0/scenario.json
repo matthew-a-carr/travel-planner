@@ -1,0 +1,1 @@
+{ "description": "Triage mixed Dependabot PRs against the repo's version-lock rules" }

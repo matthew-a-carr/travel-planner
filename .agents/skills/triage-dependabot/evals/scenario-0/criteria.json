@@ -1,0 +1,46 @@
+{
+  "context": "Tests whether the agent applies the repo's version-lock and ecosystem-hold rules correctly across a mixed batch: closes/holds the Expo-managed and held families, merges the genuinely-safe candidates, splits a group that bundles a locked patch, never auto-merges a major, cites the governing rule per row, and stays in recommend-only mode.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "RN minor -> Close/Hold",
+      "description": "#201 (react-native 0.81.5->0.82.0) is recommended Close or Hold — NOT merge — because React Native is version-locked to the Expo SDK and Dependabot mislabels RN minors.",
+      "max_score": 15
+    },
+    {
+      "name": "Grouped green npm -> Merge",
+      "description": "#202 (grouped minor-and-patch, no locked families, green, no breaking notes) is recommended Merge.",
+      "max_score": 12
+    },
+    {
+      "name": "TypeScript 6 -> Hold",
+      "description": "#203 (typescript 5.9->6.0 major) is recommended Hold despite green CI, citing the TS6 ecosystem-readiness hold (TD-006) — not Merge.",
+      "max_score": 15
+    },
+    {
+      "name": "Expo-router group -> Split/Close",
+      "description": "#204 is NOT recommended for merge as-is; the expo-router patch must be split out / the group held, because even a patch on the Expo-managed set can break SDK lockstep (TD-009).",
+      "max_score": 15
+    },
+    {
+      "name": "github-actions patch -> Merge",
+      "description": "#205 (actions/checkout patch, green) is recommended Merge as a safe github-actions candidate.",
+      "max_score": 10
+    },
+    {
+      "name": "Cites rule / TD per row",
+      "description": "Each recommendation cites the governing rule or tech-debt reference (e.g. Expo lockstep / TD-003, TD-006, TD-009) rather than a generic 'green so merge'.",
+      "max_score": 13
+    },
+    {
+      "name": "No auto-merge of majors",
+      "description": "Does not recommend merging the TypeScript major (or any major) on the basis of green CI.",
+      "max_score": 10
+    },
+    {
+      "name": "Recommend-only, no unilateral action",
+      "description": "Frames the output as recommendations and does not merge or close any PR without an explicit instruction to act.",
+      "max_score": 10
+    }
+  ]
+}

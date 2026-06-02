@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent correctly identifies blocking conditions: a Proposed (not Accepted) strategic ADR, an initiative that is a single SPEC not an epic, and a slice count that is too low. The agent must apply the correct blocking action for each case.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Proposed ADR blocked",
+      "description": "The report identifies issue-A (with a Proposed ADR) as blocked and does NOT proceed with drafting",
+      "max_score": 10
+    },
+    {
+      "name": "Proposed ADR comment text",
+      "description": "The report states the comment to post includes the reason that the ADR is still Proposed and instructs re-triggering by re-labelling after it is Accepted",
+      "max_score": 10
+    },
+    {
+      "name": "Proposed ADR label",
+      "description": "The report states the claude:blocked label should be applied to issue-A",
+      "max_score": 8
+    },
+    {
+      "name": "Single-SPEC redirected",
+      "description": "The report identifies issue-B (single deliverable) as NOT suitable for an epic and recommends closing or re-filing with claude:plan instead of claude:plan-epic",
+      "max_score": 10
+    },
+    {
+      "name": "Single-SPEC comment text",
+      "description": "The report states the comment to post says something like 'This looks like a single SPEC — re-file with claude:plan instead of claude:plan-epic'",
+      "max_score": 10
+    },
+    {
+      "name": "Too-few slices blocked",
+      "description": "The report identifies issue-C (only 1 proposed slice) as blocked because a 1-slice initiative is a SPEC not an epic",
+      "max_score": 10
+    },
+    {
+      "name": "Too-few slices label",
+      "description": "The report states the claude:blocked label should be applied to issue-C",
+      "max_score": 8
+    },
+    {
+      "name": "No PR opened for blocked",
+      "description": "The report explicitly states that no PR would be opened for any of the blocked issues",
+      "max_score": 8
+    },
+    {
+      "name": "Slack DM mentioned",
+      "description": "The report mentions sending a Slack DM to $SLACK_NOTIFY_USER for at least one of the blocked issues",
+      "max_score": 8
+    },
+    {
+      "name": "Correct tool for GitHub ops",
+      "description": "When referencing how to post comments or apply labels, the report uses mcp__github__create_issue_comment and mcp__github__add_issue_labels (NOT 'gh CLI' or 'GitHub API' or generic terms)",
+      "max_score": 10
+    },
+    {
+      "name": "Does not draft any epic",
+      "description": "The agent produces only triage-report.md — it does NOT produce any epic document file or slice SPEC file",
+      "max_score": 8
+    }
+  ]
+}

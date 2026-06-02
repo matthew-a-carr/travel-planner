@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent detects a newly added AGENTS.md file in the diff, verifies whether a sibling CLAUDE.md symlink exists, creates one if missing using `ln -s AGENTS.md CLAUDE.md`, and reports this action in the structured summary.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Git diff used",
+      "description": "Evidence that git diff --staged (and/or --name-only) was run to identify changed paths, not manual file listing",
+      "max_score": 8
+    },
+    {
+      "name": "New AGENTS.md detected",
+      "description": "The agent identified that packages/payments/AGENTS.md is a newly added file in the diff",
+      "max_score": 10
+    },
+    {
+      "name": "CLAUDE.md symlink check performed",
+      "description": "The agent verified whether a CLAUDE.md symlink exists alongside packages/payments/AGENTS.md (e.g. ran ls -la packages/payments/CLAUDE.md or equivalent)",
+      "max_score": 12
+    },
+    {
+      "name": "CLAUDE.md symlink created",
+      "description": "A CLAUDE.md symlink exists in packages/payments/ pointing to AGENTS.md after the task completes",
+      "max_score": 20
+    },
+    {
+      "name": "Symlink target is AGENTS.md",
+      "description": "The CLAUDE.md in packages/payments/ is a symlink to AGENTS.md (not a copy, not a hardlink)",
+      "max_score": 10
+    },
+    {
+      "name": "No code files modified",
+      "description": "Source code files (*.ts, package.json, etc.) were not edited — only documentation/structural files",
+      "max_score": 10
+    },
+    {
+      "name": "Report produced",
+      "description": "A doc-sync-report.md file exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Report format — heading",
+      "description": "Report contains a heading with the number of changed paths (e.g. '## Doc sync — N paths changed')",
+      "max_score": 7
+    },
+    {
+      "name": "Report symlink action recorded",
+      "description": "Report explicitly states the CLAUDE.md symlink was created (not just that AGENTS.md was found)",
+      "max_score": 10
+    },
+    {
+      "name": "Prose docs section present",
+      "description": "Report contains a 'Prose docs' or equivalent section listing docs that were checked",
+      "max_score": 8
+    }
+  ]
+}

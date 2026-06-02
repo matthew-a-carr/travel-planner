@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent follows the TDD requirement for bug fixes, runs the correct verification gate (including openapi:check when API shape changes), uses Conventional Commit message format, avoids scope-expanding shortcuts, and refuses to push --no-verify or skip tests.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Test written first",
+      "description": "fix_plan.md describes writing a test that reproduces the bug BEFORE modifying the production code (TDD order is explicit)",
+      "max_score": 12
+    },
+    {
+      "name": "Test assertion described",
+      "description": "The test-first step describes what the test would assert (not just 'write a test' — mentions the rounding behaviour or a specific expected value)",
+      "max_score": 8
+    },
+    {
+      "name": "Surgical change described",
+      "description": "The code change step describes fixing only the rounding issue, not refactoring surrounding logic or adding unrelated improvements",
+      "max_score": 8
+    },
+    {
+      "name": "Full verification gate",
+      "description": "Verification commands include pnpm lint, pnpm type-check, pnpm test:unit, and pnpm test:integration (all four, or the equivalent full-gate command)",
+      "max_score": 12
+    },
+    {
+      "name": "OpenAPI check included",
+      "description": "Verification commands include pnpm openapi:check (or openapi regeneration) because an /api/v1/* response shape changed",
+      "max_score": 12
+    },
+    {
+      "name": "Conventional Commit format",
+      "description": "The commit message uses Conventional Commit format — starts with a type prefix such as 'fix:' or 'fix(scope):' followed by a short description",
+      "max_score": 12
+    },
+    {
+      "name": "No --no-verify",
+      "description": "fix_plan.md explicitly rules out using --no-verify (git push --no-verify or equivalent) as a shortcut",
+      "max_score": 8
+    },
+    {
+      "name": "No test-skipping",
+      "description": "fix_plan.md explicitly rules out skipping or .skip-ing a failing test to get a green gate",
+      "max_score": 8
+    },
+    {
+      "name": "No scope expansion",
+      "description": "The plan does not include additional refactors, cleanups, or unrelated changes beyond addressing the rounding bug and the rename",
+      "max_score": 10
+    },
+    {
+      "name": "pnpm as package manager",
+      "description": "All verification commands use pnpm (not npm or yarn)",
+      "max_score": 10
+    }
+  ]
+}

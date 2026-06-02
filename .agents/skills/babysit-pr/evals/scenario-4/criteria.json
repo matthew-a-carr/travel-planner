@@ -1,0 +1,51 @@
+{
+  "context": "Tests whether the agent uses mcp__github__* tools (not the gh CLI) for all remote GitHub operations such as reading PRs, posting comments, checking CI status, and merging. Also verifies that the merge uses squash strategy with a Conventional Commit title and deletes the head branch, and that the agent does not merge when checks are not all green.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "mcp__github__ for PR read",
+      "description": "The PR state retrieval step references mcp__github__pull_request_read or mcp__github__ namespace (not 'gh pr view' or 'gh api')",
+      "max_score": 12
+    },
+    {
+      "name": "mcp__github__ for comment reply",
+      "description": "The comment reply step references an mcp__github__ call (not 'gh pr comment' or REST API curl)",
+      "max_score": 12
+    },
+    {
+      "name": "mcp__github__ for check status",
+      "description": "The check-polling step uses mcp__github__ to read check run status (not 'gh pr checks' or 'gh api')",
+      "max_score": 12
+    },
+    {
+      "name": "mcp__github__ for merge",
+      "description": "The merge step references mcp__github__merge_pull_request (not 'gh pr merge' or REST API curl)",
+      "max_score": 12
+    },
+    {
+      "name": "Squash merge strategy",
+      "description": "The merge call specifies squash as the merge method (not merge-commit or rebase)",
+      "max_score": 10
+    },
+    {
+      "name": "Conventional Commit merge title",
+      "description": "The merge step produces or accepts a Conventional Commit formatted title (e.g. 'feat:' or 'fix:' prefix) for the squash commit",
+      "max_score": 10
+    },
+    {
+      "name": "Branch deletion after merge",
+      "description": "The script deletes the head branch after a successful merge",
+      "max_score": 8
+    },
+    {
+      "name": "Merge guarded by green checks",
+      "description": "The merge step is conditional — it only proceeds when all required checks are passing (not triggered unconditionally after polling)",
+      "max_score": 12
+    },
+    {
+      "name": "No gh CLI for GitHub ops",
+      "description": "The script does NOT use `gh pr view`, `gh pr comment`, `gh pr checks`, `gh pr merge`, or `gh api` for the four operations",
+      "max_score": 12
+    }
+  ]
+}

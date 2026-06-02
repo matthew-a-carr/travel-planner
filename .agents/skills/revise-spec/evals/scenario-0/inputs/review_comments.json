@@ -1,0 +1,58 @@
+{
+  "pr_number": 42,
+  "head_branch": "claude/spec-042-notifications",
+  "last_revise_commit": {
+    "sha": "a1b2c3d",
+    "author_date": "2026-05-28T10:00:00Z"
+  },
+  "inline_review_comments": [
+    {
+      "id": 1001,
+      "created_at": "2026-05-29T09:15:00Z",
+      "path": "docs/specs/SPEC-042-notifications.md",
+      "line": 14,
+      "body": "The 500ms p99 target seems aggressive given APNs latency. Consider 2s for mobile clients.",
+      "user": "matt"
+    },
+    {
+      "id": 1002,
+      "created_at": "2026-05-29T09:18:00Z",
+      "path": "docs/specs/SPEC-042-notifications.md",
+      "line": 34,
+      "body": "We should use Kafka here — it aligns with the event-bus architecture in EPIC-007. Redis Streams is a dead end.",
+      "user": "matt"
+    },
+    {
+      "id": 1003,
+      "created_at": "2026-05-29T09:22:00Z",
+      "path": "docs/specs/SPEC-042-notifications.md",
+      "line": 40,
+      "body": "Who owns the APNs credentials rotation? This needs to be spelled out.",
+      "user": "matt"
+    },
+    {
+      "id": 1004,
+      "created_at": "2026-05-29T09:25:00Z",
+      "body": "Can we also add Slack notifications to the scope? Our ops team uses Slack heavily.",
+      "user": "reviewer-b",
+      "created_at_note": "This comment conflicts with §3 Non-Goals (email only), and Slack is out of scope for this SPEC."
+    }
+  ],
+  "pr_level_review_comments": [
+    {
+      "id": 2001,
+      "created_at": "2026-05-29T09:30:00Z",
+      "body": "Overall looking good. The schema needs a `channel` column to distinguish WebSocket vs mobile push destinations.",
+      "user": "reviewer-c",
+      "state": "CHANGES_REQUESTED"
+    }
+  ],
+  "issue_comments": [
+    {
+      "id": 3001,
+      "created_at": "2026-05-28T08:00:00Z",
+      "body": "Old comment from before last revision — already handled.",
+      "user": "matt"
+    }
+  ]
+}

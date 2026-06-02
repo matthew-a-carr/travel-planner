@@ -1,0 +1,56 @@
+{
+  "context": "Tests whether the agent correctly gives a 'Ready for implementation' verdict for a well-formed SPEC, produces a properly structured report with all required sections, quotes from the SPEC where relevant, notes clean passes explicitly, and does not edit any input files or attempt to invoke implement-spec.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Verdict: Ready for implementation",
+      "description": "The report verdict is 'Ready for implementation' — not 'Needs revision' or 'Blocked'",
+      "max_score": 15
+    },
+    {
+      "name": "All four report sections present",
+      "description": "The report contains all four required sections: Critical, Warnings, Suggestions, and Passes with no findings (or equivalent)",
+      "max_score": 12
+    },
+    {
+      "name": "Clean passes explicitly noted",
+      "description": "The 'Passes with no findings' section names at least two specific passes that were clean (e.g. Pass 1 Constitution/ADR, Pass 5 Underspecification, Pass 2 Epic alignment)",
+      "max_score": 10
+    },
+    {
+      "name": "ADRs verified correctly",
+      "description": "The report confirms that ADR-011, ADR-020, and ADR-031 are correctly referenced and followed in the SPEC",
+      "max_score": 10
+    },
+    {
+      "name": "Result type pattern confirmed",
+      "description": "The report notes that domain operations (assignRole, revokeRole) correctly return Result types rather than throwing",
+      "max_score": 8
+    },
+    {
+      "name": "Tech debt TD-010 linkage Suggestion",
+      "description": "The report includes a Suggestion about TD-010 (password reset token rate limiting) — noting it is in the same User subsystem but unrelated to this SPEC, or is absent (either is acceptable — what matters is that it was checked)",
+      "max_score": 8
+    },
+    {
+      "name": "No inputs modified",
+      "description": "No files under inputs/ have been modified or created",
+      "max_score": 12
+    },
+    {
+      "name": "Does not invoke implement-spec",
+      "description": "The report does NOT contain any statement that it will proceed to implement the SPEC, run implement-spec, or take action beyond reporting",
+      "max_score": 12
+    },
+    {
+      "name": "Section-prefixed findings or notes",
+      "description": "Any findings or confirmations reference specific SPEC sections (e.g. [§5], [§8], [§13])",
+      "max_score": 7
+    },
+    {
+      "name": "SPEC quoted where relevant",
+      "description": "The report quotes at least one short snippet from the SPEC (e.g. the Result return types, the error envelope format, or an ADR reference)",
+      "max_score": 6
+    }
+  ]
+}

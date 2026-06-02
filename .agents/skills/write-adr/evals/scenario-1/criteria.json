@@ -1,0 +1,26 @@
+{
+  "context": "Tests whether the agent correctly DECLINES to write an ADR for a pure bug fix with no design decision (Step 0 discrimination), cites that no trigger is met, notes that a noise ADR is harmful, and stops cleanly rather than fabricating one.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Correctly declines",
+      "description": "Concludes that NO ADR should be written for this change.",
+      "max_score": 30
+    },
+    {
+      "name": "Cites no trigger met",
+      "description": "Explains that none of the ADR triggers (library/tool choice, CI structure, dependency-management policy, project-wide standard, schema strategy, architectural trade-off) are met — this is a bug fix with no design decision.",
+      "max_score": 25
+    },
+    {
+      "name": "Notes noise-ADR harm",
+      "description": "Notes that writing an unnecessary / noise ADR is itself a violation (ADRs capture decisions, not implementation notes).",
+      "max_score": 20
+    },
+    {
+      "name": "Stops cleanly",
+      "description": "Does not fabricate an ADR anyway; the answer ends at the decision to not write one (optionally suggesting the change just ships with its test).",
+      "max_score": 25
+    }
+  ]
+}

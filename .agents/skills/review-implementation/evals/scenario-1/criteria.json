@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent correctly identifies architecture layer boundary violations (repository interface in wrong layer, application importing infrastructure directly, direct construction instead of DI container) and ADR obligations (new library added with no ADR) while maintaining the read-only reporting stance.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Report file exists",
+      "description": "A file named review-report.md exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict present",
+      "description": "The report contains a Verdict line with one of: Ready to merge, Needs changes, or Blocked",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict is Needs changes",
+      "description": "The verdict is 'Needs changes' given the Critical architectural violations",
+      "max_score": 5
+    },
+    {
+      "name": "Repo interface in wrong layer",
+      "description": "The report flags INotificationPreferencesRepository being placed in infrastructure/ instead of domain/ as a Critical finding",
+      "max_score": 15
+    },
+    {
+      "name": "Application imports infrastructure",
+      "description": "The report flags the use-case importing DrizzleNotificationPreferencesRepository from infrastructure/ as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "Direct construction not DI",
+      "description": "The report flags new DrizzleNotificationPreferencesRepository() inside the use-case (instead of using getAppContainer()) as a Critical finding referencing ADR-028 / runtime DI",
+      "max_score": 10
+    },
+    {
+      "name": "New library needs ADR",
+      "description": "The report flags nodemailer being added as a new library with no corresponding ADR as a Critical finding, and recommends invoking write-adr",
+      "max_score": 15
+    },
+    {
+      "name": "Deviation not logged",
+      "description": "The report flags that the repository interface placement deviation is not recorded in the implementation-notes file as a Warning",
+      "max_score": 10
+    },
+    {
+      "name": "Report sections present",
+      "description": "The report has all required sections: ## Critical, ## Warnings, ## Suggestions, ## Passes with no findings",
+      "max_score": 5
+    },
+    {
+      "name": "Finding path prefixes",
+      "description": "Findings are prefixed with file paths or SPEC section references",
+      "max_score": 5
+    },
+    {
+      "name": "No ADR 053 false positive",
+      "description": "The report does NOT raise an issue about the ADR-053 README row addition (that change is correct, the row was missing before)",
+      "max_score": 5
+    },
+    {
+      "name": "Read-only stance",
+      "description": "The agent does NOT produce any refactored or fixed source code files — only review-report.md",
+      "max_score": 10
+    }
+  ]
+}

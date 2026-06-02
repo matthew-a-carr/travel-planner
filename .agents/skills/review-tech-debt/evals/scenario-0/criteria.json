@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent reads the tech-debt register and the referenced spec files, evaluates each item across the four assessment dimensions, correctly categorises every item, and formats the report into the four prescribed summary sections.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Reads spec files",
+      "description": "The report references content from at least 3 of the 5 linked spec files (e.g., mentions the deviation, acceptance criteria, or context found only in the spec documents), indicating the agent read them",
+      "max_score": 12
+    },
+    {
+      "name": "Relevance assessment",
+      "description": "For at least 3 items the report explicitly states whether the item is still relevant or has been resolved incidentally",
+      "max_score": 8
+    },
+    {
+      "name": "Blast radius assessment",
+      "description": "For at least 3 items the report explicitly describes the blast radius (e.g., single file, feature-wide, cross-cutting)",
+      "max_score": 8
+    },
+    {
+      "name": "Compounding assessment",
+      "description": "For at least 2 items the report explicitly addresses whether the debt is getting worse or will be compounded by future work",
+      "max_score": 8
+    },
+    {
+      "name": "Quick-fix time assessment",
+      "description": "For at least 2 items the report explicitly addresses whether the item can be resolved in under 1 hour",
+      "max_score": 8
+    },
+    {
+      "name": "Five categories used",
+      "description": "The report uses at least 3 of the 5 categorisation labels: 'Resolved incidentally', 'Quick fix', 'Needs a spec', 'Accept and defer', 'No longer relevant'",
+      "max_score": 12
+    },
+    {
+      "name": "Resolved/no-longer-relevant section",
+      "description": "Report contains a distinct section for items that are resolved or no longer relevant",
+      "max_score": 8
+    },
+    {
+      "name": "Quick-fixes section",
+      "description": "Report contains a distinct section listing quick fixes that can be done immediately",
+      "max_score": 8
+    },
+    {
+      "name": "Needs-a-spec section",
+      "description": "Report contains a distinct section for items that require a full spec, with priority recommendation",
+      "max_score": 8
+    },
+    {
+      "name": "Defer section",
+      "description": "Report contains a distinct section for items to defer, with rationale for deferral",
+      "max_score": 8
+    },
+    {
+      "name": "claude:plan reference",
+      "description": "For at least one item categorised as needing a spec, the report recommends filing a `claude:plan` GitHub issue",
+      "max_score": 12
+    }
+  ]
+}

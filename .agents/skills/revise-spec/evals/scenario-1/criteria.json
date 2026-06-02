@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent correctly handles conflicting review comments (does not average them), uses the correct commit message format, applies concrete stakeholder changes, treats out-of-scope requests appropriately, and surfaces conflicts in §Open Questions with the required three-line structure.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Conflict not averaged",
+      "description": "The revised spec does NOT split the difference on the latency target (e.g. does not set it to 300ms); it picks either 200ms or 400ms as a single value, not a mid-point",
+      "max_score": 10
+    },
+    {
+      "name": "Conflict surfaced in OQ",
+      "description": "§Open Questions in the revised spec contains an entry about the latency target conflict between reviewer-a and reviewer-b, explaining both positions",
+      "max_score": 10
+    },
+    {
+      "name": "Conflict in PR reply",
+      "description": "pr_comment_summary.md or per_comment_replies.md acknowledges the conflict between comments 2101 and 2102 and states which position was chosen and why",
+      "max_score": 8
+    },
+    {
+      "name": "Stakeholder change applied",
+      "description": "The revised spec reflects the choice of application-level events (not DB triggers) for index updates, addressing comment 2103 from matt",
+      "max_score": 10
+    },
+    {
+      "name": "Resolved OQ removed",
+      "description": "The 'Index update trigger' open question is removed from §Open Questions in the revised spec (it has been resolved by applying comment 2103)",
+      "max_score": 8
+    },
+    {
+      "name": "Out-of-scope not applied",
+      "description": "The revised spec does NOT add French stemming or multi-language support, since this is listed as a non-goal in §3",
+      "max_score": 8
+    },
+    {
+      "name": "Out-of-scope reply posted",
+      "description": "per_comment_replies.md contains a reply for comment 2104 explaining that multi-language stemming is a stated non-goal and will not be added",
+      "max_score": 8
+    },
+    {
+      "name": "Open Questions three-line format",
+      "description": "Every §Open Questions item in the revised spec contains: a choice/question statement, an alternative, and the cost of being wrong",
+      "max_score": 8
+    },
+    {
+      "name": "Commit message format",
+      "description": "commit_message.txt follows the pattern `docs(spec-017): revise <slug> — incorporate review feedback (PR #17 comments)` — including the Conventional Commit prefix `docs(spec-NNN):`, the word 'revise', and the PR number",
+      "max_score": 12
+    },
+    {
+      "name": "PR summary counts",
+      "description": "pr_comment_summary.md states the number of comments addressed, the number deferred or replied-to without change, and the count of remaining open questions",
+      "max_score": 8
+    },
+    {
+      "name": "Label removal order",
+      "description": "revision_plan.md or pr_comment_summary.md explicitly states that removing `claude:revise-now` must happen after pushing and after posting PR comments",
+      "max_score": 10
+    }
+  ]
+}

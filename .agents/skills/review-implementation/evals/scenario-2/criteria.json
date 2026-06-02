@@ -1,0 +1,66 @@
+{
+  "context": "Tests whether the agent correctly identifies test quality issues (it.only scope, mocked database for a repository, no integration test) and doc staleness issues (OpenAPI spec not updated for a new API endpoint), while recognising what is correctly done.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Report file exists",
+      "description": "A file named review-report.md exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict present",
+      "description": "The report contains a Verdict line with one of: Ready to merge, Needs changes, or Blocked",
+      "max_score": 5
+    },
+    {
+      "name": "Verdict is Needs changes",
+      "description": "The verdict is 'Needs changes' given the Critical test and doc staleness findings",
+      "max_score": 5
+    },
+    {
+      "name": "it.only Critical",
+      "description": "The report flags the it.only() scoped test in booking-search.test.ts as a Critical finding",
+      "max_score": 15
+    },
+    {
+      "name": "Mocked DB for repository Critical",
+      "description": "The report flags the repository test (DrizzleBookingRepository.search) using jest.mock for the database instead of a real Postgres integration test as a Critical finding",
+      "max_score": 15
+    },
+    {
+      "name": "Missing integration test file",
+      "description": "The report flags the absence of a *.int-test.ts file for the repository change as a Critical finding",
+      "max_score": 10
+    },
+    {
+      "name": "OpenAPI not updated Critical",
+      "description": "The report flags that docs/openapi/v1.yaml was not updated despite a new /api/v1/bookings/search endpoint being added as a Critical finding",
+      "max_score": 15
+    },
+    {
+      "name": "Report sections present",
+      "description": "The report contains all four required sections: ## Critical, ## Warnings, ## Suggestions, ## Passes with no findings",
+      "max_score": 5
+    },
+    {
+      "name": "Correct DI usage noted",
+      "description": "The report notes that the API route correctly uses getAppContainer() for dependency resolution (Pass 2 clean or Suggestion/positive note)",
+      "max_score": 5
+    },
+    {
+      "name": "CHANGELOG noted correct",
+      "description": "The report does NOT flag the CHANGELOG.md entry as a problem (the entry is correctly present)",
+      "max_score": 5
+    },
+    {
+      "name": "Finding path prefixes",
+      "description": "Findings are prefixed with file paths or SPEC section references",
+      "max_score": 5
+    },
+    {
+      "name": "Read-only stance",
+      "description": "The agent does NOT produce any modified or fixed source code files — only review-report.md",
+      "max_score": 10
+    }
+  ]
+}

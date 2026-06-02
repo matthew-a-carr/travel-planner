@@ -1,0 +1,71 @@
+{
+  "context": "Tests whether the agent produces a correctly structured epic document from a template, with all required sections filled in, a properly formatted slice table, measurable kill criteria, complete cross-cutting decisions, an §Open Questions section capturing best-guess choices, a seeded slice ledger, and the epic index updated.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Template copied correctly",
+      "description": "Epic file exists at docs/epics/EPIC-005-multi-tenant-support.md (i.e. copied from the template to the correct path with the correct EPIC number)",
+      "max_score": 8
+    },
+    {
+      "name": "Every section filled",
+      "description": "No section in the epic document is left blank or contains only the placeholder text from the template — each section has substantive content or 'N/A — [reason]'",
+      "max_score": 8
+    },
+    {
+      "name": "Status set to Draft",
+      "description": "The front matter or status field in the epic document reads 'Draft' (not 'In progress', 'Proposed', or left blank)",
+      "max_score": 6
+    },
+    {
+      "name": "Slice table format",
+      "description": "The slice table (§7) contains columns for demo-script line(s), dependency, and status — AND each slice's SPEC column contains '_not yet planned_' (or equivalent placeholder)",
+      "max_score": 8
+    },
+    {
+      "name": "Slice status Not started",
+      "description": "Every slice in the slice table has status 'Not started'",
+      "max_score": 6
+    },
+    {
+      "name": "Measurable kill criteria",
+      "description": "The kill/pivot criteria (§9) contain at least one criterion with a specific numeric threshold or observable trigger (e.g. 'latency > X ms', 'cost exceeds $Y/month') — NOT purely qualitative statements",
+      "max_score": 8
+    },
+    {
+      "name": "Cross-cutting decisions table",
+      "description": "The cross-cutting decisions section (§10) contains at least 3 rows covering distinct architectural decisions (e.g. auth approach, data isolation strategy, observability)",
+      "max_score": 8
+    },
+    {
+      "name": "§Open Questions section present",
+      "description": "The document contains an §Open Questions section (or equivalent heading) with at least one entry",
+      "max_score": 8
+    },
+    {
+      "name": "Open Question structure",
+      "description": "Each open question entry names: (1) the choice made, (2) the alternative rejected, and (3) the cost of being wrong",
+      "max_score": 8
+    },
+    {
+      "name": "ADR cited in Why now",
+      "description": "The strategic ADR (adr-007-multi-tenancy) is cited or referenced in the §2 Why now section AND in a References section",
+      "max_score": 8
+    },
+    {
+      "name": "Slice ledger seeded",
+      "description": "After the main template body, there is a slice ledger or audit log entry that records 'Epic drafted by routine' (or equivalent) with a date",
+      "max_score": 8
+    },
+    {
+      "name": "Epics index updated",
+      "description": "docs/epics/README.md contains a new row or entry for EPIC-005 in the index table",
+      "max_score": 8
+    },
+    {
+      "name": "No slice issues filed",
+      "description": "The agent does NOT produce any individual slice SPEC files or slice issue files — only the epic document and updated README are created",
+      "max_score": 8
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent uses AGENTS.md to identify that src/features/** maps to both docs/features.md and CHANGELOG.md, verifies CHANGELOG.md has an [Unreleased] entry for the new user-facing feature, adds one if missing, and leaves docs/internals.md untouched since no src/internal/** changes occurred.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Git diff used",
+      "description": "Evidence that git diff --staged (or equivalent) was run to discover changed paths",
+      "max_score": 7
+    },
+    {
+      "name": "AGENTS.md table consulted",
+      "description": "The agent read AGENTS.md and identified the mappings for src/features/** (both docs/features.md and CHANGELOG.md)",
+      "max_score": 10
+    },
+    {
+      "name": "CHANGELOG checked",
+      "description": "The agent explicitly checked whether CHANGELOG.md has an entry under '## [Unreleased]' for the new feature",
+      "max_score": 10
+    },
+    {
+      "name": "CHANGELOG entry added",
+      "description": "CHANGELOG.md now contains a new entry under '## [Unreleased]' describing the bulk-delete feature",
+      "max_score": 20
+    },
+    {
+      "name": "Correct CHANGELOG section",
+      "description": "The new CHANGELOG entry is placed under '## [Unreleased]', not under a versioned section like [1.2.0]",
+      "max_score": 10
+    },
+    {
+      "name": "docs/features.md checked",
+      "description": "The agent checked docs/features.md and reported it as clean (it was already updated by the developer)",
+      "max_score": 8
+    },
+    {
+      "name": "docs/internals.md untouched",
+      "description": "docs/internals.md was not edited — no src/internal/** paths were in the diff",
+      "max_score": 10
+    },
+    {
+      "name": "No code files modified",
+      "description": "Source code files (src/**) were not edited",
+      "max_score": 8
+    },
+    {
+      "name": "Report produced",
+      "description": "A doc-sync-report.md file exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Report heading format",
+      "description": "Report heading follows '## Doc sync — N paths changed' pattern",
+      "max_score": 5
+    },
+    {
+      "name": "Report — generated artifacts section",
+      "description": "Report contains a 'Generated artifacts' or 'CHANGELOG' section showing the result of the CHANGELOG check",
+      "max_score": 7
+    }
+  ]
+}

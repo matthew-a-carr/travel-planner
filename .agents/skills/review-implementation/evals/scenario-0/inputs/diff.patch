@@ -1,0 +1,93 @@
+diff --git a/apps/web/src/domain/refundService.ts b/apps/web/src/domain/refundService.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/domain/refundService.ts
+@@ -0,0 +1,45 @@
++import { db } from '../infrastructure/db';
++import { Result } from '../shared/result';
++
++export class RefundService {
++  async initiateRefund(bookingId: string): Promise<Result<string, Error>> {
++    const booking = await db.query.bookings.findFirst({
++      where: (b) => b.id === bookingId,
++    });
++    if (!booking) {
++      throw new Error('Booking not found');
++    }
++    const ageHours = (Date.now() - booking.createdAt.getTime()) / 3600000;
++    if (ageHours > 48) {
++      throw new Error('Booking too old for refund');
++    }
++    if (booking.status !== 'CONFIRMED') {
++      throw new Error('Booking not in CONFIRMED status');
++    }
++    const refundAmount = booking.totalPence * 1.0; // store as float
++    await db.insert('refunds').values({
++      bookingId,
++      amountPence: refundAmount,
++      status: 'PENDING',
++    });
++    const refundId = crypto.randomUUID();
++    return { ok: true, value: refundId };
++  }
++}
+
+diff --git a/apps/web/src/app/api/v1/refunds/route.ts b/apps/web/src/app/api/v1/refunds/route.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/app/api/v1/refunds/route.ts
+@@ -0,0 +1,22 @@
++import { RefundService } from '../../../../domain/refundService';
++import { NextResponse } from 'next/server';
++
++export async function POST(req: Request) {
++  const { bookingId } = await req.json();
++  const service = new RefundService();
++  const result = await service.initiateRefund(bookingId);
++  if (!result.ok) {
++    return NextResponse.json({ error: 'Refund failed' }, { status: 400 });
++  }
++  return NextResponse.json({ refundId: result.value, status: 'PENDING' }, { status: 201 });
++}
+
+diff --git a/apps/web/src/__tests__/refund.test.ts b/apps/web/src/__tests__/refund.test.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/web/src/__tests__/refund.test.ts
+@@ -0,0 +1,30 @@
++import { RefundService } from '../domain/refundService';
++import { db } from '../infrastructure/db';
++
++jest.mock('../infrastructure/db');
++
++describe('RefundService', () => {
++  it('initiates a refund for a valid booking', async () => {
++    (db.query.bookings.findFirst as jest.Mock).mockResolvedValue({
++      id: 'booking-1',
++      createdAt: new Date(),
++      status: 'CONFIRMED',
++      totalPence: 10000,
++    });
++    (db.insert as jest.Mock).mockResolvedValue({});
++    const service = new RefundService();
++    const result = await service.initiateRefund('booking-1');
++    expect(result.ok).toBe(true);
++  });
++
++  // TODO: add edge case tests
++  xit('returns error for booking older than 48 hours', async () => {
++    // Not implemented yet
++  });
++});
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index abc1234..def5678 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,6 +1,6 @@
+ # Changelog
+
+-## [Unreleased]
++## [Unreleased] — nothing to report
+
+ ## [1.2.0] - 2026-05-01

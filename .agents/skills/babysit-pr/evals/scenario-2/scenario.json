@@ -1,0 +1,1 @@
+{ "description": "Merge prerequisite assessment with squash strategy and Dependabot triage", "include": ["./inputs"] }

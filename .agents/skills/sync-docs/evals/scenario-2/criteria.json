@@ -1,0 +1,61 @@
+{
+  "context": "Tests whether the agent detects a new ADR in the diff, reads the AGENTS.md table to find it maps to the ADR index, verifies the README.md index is consistent, adds the missing row for ADR 004, and checks whether any superseded ADR's status needs updating.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Git diff used",
+      "description": "Evidence that git diff --staged (or equivalent) was run to detect docs/decisions/004-graphql-internal.md as the changed path",
+      "max_score": 7
+    },
+    {
+      "name": "AGENTS.md table consulted",
+      "description": "The agent read AGENTS.md and used its mapping to determine that docs/decisions/*.md changes require checking docs/decisions/README.md",
+      "max_score": 10
+    },
+    {
+      "name": "ADR index row added",
+      "description": "docs/decisions/README.md now contains a row for ADR 004 (title and status present)",
+      "max_score": 20
+    },
+    {
+      "name": "ADR 004 row status correct",
+      "description": "The new row in README.md shows ADR 004 as 'Accepted' (matching its own Status field)",
+      "max_score": 10
+    },
+    {
+      "name": "Superseded ADR checked",
+      "description": "The agent checked ADR 003's status line because ADR 004 references superseding it (even partially), and reported on whether it needed updating",
+      "max_score": 12
+    },
+    {
+      "name": "No code files modified",
+      "description": "Source code files were not edited — only docs/decisions/ files and the report",
+      "max_score": 8
+    },
+    {
+      "name": "Report produced",
+      "description": "A doc-sync-report.md file exists in the working directory",
+      "max_score": 5
+    },
+    {
+      "name": "Report heading format",
+      "description": "Report heading follows '## Doc sync — N paths changed' pattern",
+      "max_score": 7
+    },
+    {
+      "name": "Report — generated artifacts section",
+      "description": "Report contains a 'Generated artifacts' section covering ADR index result",
+      "max_score": 8
+    },
+    {
+      "name": "Report — prose docs section",
+      "description": "Report contains a 'Prose docs' section listing checked docs and their status",
+      "max_score": 7
+    },
+    {
+      "name": "Unimplicated docs untouched",
+      "description": "docs/architecture.md and other docs not mapped to docs/decisions/** changes were not edited",
+      "max_score": 6
+    }
+  ]
+}
