@@ -351,7 +351,19 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 ├── implement-spec/
 │   └── SKILL.md        ← Merged spec PR → implementation PR (autonomous)
 ├── review-spec/
-│   └── SKILL.md        ← Read-only consistency check
+│   └── SKILL.md        ← Read-only consistency check (SPEC)
+├── review-implementation/
+│   └── SKILL.md        ← Read-only review of the impl (claude:done) PR
+├── write-adr/
+│   └── SKILL.md        ← New ADR + README index + supersession wiring
+├── sync-docs/
+│   └── SKILL.md        ← Diff-driven doc-staleness sweep (OpenAPI, symlinks, index)
+├── babysit-pr/
+│   └── SKILL.md        ← Address review comments → wait green → squash-merge
+├── triage-dependabot/
+│   └── SKILL.md        ← Repo-aware Dependabot PR triage
+├── deploy-smoke-test/
+│   └── SKILL.md        ← Post-deploy prod health check (Vercel + canaries)
 └── review-tech-debt/
     └── SKILL.md        ← Triage tech-debt register
 ```
@@ -385,6 +397,12 @@ genuinely needs it — it's just no longer part of the default lifecycle.
 | [`revise-spec`](./.agents/skills/revise-spec/SKILL.md) | Routine on PR labelled `claude:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
 | [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates draft → ready-for-review and merged → implementation |
 | [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | Routine on merged spec PR with label `claude:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `claude:done` |
+| [`review-implementation`](./.agents/skills/review-implementation/SKILL.md) | Routine on PR labelled `claude:done`; "review impl PR #NNN"; or self-review inside `implement-spec` | Read-only review of the impl diff against SPEC, constitution, ADRs, doc-staleness. Gates `claude:done` → merge |
+| [`write-adr`](./.agents/skills/write-adr/SKILL.md) | A change meets an ADR trigger; "write an ADR for X"; or called by `implement-spec` / `draft-spec` | New ADR (CONSTITUTION §7 template) + `docs/decisions/README.md` index row + supersession status lines |
+| [`sync-docs`](./.agents/skills/sync-docs/SKILL.md) | Close-out of `implement-spec`; Pass 6 of `review-implementation`; or "sync the docs" | Diff → doc-review table → patch stale docs + run OpenAPI / symlink / index checks |
+| [`babysit-pr`](./.agents/skills/babysit-pr/SKILL.md) | "babysit PR #NNN" / "address the comments and merge when green" | Triage + apply review comments → push → wait green → squash-merge. Escalates instead of forcing |
+| [`triage-dependabot`](./.agents/skills/triage-dependabot/SKILL.md) | "triage the dependabot PRs" | Apply repo dependency rules (Expo lockstep, TS6/Vite8 holds, dev-only CVEs) → merge/hold/close recommendation |
+| [`deploy-smoke-test`](./.agents/skills/deploy-smoke-test/SKILL.md) | After merge to `main`; or "is prod healthy?" / "smoke test production" | Verify Vercel Production deploy is READY + matches `main`; HTTP canaries; migrations; Sentry spike check |
 | [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | Weekly routine; or "review tech debt" | Assess → categorise → report → act |
 
 #### Adding a new skill
