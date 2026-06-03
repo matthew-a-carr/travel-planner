@@ -87,4 +87,23 @@ jobs:
         # (only TESSL_TOKEN). Trade-off vs the old --skip-evals: each publish now
         # costs solver credits + a few minutes of (async) eval time — which is
         # why the detect job limits this to the skills that actually changed.
-        run: tessl plugin publish --bump patch
+        #
+        # Version: resolved from the REGISTRY's latest + 1, written into the
+        # manifest before publishing. `--bump patch` reads the *local* manifest,
+        # which CI never commits back, so it drifts behind the registry and
+        # collides ("version already exists"). Computing from the registry each
+        # run avoids that. First publish (no registry version) uses the manifest.
+        run: |
+          set -euo pipefail
+          latest=$(tessl plugin info "matthew-a-carr/${{ matrix.skill }}" 2>/dev/null \
+            | grep -i "Latest Version" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          if [ -n "$latest" ]; then
+            next=$(echo "$latest" | awk -F. '{printf "%d.%d.%d", $1, $2, $3 + 1}')
+            tmp=$(mktemp)
+            jq --arg v "$next" '.version = $v' .tessl-plugin/plugin.json > "$tmp"
+            mv "$tmp" .tessl-plugin/plugin.json
+            echo "Publishing matthew-a-carr/${{ matrix.skill }}@$next (registry latest was $latest)"
+          else
+            echo "First publish — using the version in the manifest"
+          fi
+          tessl plugin publish
