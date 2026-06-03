@@ -3,27 +3,17 @@
 ## Problem/Feature Description
 
 You are triaging open Dependabot PRs in a **Next.js + Expo (React Native)
-monorepo** with these hard-won, documented dependency rules:
-
-- The **Expo-managed set** — `expo`/`expo-*`/`@expo/*`, `react-native` and
-  `react-native-*`, `react`/`@types/react`, `jest`/`@types/jest` — is
-  version-locked to the Expo SDK and moves **only** via a deliberate
-  `expo install --fix` on an SDK bump, never via Dependabot. Dependabot
-  mislabels React Native minors. Even a **patch** on this set can break SDK
-  lockstep (this is the TD-009 mechanism that has timed out `mobile-e2e`).
-- `typescript` major (→ 6.x) is on an **ecosystem-readiness hold** (TD-006);
-  `vite` major (→ 8.x) likewise (TD-007).
-- A grouped `minor-and-patch` npm PR or a `github-actions` minor/patch PR, with
-  all required checks green and no breaking-change notes, is a safe merge
-  candidate.
-- The skill is **conservative**: it recommends; it does not merge/close without
-  an explicit instruction.
+monorepo**. This repo has specific, documented rules about which dependency
+families may move via Dependabot and which are version-locked or on hold — apply
+those rules. Do **not** fall back to a generic "merge if the checks are green"
+heuristic; several families pass CI while breaking the build out of lockstep.
 
 Open PRs:
 
 - **#201** — `react-native` 0.81.5 → 0.82.0 (Dependabot labels it "minor"); CI mixed.
-- **#202** — grouped `minor-and-patch` npm update, 12 packages, none in the
-  Expo-managed set; all required checks green; release notes show no breaking changes.
+- **#202** — grouped `minor-and-patch` npm update, 12 packages, none of them
+  React / React-Native / Expo / Jest; all required checks green; release notes
+  show no breaking changes.
 - **#203** — `typescript` 5.9 → 6.0 (major); CI green.
 - **#204** — a grouped PR bundling an `expo-router` patch with two unrelated
   small-library patches; CI green.
