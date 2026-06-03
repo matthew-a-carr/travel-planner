@@ -147,7 +147,11 @@ For each Outstanding Item in `docs/tech-debt.md`:
 
 ## Report
 
-Produce a structured report directly to the user. Format:
+Produce a structured report directly to the user. **Use this template verbatim:**
+the four section headings (`## Critical`, `## Warnings`, `## Suggestions`,
+`## Passes with no findings`) and the Verdict — exactly one of `Ready for
+implementation`, `Needs revision`, `Blocked` — are a fixed contract. Do not
+reword the verdict (no "Approve"/"LGTM") or invent a different structure.
 
 ```markdown
 # Review of SPEC-NNN — <title>
@@ -173,6 +177,10 @@ Rules:
   literal text matters (e.g. ambiguous wording).
 - If **Critical** is empty and **Warnings** is empty, verdict is *Ready for
   implementation*.
+- **A genuinely clean SPEC earns *Ready for implementation*.** Do not manufacture
+  Critical or Warning findings to look thorough — a Suggestion, or an honest
+  "Passes with no findings", is the correct output for a solid spec. Over-flagging
+  a clean spec is as wrong as missing a real problem.
 - If any **Critical** is present, verdict is *Needs revision*.
 - If a Critical finding can only be resolved by deeper design work (e.g. a
   genuine unresolved design question surfaced too late), verdict is *Blocked*:
