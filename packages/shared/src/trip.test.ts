@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tripSummarySchema } from './trip';
+import { tripDetailSchema, tripSummarySchema } from './trip';
 
 const validSummary = {
   id: '7f8b2c1a-0d9e-4f3a-8b6c-5d4e3f2a1b0c',
@@ -69,5 +69,105 @@ describe('tripSummarySchema', () => {
     expect(() =>
       tripSummarySchema.parse({ ...validSummary, updatedAt: '2026-05-30 12:34' }),
     ).toThrow();
+  });
+});
+
+const gbp = (amountPence: number) => ({ amountPence, currency: 'GBP' });
+
+const validDetail = {
+  ...validSummary,
+  destinations: [
+    {
+      id: 'd1',
+      name: 'Tokyo',
+      country: 'Japan',
+      city: 'Tokyo',
+      startDate: '2026-09-01',
+      endDate: '2026-09-10',
+      estimatedBudget: gbp(250_000),
+      comfortLevel: 'mid',
+      sortOrder: 0,
+      spent: gbp(12_345),
+    },
+    {
+      id: 'd2',
+      name: 'Kyoto',
+      country: 'Japan',
+      city: null,
+      startDate: null,
+      endDate: null,
+      estimatedBudget: gbp(100_000),
+      comfortLevel: 'budget',
+      sortOrder: 1,
+      spent: gbp(0),
+    },
+  ],
+  fixedCosts: [
+    {
+      id: 'f1',
+      label: 'Flights',
+      amount: gbp(120_000),
+      category: 'transport',
+      date: '2026-08-15',
+      sortOrder: 0,
+    },
+  ],
+  spend: {
+    totalBudget: gbp(500_000),
+    fixedCosts: gbp(120_000),
+    allocated: gbp(350_000),
+    available: gbp(30_000),
+    spent: gbp(12_345),
+    isOverAllocated: false,
+  },
+};
+
+describe('tripDetailSchema', () => {
+  it('parses a valid detail payload', () => {
+    expect(() => tripDetailSchema.parse(validDetail)).not.toThrow();
+  });
+
+  it('parses empty destinations and fixedCosts', () => {
+    expect(() =>
+      tripDetailSchema.parse({ ...validDetail, destinations: [], fixedCosts: [] }),
+    ).not.toThrow();
+  });
+
+  it('allows a negative available amount (over-allocated trip)', () => {
+    expect(() =>
+      tripDetailSchema.parse({
+        ...validDetail,
+        spend: { ...validDetail.spend, available: gbp(-5_000), isOverAllocated: true },
+      }),
+    ).not.toThrow();
+  });
+
+  it('rejects a destination with an unknown comfort level', () => {
+    const broken = {
+      ...validDetail,
+      destinations: [{ ...validDetail.destinations[0], comfortLevel: 'deluxe' }],
+    };
+    expect(() => tripDetailSchema.parse(broken)).toThrow();
+  });
+
+  it('rejects a fixed cost with an unknown category', () => {
+    const broken = {
+      ...validDetail,
+      fixedCosts: [{ ...validDetail.fixedCosts[0], category: 'bribes' }],
+    };
+    expect(() => tripDetailSchema.parse(broken)).toThrow();
+  });
+
+  it('rejects a detail missing the spend summary', () => {
+    const { spend: _spend, ...withoutSpend } = validDetail;
+    expect(() => tripDetailSchema.parse(withoutSpend)).toThrow();
+  });
+
+  it('rejects a non-date destination startDate', () => {
+    const broken = {
+      ...validDetail,
+      destinations: [{ ...validDetail.destinations[0], startDate: 'next month' }],
+    };
+    expect(() => tripDetailSchema.parse(broken)).toThrow();
   });
 });
