@@ -1,7 +1,7 @@
 # SPEC-009: `GET /api/v1/trips` — Trips List Endpoint
 
 **Date:** 2026-05-31
-**Status:** Draft
+**Status:** In Progress
 **Author:** Claude (Opus 4.8) under Matt Carr direction
 **Approved by:** —
 **Parent epic:** [EPIC-002 — Mobile Read-Only Data](../epics/EPIC-002-mobile-read-only-data.md) (slice 1)
