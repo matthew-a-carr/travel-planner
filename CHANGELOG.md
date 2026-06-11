@@ -28,6 +28,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Signing in now lands on a **trips list** — every trip in your
+  organisations with its name, dates, status, and budget, with
+  pull-to-refresh. Your profile (and sign-out) moved behind the Profile
+  button at the top of the list. (SPEC-011 / EPIC-002 slice 3.)
 - **API:** `GET /api/v1/trips/{id}` returns a composite trip detail — the
   trip, its timeline legs (destinations with per-destination recorded
   spend), committed fixed costs, and a budget-vs-committed/spent summary —

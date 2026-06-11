@@ -47,4 +47,4 @@ Issue opened (claude:plan)
 | [008](SPEC-008-api-response-envelope-and-openapi.md) | Standardised API Response Envelope + OpenAPI 3.1 YAML | — | 2026-05-21 | Complete |
 | [009](SPEC-009-trips-list-endpoint.md) | `GET /api/v1/trips` — Trips List Endpoint | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-05-31 | Complete |
 | [010](SPEC-010-trip-detail-endpoint.md) | `GET /api/v1/trips/{id}` — Trip Detail Endpoint | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
-| [011](SPEC-011-mobile-trips-list.md) | Mobile Trips List Screen | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | In Progress |
+| [011](SPEC-011-mobile-trips-list.md) | Mobile Trips List Screen | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |

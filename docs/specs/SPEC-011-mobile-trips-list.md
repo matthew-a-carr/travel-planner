@@ -1,7 +1,7 @@
 # SPEC-011: Mobile Trips List Screen
 
 **Date:** 2026-06-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Claude (Fable 5) under Matt Carr direction (interactive session)
 **Approved by:** — (drafted + implemented in the same interactive session; review on the EPIC-002 implementation PR)
 **Parent epic:** [EPIC-002 — Mobile Read-Only Data](../epics/EPIC-002-mobile-read-only-data.md) (slice 3)
@@ -146,8 +146,17 @@ mobile AGENTS.md.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _to be filled_ | | | |
+| 1 | None — implemented as specified. | — | — | — |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+- RNTL v13's `toHaveTextContent` is exact-match for strings — substring
+  assertions need regexes. RefreshControl's `testID` isn't queryable from
+  the rendered tree either; tests reach it via the FlatList's
+  `props.refreshControl`. Both are test-plumbing learnings, not behaviour.
+- The hook surfaces an expired-session (`refresh_failed`) as the error
+  state rather than auto-signing-out (§14 risk, accepted for read-only
+  v1). The next cold start lands on sign-in regardless, because the
+  Keychain is already cleared.
+- All 103 mobile Jest tests green; `sign-in.yaml` Maestro flow untouched.
+  Physical-iPhone Expo Go validation remains a manual pre-merge step.

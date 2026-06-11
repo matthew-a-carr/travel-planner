@@ -107,20 +107,25 @@ LAN-IP dance goes away.
     resolves; redirects between the two groups based on auth state.
   - `app/(auth)/sign-in.tsx` — sign-in screen at URL `/sign-in`.
     Visible when `auth.status === 'signed_out'`.
-  - `app/(app)/index.tsx` — me screen at URL `/`. Visible when
-    `auth.status === 'signed_in'`. EPIC-002's trips list will live
-    under `(app)/` too.
+  - `app/(app)/index.tsx` — trips list at URL `/` (SPEC-011): the
+    signed-in landing screen. Data via `src/trips/use-trips.ts`
+    (loading / error / loaded + pull-to-refresh); items navigate to
+    `/trips/{id}`; the profile button reaches `/me`.
+  - `app/(app)/me.tsx` — me screen at URL `/me` (relocated from `/`
+    in SPEC-011). Greeting, email, approval banner, sign-out, and a
+    back control to the trips list.
   - Both groups have a thin `_layout.tsx` (Stack with
     `headerShown: false`).
   - **Never create a bare `app/index.tsx`** — it would collide with
     `app/(app)/index.tsx` (both resolve to `/`).
 - **`src/`** — Non-route logic modules, mirroring `apps/web/src/`'s
   convention. Today: `src/auth/` (PKCE primitives, Keychain wrapper,
-  sign-in orchestrator, auth Context, proactive-refresh gateway) and
+  sign-in orchestrator, auth Context, proactive-refresh gateway),
   `src/api/` (fetch wrapper validating responses via
   `@travel-planner/shared` schemas; supports 204 No Content for
-  endpoints like `/revoke`). Add new subdirectories as feature areas
-  land (e.g. `src/trips/` when EPIC-002's trips list ships).
+  endpoints like `/revoke`), and `src/trips/` (EPIC-002: `use-trips`
+  data hook + deterministic display formatters). Add new
+  subdirectories as feature areas land.
 
 ### Auth machinery (slices 6 + 7 — SPEC-006 + SPEC-007)
 
@@ -216,6 +221,10 @@ Examples:
 - Root of `app/signed-in.tsx` → `testID="signed-in-screen-root"`
 - Email display on signed-in → `testID="signed-in-screen-email"`
 - Me screen sign-out (slice 7+) → `testID="me-screen-sign-out"`
+- Trips list root / items (EPIC-002) → `testID="trips-screen-root"`,
+  `testID="trips-screen-item-<tripId>"`, states
+  `trips-screen-{loading,error,retry,empty}`, header
+  `trips-screen-profile`
 
 Maestro flows reference these rather than visible text. Text
 changes are cheap; testID changes break flows.

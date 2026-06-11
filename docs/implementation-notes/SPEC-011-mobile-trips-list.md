@@ -20,7 +20,8 @@ over `app/(app)/index.tsx` and the EPIC-001 Me screen moves to
 `sign-in.yaml` flow only asserts the signed-out screen (CI runs no
 backend), so the move can't break the `mobile-e2e` gate.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** discarded — the decision is recorded in
+the SPEC §1/§7 and the mobile AGENTS.md architecture section.
 
 ---
 
@@ -28,3 +29,4 @@ backend), so the move can't break the `mobile-e2e` gate.
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 (landing-route swap) | Discarded — recorded in SPEC §1/§7 + mobile AGENTS.md |
