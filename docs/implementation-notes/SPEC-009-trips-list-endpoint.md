@@ -31,6 +31,40 @@ index stays true.
 
 ---
 
+### 2026-06-11 — List ordering: createdAt desc across orgs (judgment call)
+
+**Step:** Step 3: listTripsForUser use case
+**Type:** decision
+**Note:**
+
+The SPEC doesn't specify list ordering. The web's trips list orders
+`createdAt desc` (`DrizzleTripRepository.findAllByOrganization`), so the
+use case sorts the cross-org concatenation the same way — one consistent
+order between clients, deterministic for tests. `createdAt` itself is not
+exposed on the wire.
+
+**Triage (filled at close-out):**
+
+---
+
+### 2026-06-11 — src/application/AGENTS.md use-case list was already stale
+
+**Step:** Step 3 doc review
+**Type:** surprise
+**Note:**
+
+The structure list was missing ~7 existing use cases (analyse-trip-timeline,
+bulk-add-destinations, create-trip-with-destinations, edit-destination,
+move-trip-to-organization, parse-itinerary-text, process-chat-message,
+summarise-trip-narrative, plus the `auth/` subtree) and claimed "26
+integration test files" when there are 33 (+5 in auth/). Added the new
+use case's row and corrected the count; the missing pre-existing rows are
+left for the close-out `sync-docs` pass rather than churned mid-slice.
+
+**Triage (filled at close-out):**
+
+---
+
 ## Close-out triage summary
 
 > Filled at the very end. One line per entry above plus where it landed.

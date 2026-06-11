@@ -61,12 +61,8 @@ describe('tripSummarySchema', () => {
   });
 
   it('rejects non-ISO date strings', () => {
-    expect(() =>
-      tripSummarySchema.parse({ ...validSummary, startDate: '01/09/2026' }),
-    ).toThrow();
-    expect(() =>
-      tripSummarySchema.parse({ ...validSummary, startDate: '2026-9-1' }),
-    ).toThrow();
+    expect(() => tripSummarySchema.parse({ ...validSummary, startDate: '01/09/2026' })).toThrow();
+    expect(() => tripSummarySchema.parse({ ...validSummary, startDate: '2026-9-1' })).toThrow();
   });
 
   it('rejects a non-RFC-3339 updatedAt', () => {

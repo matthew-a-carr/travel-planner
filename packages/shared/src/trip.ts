@@ -27,7 +27,9 @@ export type WireTripStatus = z.infer<typeof tripStatusSchema>;
  * date-only in the domain — no time component to preserve).
  */
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
-export const isoDateSchema = z.string().regex(isoDatePattern, 'expected an ISO 8601 calendar date (YYYY-MM-DD)');
+export const isoDateSchema = z
+  .string()
+  .regex(isoDatePattern, 'expected an ISO 8601 calendar date (YYYY-MM-DD)');
 
 export const tripSummarySchema = z.object({
   id: z.string().min(1),
