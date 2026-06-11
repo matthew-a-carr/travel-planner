@@ -28,6 +28,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **API:** `GET /api/v1/trips` returns the authenticated user's trips
+  (every trip in an organisation they belong to) as envelope-wrapped
+  `TripSummary` objects with a derived destination date range — the server
+  half of the mobile trips list. (SPEC-009 / EPIC-002 slice 1.)
 - **API:** Published OpenAPI 3.1 contract for `/api/v1/*` at
   `docs/openapi/v1.yaml`, generated from the `@travel-planner/shared` zod
   schemas via `pnpm openapi:generate`. CI runs `pnpm openapi:check` to reject

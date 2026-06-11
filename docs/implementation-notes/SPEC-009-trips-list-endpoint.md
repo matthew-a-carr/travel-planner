@@ -27,7 +27,7 @@ the end. Slices 2–4 have no pre-drafted SPECs (the epic drafts them
 lazily); compact SPEC docs are written as part of each slice so the spec
 index stays true.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** spec-deviation #1
 
 ---
 
@@ -43,7 +43,7 @@ use case sorts the cross-org concatenation the same way — one consistent
 order between clients, deterministic for tests. `createdAt` itself is not
 exposed on the wire.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** spec-deviation #2
 
 ---
 
@@ -61,7 +61,8 @@ integration test files" when there are 33 (+5 in auth/). Added the new
 use case's row and corrected the count; the missing pre-existing rows are
 left for the close-out `sync-docs` pass rather than churned mid-slice.
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** post-impl-note (and the epic-level
+sync-docs pass fixes the historical rows)
 
 ---
 
@@ -71,3 +72,6 @@ left for the close-out `sync-docs` pass rather than churned mid-slice.
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 (single branch for the epic) | Spec deviation #1 |
+| 2 (createdAt-desc ordering) | Spec deviation #2 |
+| 3 (stale application AGENTS.md) | Post-impl note + epic sync-docs pass |
