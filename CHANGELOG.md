@@ -28,6 +28,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **API:** `GET /api/v1/trips/{id}` returns a composite trip detail — the
+  trip, its timeline legs (destinations with per-destination recorded
+  spend), committed fixed costs, and a budget-vs-committed/spent summary —
+  the server half of the mobile trip-detail screen. 404 for trips outside
+  the caller's organisations. (SPEC-010 / EPIC-002 slice 2.)
 - **API:** `GET /api/v1/trips` returns the authenticated user's trips
   (every trip in an organisation they belong to) as envelope-wrapped
   `TripSummary` objects with a derived destination date range — the server

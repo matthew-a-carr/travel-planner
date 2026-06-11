@@ -82,7 +82,7 @@ maps are **not** the bar for this epic (see §6).
 | # | Slice | Demo line(s) | Becomes SPEC | Depends on | Budget | Status |
 |---|-------|--------------|--------------|------------|--------|--------|
 | 1 | `GET /api/v1/trips` (list) — use-case read path + shared `tripSummary` schema + OpenAPI regen + integration tests | 1–2 | [SPEC-009 (Complete)](../specs/SPEC-009-trips-list-endpoint.md) | — | 2d | Complete |
-| 2 | `GET /api/v1/trips/{id}` (detail: trip + timeline + spend) — shared schema + integration tests | 3 | _not yet planned_ | 1 | 2–3d | Not started |
+| 2 | `GET /api/v1/trips/{id}` (detail: trip + timeline + spend) — shared schema + integration tests | 3 | [SPEC-010 (Complete)](../specs/SPEC-010-trip-detail-endpoint.md) | 1 | 2–3d | Complete |
 | 3 | Mobile **trips list** screen — `src/trips/` data hook + list UI + states (loading/empty/error) + tests | 1–2 | _not yet planned_ | 1 | 2–3d | Not started |
 | 4 | Mobile **trip detail** screen — timeline + spend rendering (**milestone slice**) | 3 | _not yet planned_ | 2, 3 | 3–4d | Not started |
 
@@ -171,6 +171,7 @@ Likely ADRs this epic surfaces: a React Native data-fetching/caching approach (i
 | 2026-05-31 | — | — | Approved | Approved by Matt. §13 Q2 (bearer trip-authz → reuse org-scoped visibility) + Q3 (pagination → deferred) resolved for slice 1; Q1/Q4 left open for slices 2/4. |
 | 2026-05-31 | 1 | SPEC-009 | Draft | Slice 1 (`GET /api/v1/trips`) drafted as SPEC-009. |
 | 2026-06-11 | 1 | SPEC-009 | Complete | Implemented on the single EPIC-002 impl branch (PR number recorded at epic close-out). |
+| 2026-06-11 | 2 | SPEC-010 | Complete | Drafted + implemented in the same interactive session (composite detail endpoint, epic §13 Q1/Q4 honoured). |
 
 ## Epic-level deviations
 

@@ -1,7 +1,7 @@
 # SPEC-010: `GET /api/v1/trips/{id}` — Trip Detail Endpoint
 
 **Date:** 2026-06-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Claude (Fable 5) under Matt Carr direction (interactive session)
 **Approved by:** — (drafted + implemented in the same interactive session; review on the EPIC-002 implementation PR)
 **Parent epic:** [EPIC-002 — Mobile Read-Only Data](../epics/EPIC-002-mobile-read-only-data.md) (slice 2)
@@ -167,8 +167,19 @@ approval; field set mirrors what the web detail page already shows.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _to be filled_ | | | |
+| 1 | None — implemented as specified (the spec was drafted against the code reality in the same session). | — | — | — |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+- All five steps landed as individual commits; criteria 1–5 covered by
+  `route.int-test.ts` + `get-trip-detail-for-user.int-test.ts` (317
+  integration tests green), criterion 6 by the regenerated OpenAPI + the
+  generator test.
+- Refactor fallout from step 2: the SPEC-009 date/money mapping helpers
+  were extracted to `use-cases/trip-wire-mapping.ts` and are now shared by
+  `listTripsForUser` and `getTripDetailForUser` (red-green-refactor, no
+  behaviour change).
+- The shared package exports `TripFixedCost` (wire) which shadows the
+  domain type of the same name when both are imported — aliased as
+  `WireTripFixedCost` in the use case. Acceptable; the wire name matches
+  the OpenAPI component.

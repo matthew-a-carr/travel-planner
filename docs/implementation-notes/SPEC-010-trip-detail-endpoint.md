@@ -24,7 +24,9 @@ over the already-fetched spend entries, no extra query) and the
 `fixedCosts` line items (the "committed" half of "budget vs
 committed/spent").
 
-**Triage (filled at close-out):**
+**Triage (filled at close-out):** discarded — the decisions were folded
+into the SPEC §7 design text before implementation, so the spec already
+records them; nothing deviated from it.
 
 ---
 
@@ -32,3 +34,4 @@ committed/spent").
 
 | Entry | Landed in |
 |-------|-----------|
+| 1 (spec drafted + implemented same session) | Discarded — recorded in SPEC §7 itself |
