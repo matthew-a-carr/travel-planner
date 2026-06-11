@@ -1,103 +1,138 @@
 /**
- * Me screen tests. Mocks useAuth to inject fixture auth states.
+ * Trips list screen tests (SPEC-011 §3). useAuth, useTrips, and
+ * expo-router are mocked so each case injects its state directly; the
+ * hook's own behaviour has its own suite (__tests__/trips/use-trips).
  *
- * Five cases (per SPEC-007 §9 me-screen row):
- *  (a) status === 'unknown'   → renders null (no testIDs in tree)
- *  (b) signed_in, name 'Matt' → "Hello, Matt" + email visible
- *  (c) signed_in, name null   → "Hello!" + email visible
- *  (d) signed_in, !isApproved → approval banner appears
- *  (e) signed_in, sign-out tap → auth.signOut() called once
+ * Cases:
+ *  (a) auth not signed_in        → renders null
+ *  (b) loading                   → spinner state (criterion 2)
+ *  (c) loaded with trips         → name/dates/status/budget (criterion 1)
+ *  (d) loaded empty              → empty state (criterion 4)
+ *  (e) error                     → message + Retry calls reload (criterion 3)
+ *  (f) pull-to-refresh           → refresh() called (criterion 5)
+ *  (g) profile button            → router.push('/me') (criterion 6)
+ *  (h) item tap                  → router.push('/trips/{id}')
  */
 
 const mockUseAuth = jest.fn();
-const mockSignOut = jest.fn();
+const mockUseTrips = jest.fn();
+const mockPush = jest.fn();
+const mockReload = jest.fn();
+const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../src/auth/auth-context', () => ({
   useAuth: () => mockUseAuth(),
 }));
+jest.mock('../../../src/trips/use-trips', () => ({
+  useTrips: () => mockUseTrips(),
+}));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush, back: jest.fn(), replace: jest.fn() }),
+}));
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import MeScreen from '../../../app/(app)/index';
+import TripsScreen from '../../../app/(app)/index';
 
-const fixtureMe = {
-  id: 'user-uuid-1',
-  email: 'matt@example.com',
-  name: 'Matt',
-  isApproved: true,
+const TRIP = {
+  id: 'trip-1',
+  name: 'Japan 2026',
+  status: 'planning' as const,
+  totalBudget: { amountPence: 500_000, currency: 'GBP' as const },
+  startDate: '2026-09-01',
+  endDate: '2026-09-21',
+  organizationId: 'org-1',
+  updatedAt: '2026-05-30T12:34:56.789Z',
 };
 
-type MeOverrides = {
-  email?: string;
-  name?: string | null;
-  isApproved?: boolean;
-};
-
-function withSignedIn(overrides: MeOverrides = {}) {
-  mockUseAuth.mockReturnValue({
-    status: 'signed_in',
-    me: { ...fixtureMe, ...overrides },
-    signIn: jest.fn(),
-    signOut: mockSignOut,
-  });
+function withTripsState(state: unknown, refreshing = false) {
+  mockUseTrips.mockReturnValue({ state, refreshing, reload: mockReload, refresh: mockRefresh });
 }
 
 beforeEach(() => {
-  mockUseAuth.mockReset();
-  mockSignOut.mockReset();
+  jest.clearAllMocks();
+  mockRefresh.mockResolvedValue(undefined);
+  mockUseAuth.mockReturnValue({
+    status: 'signed_in',
+    me: { id: 'u1', email: 'matt@example.com', name: 'Matt', isApproved: true },
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+  });
+  withTripsState({ status: 'loaded', trips: [TRIP] });
 });
 
-describe('MeScreen', () => {
-  it('(a) renders null while auth.status === "unknown"', () => {
-    mockUseAuth.mockReturnValue({
-      status: 'unknown',
-      signIn: jest.fn(),
-      signOut: mockSignOut,
-    });
+describe('TripsScreen', () => {
+  it('(a) renders null while auth.status !== "signed_in"', () => {
+    mockUseAuth.mockReturnValue({ status: 'unknown', signIn: jest.fn(), signOut: jest.fn() });
 
-    render(<MeScreen />);
+    render(<TripsScreen />);
 
-    expect(screen.queryByTestId('me-screen-root')).toBeNull();
-    expect(screen.queryByTestId('me-screen-greeting')).toBeNull();
+    expect(screen.queryByTestId('trips-screen-root')).toBeNull();
   });
 
-  it('(b) signed_in with a name: renders "Hello, {name}" + email', () => {
-    withSignedIn();
+  it('(b) renders the loading state while the fetch is in flight', () => {
+    withTripsState({ status: 'loading' });
 
-    render(<MeScreen />);
+    render(<TripsScreen />);
 
-    expect(screen.getByTestId('me-screen-root')).toBeOnTheScreen();
-    expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello, Matt');
-    expect(screen.getByTestId('me-screen-email')).toHaveTextContent('matt@example.com');
-    expect(screen.queryByTestId('me-screen-approval-banner')).toBeNull();
+    expect(screen.getByTestId('trips-screen-loading')).toBeOnTheScreen();
+    expect(screen.queryByTestId('trips-screen-empty')).toBeNull();
+    expect(screen.queryByTestId('trips-screen-error')).toBeNull();
   });
 
-  it('(c) signed_in with name: null: renders "Hello!" + email always visible', () => {
-    withSignedIn({ name: null });
+  it('(c) renders name, date range, status, and budget for each trip', () => {
+    render(<TripsScreen />);
 
-    render(<MeScreen />);
-
-    expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello!');
-    expect(screen.getByTestId('me-screen-email')).toHaveTextContent('matt@example.com');
+    const card = screen.getByTestId('trips-screen-item-trip-1');
+    expect(card).toBeOnTheScreen();
+    expect(card).toHaveTextContent(/Japan 2026/);
+    expect(card).toHaveTextContent(/1 Sep 2026 – 21 Sep 2026/);
+    expect(card).toHaveTextContent(/Planning/);
+    expect(card).toHaveTextContent(/£5,000 budget/);
   });
 
-  it('(d) signed_in with isApproved: false: renders the approval banner', () => {
-    withSignedIn({ isApproved: false });
+  it('(d) renders the empty state for a user with no trips', () => {
+    withTripsState({ status: 'loaded', trips: [] });
 
-    render(<MeScreen />);
+    render(<TripsScreen />);
 
-    expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello, Matt');
-    expect(screen.getByTestId('me-screen-email')).toHaveTextContent('matt@example.com');
-    expect(screen.getByTestId('me-screen-approval-banner')).toHaveTextContent(
-      'Your account is pending approval.',
+    expect(screen.getByTestId('trips-screen-empty')).toBeOnTheScreen();
+    expect(screen.getByText('No trips yet')).toBeOnTheScreen();
+  });
+
+  it('(e) renders the error state and Retry triggers reload()', () => {
+    withTripsState({ status: 'error', message: 'Could not load your trips.' });
+
+    render(<TripsScreen />);
+
+    expect(screen.getByTestId('trips-screen-error')).toHaveTextContent(
+      /Could not load your trips\./,
     );
+    fireEvent.press(screen.getByTestId('trips-screen-retry'));
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 
-  it('(e) sign-out tap calls auth.signOut() once', () => {
-    withSignedIn();
+  it('(f) pull-to-refresh triggers refresh()', () => {
+    render(<TripsScreen />);
 
-    render(<MeScreen />);
-    fireEvent.press(screen.getByTestId('me-screen-sign-out'));
+    const list = screen.getByTestId('trips-screen-list');
+    list.props.refreshControl.props.onRefresh();
 
-    expect(mockSignOut).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('(g) the profile button navigates to /me', () => {
+    render(<TripsScreen />);
+
+    fireEvent.press(screen.getByTestId('trips-screen-profile'));
+
+    expect(mockPush).toHaveBeenCalledWith('/me');
+  });
+
+  it('(h) tapping a trip navigates to its detail route', () => {
+    render(<TripsScreen />);
+
+    fireEvent.press(screen.getByTestId('trips-screen-item-trip-1'));
+
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1');
   });
 });
