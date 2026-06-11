@@ -3,6 +3,7 @@ import type { DestinationRepository } from '@/domain/destination/destination-rep
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { Destination, Trip } from '@/domain/trip/types';
+import { earliestIsoDate, latestIsoDate, toWireMoney } from './trip-wire-mapping';
 
 /**
  * Trips visible to a user across every organisation they belong to
@@ -42,34 +43,10 @@ function toTripSummary(trip: Trip, destinations: Destination[]): TripSummary {
     id: trip.id,
     name: trip.name,
     status: trip.status,
-    totalBudget: {
-      amountPence: trip.totalBudget.amountPence,
-      currency: trip.totalBudget.currency,
-    },
-    startDate: earliest(destinations.map((d) => d.startDate)),
-    endDate: latest(destinations.map((d) => d.endDate)),
+    totalBudget: toWireMoney(trip.totalBudget),
+    startDate: earliestIsoDate(destinations.map((d) => d.startDate)),
+    endDate: latestIsoDate(destinations.map((d) => d.endDate)),
     organizationId: trip.organizationId,
     updatedAt: trip.updatedAt.toISOString(),
   };
-}
-
-function earliest(dates: ReadonlyArray<Date | null>): string | null {
-  return pickDate(dates, (a, b) => (a.getTime() <= b.getTime() ? a : b));
-}
-
-function latest(dates: ReadonlyArray<Date | null>): string | null {
-  return pickDate(dates, (a, b) => (a.getTime() >= b.getTime() ? a : b));
-}
-
-function pickDate(
-  dates: ReadonlyArray<Date | null>,
-  pick: (a: Date, b: Date) => Date,
-): string | null {
-  let chosen: Date | null = null;
-  for (const date of dates) {
-    if (date === null) continue;
-    chosen = chosen === null ? date : pick(chosen, date);
-  }
-  // Destination dates are date-only columns; the wire format is YYYY-MM-DD.
-  return chosen === null ? null : (chosen.toISOString().split('T')[0] as string);
 }
