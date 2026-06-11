@@ -55,8 +55,18 @@ describe('OpenAPI generator', () => {
         '/api/v1/auth/mobile/exchange',
         '/api/v1/auth/mobile/refresh',
         '/api/v1/auth/mobile/revoke',
+        '/api/v1/trips',
       ]),
     );
+  });
+
+  it('documents the trips list payload as an array of TripSummary (SPEC-009)', () => {
+    const schemas = (doc.components as Json).schemas as Json;
+    expect(schemas.TripSummary).toBeTypeOf('object');
+    const trips = schemas.TripsListSuccessEnvelope as Json;
+    const data = (trips.properties as Json).data as Json;
+    expect(data.type).toBe('array');
+    expect((data.items as Json).$ref).toBe('#/components/schemas/TripSummary');
   });
 
   it('wires every $ref to a defined component (no dangling refs)', () => {

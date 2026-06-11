@@ -144,6 +144,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+  /api/v1/trips:
+    get:
+      summary: List the caller's visible trips
+      description: Every trip in an organisation the authenticated user belongs to
+        (org-scoped visibility), newest-created first, with a derived
+        destination date range. Unpaginated in v1 (SPEC-009).
+      security:
+        - bearerAuth: []
+        - cookieSession: []
+      responses:
+        "200":
+          description: The visible trips (empty array when none).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripsListSuccessEnvelope"
+        "401":
+          description: No valid session or bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
 components:
   securitySchemes:
     bearerAuth:
@@ -355,6 +377,65 @@ components:
       required:
         - refresh_token
       additionalProperties: false
+    TripSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum:
+            - planning
+            - active
+            - completed
+        totalBudget:
+          type: object
+          properties:
+            amountPence:
+              type: integer
+              minimum: -9007199254740991
+              maximum: 9007199254740991
+            currency:
+              type: string
+              enum:
+                - GBP
+                - USD
+                - EUR
+                - AUD
+          required:
+            - amountPence
+            - currency
+          additionalProperties: false
+        startDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+        endDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+        organizationId:
+          type: string
+          minLength: 1
+        updatedAt:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+      required:
+        - id
+        - name
+        - status
+        - totalBudget
+        - startDate
+        - endDate
+        - organizationId
+        - updatedAt
+      additionalProperties: false
     MeSuccessEnvelope:
       type: object
       properties:
@@ -408,6 +489,32 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/MobileAuthTokenResponse"
+        request:
+          $ref: "#/components/schemas/RequestEcho"
+        asof:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+        version:
+          type: string
+          pattern: ^\d+\.\d+\.\d+$
+        meta:
+          type: object
+          propertyNames:
+            type: string
+          additionalProperties: {}
+      required:
+        - data
+        - request
+        - asof
+        - version
+      additionalProperties: false
+    TripsListSuccessEnvelope:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripSummary"
         request:
           $ref: "#/components/schemas/RequestEcho"
         asof:
