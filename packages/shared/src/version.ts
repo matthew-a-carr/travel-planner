@@ -13,4 +13,4 @@
  *     response field, added optional `meta` key.
  *   - PATCH: description/title-only tweaks.
  */
-export const ENVELOPE_VERSION = '1.1.0';
+export const ENVELOPE_VERSION = '1.2.0';

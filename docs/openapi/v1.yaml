@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Travel Planner API
-  version: 1.1.0
+  version: 1.2.0
   description: Versioned `/api/v1/*` surface. Every 2xx body is the standard
     success envelope `{ data, request, asof, version, meta? }`; every non-2xx
     body is RFC 7807 Problem Details plus a closed `code` enum
