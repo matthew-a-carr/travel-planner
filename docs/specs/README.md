@@ -48,3 +48,4 @@ Issue opened (claude:plan)
 | [009](SPEC-009-trips-list-endpoint.md) | `GET /api/v1/trips` — Trips List Endpoint | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-05-31 | Complete |
 | [010](SPEC-010-trip-detail-endpoint.md) | `GET /api/v1/trips/{id}` — Trip Detail Endpoint | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
 | [011](SPEC-011-mobile-trips-list.md) | Mobile Trips List Screen | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
+| [012](SPEC-012-mobile-trip-detail.md) | Mobile Trip Detail Screen — Timeline + Spend | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | In Progress |
