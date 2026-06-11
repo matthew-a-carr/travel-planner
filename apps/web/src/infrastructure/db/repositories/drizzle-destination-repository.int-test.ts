@@ -176,4 +176,51 @@ describe('DrizzleDestinationRepository', () => {
       await expect(repo.delete(crypto.randomUUID())).resolves.toBeUndefined();
     });
   });
+
+  describe('findByTrips', () => {
+    it('returns destinations for the given trips and only those', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const tripA = await seedTrip(db, ownerId, { name: 'Trip A' });
+      const tripB = await seedTrip(db, ownerId, { name: 'Trip B' });
+      const tripC = await seedTrip(db, ownerId, { name: 'Trip C' });
+      const destA1 = await seedDestination(db, tripA.id, { name: 'Tokyo' });
+      const destA2 = await seedDestination(db, tripA.id, { name: 'Kyoto' });
+      const destB1 = await seedDestination(db, tripB.id, { name: 'Lisbon' });
+      await seedDestination(db, tripC.id, { name: 'Excluded' });
+
+      const repo = new DrizzleDestinationRepository(db);
+      const found = await repo.findByTrips([tripA.id, tripB.id]);
+
+      expect(found.map((d) => d.id).sort()).toEqual([destA1.id, destA2.id, destB1.id].sort());
+    });
+
+    it('returns an empty array for an empty trip-id list', async () => {
+      const repo = new DrizzleDestinationRepository(db);
+      expect(await repo.findByTrips([])).toEqual([]);
+    });
+
+    it('returns an empty array for unknown trip ids', async () => {
+      const repo = new DrizzleDestinationRepository(db);
+      expect(await repo.findByTrips([crypto.randomUUID()])).toEqual([]);
+    });
+
+    it('maps rows to full Destination domain objects', async () => {
+      const { id: ownerId } = await seedUser(db);
+      const trip = await seedTrip(db, ownerId);
+      await seedDestination(db, trip.id, {
+        name: 'Osaka',
+        estimatedBudgetPence: 250_000,
+        startDate: new Date('2026-09-01'),
+        endDate: new Date('2026-09-10'),
+      });
+
+      const repo = new DrizzleDestinationRepository(db);
+      const [found] = await repo.findByTrips([trip.id]);
+
+      expect(found?.name).toBe('Osaka');
+      expect(found?.estimatedBudget).toEqual(money(250_000, 'GBP'));
+      expect(found?.startDate).toEqual(new Date('2026-09-01'));
+      expect(found?.endDate).toEqual(new Date('2026-09-10'));
+    });
+  });
 });
