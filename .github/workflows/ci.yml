@@ -38,6 +38,9 @@ jobs:
               - 'apps/mobile/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
+              # The mobile jobs are defined here — a PR that edits the
+              # workflow (e.g. the xcodebuild invocation) must run them.
+              - '.github/workflows/ci.yml'
 
   # ── All checks run in parallel ─────────────────────────────────────────────
 
