@@ -39,8 +39,9 @@ Q1–Q3 (see §7 and §14).
 
 ## 3. Acceptance criteria
 
-1. Given a PR touching `apps/mobile/**` (or `ci.yml`), when `mobile-e2e`
-   runs, then a Postgres instance is provisioned natively on the macOS
+1. Given a PR touching `apps/mobile/**` (or `ci.yml`, the lockfile /
+   workspace config, or — newly added by this slice per epic §10 —
+   `packages/shared/**`), when `mobile-e2e` runs, then a Postgres instance is provisioned natively on the macOS
    runner (no Docker), migrations run via the existing `pnpm db:migrate`,
    and both `pnpm db:seed` (reference data) and the new e2e fixture seed
    complete — all before Maestro starts.
@@ -121,7 +122,11 @@ New steps, in order (existing steps unchanged unless noted):
 2. **Migrate + seed** — `pnpm db:migrate`, `pnpm db:seed`, then
    `pnpm --filter @travel-planner/web seed:e2e` (new script, below).
 3. **Build web app** — `POSTGRES_URL=<dummy> pnpm build` (ADR 010 dummy-
-   URL pattern, same as the web e2e job), with `apps/web/.next/cache`
+   URL pattern, same as the web e2e job). The dev-grade auth env
+   (`AUTH_SECRET`, `AUTH_JWT_SIGNING_KEY`, placeholder `AUTH_GOOGLE_*`,
+   `AUTH_URL`) is set at **job level** — the web e2e job sets it there
+   because next-auth needs it during `next build`, not just at runtime —
+   with `apps/web/.next/cache`
    added to a new `actions/cache` entry keyed on
    `hashFiles('pnpm-lock.yaml', 'apps/web/**', 'packages/shared/**')` —
    mobile-only PRs get a warm Next build cache. **Epic Q1 resolved:
@@ -131,9 +136,7 @@ New steps, in order (existing steps unchanged unless noted):
    busts the +5 min budget.**
 4. **Boot server (background)** — new script
    `apps/mobile/scripts/ci/start-backend.sh`: starts `pnpm start` with
-   the real `POSTGRES_URL` plus the same dev-grade env defaults the web
-   e2e bootstrap uses (`AUTH_SECRET`, `AUTH_JWT_SIGNING_KEY`,
-   placeholder `AUTH_GOOGLE_*`, `AUTH_URL=http://127.0.0.1:3000`),
+   the real `POSTGRES_URL` (auth env inherited from the job level),
    stdout/stderr → `$RUNNER_TEMP/backend.log`, PID recorded. Started
    before prebuild/xcodebuild so its boot overlaps the native build.
 5. **xcodebuild** (existing step, one change) — exported
@@ -141,9 +144,8 @@ New steps, in order (existing steps unchanged unless noted):
    the "Bundle React Native code and images" phase inlines it.
 6. **Canary + bundle assertion** (new, after xcodebuild, before
    install): `curl --fail --retry` against
-   `http://127.0.0.1:3000/api/auth/providers`-class route (any cheap
-   route that proves Next is serving; exact route chosen in
-   implementation — must not require auth); then locate the `.app`'s JS
+   `http://127.0.0.1:3000/api/auth/providers` (unauthenticated, cheap,
+   and proves Next + its auth wiring booted); then locate the `.app`'s JS
    bundle and assert `strings <bundle> | grep -q '127.0.0.1:3000'`.
    The RN bundle phase has no declared input/output files, so Xcode
    re-runs it every build even with cached DerivedData — believed, and
@@ -153,6 +155,10 @@ New steps, in order (existing steps unchanged unless noted):
 7. **Server log artifact** — `actions/upload-artifact` of
    `$RUNNER_TEMP/backend.log` on `failure()`, 7-day retention, beside
    the existing Maestro/crash artifacts.
+8. **Path filter** — the `detect-changes` mobile filter gains
+   `packages/shared/**`, implementing the epic §10 / ADR 060 decision in
+   the slice that touches the filter's file (durable bias) rather than
+   deferring to slice 2.
 
 Existing cache discipline (TD-009) untouched: the mobile native cache
 key/`--clean`-on-miss logic is not modified; the `.next` cache is a new,
@@ -160,18 +166,20 @@ independent entry.
 
 ### E2E fixture seed (`apps/web`)
 
-New `apps/web/scripts/seed-e2e-fixtures.ts` (package script `seed:e2e`),
-importing the drizzle schema directly (same pattern as the Playwright
-`global.setup.ts`): one approved e2e user + organization + membership, and
+New `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts` (fixture
+constants + `applyE2eFixtures(db)`) with CLI entry `seed-e2e.ts` alongside
+(package script `seed:e2e`), matching the existing `seed.ts` /
+`country-list-seed.ts` pattern — the vitest integration project only
+collects `src/**/*.int-test.ts`, so the module and its co-located
+integration test must live under `src/`, and the seed needs the drizzle
+schema anyway: one approved e2e user + organization + membership, and
 one deterministic "Kyoto-style" trip — two destinations with dates
 bracketing a fixed "today" anchor, at least one fixed cost and spend
 entries so slice 3's detail flow has real figures to assert. All IDs and
-values constant (exported from the module so future flows/tests import
-rather than duplicate). Idempotent via upsert-or-skip so a re-run (CI
-retry) can't fail on conflicts. Fixture *values* live in a separate
-importable module (`apps/web/scripts/e2e-fixtures.ts` or similar) so the
-web Playwright suite can adopt them later (epic §10 "share where shapes
-allow" — adoption itself out of scope).
+values constant and exported from the module so future flows/tests (and,
+later, the web Playwright suite — epic §10 "share where shapes allow";
+adoption itself out of scope) import rather than duplicate. Idempotent via
+upsert-or-skip so a re-run (CI retry) can't fail on conflicts.
 
 ### Mobile app
 
@@ -218,7 +226,7 @@ runner-image stock.
 
 | Test file | What it covers |
 |---|---|
-| `apps/web/scripts/seed-e2e-fixtures.int-test.ts` (location may follow repo convention for script tests) | Fixtures insert against a fresh migrated DB; deterministic values match the exported constants; running twice is a no-op (idempotency); user is approved + org-scoped correctly |
+| `apps/web/src/infrastructure/db/seed/e2e-fixtures.int-test.ts` | Fixtures insert against a fresh migrated DB; deterministic values match the exported constants; running twice is a no-op (idempotency); user is approved + org-scoped correctly |
 
 ### Unit
 
@@ -319,10 +327,12 @@ names the rejected alternative and the cost of being wrong):
   Cost if wrong: Hermes bytecode stops exposing the URL via `strings`
   in a future SDK — the check fails loudly and gets replaced, never
   silently passes.
-- **Fixture seed lives in `apps/web/scripts/`** (needs drizzle schema):
-  rejected placing it in `apps/mobile/` (no schema access) or inside
-  the Playwright setup (not invocable standalone). Cost if wrong:
-  slice 4's local orchestration wants it elsewhere — a file move.
+- **Fixture seed lives in `apps/web/src/infrastructure/db/seed/`**
+  (needs the drizzle schema; the integration suite only collects
+  `src/**/*.int-test.ts`): rejected `apps/web/scripts/` (test would
+  silently not run), `apps/mobile/` (no schema access), and the
+  Playwright setup (not invocable standalone). Cost if wrong: slice 4's
+  local orchestration wants it elsewhere — a file move.
 - **Risk:** macOS runner Homebrew Postgres may be missing/broken on a
   future image. Mitigated by the install fallback; if both paths fail
   repeatedly, that's pivot-criterion evidence, not something to patch
