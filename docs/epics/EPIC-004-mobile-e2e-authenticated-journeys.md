@@ -1,10 +1,10 @@
 # EPIC-004: Mobile E2E Phase 2 — Authenticated Journeys Against a Real Backend
 
 **Date:** 2026-06-12
-**Status:** Draft
+**Status:** Approved
 **Strategic ADR:** [060 — Mobile E2E Phase 2: Real Backend and Authenticated Journeys in CI](../decisions/060-mobile-e2e-real-backend-authenticated-journeys.md)
 **Owner:** Matt Carr
-**Approved by:** —
+**Approved by:** Matt Carr, 2026-06-12 (PR #145 review; §13 decisions taken on recommendation stand, including decision 4's reciprocal EPIC-003 amendment)
 
 > Drafted in an interactive Claude Code Web session ("ideate and plan the
 > next epic of work for the mobile app E2E", issue
@@ -289,6 +289,7 @@ slice.
 | Date | Slice # | SPEC | Status change | Notes |
 |------|---------|------|---------------|-------|
 | 2026-06-12 | — | — | Drafted | Drafted in an interactive session (issue #144); decisions taken on recommendation per §13. |
+| 2026-06-12 | — | — | Approved | Approved by Matt in the PR #145 review loop; reciprocal EPIC-003 §7 amendment applied per §13 decision 4. |
 
 ## Epic-level deviations
 
