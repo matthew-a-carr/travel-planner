@@ -1,7 +1,7 @@
 # SPEC-009: `GET /api/v1/trips` — Trips List Endpoint
 
 **Date:** 2026-05-31
-**Status:** Draft
+**Status:** Complete
 **Author:** Claude (Opus 4.8) under Matt Carr direction
 **Approved by:** —
 **Parent epic:** [EPIC-002 — Mobile Read-Only Data](../epics/EPIC-002-mobile-read-only-data.md) (slice 1)
@@ -296,8 +296,19 @@ review). No open questions remain. Resolutions recorded below for rationale._
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _to be filled_ | | | |
+| 1 | All four EPIC-002 slices implemented on one branch / one PR (`claude/impl-epic-002-read-only-mobile`) instead of one PR per slice. | Matt asked interactively to complete the epic end-to-end, committing as we go; per-slice human merges would have blocked the session. | Review is one larger PR; commits remain small and per-step. | Yes — process-only |
+| 2 | List ordering fixed to `createdAt` desc across organisations (spec was silent). | Matches the web's `findAllByOrganization` ordering; deterministic for clients and tests. | None — additive guarantee. | Yes |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+- Implemented exactly per §12; all seven steps landed as individual commits.
+  Acceptance criteria 1–5 are covered by `route.int-test.ts`, criterion 6 by
+  the regenerated `docs/openapi/v1.yaml` + generator test, criterion 7 by the
+  use-case/repository int-tests (306 integration tests green).
+- The envelope `version` is now `1.2.0` (minor bump per ADR 056 §10 — the §4
+  demo's `1.1.0` predated the bump). The pinned-version unit test in
+  `envelope.test.ts` was updated accordingly.
+- `src/application/AGENTS.md`'s use-case list was found stale beyond this
+  change (≈8 missing rows, wrong count); this slice added its own row and
+  fixed the count, the historical gap is handled by the epic-level
+  `sync-docs` pass.

@@ -90,6 +90,7 @@ function makeDeps(overrides: {
     destinationRepository: {
       findById: vi.fn(),
       findByTrip: vi.fn().mockResolvedValue(overrides.destinations ?? [makeDestination()]),
+      findByTrips: vi.fn().mockResolvedValue(overrides.destinations ?? [makeDestination()]),
       save: vi.fn(),
       delete: vi.fn(),
     } as DestinationRepository,

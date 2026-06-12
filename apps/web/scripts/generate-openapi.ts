@@ -33,6 +33,11 @@ import {
   mobileAuthStartRequestSchema,
   mobileAuthStartResponseSchema,
   requestEchoSchema,
+  tripDestinationSchema,
+  tripDetailSchema,
+  tripFixedCostSchema,
+  tripSpendSummarySchema,
+  tripSummarySchema,
 } from '@travel-planner/shared';
 import * as z from 'zod';
 import { stringify } from 'yaml';
@@ -63,6 +68,11 @@ function buildComponentSchemas(): Record<string, unknown> {
   registry.add(mobileAuthExchangeResponseSchema, { id: 'MobileAuthTokenResponse' });
   registry.add(mobileAuthRefreshRequestSchema, { id: 'MobileAuthRefreshRequest' });
   registry.add(mobileAuthRevokeRequestSchema, { id: 'MobileAuthRevokeRequest' });
+  registry.add(tripSummarySchema, { id: 'TripSummary' });
+  registry.add(tripDestinationSchema, { id: 'TripDestination' });
+  registry.add(tripFixedCostSchema, { id: 'TripFixedCost' });
+  registry.add(tripSpendSummarySchema, { id: 'TripSpendSummary' });
+  registry.add(tripDetailSchema, { id: 'TripDetail' });
 
   // Per-endpoint success envelopes — `data` is the registered payload schema,
   // so it resolves to a `$ref`.
@@ -72,6 +82,12 @@ function buildComponentSchemas(): Record<string, unknown> {
   });
   registry.add(apiSuccessSchema(mobileAuthExchangeResponseSchema), {
     id: 'MobileAuthTokenSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(z.array(tripSummarySchema)), {
+    id: 'TripsListSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(tripDetailSchema), {
+    id: 'TripDetailSuccessEnvelope',
   });
 
   const { schemas } = z.toJSONSchema(registry, {
@@ -177,6 +193,51 @@ export function buildOpenApiDocument(): Record<string, unknown> {
             },
             '400': errorResponse('Invalid request body.'),
             '429': errorResponse('Rate limited.'),
+          },
+        },
+      },
+      '/api/v1/trips': {
+        get: {
+          summary: "List the caller's visible trips",
+          description:
+            'Every trip in an organisation the authenticated user belongs to ' +
+            '(org-scoped visibility), newest-created first, with a derived ' +
+            'destination date range. Unpaginated in v1 (SPEC-009).',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          responses: {
+            '200': {
+              description: 'The visible trips (empty array when none).',
+              ...jsonBody('TripsListSuccessEnvelope'),
+            },
+            '401': errorResponse('No valid session or bearer token.'),
+          },
+        },
+      },
+      '/api/v1/trips/{id}': {
+        get: {
+          summary: 'Composite trip detail: timeline legs + spend summary',
+          description:
+            'The trip, its destinations (with per-destination recorded ' +
+            'spend), committed fixed costs, and the budget-vs-committed/' +
+            'spent summary. 404 for unknown trips AND trips outside the ' +
+            "caller's organisations (non-revealing). See SPEC-010.",
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+              description: 'Trip id.',
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'The trip detail.',
+              ...jsonBody('TripDetailSuccessEnvelope'),
+            },
+            '401': errorResponse('No valid session or bearer token.'),
+            '404': errorResponse('Unknown trip, or not visible to the caller.'),
           },
         },
       },

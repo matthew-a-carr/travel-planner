@@ -55,8 +55,38 @@ describe('OpenAPI generator', () => {
         '/api/v1/auth/mobile/exchange',
         '/api/v1/auth/mobile/refresh',
         '/api/v1/auth/mobile/revoke',
+        '/api/v1/trips',
+        '/api/v1/trips/{id}',
       ]),
     );
+  });
+
+  it('documents the trip detail payload with its nested components (SPEC-010)', () => {
+    const schemas = (doc.components as Json).schemas as Json;
+    for (const id of ['TripDetail', 'TripDestination', 'TripFixedCost', 'TripSpendSummary']) {
+      expect(schemas[id], `missing component ${id}`).toBeTypeOf('object');
+    }
+    const detail = schemas.TripDetail as Json;
+    const props = detail.properties as Json;
+    expect(((props.destinations as Json).items as Json).$ref).toBe(
+      '#/components/schemas/TripDestination',
+    );
+    expect(((props.fixedCosts as Json).items as Json).$ref).toBe(
+      '#/components/schemas/TripFixedCost',
+    );
+    expect((props.spend as Json).$ref).toBe('#/components/schemas/TripSpendSummary');
+    const path = (doc.paths as Json)['/api/v1/trips/{id}'] as Json;
+    const params = (path.get as Json).parameters as Json[];
+    expect(params?.[0]).toMatchObject({ name: 'id', in: 'path', required: true });
+  });
+
+  it('documents the trips list payload as an array of TripSummary (SPEC-009)', () => {
+    const schemas = (doc.components as Json).schemas as Json;
+    expect(schemas.TripSummary).toBeTypeOf('object');
+    const trips = schemas.TripsListSuccessEnvelope as Json;
+    const data = (trips.properties as Json).data as Json;
+    expect(data.type).toBe('array');
+    expect((data.items as Json).$ref).toBe('#/components/schemas/TripSummary');
   });
 
   it('wires every $ref to a defined component (no dangling refs)', () => {

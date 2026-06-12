@@ -28,6 +28,24 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Tapping a trip now opens a **trip detail** screen — the
+  timeline (destinations with dates, budget, and spend per leg), committed
+  fixed costs, and a budget-vs-committed/spent summary with an
+  over-allocation warning. Pull-to-refresh supported. This completes the
+  EPIC-002 read-only milestone. (SPEC-012 / EPIC-002 slice 4.)
+- **Mobile:** Signing in now lands on a **trips list** — every trip in your
+  organisations with its name, dates, status, and budget, with
+  pull-to-refresh. Your profile (and sign-out) moved behind the Profile
+  button at the top of the list. (SPEC-011 / EPIC-002 slice 3.)
+- **API:** `GET /api/v1/trips/{id}` returns a composite trip detail — the
+  trip, its timeline legs (destinations with per-destination recorded
+  spend), committed fixed costs, and a budget-vs-committed/spent summary —
+  the server half of the mobile trip-detail screen. 404 for trips outside
+  the caller's organisations. (SPEC-010 / EPIC-002 slice 2.)
+- **API:** `GET /api/v1/trips` returns the authenticated user's trips
+  (every trip in an organisation they belong to) as envelope-wrapped
+  `TripSummary` objects with a derived destination date range — the server
+  half of the mobile trips list. (SPEC-009 / EPIC-002 slice 1.)
 - **API:** Published OpenAPI 3.1 contract for `/api/v1/*` at
   `docs/openapi/v1.yaml`, generated from the `@travel-planner/shared` zod
   schemas via `pnpm openapi:generate`. CI runs `pnpm openapi:check` to reject

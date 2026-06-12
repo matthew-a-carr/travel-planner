@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { ComfortLevel, Currency, Destination } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
@@ -60,6 +60,16 @@ export class DrizzleDestinationRepository implements DestinationRepository {
       .select()
       .from(destinations)
       .where(eq(destinations.tripId, tripId))
+      .orderBy(destinations.startDate, destinations.sortOrder, destinations.createdAt);
+    return rows.map(toDestination);
+  }
+
+  async findByTrips(tripIds: string[]): Promise<Destination[]> {
+    if (tripIds.length === 0) return [];
+    const rows = await this.db
+      .select()
+      .from(destinations)
+      .where(inArray(destinations.tripId, tripIds))
       .orderBy(destinations.startDate, destinations.sortOrder, destinations.createdAt);
     return rows.map(toDestination);
   }
