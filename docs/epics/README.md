@@ -62,3 +62,4 @@ for rationale.
 | [001](EPIC-001-ios-app.md) | iOS App — Expo + React Native against extracted REST API | [045](../decisions/045-ios-app-strategy.md) | Complete |
 | [002](EPIC-002-mobile-read-only-data.md) | Mobile Read-Only Data — Trips on the Phone | [058](../decisions/058-mobile-phase-2-read-only-data.md) | Complete |
 | [003](EPIC-003-mobile-spend-capture.md) | Mobile Spend Capture — Record Spend on the Phone, Beautifully | [059](../decisions/059-mobile-phase-3-spend-capture-writes.md) | Approved |
+| [004](EPIC-004-mobile-e2e-authenticated-journeys.md) | Mobile E2E Phase 2 — Authenticated Journeys Against a Real Backend | [060](../decisions/060-mobile-e2e-real-backend-authenticated-journeys.md) | Approved |
