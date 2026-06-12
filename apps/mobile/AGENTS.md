@@ -99,6 +99,16 @@ EXPO_PUBLIC_API_BASE_URL=https://travel.matthewcarr.dev pnpm dev:mobile
 would pick. Raw Metro with no orchestration is still
 `pnpm --filter @travel-planner/mobile dev`.
 
+**Google sign-in on a physical device requires the prod (or preview)
+backend.** Against a local backend the server-mediated PKCE flow sends
+Google (a) the dev placeholder client ID unless real `AUTH_GOOGLE_*`
+values are in `.env.local` ("invalid client"), and (b) a redirect URI
+derived from the request origin — a private LAN IP, which Google won't
+accept as a registered redirect URI (only `localhost` is allowed, which
+is why the Simulator works). On-device demos: use the prod override
+above. This resolves with TD-004 (native on-device OAuth) or a public
+dev hostname.
+
 If the iPhone is on a captive-portal network (coffee shop, hotel) that
 blocks LAN traffic, on-device dev against a local backend won't work;
 fall back to the Simulator or point at prod.

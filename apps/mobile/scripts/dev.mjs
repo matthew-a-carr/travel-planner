@@ -157,6 +157,15 @@ function killProcessGroup(child, signal) {
 async function main() {
   const { url: baseUrl, source } = resolveBaseUrl();
   console.log(`[dev:mobile] API base URL: ${baseUrl} — ${source}`);
+  if (source.startsWith('LAN')) {
+    console.log(
+      '[dev:mobile] Note: Google sign-in on a PHYSICAL device cannot work against a ' +
+        'local backend (Google rejects placeholder dev credentials AND private-IP ' +
+        'redirect URIs). For an on-device demo run:\n' +
+        '[dev:mobile]   EXPO_PUBLIC_API_BASE_URL=https://travel.matthewcarr.dev pnpm dev:mobile\n' +
+        '[dev:mobile] The iOS Simulator + local-dev sign-in is unaffected.',
+    );
+  }
 
   if (process.argv.includes('--print-url')) return;
 
