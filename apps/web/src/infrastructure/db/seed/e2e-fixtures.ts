@@ -182,6 +182,7 @@ export async function applyE2eFixtures(db: Db): Promise<void> {
           country: d.country,
           city: d.city,
           estimatedBudgetAmount: d.estimatedBudgetPence,
+          comfortLevel: d.comfortLevel,
           startDate: d.startDate,
           endDate: d.endDate,
           sortOrder: d.sortOrder,
@@ -203,7 +204,13 @@ export async function applyE2eFixtures(db: Db): Promise<void> {
       })
       .onConflictDoUpdate({
         target: tripFixedCosts.id,
-        set: { label: c.label, amountPence: c.amountPence, category: c.category, date: c.date },
+        set: {
+          label: c.label,
+          amountPence: c.amountPence,
+          category: c.category,
+          date: c.date,
+          sortOrder: c.sortOrder,
+        },
       });
   }
 
@@ -220,7 +227,13 @@ export async function applyE2eFixtures(db: Db): Promise<void> {
       })
       .onConflictDoUpdate({
         target: spendEntries.id,
-        set: { amount: s.amountPence, category: s.category, description: s.description },
+        set: {
+          destinationId: s.destinationId,
+          amount: s.amountPence,
+          category: s.category,
+          description: s.description,
+          spentAt: s.spentAt,
+        },
       });
   }
 }

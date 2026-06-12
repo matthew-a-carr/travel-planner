@@ -4,6 +4,7 @@ import { createTestDb, type Db, type Sql, truncateAll } from '../../testing/help
 import {
   destinations,
   organizationMemberships,
+  organizations,
   spendEntries,
   tripFixedCosts,
   trips,
@@ -101,5 +102,23 @@ describe('applyE2eFixtures', () => {
 
     const [{ value: spendCount }] = await db.select({ value: count() }).from(spendEntries);
     expect(spendCount).toBe(E2E_FIXTURES.spendEntries.length);
+
+    const [{ value: fixedCostCount }] = await db
+      .select({ value: count() })
+      .from(tripFixedCosts)
+      .where(eq(tripFixedCosts.tripId, E2E_FIXTURES.trip.id));
+    expect(fixedCostCount).toBe(E2E_FIXTURES.fixedCosts.length);
+
+    const [{ value: organizationCount }] = await db
+      .select({ value: count() })
+      .from(organizations)
+      .where(eq(organizations.id, E2E_FIXTURES.organization.id));
+    expect(organizationCount).toBe(1);
+
+    const [{ value: membershipCount }] = await db
+      .select({ value: count() })
+      .from(organizationMemberships)
+      .where(eq(organizationMemberships.userId, E2E_FIXTURES.user.id));
+    expect(membershipCount).toBe(1);
   });
 });

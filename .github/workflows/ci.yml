@@ -343,7 +343,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: apps/web/.next/cache
-          key: mobile-e2e-next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/web/**', 'packages/shared/**') }}
+          # Hash sources only — a bare apps/web/** would sweep node_modules
+          # (slow + non-deterministic postinstall output would rotate the
+          # key every run, silently degrading to the restore-keys prefix).
+          key: mobile-e2e-next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/web/src/**', 'apps/web/package.json', 'apps/web/next.config.*', 'packages/shared/src/**') }}
           restore-keys: |
             mobile-e2e-next-${{ runner.os }}-
 
@@ -478,12 +481,20 @@ jobs:
           echo "::endgroup::"
 
           APP_PATH=$(find build/Build/Products/Release-iphonesimulator -maxdepth 2 -name '*.app' -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::No .app bundle found under build/Build/Products/Release-iphonesimulator"
+            exit 1
+          fi
           BUNDLE=$(find "$APP_PATH" -maxdepth 1 -name 'main.jsbundle' | head -1)
           if [ -z "$BUNDLE" ]; then
             echo "::error::No main.jsbundle inside $APP_PATH — Release bundle phase did not run?"
             exit 1
           fi
-          if ! strings "$BUNDLE" | grep -q '127\.0\.0\.1:3000'; then
+          # Via a temp file rather than `strings | grep -q`: grep -q's early
+          # exit can SIGPIPE strings (status 141) if this step ever gains
+          # `shell: bash` (which GitHub runs with -o pipefail).
+          strings "$BUNDLE" > "$RUNNER_TEMP/bundle-strings.txt"
+          if ! grep -q '127\.0\.0\.1:3000' "$RUNNER_TEMP/bundle-strings.txt"; then
             echo "::error::EXPO_PUBLIC_API_BASE_URL not found in the JS bundle — env was not inlined"
             exit 1
           fi
