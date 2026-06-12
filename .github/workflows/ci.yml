@@ -6,6 +6,11 @@ on:
   pull_request:
   # Manual runs for validating/measuring CI changes on a branch before a PR exists
   workflow_dispatch:
+    inputs:
+      mobile:
+        description: Force-run the mobile jobs even when no mobile paths changed
+        type: boolean
+        default: false
 
 # Cancel in-progress runs for the same branch when a newer push arrives
 concurrency:
@@ -211,7 +216,7 @@ jobs:
     name: Mobile type-check
     runs-on: ubuntu-latest
     needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
+    if: needs.detect-changes.outputs.mobile == 'true' || inputs.mobile
     steps:
       - uses: actions/checkout@v6
 
@@ -232,7 +237,7 @@ jobs:
     name: Mobile unit tests
     runs-on: ubuntu-latest
     needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
+    if: needs.detect-changes.outputs.mobile == 'true' || inputs.mobile
     steps:
       - uses: actions/checkout@v6
 
@@ -253,7 +258,7 @@ jobs:
     name: Mobile e2e (Maestro)
     runs-on: macos-latest
     needs: detect-changes
-    if: needs.detect-changes.outputs.mobile == 'true'
+    if: needs.detect-changes.outputs.mobile == 'true' || inputs.mobile
     steps:
       - uses: actions/checkout@v6
 
@@ -372,12 +377,17 @@ jobs:
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
           echo "Building workspace=$WORKSPACE scheme=$SCHEME"
+          # ARCHS=arm64: the .app only ever runs on this runner's own (arm64)
+          # simulator, but Release defaults to ONLY_ACTIVE_ARCH=NO and compiles
+          # every Pod for x86_64 too — roughly doubling compile time for slices
+          # that are thrown away.
           xcodebuild \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
             -configuration Release \
             -sdk iphonesimulator \
             -derivedDataPath build \
+            ARCHS=arm64 \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Wait for iOS Simulator to finish booting
