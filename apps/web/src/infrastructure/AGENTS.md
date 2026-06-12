@@ -53,6 +53,8 @@ src/infrastructure/
     seed/
       country-list-seed.ts       ← generated seed data for ~200 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
+      e2e-fixtures.ts            ← deterministic e2e fixtures + applyE2eFixtures (SPEC-013)
+      seed-e2e.ts                ← e2e fixture runner (pnpm seed:e2e)
   testing/
     global-setup.ts      ← global setup hook for integration tests
     helpers.ts           ← shared setup/teardown test helpers

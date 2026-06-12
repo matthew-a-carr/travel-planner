@@ -31,6 +31,7 @@
     "openapi:generate": "pnpm --filter @travel-planner/web openapi:generate",
     "openapi:check": "pnpm --filter @travel-planner/web openapi:check",
     "db:seed": "pnpm --filter @travel-planner/web db:seed",
+    "seed:e2e": "pnpm --filter @travel-planner/web seed:e2e",
     "auth:bootstrap-admin": "pnpm --filter @travel-planner/web auth:bootstrap-admin",
     "auth:mint-token": "pnpm --filter @travel-planner/web auth:mint-token"
   },

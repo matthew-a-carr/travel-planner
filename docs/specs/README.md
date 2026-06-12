@@ -49,3 +49,4 @@ Issue opened (claude:plan)
 | [010](SPEC-010-trip-detail-endpoint.md) | `GET /api/v1/trips/{id}` — Trip Detail Endpoint | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
 | [011](SPEC-011-mobile-trips-list.md) | Mobile Trips List Screen | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
 | [012](SPEC-012-mobile-trip-detail.md) | Mobile Trip Detail Screen — Timeline + Spend | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
+| [013](SPEC-013-mobile-e2e-real-backend.md) | Mobile E2E — Real Backend in the CI Loop | [EPIC-004](../epics/EPIC-004-mobile-e2e-authenticated-journeys.md) | 2026-06-12 | Complete |

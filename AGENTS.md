@@ -549,7 +549,17 @@ Email template rule:
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-All five jobs run in parallel on every push and PR:
+The five web jobs run in parallel on every push and PR; three
+path-filtered mobile jobs (`mobile-typecheck`, `mobile-unit-test`,
+`mobile-e2e` — ADR 052/055) run when `apps/mobile/**`, the lockfile /
+workspace config, `packages/shared/**` (the wire contract), or `ci.yml`
+itself changes, and can be forced on any branch via `workflow_dispatch`
+with `mobile: true`. Since SPEC-013 / ADR 060 the macOS `mobile-e2e` job
+runs Maestro against a **real backend**: native PostgreSQL (no Docker on
+macOS runners) + `db:migrate`/`db:seed`/`seed:e2e` + the production Next
+server, with a canary + bundle-URL assertion gating before Maestro.
+
+The web jobs:
 
 - `lint` (`pnpm lint`)
   - also runs `pnpm db:check:migrations` to enforce transactional migration policy
