@@ -2,11 +2,13 @@
 # the sign-in screen with the right testIDs + button copy + no error
 # UI on first render.
 #
-# Does NOT tap the button and walk the OAuth flow — Google's OAuth
-# consent screen can't be driven by Maestro (anti-automation
-# protections + no scriptable test credentials), and CI doesn't run
-# a backend so a real tap would produce a "Could not reach the
-# server" generic error.
+# Since SPEC-013 (EPIC-004 slice 1) CI runs a real backend behind the
+# app (native Postgres + migrated/seeded DB + production Next server;
+# the bundle's EXPO_PUBLIC_API_BASE_URL points at it). This flow still
+# does NOT tap the button and walk the OAuth flow — Google's consent
+# screen can't be driven by Maestro (anti-automation protections + no
+# scriptable test credentials). The signed-in journey arrives with
+# EPIC-004 slice 2's test-auth seam.
 #
 # State-machine transitions (idle ↔ in_flight ↔ error/success) are
 # covered by the jest + RNTL component tests in

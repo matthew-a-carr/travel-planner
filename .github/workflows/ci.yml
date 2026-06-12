@@ -38,6 +38,10 @@ jobs:
               - 'apps/mobile/**'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
+              # The wire contract the mobile app consumes (EPIC-004 §10):
+              # schema changes must re-run the mobile jobs even when no
+              # mobile file changed.
+              - 'packages/shared/**'
               # The mobile jobs are defined here — a PR that edits the
               # workflow (e.g. the xcodebuild invocation) must run them.
               - '.github/workflows/ci.yml'
@@ -262,6 +266,19 @@ jobs:
     runs-on: macos-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.mobile == 'true' || inputs.mobile
+
+    # The job boots the real Next.js server against a native PostgreSQL
+    # (SPEC-013 / ADR 060 — no Docker on macOS runners). The auth env
+    # lives at job level because next-auth needs it during `next build`,
+    # not just at runtime — same pattern as the web e2e job above. None
+    # of these are real secrets.
+    env:
+      AUTH_SECRET: ci-only-not-a-real-secret-replace-in-production
+      AUTH_JWT_SIGNING_KEY: e2e-only-jwt-signing-key-do-not-use-in-prod
+      AUTH_GOOGLE_ID: ci-placeholder-client-id
+      AUTH_GOOGLE_SECRET: ci-placeholder-client-secret
+      AUTH_URL: http://127.0.0.1:3000
+
     steps:
       - uses: actions/checkout@v6
 
@@ -301,6 +318,44 @@ jobs:
 
       - name: Add Maestro to PATH
         run: echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      # ── Real backend (SPEC-013 / ADR 060) ────────────────────────────
+      # Native PostgreSQL (no Docker on macOS runners) + migrate + seed +
+      # production Next.js server, so Maestro drives an app that talks to
+      # a live backend. The server boots in the background and is only
+      # awaited by the canary step after xcodebuild — its boot overlaps
+      # the native build, same trick as the simulator below.
+
+      - name: Start PostgreSQL (native)
+        run: apps/mobile/scripts/ci/start-postgres.sh
+
+      - name: Migrate + seed database
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+          pnpm seed:e2e
+
+      # The Next build cache is independent of the mobile native cache
+      # (TD-009: that one's key/--clean discipline is deliberately
+      # untouched). Mobile-only PRs don't change these paths, so they get
+      # warm Next builds.
+      - name: Cache Next.js build cache
+        uses: actions/cache@v5
+        with:
+          path: apps/web/.next/cache
+          key: mobile-e2e-next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'apps/web/**', 'packages/shared/**') }}
+          restore-keys: |
+            mobile-e2e-next-${{ runner.os }}-
+
+      - name: Build web app
+        # Dummy POSTGRES_URL per ADR 010 — the build never connects, and
+        # staying DB-independent keeps this step free to move/cache.
+        env:
+          POSTGRES_URL: postgresql://build:build@localhost:5432/build
+        run: pnpm build
+
+      - name: Start backend server (background)
+        run: apps/mobile/scripts/ci/start-backend.sh
 
       # Start booting the simulator in the background as early as
       # possible — boot takes ~60s on a fresh runner and is independent
@@ -376,6 +431,12 @@ jobs:
         # error screen and Maestro's `login-screen-root` assertion
         # fails.
         working-directory: apps/mobile/ios
+        env:
+          # Inlined into the JS bundle by the "Bundle React Native code
+          # and images" phase (SPEC-013). 127.0.0.1 (not the code default
+          # `localhost`) so the bundle assertion below can't pass
+          # vacuously. The simulator shares the host network.
+          EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:3000
         run: |
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
@@ -392,6 +453,41 @@ jobs:
             -derivedDataPath build \
             ARCHS=arm64 \
             CODE_SIGNING_ALLOWED=NO
+
+      # Two fail-fast gates before any Maestro time is spent (SPEC-013):
+      # (1) the backend is actually serving — surfacing the server log
+      # inline on failure; (2) the Release JS bundle really inlined the
+      # backend URL. The RN bundle phase declares no input/output files
+      # so Xcode re-runs it every build even with cached DerivedData —
+      # this assertion turns that belief into a loud check (epic Q3): if
+      # a future Xcode/RN change starts skipping the phase, or Hermes
+      # stops exposing the string, this fails instead of the env silently
+      # going stale.
+      - name: Backend canary + bundle URL assertion
+        working-directory: apps/mobile/ios
+        run: |
+          echo "::group::Backend canary"
+          if ! curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
+              http://127.0.0.1:3000/api/auth/providers >/dev/null; then
+            echo "::error::Backend canary failed — server not responding on :3000"
+            echo "── tail of backend.log ──"
+            tail -n 80 "$RUNNER_TEMP/backend.log" || true
+            exit 1
+          fi
+          echo "Backend is serving."
+          echo "::endgroup::"
+
+          APP_PATH=$(find build/Build/Products/Release-iphonesimulator -maxdepth 2 -name '*.app' -type d | head -1)
+          BUNDLE=$(find "$APP_PATH" -maxdepth 1 -name 'main.jsbundle' | head -1)
+          if [ -z "$BUNDLE" ]; then
+            echo "::error::No main.jsbundle inside $APP_PATH — Release bundle phase did not run?"
+            exit 1
+          fi
+          if ! strings "$BUNDLE" | grep -q '127\.0\.0\.1:3000'; then
+            echo "::error::EXPO_PUBLIC_API_BASE_URL not found in the JS bundle — env was not inlined"
+            exit 1
+          fi
+          echo "Bundle contains the backend URL — env inlined correctly."
 
       - name: Wait for iOS Simulator to finish booting
         run: xcrun simctl bootstatus "$SIM_UDID" -b
@@ -438,6 +534,19 @@ jobs:
           name: maestro-report
           path: ~/.maestro/tests
           retention-days: 7
+
+      # The server's own log is the only way to debug a backend-side e2e
+      # failure post-mortem (SPEC-013; full diagnostics slice is EPIC-004
+      # slice 4 — this minimal artifact lands early because slice 1 itself
+      # is undebuggable without it).
+      - name: Upload backend log on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-log
+          path: ${{ runner.temp }}/backend.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       # Capture iOS crash reports so a *persistent* app crash (one that
       # survives all 3 retries) is diagnosable — the Maestro report alone

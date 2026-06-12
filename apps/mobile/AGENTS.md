@@ -47,10 +47,18 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   component tests on every change.
 - `pnpm build` is web-only; mobile has no separate "build" gate in cloud
   routines.
-- The impl PR's CI **`mobile-e2e`** job (ADR 055) does `expo prebuild +
-  xcodebuild + Maestro flows` on a macOS runner. That's the iOS Simulator
-  gate — if it fails on the routine's PR, Matt picks it up via the standard
-  CI-failure email + the routine's `claude:blocked` flow.
+- The impl PR's CI **`mobile-e2e`** job (ADR 055 + ADR 060/SPEC-013) does
+  `expo prebuild + xcodebuild + Maestro flows` on a macOS runner — with a
+  **real backend behind the app**: native PostgreSQL (no Docker on macOS
+  runners), `pnpm db:migrate && pnpm db:seed && pnpm seed:e2e`
+  (deterministic fixtures from
+  `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
+  production Next server; the Release bundle inlines
+  `EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000` and the job asserts
+  both (canary curl + bundle `strings` grep) before Maestro runs. That's
+  the iOS Simulator gate — if it fails on the routine's PR, Matt picks it
+  up via the standard CI-failure email + the routine's `claude:blocked`
+  flow.
 
 ## Dev loop (manual / human-driven only)
 

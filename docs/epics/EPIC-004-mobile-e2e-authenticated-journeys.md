@@ -228,9 +228,9 @@ slice.
 
 | # | Question | Owner | Answer by slice |
 |---|----------|-------|-----------------|
-| 1 | Server boot mode on the runner: `pnpm build` + `pnpm start` (prod-like, cacheable `.next`) vs `pnpm dev:next` (no build step) — decide on measured runtime | slice SPEC | 1 |
-| 2 | Exact Postgres provisioning (preinstalled vs `brew install`, `initdb` location, version pin vs runner default) | slice SPEC | 1 |
-| 3 | Does the Release `xcodebuild` re-bundle JS on every run with the cached DerivedData, so `EXPO_PUBLIC_*` changes always take effect? (Believed yes — bundle phase runs per build; must be verified, else cache keys need the env folded in) | slice SPEC | 1 |
+| 1 | Server boot mode on the runner: `pnpm build` + `pnpm start` (prod-like, cacheable `.next`) vs `pnpm dev:next` (no build step) — decide on measured runtime | slice SPEC | 1 — **resolved (SPEC-013): `pnpm build` + `pnpm start`, `.next/cache` cached; `dev:next` is the documented fallback if the build busts the budget** |
+| 2 | Exact Postgres provisioning (preinstalled vs `brew install`, `initdb` location, version pin vs runner default) | slice SPEC | 1 — **resolved (SPEC-013): newest preinstalled Homebrew keg, `brew install postgresql@16` fallback, `initdb` in `$RUNNER_TEMP`, no version pin** |
+| 3 | Does the Release `xcodebuild` re-bundle JS on every run with the cached DerivedData, so `EXPO_PUBLIC_*` changes always take effect? (Believed yes — bundle phase runs per build; must be verified, else cache keys need the env folded in) | slice SPEC | 1 — **resolved (SPEC-013): asserted on every run — the job greps the built bundle for the URL, so a skipped bundle phase fails loudly instead of going stale** |
 | 4 | Test-mint endpoint shape and flag name (route under `/api/v1/auth/mobile/` vs a non-v1 internal route — keep it out of the public OpenAPI surface?) — including how the minted code links to the **live sign-in's PKCE state/challenge** so the real `/exchange` verification passes (ADR 051 §3): the injected browser leg must convey the `state` from the start step to the mint endpoint | slice SPEC | 2 |
 | 5 | Whether the not-found journey warrants a flow or stays RNTL-only once flow-count cost is visible | slice SPEC | 3 |
 | 6 | Mutating-flow isolation: unique-per-run entities vs reseed-between-flows (wants EPIC-003 slice 1's idempotency semantics settled) | slice SPEC | 5 |

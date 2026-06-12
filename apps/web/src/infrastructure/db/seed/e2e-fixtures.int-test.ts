@@ -1,5 +1,6 @@
 import { count, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createTestDb, type Db, type Sql, truncateAll } from '../../testing/helpers';
 import {
   destinations,
   organizationMemberships,
@@ -8,8 +9,7 @@ import {
   trips,
   users,
 } from '../schema';
-import { createTestDb, type Db, type Sql, truncateAll } from '../../testing/helpers';
-import { E2E_FIXTURES, applyE2eFixtures } from './e2e-fixtures';
+import { applyE2eFixtures, E2E_FIXTURES } from './e2e-fixtures';
 
 let db: Db;
 let sql: Sql;
