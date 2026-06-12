@@ -36,6 +36,6 @@
     "auth:mint-token": "pnpm --filter @travel-planner/web auth:mint-token"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15"
+    "@biomejs/biome": "^2.5.0"
   }
 }
