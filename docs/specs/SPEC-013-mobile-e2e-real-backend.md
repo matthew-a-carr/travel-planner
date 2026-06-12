@@ -1,7 +1,7 @@
 # SPEC-013: Mobile E2E — Real Backend in the CI Loop
 
 **Date:** 2026-06-12
-**Status:** In Progress
+**Status:** Complete
 **Author:** Claude (interactive session, issue #146)
 **Approved by:** —
 **Parent epic:** [EPIC-004 — Mobile E2E Phase 2](../epics/EPIC-004-mobile-e2e-authenticated-journeys.md)
@@ -345,7 +345,30 @@ names the rejected alternative and the cost of being wrong):
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
 | 1 | SPEC + implementation in one PR, on the session branch, instead of a standalone spec PR merged with `claude:implement` | Matt's instruction in-session ("do the slice and then the implementation"); EPIC-002 precedent | Single review gate instead of two | Yes (authorised) |
+| 2 | Spec text amended mid-PR (fixture-seed location `scripts/` → `src/infrastructure/db/seed/`, job-level auth env, canary route named, `packages/shared/**` filter pulled in) | `review-spec` self-review findings, applied before implementation started | Implementation matches the final spec; no code-level drift | Yes |
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- **Runtime (AC7):** first `workflow_dispatch` run (27410045709) green on
+  attempt 1: 13m47s wall clock, of which **~46s** is directly attributable
+  to the new steps (pg 16s, migrate+seed 4s, build 24s — on a `.next`
+  cache MISS — canary+assertion 1s; server boot fully overlapped). The
+  nearest comparable `main` run (edce7ca) was tracking ≈ 12m before being
+  cancelled by the concurrency group. Delta comfortably inside the +5 min
+  pivot bound — the pivot criterion never came close to firing.
+- arm64 macOS runners build Next.js in ~24s even cold; epic Q1's
+  `dev:next` fallback (kept for a build-cost blowout) looks permanently
+  unnecessary, but remains documented.
+- Fixture dates are fixed absolutes (Kyoto 2026-06-01→15, Tokyo
+  2026-06-15→30) — deterministic over run-time-relative; they happen to
+  bracket the fixed 2026-06-12 anchor, satisfying the spec wording. If a
+  future flow needs "today inside a range" (EPIC-003 destination
+  inference), extend the fixture then rather than making this one
+  non-deterministic.
+- The `strings`-grep bundle assertion worked first try against the
+  Hermes bundle — epic Q3's "believed yes" is now a per-run loud check,
+  exactly as designed.
+- Session-environment learning: Docker Hub rate-limited the unauthenticated
+  `postgres:16-alpine` pull in the remote session; `mirror.gcr.io/library/`
+  + retag unblocked the local integration suite. Worth remembering for
+  future cloud sessions (not repo tech debt — CI runners are unaffected).

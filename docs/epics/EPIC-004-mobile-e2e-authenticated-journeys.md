@@ -127,7 +127,7 @@ for the full analysis.
 
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
-| 1 | **Real backend in the loop** — native Postgres on the macOS runner + migrate + deterministic e2e seed + real server boot + app bundle pointed at it; existing smoke flow proves the app launches clean against a live backend; runtime baseline recorded | 1 | [SPEC-013](../specs/SPEC-013-mobile-e2e-real-backend.md) (Draft) | — | In progress |
+| 1 | **Real backend in the loop** — native Postgres on the macOS runner + migrate + deterministic e2e seed + real server boot + app bundle pointed at it; existing smoke flow proves the app launches clean against a live backend; runtime baseline recorded | 1 | [SPEC-013](../specs/SPEC-013-mobile-e2e-real-backend.md) (Complete) | — | Complete |
 | 2 | **Past the front door** (**milestone**) — server test-mint endpoint (double-gated) + E2E build's browser-leg injection at the `runSignInFlow(deps)` seam + 404 gate integration test + full sign-in → trips list → sign-out journey flow | 2, 5 | _not yet planned_ | 1 | Not started |
 | 3 | **Read-journey coverage** — trip detail flow against the seeded Kyoto trip (legs, fixed costs, spend summary) + not-found flow + list↔detail navigation assertions | 3, 4 | _not yet planned_ | 2 | Not started |
 | 4 | **Diagnostics + local parity** — simulator screen recording + backend log artifacts on failure; `pnpm test:e2e:mobile` one-command local orchestration; budget validation over first 10 PRs; flow-authoring docs in mobile `AGENTS.md` | 6, 7 | _not yet planned_ | 2 | Not started |
@@ -291,6 +291,7 @@ slice.
 | 2026-06-12 | — | — | Drafted | Drafted in an interactive session (issue #144); decisions taken on recommendation per §13. |
 | 2026-06-12 | — | — | Approved | Approved by Matt in the PR #145 review loop; reciprocal EPIC-003 §7 amendment applied per §13 decision 4. |
 | 2026-06-12 | 1 | SPEC-013 | Drafted / In progress | Spec + implementation in one session/PR at Matt's instruction (issue #146); resolves §13 deferred Q1–Q3. |
+| 2026-06-12 | 1 | SPEC-013 | Complete | mobile-e2e green first attempt with real backend (run 27410045709); +~46s attributable runtime — pivot criterion nowhere near firing. Impl PR linked on open. |
 
 ## Epic-level deviations
 
