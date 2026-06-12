@@ -6,7 +6,7 @@
     "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "dev": "pnpm --filter @travel-planner/web dev",
     "dev:next": "pnpm --filter @travel-planner/web dev:next",
-    "dev:mobile": "pnpm --filter @travel-planner/mobile dev",
+    "dev:mobile": "node apps/mobile/scripts/dev.mjs",
     "test:mobile": "pnpm --filter @travel-planner/mobile test",
     "test:mobile:watch": "pnpm --filter @travel-planner/mobile test -- --watch",
     "type-check:mobile": "pnpm --filter @travel-planner/mobile type-check",
