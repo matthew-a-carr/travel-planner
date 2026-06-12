@@ -57,7 +57,9 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
 From the repo root, when Matt is driving locally:
 
 ```bash
-pnpm dev:mobile        # starts Expo Metro; prints QR code
+pnpm dev:mobile        # one command: boots the backend (unless port 3000 is
+                       # already serving), auto-detects the Mac's LAN IP for
+                       # EXPO_PUBLIC_API_BASE_URL, starts Expo Metro + QR code
 pnpm test:mobile       # Jest unit + component tests (mobile only)
 pnpm test:mobile:watch # Jest watch mode (TDD loop)
 pnpm test:e2e:mobile   # Maestro E2E only (requires Maestro + iOS Simulator)
@@ -75,23 +77,41 @@ To run on the iOS Simulator: press `i` in the Metro CLI after
 
 ### Pointing the app at a backend (`EXPO_PUBLIC_API_BASE_URL`)
 
-The mobile app reads its API base URL from
-`process.env.EXPO_PUBLIC_API_BASE_URL` at bundle time, defaulting to
-`http://localhost:3000`. `EXPO_PUBLIC_*` env vars are inlined by Expo,
-so set them inline when starting Metro:
+The app reads its API base URL from `process.env.EXPO_PUBLIC_API_BASE_URL`
+at **bundle time** (Expo inlines `EXPO_PUBLIC_*`), so it must be set when
+Metro starts. `pnpm dev:mobile` (`apps/mobile/scripts/dev.mjs`) handles
+this automatically:
+
+- **No env var set** → it detects the Mac's LAN IPv4 (en0/en1 preferred)
+  and uses `http://<lan-ip>:3000`, which works for the Simulator AND a
+  physical iPhone on the same Wi-Fi. It also boots the backend
+  (`pnpm dev`'s Testcontainers + migrate + seed bootstrap) unless port
+  3000 is already serving, and tears it down when Metro exits.
+- **`EXPO_PUBLIC_API_BASE_URL` set** → respected verbatim; for a remote
+  URL the local backend is skipped entirely:
 
 ```bash
-# iOS Simulator (localhost works because the simulator shares the host network)
-pnpm dev:mobile
-
-# Author's iPhone via Expo Go on the LAN (replace with your Mac's LAN IP)
-EXPO_PUBLIC_API_BASE_URL=http://192.168.1.42:3000 pnpm dev:mobile
+# Demo against production data (read-only screens make this safe)
+EXPO_PUBLIC_API_BASE_URL=https://travel.matthewcarr.dev pnpm dev:mobile
 ```
 
-If the iPhone is on a captive-portal network (coffee shop, hotel)
-that blocks LAN traffic, on-device dev won't work; fall back to the
-Simulator. Future EPIC-002 work provisions a public hostname so this
-LAN-IP dance goes away.
+`node apps/mobile/scripts/dev.mjs --print-url` shows which base URL it
+would pick. Raw Metro with no orchestration is still
+`pnpm --filter @travel-planner/mobile dev`.
+
+**Google sign-in on a physical device requires the prod (or preview)
+backend.** Against a local backend the server-mediated PKCE flow sends
+Google (a) the dev placeholder client ID unless real `AUTH_GOOGLE_*`
+values are in `.env.local` ("invalid client"), and (b) a redirect URI
+derived from the request origin — a private LAN IP, which Google won't
+accept as a registered redirect URI (only `localhost` is allowed, which
+is why the Simulator works). On-device demos: use the prod override
+above. This resolves with TD-004 (native on-device OAuth) or a public
+dev hostname.
+
+If the iPhone is on a captive-portal network (coffee shop, hotel) that
+blocks LAN traffic, on-device dev against a local backend won't work;
+fall back to the Simulator or point at prod.
 
 ## Architecture
 

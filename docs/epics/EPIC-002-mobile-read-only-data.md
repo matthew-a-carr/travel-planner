@@ -1,10 +1,11 @@
 # EPIC-002: Mobile Read-Only Data — Trips on the Phone
 
 **Date:** 2026-05-30
-**Status:** Approved
+**Status:** Complete
 **Strategic ADR:** [058 — Mobile Phase 2: Read-Only Data over the Existing Foundation](../decisions/058-mobile-phase-2-read-only-data.md)
 **Owner:** Matt Carr
 **Approved by:** Matt Carr, 2026-05-31
+**Signed off:** Matt Carr, 2026-06-12 (interactive session)
 
 > Operationalises ADR 058. Builds directly on EPIC-001 (the iOS shell, auth,
 > and `/api/v1/*` foundation, now Complete) and on SPEC-008 / ADR 056 (the
@@ -174,6 +175,7 @@ Likely ADRs this epic surfaces: a React Native data-fetching/caching approach (i
 | 2026-06-11 | 2 | SPEC-010 | Complete | Drafted + implemented in the same interactive session (composite detail endpoint, epic §13 Q1/Q4 honoured). |
 | 2026-06-11 | 3 | SPEC-011 | Complete | Trips list lands at `/`; Me screen relocated to `/me`. 103 mobile Jest tests green; Maestro `sign-in.yaml` unaffected. |
 | 2026-06-11 | 4 | SPEC-012 | Complete | Milestone slice: `/trips/{id}` renders timeline + spend summary. All four slices implemented in PR [#139](https://github.com/matthew-a-carr/travel-planner/pull/139) — epic ready for human review to mark Complete (pending physical-iPhone validation + PR merge). |
+| 2026-06-12 | — | — | Complete | PR #139 merged (`8ce73c5`), prod smoke test Healthy (new endpoints live at envelope 1.2.0). Matt signed the epic off. On-device demo had surfaced one env foot-gun (localhost API base URL on a physical phone → synthetic `internal` on sign-in); fixed by making `pnpm dev:mobile` auto-detect the LAN IP / support a prod override. |
 
 ## Epic-level deviations
 
@@ -181,4 +183,26 @@ _None yet._
 
 ## Post-epic notes
 
-_To be written when the epic closes._
+- Delivered exactly the four planned slices (SPEC-009–012) — server first,
+  screens second — as one implementation PR ([#139](https://github.com/matthew-a-carr/travel-planner/pull/139),
+  18 commits, squash-merged `8ce73c5`). The single-PR shape was an
+  interactive-session deviation from the per-slice routine flow (recorded in
+  SPEC-009 deviation #1); slices 2–4's SPECs were drafted in-session rather
+  than via `claude:plan` issues.
+- §5 success criteria all held: no use case forked (both endpoints compose
+  existing repositories through `getAppContainer()`), ADR 056 envelope +
+  OpenAPI regenerated (one minor bump 1.1.0 → 1.2.0 covering both endpoints),
+  org-scoped authorisation reused (`findOrganizationsForUser` /
+  `findMembership` — integration tests assert cross-org isolation), and no
+  mobile write path exists.
+- The kill criterion never threatened: the application layer served the
+  bearer surface cleanly, validating ADR 045's core premise.
+- Demo-loop friction found at sign-off: on a physical iPhone the app's
+  default `localhost` API base URL fails every call with a synthetic
+  `internal` — looked like a sign-in bug, was an env foot-gun. `pnpm
+  dev:mobile` is now a one-command orchestrator (backend + LAN-IP detection
+  + Metro); the §14 parking-lot idea of a public dev hostname is partly
+  obsoleted by pointing Expo Go at prod for read-only demos.
+- Next-phase candidates parked in §14 stand; the leading options at close
+  were mobile writes (record-spend first) vs the ADP/TestFlight funding
+  decision (which would bring the partner in as a second user).
