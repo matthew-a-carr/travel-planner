@@ -170,10 +170,10 @@ Likely ADRs this epic surfaces: a React Native data-fetching/caching approach (i
 | 2026-05-30 | — | — | Drafted | EPIC-002 drafted (interactive, under ADR 058). Awaiting human review of §13 Open Questions + slice table. |
 | 2026-05-31 | — | — | Approved | Approved by Matt. §13 Q2 (bearer trip-authz → reuse org-scoped visibility) + Q3 (pagination → deferred) resolved for slice 1; Q1/Q4 left open for slices 2/4. |
 | 2026-05-31 | 1 | SPEC-009 | Draft | Slice 1 (`GET /api/v1/trips`) drafted as SPEC-009. |
-| 2026-06-11 | 1 | SPEC-009 | Complete | Implemented on the single EPIC-002 impl branch (PR number recorded at epic close-out). |
+| 2026-06-11 | 1 | SPEC-009 | Complete | Implemented on the single EPIC-002 impl branch (PR [#139](https://github.com/matthew-a-carr/travel-planner/pull/139)). |
 | 2026-06-11 | 2 | SPEC-010 | Complete | Drafted + implemented in the same interactive session (composite detail endpoint, epic §13 Q1/Q4 honoured). |
 | 2026-06-11 | 3 | SPEC-011 | Complete | Trips list lands at `/`; Me screen relocated to `/me`. 103 mobile Jest tests green; Maestro `sign-in.yaml` unaffected. |
-| 2026-06-11 | 4 | SPEC-012 | Complete | Milestone slice: `/trips/{id}` renders timeline + spend summary. All four slices implemented — epic ready for human review to mark Complete (pending physical-iPhone validation + PR merge). |
+| 2026-06-11 | 4 | SPEC-012 | Complete | Milestone slice: `/trips/{id}` renders timeline + spend summary. All four slices implemented in PR [#139](https://github.com/matthew-a-carr/travel-planner/pull/139) — epic ready for human review to mark Complete (pending physical-iPhone validation + PR merge). |
 
 ## Epic-level deviations
 
