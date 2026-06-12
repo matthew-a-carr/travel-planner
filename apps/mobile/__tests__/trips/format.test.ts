@@ -1,4 +1,4 @@
-import { formatDateRange, formatPence } from '../../src/trips/format';
+import { formatComfortLevel, formatDateRange, formatPence } from '../../src/trips/format';
 
 describe('formatPence', () => {
   it('formats whole-pound amounts without pence', () => {
@@ -47,5 +47,13 @@ describe('formatDateRange', () => {
 
   it('covers every month abbreviation', () => {
     expect(formatDateRange('2026-01-15', '2026-12-31')).toBe('15 Jan 2026 – 31 Dec 2026');
+  });
+});
+
+describe('formatComfortLevel', () => {
+  it('labels every comfort level', () => {
+    expect(formatComfortLevel('budget')).toBe('Budget');
+    expect(formatComfortLevel('mid')).toBe('Mid-range');
+    expect(formatComfortLevel('luxury')).toBe('Luxury');
   });
 });

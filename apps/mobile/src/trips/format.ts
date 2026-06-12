@@ -4,7 +4,7 @@
  * and the formats here are part of the screen's tested contract.
  */
 
-import type { WireMoney } from '@travel-planner/shared';
+import type { WireComfortLevel, WireMoney } from '@travel-planner/shared';
 
 const CURRENCY_SYMBOLS: Record<WireMoney['currency'], string> = {
   GBP: '£',
@@ -50,6 +50,17 @@ export function formatDateRange(startDate: string | null, endDate: string | null
   if (startDate) return `From ${formatIsoDate(startDate)}`;
   if (endDate) return `Until ${formatIsoDate(endDate)}`;
   return 'Dates TBC';
+}
+
+const COMFORT_LABELS: Record<WireComfortLevel, string> = {
+  budget: 'Budget',
+  mid: 'Mid-range',
+  luxury: 'Luxury',
+};
+
+/** Display label for a destination's comfort level. */
+export function formatComfortLevel(level: WireComfortLevel): string {
+  return COMFORT_LABELS[level];
 }
 
 /** `2026-09-01` → `1 Sep 2026`. Input is the wire's YYYY-MM-DD. */
