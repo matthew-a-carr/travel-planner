@@ -28,6 +28,11 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Tapping a trip now opens a **trip detail** screen — the
+  timeline (destinations with dates, budget, and spend per leg), committed
+  fixed costs, and a budget-vs-committed/spent summary with an
+  over-allocation warning. Pull-to-refresh supported. This completes the
+  EPIC-002 read-only milestone. (SPEC-012 / EPIC-002 slice 4.)
 - **Mobile:** Signing in now lands on a **trips list** — every trip in your
   organisations with its name, dates, status, and budget, with
   pull-to-refresh. Your profile (and sign-out) moved behind the Profile

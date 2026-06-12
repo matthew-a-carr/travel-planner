@@ -114,6 +114,10 @@ LAN-IP dance goes away.
   - `app/(app)/me.tsx` — me screen at URL `/me` (relocated from `/`
     in SPEC-011). Greeting, email, approval banner, sign-out, and a
     back control to the trips list.
+  - `app/(app)/trips/[id].tsx` — trip detail at URL `/trips/{id}`
+    (SPEC-012, the EPIC-002 milestone): timeline legs + spend summary
+    via `src/trips/use-trip-detail.ts`; `not_found` is a first-class
+    state.
   - Both groups have a thin `_layout.tsx` (Stack with
     `headerShown: false`).
   - **Never create a bare `app/index.tsx`** — it would collide with
@@ -225,6 +229,10 @@ Examples:
   `testID="trips-screen-item-<tripId>"`, states
   `trips-screen-{loading,error,retry,empty}`, header
   `trips-screen-profile`
+- Trip detail (EPIC-002 milestone) → `testID="trip-detail-root"`,
+  sections `trip-detail-spend`, `trip-detail-destination-<id>`,
+  `trip-detail-fixed-cost-<id>`, states
+  `trip-detail-{loading,error,retry,not-found}`, nav `trip-detail-back`
 
 Maestro flows reference these rather than visible text. Text
 changes are cheap; testID changes break flows.

@@ -45,6 +45,11 @@ src/infrastructure/
       drizzle-country-reference-repository.ts
       drizzle-organization-repository.ts
       drizzle-user-access-repository.ts
+      drizzle-chat-message-repository.ts
+      drizzle-auth-rate-limit-repository.ts
+      drizzle-mobile-auth-state-repository.ts
+      drizzle-mobile-auth-exchange-code-repository.ts
+      drizzle-refresh-token-repository.ts
     seed/
       country-list-seed.ts       ← generated seed data for ~200 countries
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
@@ -125,7 +130,7 @@ pnpm test:integration -- src/infrastructure/db/repositories/drizzle-trip-reposit
 pnpm db:check:migrations # enforce deploy-safe transactional migration SQL
 ```
 
-There are currently 7 integration test files in `db/repositories/`, one per repository.
+There are currently 12 integration test files in `db/repositories/`, one per repository.
 
 Do not use in-memory fakes or mock `db` in repository tests. The Testcontainers
 container is shared across all integration test files in a single run — start-up cost

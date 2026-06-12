@@ -23,6 +23,7 @@ src/application/
     user-added-invite-template.ts  + user-added-invite-template.test.ts
   use-cases/
     create-trip.ts                + create-trip.int-test.ts
+    create-trip-with-destinations.ts + create-trip-with-destinations.int-test.ts
     edit-trip.ts                  + edit-trip.int-test.ts
     move-trip-to-organization.ts  + move-trip-to-organization.int-test.ts
     add-destination.ts            + add-destination.int-test.ts
@@ -34,6 +35,11 @@ src/application/
     record-spend.ts               + record-spend.int-test.ts
     edit-spend-entry.ts           + edit-spend-entry.int-test.ts
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
+    bulk-add-destinations.ts      + bulk-add-destinations.int-test.ts
+    analyse-trip-timeline.ts      + analyse-trip-timeline.int-test.ts
+    parse-itinerary-text.ts       + parse-itinerary-text.int-test.ts
+    process-chat-message.ts       + process-chat-message.int-test.ts
+    summarise-trip-narrative.ts   + summarise-trip-narrative.int-test.ts
     get-country-references.ts     + get-country-references.int-test.ts
     create-organization.ts        + create-organization.int-test.ts
     get-user-organizations.ts     + get-user-organizations.int-test.ts
@@ -50,6 +56,7 @@ src/application/
     set-user-admin.ts             + set-user-admin.int-test.ts
     pre-provision-user-access.ts  + pre-provision-user-access.int-test.ts
     send-user-access-invite.ts    + send-user-access-invite.int-test.ts
+    auth/                         ← mobile-auth use cases (SPEC-004/006), 5 more int-tests
 ```
 
 ## Email templates

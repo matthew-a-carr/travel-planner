@@ -1,7 +1,7 @@
 # SPEC-012: Mobile Trip Detail Screen — Timeline + Spend
 
 **Date:** 2026-06-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Claude (Fable 5) under Matt Carr direction (interactive session)
 **Approved by:** — (drafted + implemented in the same interactive session; review on the EPIC-002 implementation PR)
 **Parent epic:** [EPIC-002 — Mobile Read-Only Data](../epics/EPIC-002-mobile-read-only-data.md) (slice 4, **milestone**)
@@ -127,8 +127,13 @@ None.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | _to be filled_ | | | |
+| 1 | None — implemented as specified. | — | — | — |
 
 ### Post-Implementation Notes
 
-_To be filled at close-out._
+- Jest passed while `tsc` failed on six missing StyleSheet keys — Babel
+  strips types, so component tests alone don't prove type-safety; the
+  repo's verification chain (type-check before commit) caught it.
+- 119 mobile Jest tests green across 14 suites. The epic §3 definition of
+  done is now fully implemented; physical-iPhone Expo Go validation
+  (epic §4 demo) remains the manual pre-merge step.

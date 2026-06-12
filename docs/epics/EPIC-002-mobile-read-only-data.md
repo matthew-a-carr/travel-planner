@@ -36,13 +36,13 @@ point).
 
 The epic is **Complete** when:
 
-- [ ] `GET /api/v1/trips` returns the authenticated user's trips (envelope-wrapped),
+- [x] `GET /api/v1/trips` returns the authenticated user's trips (envelope-wrapped),
       with a shared zod schema in `@travel-planner/shared` and the OpenAPI spec regenerated.
-- [ ] `GET /api/v1/trips/{id}` returns a trip's detail including its timeline and spend.
-- [ ] The mobile app shows a **trips list** screen after sign-in.
-- [ ] Tapping a trip opens a **trip detail** screen showing timeline + spend (the milestone).
-- [ ] All data is fetched via `getAccessToken()` + the shared `apiClient`, unwrapping the envelope.
-- [ ] The web app behaves identically (no regression); all pre-existing tests stay green.
+- [x] `GET /api/v1/trips/{id}` returns a trip's detail including its timeline and spend.
+- [x] The mobile app shows a **trips list** screen after sign-in.
+- [x] Tapping a trip opens a **trip detail** screen showing timeline + spend (the milestone).
+- [x] All data is fetched via `getAccessToken()` + the shared `apiClient`, unwrapping the envelope.
+- [x] The web app behaves identically (no regression); all pre-existing tests stay green.
 
 Editing, offline, native OAuth, EAS/TestFlight, Sentry RN, AI chat, push, and
 maps are **not** the bar for this epic (see §6).
@@ -84,7 +84,7 @@ maps are **not** the bar for this epic (see §6).
 | 1 | `GET /api/v1/trips` (list) — use-case read path + shared `tripSummary` schema + OpenAPI regen + integration tests | 1–2 | [SPEC-009 (Complete)](../specs/SPEC-009-trips-list-endpoint.md) | — | 2d | Complete |
 | 2 | `GET /api/v1/trips/{id}` (detail: trip + timeline + spend) — shared schema + integration tests | 3 | [SPEC-010 (Complete)](../specs/SPEC-010-trip-detail-endpoint.md) | 1 | 2–3d | Complete |
 | 3 | Mobile **trips list** screen — `src/trips/` data hook + list UI + states (loading/empty/error) + tests | 1–2 | [SPEC-011 (Complete)](../specs/SPEC-011-mobile-trips-list.md) | 1 | 2–3d | Complete |
-| 4 | Mobile **trip detail** screen — timeline + spend rendering (**milestone slice**) | 3 | _not yet planned_ | 2, 3 | 3–4d | Not started |
+| 4 | Mobile **trip detail** screen — timeline + spend rendering (**milestone slice**) | 3 | [SPEC-012 (Complete)](../specs/SPEC-012-mobile-trip-detail.md) | 2, 3 | 3–4d | Complete |
 
 SPECs are drafted lazily by `draft-spec` (from a `claude:plan` issue) when each
 slice is ready. Slices 1–2 (server) can run ahead of / parallel to 3.
@@ -173,6 +173,7 @@ Likely ADRs this epic surfaces: a React Native data-fetching/caching approach (i
 | 2026-06-11 | 1 | SPEC-009 | Complete | Implemented on the single EPIC-002 impl branch (PR number recorded at epic close-out). |
 | 2026-06-11 | 2 | SPEC-010 | Complete | Drafted + implemented in the same interactive session (composite detail endpoint, epic §13 Q1/Q4 honoured). |
 | 2026-06-11 | 3 | SPEC-011 | Complete | Trips list lands at `/`; Me screen relocated to `/me`. 103 mobile Jest tests green; Maestro `sign-in.yaml` unaffected. |
+| 2026-06-11 | 4 | SPEC-012 | Complete | Milestone slice: `/trips/{id}` renders timeline + spend summary. All four slices implemented — epic ready for human review to mark Complete (pending physical-iPhone validation + PR merge). |
 
 ## Epic-level deviations
 
