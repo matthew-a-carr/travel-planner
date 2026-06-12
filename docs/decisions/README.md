@@ -67,3 +67,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [056](056-api-response-envelope-and-openapi.md) | REST API Response Envelope and OpenAPI Publication | 2026-05-21 | Accepted |
 | [057](057-autonomous-workflow-and-remote-execution.md) | Autonomous Workflow and Remote-Only Execution | 2026-05-23 | Accepted |
 | [058](058-mobile-phase-2-read-only-data.md) | Mobile Phase 2 — Read-Only Data over the Existing Foundation | 2026-05-30 | Accepted |
+| [059](059-mobile-phase-3-spend-capture-writes.md) | Mobile Phase 3 — Spend Capture over a v1 Write Surface | 2026-06-12 | Accepted |

@@ -60,4 +60,5 @@ for rationale.
 | Epic | Title | Strategic ADR | Status |
 |------|-------|---------------|--------|
 | [001](EPIC-001-ios-app.md) | iOS App — Expo + React Native against extracted REST API | [045](../decisions/045-ios-app-strategy.md) | Complete |
-| [002](EPIC-002-mobile-read-only-data.md) | Mobile Read-Only Data — Trips on the Phone | [058](../decisions/058-mobile-phase-2-read-only-data.md) | Approved |
+| [002](EPIC-002-mobile-read-only-data.md) | Mobile Read-Only Data — Trips on the Phone | [058](../decisions/058-mobile-phase-2-read-only-data.md) | Complete |
+| [003](EPIC-003-mobile-spend-capture.md) | Mobile Spend Capture — Record Spend on the Phone, Beautifully | [059](../decisions/059-mobile-phase-3-spend-capture-writes.md) | Approved |
