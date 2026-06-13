@@ -2,9 +2,9 @@
 
 ## Problem/Feature Description
 
-Your team uses an automated pipeline that processes GitHub issues labelled `claude:plan-epic` and drafts epics from them. Today, three issues have come in simultaneously, but they need to be handled carefully — not all of them are suitable for epic-level planning.
+Your team uses an automated pipeline that processes GitHub issues labelled `ai:plan-epic` and drafts epics from them. Today, three issues have come in simultaneously, but they need to be handled carefully — not all of them are suitable for epic-level planning.
 
-You have been given three issue files in `inputs/`. Each represents a different GitHub issue that has been tagged `claude:plan-epic`. For each issue, determine whether it qualifies for epic treatment or should be blocked. Produce a `triage-report.md` documenting your decisions.
+You have been given three issue files in `inputs/`. Each represents a different GitHub issue that has been tagged `ai:plan-epic`. For each issue, determine whether it qualifies for epic treatment or should be blocked. Produce a `triage-report.md` documenting your decisions.
 
 The rules for qualification are defined in the team's planning process, which you should already know. Evaluate each issue against the standard criteria for what makes a valid epic.
 

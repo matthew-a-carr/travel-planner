@@ -57,7 +57,7 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   `EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000` and the job asserts
   both (canary curl + bundle `strings` grep) before Maestro runs. That's
   the iOS Simulator gate — if it fails on the routine's PR, Matt picks it
-  up via the standard CI-failure email + the routine's `claude:blocked`
+  up via the standard CI-failure email + the routine's `ai:blocked`
   flow.
 
 ## Dev loop (manual / human-driven only)

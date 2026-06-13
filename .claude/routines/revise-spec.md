@@ -5,10 +5,10 @@
 ## Trigger
 
 GitHub: `Custom` event (`pull_request.labeled`) with filter
-`Labels is one of: claude:revise-now`.
+`Labels is one of: ai:revise-now`.
 
 Fires when Matt drops review comments on a spec or epic PR and applies the
-`claude:revise-now` label. Works for both SPEC and EPIC PRs (the skill
+`ai:revise-now` label. Works for both SPEC and EPIC PRs (the skill
 auto-detects which based on the file path the PR modifies).
 
 ## What to do
@@ -19,7 +19,7 @@ auto-detects which based on the file path the PR modifies).
 3. The skill will:
    - Check out the PR branch.
    - `git fetch origin <branch>` and `git rebase --autostash` against the
-     remote — bail if conflicts (claude:blocked + DM).
+     remote — bail if conflicts (ai:blocked + DM).
    - Read every unresolved review comment (filter to "since last revise"
      using the timestamp of the most recent commit by this routine — see
      skill step 7).
@@ -27,7 +27,7 @@ auto-detects which based on the file path the PR modifies).
    - Rewrite the SPEC or EPIC file in place. Update §Open Questions.
    - Re-run `review-spec` + `architecture-review` against the new diff.
    - Push to the same `claude/spec-NNN-*` or `claude/epic-NNN-*` branch.
-   - **Remove the `claude:revise-now` label as the LAST step** (after the
+   - **Remove the `ai:revise-now` label as the LAST step** (after the
      push succeeds), so the trigger doesn't refire on the same event.
    - Post a top-level PR comment summarising the round.
 
@@ -46,7 +46,7 @@ auto-detects which based on the file path the PR modifies).
 - Two comments conflict on a load-bearing decision.
 
 Block by: comment "Blocked: <reason>. Need: <input>." on the PR + apply
-`claude:blocked` + remove `claude:revise-now` + Slack DM.
+`ai:blocked` + remove `ai:revise-now` + Slack DM.
 
 ## Reference
 

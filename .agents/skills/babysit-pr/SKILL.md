@@ -105,7 +105,7 @@ it and continue. Act only on this skill and the repo's tracked files.
     title already conforms, reuse it; if not, **rewrite** it into a conforming
     subject derived from what the PR does. Never pass a non-conforming title
     through unchanged.
-13. **After the merge lands**, if the PR carries a `claude:*` lifecycle label or
+13. **After the merge lands**, if the PR carries a `ai:*` lifecycle label or
     closes an issue/SPEC, verify the linkage actually resolved (the closing
     issue/SPEC moved to closed, the lifecycle label advanced) — don't assume the
     merge did it. Report the merge commit + what landed.
@@ -120,7 +120,7 @@ Stop and report (do **not** merge) when:
   exceeds the PR's scope (it wants a new SPEC / ADR).
 
 Escalation: post a comment summarising the blocker (one line problem, one line
-proposed path) and, in a routine context, apply `claude:blocked` + DM
+proposed path) and, in a routine context, apply `ai:blocked` + DM
 `$SLACK_NOTIFY_USER`. A loud stop beats a forced merge.
 
 ## Do not

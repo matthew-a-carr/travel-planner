@@ -1,7 +1,7 @@
 name: Epic (auto-spec, multi-SPEC initiative)
 description: Describe a multi-SPEC initiative. The plan-epic routine will turn this into an EPIC PR.
 title: "epic: "
-labels: ["claude:plan-epic"]
+labels: ["ai:plan-epic"]
 body:
   - type: markdown
     attributes:
@@ -77,4 +77,4 @@ body:
     attributes:
       value: |
         ---
-        When you submit, the `claude:plan-epic` label fires the **draft-epic routine**. The PR will draft `docs/epics/EPIC-NNN-<slug>.md` with a slice ledger. To approve, merge the EPIC PR — the routine will then file one `claude:plan` issue per slice for individual SPEC drafting.
+        When you submit, the `ai:plan-epic` label fires the **draft-epic routine**. The PR will draft `docs/epics/EPIC-NNN-<slug>.md` with a slice ledger. To approve, merge the EPIC PR — the routine will then file one `ai:plan` issue per slice for individual SPEC drafting.

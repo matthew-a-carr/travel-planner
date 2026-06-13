@@ -8,8 +8,8 @@
       "max_score": 12
     },
     {
-      "name": "claude:planned before PR",
-      "description": "Applies the `claude:planned` label to the source issue (via mcp__github__add_issue_labels or equivalent) BEFORE creating the PR or posting any issue comment — ordering must be explicit.",
+      "name": "ai:planned before PR",
+      "description": "Applies the `ai:planned` label to the source issue (via mcp__github__add_issue_labels or equivalent) BEFORE creating the PR or posting any issue comment — ordering must be explicit.",
       "max_score": 12
     },
     {
@@ -38,8 +38,8 @@
       "max_score": 7
     },
     {
-      "name": "claude:revise label on PR",
-      "description": "Adds the `claude:revise` label to the newly created PR (via mcp__github__add_issue_labels).",
+      "name": "ai:revise label on PR",
+      "description": "Adds the `ai:revise` label to the newly created PR (via mcp__github__add_issue_labels).",
       "max_score": 8
     },
     {

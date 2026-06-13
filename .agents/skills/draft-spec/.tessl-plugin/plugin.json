@@ -1,6 +1,6 @@
 {
   "name": "matthew-a-carr/draft-spec",
-  "description": "Draft a SPEC from a GitHub issue and open a PR for review. Use when triggered by a routine on `Issue opened` with label `claude:plan`, or when a user asks to \"draft a spec from issue #NNN\". Non-interactive — proceeds on best interpretation and surfaces any unresolved questions in the SPEC's §Open Questions section rather than blocking for clarification. The PR review loop is where ambiguity gets resolved.",
+  "description": "Draft a SPEC from a GitHub issue and open a PR for review. Use when triggered by a routine on `Issue opened` with label `ai:plan`, or when a user asks to \"draft a spec from issue #NNN\". Non-interactive — proceeds on best interpretation and surfaces any unresolved questions in the SPEC's §Open Questions section rather than blocking for clarification. The PR review loop is where ambiguity gets resolved.",
   "skills": [
     "."
   ],

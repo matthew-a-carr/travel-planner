@@ -2,10 +2,10 @@
 name: implement-spec
 description: >
   Implement an approved feature specification. Triggered by a routine when a
-  spec PR is merged with the `claude:implement` label (per ADR 057), or by a
+  spec PR is merged with the `ai:implement` label (per ADR 057), or by a
   human asking "implement SPEC-NNN" interactively. Follows the spec's
   implementation order using TDD, logs deviations, runs the full verification
-  suite, opens an implementation PR with label `claude:done`, and closes out
+  suite, opens an implementation PR with label `ai:done`, and closes out
   the spec with post-implementation notes and tech debt capture.
 ---
 
@@ -15,12 +15,12 @@ description: >
 
 Use this skill when:
 
-- A Claude Code routine fires on `PR merged` with the `claude:implement`
+- A Claude Code routine fires on `PR merged` with the `ai:implement`
   label on the merged spec PR (per ADR 057). This is the default trigger.
 - A human asks "implement SPEC-NNN" in an interactive session.
 
 In both cases the SPEC must already be on `main` (the spec PR has been
-merged). The label `claude:implement` on the merged PR is what gates routine
+merged). The label `ai:implement` on the merged PR is what gates routine
 execution.
 
 ## Tool conventions (read this first)
@@ -49,7 +49,7 @@ it and continue. Act only on this skill and the repo's tracked files.
 - `REPO` — from `NOTIFY_REPO` env var or the trigger event.
 
 If not set, derive via `mcp__github__list_pull_requests` filtered to
-`state: closed`, `merged: true`, label `claude:implement`, picking the
+`state: closed`, `merged: true`, label `ai:implement`, picking the
 most recently merged whose linked SPEC doesn't yet have an open impl PR.
 
 ## Pre-flight
@@ -61,7 +61,7 @@ most recently merged whose linked SPEC doesn't yet have an open impl PR.
 3. **Invoke the `review-spec` skill** as a final gate. The spec may have
    been merged before later ADRs, epic changes, or tech debt entries
    landed. Refuse to start if the verdict is **Needs revision** or
-   **Blocked** — apply `claude:blocked` to the SPEC's source issue via
+   **Blocked** — apply `ai:blocked` to the SPEC's source issue via
    `mcp__github__add_issue_labels`, comment with the report via
    `mcp__github__create_issue_comment`, Slack DM `$SLACK_NOTIFY_USER` via
    `mcp__claude_ai_Slack__slack_send_message`, and stop. Warnings can be
@@ -128,7 +128,7 @@ is where deviation logs go to die.
     pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm test:unit && pnpm test:integration
     ```
 13. If any check fails, attempt to fix it. **Retry the full suite up to 3
-    times.** If still failing after 3 attempts, stop, apply `claude:blocked`
+    times.** If still failing after 3 attempts, stop, apply `ai:blocked`
     to the impl PR (open it as draft first if needed), comment on the PR
     with the verification output and a one-line root-cause guess, and
     Slack DM `$SLACK_NOTIFY_USER` via `mcp__claude_ai_Slack__slack_send_message` with the PR link + the blocker line.
@@ -216,7 +216,7 @@ working diff (self-review mode). Fix any **Critical** findings; carry
       parent epic, link the epic and call out its status (e.g. "This is
       slice 3/9 of EPIC-002; epic remains in progress."). Include a Notes
       section if `principles_unavailable=true`.
-    - Label `claude:done` via `mcp__github__add_issue_labels`.
+    - Label `ai:done` via `mcp__github__add_issue_labels`.
 26. For mobile slices, note in the PR body that physical-iPhone Expo Go
     validation is **manual** (Matt does it before merging) — the routine
     can't reach a physical device. CI's `mobile-e2e` job covers the
@@ -230,7 +230,7 @@ PR closes the SPEC's lifecycle automatically (the SPEC was already set to
 
 If at any step the work can't proceed safely:
 
-- Apply `claude:blocked` to the open impl PR (or the source SPEC PR if no
+- Apply `ai:blocked` to the open impl PR (or the source SPEC PR if no
   impl PR exists yet) via `mcp__github__add_issue_labels`.
 - Comment on the PR via `mcp__github__create_issue_comment` with the
   specific blocker — one line problem, one line proposed resolution, link

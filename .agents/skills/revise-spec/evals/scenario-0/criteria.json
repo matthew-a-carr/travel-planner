@@ -54,7 +54,7 @@
     },
     {
       "name": "Correct label removal order",
-      "description": "pr_comment_summary.md or revision_plan.md explicitly states that the `claude:revise-now` label should be removed LAST, after the push and after posting comments",
+      "description": "pr_comment_summary.md or revision_plan.md explicitly states that the `ai:revise-now` label should be removed LAST, after the push and after posting comments",
       "max_score": 8
     }
   ]

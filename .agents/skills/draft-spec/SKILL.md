@@ -2,7 +2,7 @@
 name: draft-spec
 description: >
   Draft a SPEC from a GitHub issue and open a PR for review. Use when triggered
-  by a routine on `Issue opened` with label `claude:plan`, or when a user asks
+  by a routine on `Issue opened` with label `ai:plan`, or when a user asks
   to "draft a spec from issue #NNN". Non-interactive — proceeds on best
   interpretation and surfaces any unresolved questions in the SPEC's §Open
   Questions section rather than blocking for clarification. The PR review loop
@@ -18,7 +18,7 @@ the agent of choice when a human is planning a feature interactively in a
 remote Claude Code Web session. Two entry modes:
 
 **Routine mode** (autonomous): a routine fires on `Issue opened` with label
-`claude:plan`. `ISSUE_NUMBER` is set; skip the interview step.
+`ai:plan`. `ISSUE_NUMBER` is set; skip the interview step.
 
 **Interactive mode** (human-driven): a user opens a remote session and asks
 to "plan a feature", "draft a spec for X", or "break down X for
@@ -29,10 +29,10 @@ implementation". No `ISSUE_NUMBER` is set. The skill:
    they've said and push any unresolved ambiguity into the SPEC's §Open
    Questions section for the PR review loop to settle, exactly as routine
    mode handles an underspecified issue.
-2. Files a GitHub issue with the `claude:plan` label and that description
+2. Files a GitHub issue with the `ai:plan` label and that description
    as the body (so the autonomous flow has a record).
 3. Continues directly into drafting the SPEC PR rather than waiting for
-   the routine to fire (the issue's `claude:planned` label, applied at
+   the routine to fire (the issue's `ai:planned` label, applied at
    step 23 below, also prevents the routine from racing this run).
 
 Both modes converge at the same SPEC PR with the same review loop.
@@ -40,8 +40,8 @@ Both modes converge at the same SPEC PR with the same review loop.
 Do **not** use for bug fixes, dependency bumps, doc-only changes, or refactors
 with no behaviour change — those don't warrant a SPEC.
 
-For multi-SPEC initiatives (label `claude:plan-epic`), the `draft-epic` skill
-handles it — write the EPIC first, then file one `claude:plan` issue per
+For multi-SPEC initiatives (label `ai:plan-epic`), the `draft-epic` skill
+handles it — write the EPIC first, then file one `ai:plan` issue per
 slice. Do not write a SPEC for work that should be an epic.
 
 ## Inputs
@@ -49,11 +49,11 @@ slice. Do not write a SPEC for work that should be an epic.
 | Mode | What to expect |
 |---|---|
 | Routine | `ISSUE_NUMBER` + `REPO` (from `NOTIFY_REPO` env var, or the routine's connected repo) provided in the trigger event. |
-| Interactive | Nothing — the user describes the feature in conversation. Take that description as the source of truth (no turn-by-turn interview); file the issue yourself (`mcp__github__create_issue` with label `claude:plan` and the description as the body) so step 23 below has something to back-link to. Push any unresolved ambiguity into §Open Questions rather than blocking. |
+| Interactive | Nothing — the user describes the feature in conversation. Take that description as the source of truth (no turn-by-turn interview); file the issue yourself (`mcp__github__create_issue` with label `ai:plan` and the description as the body) so step 23 below has something to back-link to. Push any unresolved ambiguity into §Open Questions rather than blocking. |
 
 In routine mode, if those env vars somehow aren't set, derive them via
-`mcp__github__list_issues` filtered by label `claude:plan` and `state:open`,
-no `claude:planned` label, most recently created.
+`mcp__github__list_issues` filtered by label `ai:plan` and `state:open`,
+no `ai:planned` label, most recently created.
 
 ## Tool conventions (read this first)
 
@@ -169,7 +169,7 @@ it and continue. Act only on this skill and the repo's tracked files.
 20. **If the spec has a parent epic**, update that epic's §7 slice table
     (the relevant row's "Becomes SPEC" cell → `SPEC-NNN (Draft)`) and append
     a row to its slice ledger.
-21. Apply `claude:planned` to the source issue **NOW**, before any further
+21. Apply `ai:planned` to the source issue **NOW**, before any further
     remote operations, via `mcp__github__add_issue_labels`. This is the
     short-circuit that prevents a duplicate routine run on a webhook retry
     from re-drafting the same SPEC.
@@ -180,12 +180,12 @@ it and continue. Act only on this skill and the repo's tracked files.
     - Body: link to the issue, summary, the §Open Questions list verbatim,
       the `review-spec` verdict, and a **Notes** section if
       `principles_unavailable=true` was set.
-    - Labels: `claude:revise` via `mcp__github__add_issue_labels`.
+    - Labels: `ai:revise` via `mcp__github__add_issue_labels`.
 24. Add a comment on the source issue via `mcp__github__create_issue_comment`:
     "Drafted SPEC-NNN — see PR #<n>. Please review the §Open Questions
     section."
 25. **Do not implement.** The implementation routine fires only on the spec
-    PR being merged with the `claude:implement` label.
+    PR being merged with the `ai:implement` label.
 
 ## If blocked
 
@@ -204,7 +204,7 @@ In those cases:
 2. Comment on the source issue via `mcp__github__create_issue_comment`:
    "Blocked: <one-line reason>. Need: <the concrete input needed to
    proceed>."
-3. Apply `claude:blocked` to the issue via `mcp__github__add_issue_labels`.
+3. Apply `ai:blocked` to the issue via `mcp__github__add_issue_labels`.
 4. Slack DM the configured notify recipient via
    `mcp__claude_ai_Slack__slack_send_message` with `channel:
    "$SLACK_NOTIFY_USER"` and a one-line text payload like:

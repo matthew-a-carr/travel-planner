@@ -1,6 +1,6 @@
 # Issue A: Real-time Collaborative Editing
 
-**Label**: claude:plan-epic  
+**Label**: ai:plan-epic  
 **Number**: #201  
 **Strategic ADR**: docs/adr/adr-012-realtime-collab.md
 

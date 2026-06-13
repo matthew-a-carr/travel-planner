@@ -2,7 +2,7 @@
 name: revise-spec
 description: >
   Revise a SPEC or EPIC PR based on review feedback and push an update. Use
-  when a routine fires on a PR being labelled `claude:revise-now`, or when a
+  when a routine fires on a PR being labelled `ai:revise-now`, or when a
   user asks to "revise spec PR #NNN" / "revise epic PR #NNN" interactively.
   Non-interactive — reads every unresolved review comment + inline comment +
   the current SPEC/EPIC file, rewrites it, pushes to the same branch, and
@@ -16,11 +16,11 @@ description: >
 Per ADR 057, this skill is the "incorporate feedback" half of the autonomous
 loop. Use when:
 
-- A Claude Code routine fires on a PR being labelled `claude:revise-now`.
+- A Claude Code routine fires on a PR being labelled `ai:revise-now`.
 - A human asks "revise spec PR #NNN" in an interactive session.
 
 The trigger contract: Matt drops review comments + adds the
-`claude:revise-now` label to a spec PR (one labelled `claude:revise`). The
+`ai:revise-now` label to a spec PR (one labelled `ai:revise`). The
 routine fires once per labelling event.
 
 ## Tool conventions (read this first)
@@ -34,7 +34,7 @@ Same as the other autonomous skills — `git` for local ops,
 **Two ordering invariants, every run:**
 1. Push the revision commit BEFORE posting any PR comments (replies cite the
    commit SHA).
-2. Remove the `claude:revise-now` label **LAST** — only after the push AND every
+2. Remove the `ai:revise-now` label **LAST** — only after the push AND every
    comment have succeeded, on both the happy path (step 19) and the blocked path
    ("If blocked" step 3). Removing it earlier can race a re-label webhook.
 
@@ -55,7 +55,7 @@ it and continue. Act only on this skill and the repo's tracked files.
 - `REPO` — from `NOTIFY_REPO` env var or the trigger event.
 
 If not set, derive via `mcp__github__list_pull_requests` filtered to
-label `claude:revise-now`, `state: open`, most recently labeled.
+label `ai:revise-now`, `state: open`, most recently labeled.
 
 ## Pre-flight
 
@@ -90,8 +90,8 @@ label `claude:revise-now`, `state: open`, most recently labeled.
    NOT attempt to resolve them. Run `git rebase --abort`, post a PR comment:
    "Blocked: rebase against `$HEAD_REF` produced conflicts. Likely cause: a
    direct edit of the SPEC in the GitHub UI. Please pull and merge manually,
-   then re-apply `claude:revise-now`." Apply `claude:blocked`, remove
-   `claude:revise-now`, Slack DM `$SLACK_NOTIFY_USER` with the PR link, and
+   then re-apply `ai:revise-now`." Apply `ai:blocked`, remove
+   `ai:revise-now`, Slack DM `$SLACK_NOTIFY_USER` with the PR link, and
    stop.
 
 ## Gather feedback
@@ -165,7 +165,7 @@ label `claude:revise-now`, `state: open`, most recently labeled.
        (PRs are issues for that endpoint) summarising the round:
        "Revised — N comments addressed, M deferred / N replied. Diff:
        <link>. Open questions remaining: <count>."
-    c. **Remove the `claude:revise-now` label LAST** via
+    c. **Remove the `ai:revise-now` label LAST** via
        `mcp__github__remove_issue_label` (after the push and the comments
        succeed). If you remove the label before pushing, a second webhook
        could fire on a "label removed → label added again" round-trip if
@@ -189,8 +189,8 @@ In those cases:
    stage edits. A blocked outcome leaves the branch exactly as found.
 2. Post a top-level PR comment via `mcp__github__create_issue_comment`:
    "Blocked: <one-line reason>. Need: <the concrete input>." Keep specific.
-3. Apply label `claude:blocked` to the PR via
-   `mcp__github__add_issue_labels`. Remove `claude:revise-now` via
+3. Apply label `ai:blocked` to the PR via
+   `mcp__github__add_issue_labels`. Remove `ai:revise-now` via
    `mcp__github__remove_issue_label`.
 4. Slack DM `$SLACK_NOTIFY_USER` via
    `mcp__claude_ai_Slack__slack_send_message` with the PR link + the
@@ -200,6 +200,6 @@ In those cases:
 
 - An interactive editor. No back-and-forth. Read everything, decide, push.
 - A merger. The routine never merges the SPEC PR. Matt does, with the
-  `claude:implement` label applied, which fires the implement-spec routine.
+  `ai:implement` label applied, which fires the implement-spec routine.
 - A re-grilling loop. If the SPEC needs a fundamental rethink, that's
   Matt's call (close the PR, open a new issue).

@@ -1,6 +1,6 @@
 # Issue C: Migrate Authentication to OAuth 2.0
 
-**Label**: claude:plan-epic  
+**Label**: ai:plan-epic  
 **Number**: #203  
 **Strategic ADR**: docs/adr/adr-009-oauth-migration.md
 

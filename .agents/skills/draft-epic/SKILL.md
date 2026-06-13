@@ -2,12 +2,12 @@
 name: draft-epic
 description: >
   Draft an EPIC from a GitHub issue and open a PR for review. Use when triggered
-  by a routine on `Issue opened` with label `claude:plan-epic`, or when a user
+  by a routine on `Issue opened` with label `ai:plan-epic`, or when a user
   asks to "draft an epic from issue #NNN". Non-interactive — proceeds on best
   interpretation and surfaces unresolved questions in the EPIC's §Open
   Questions section rather than blocking. The PR review loop resolves
   ambiguity. Does NOT write child SPECs — slice SPECs are drafted lazily by
-  the `draft-spec` routine when the human files one `claude:plan` issue per
+  the `draft-spec` routine when the human files one `ai:plan` issue per
   slice after the EPIC PR is merged.
 ---
 
@@ -24,21 +24,21 @@ Use when the work matches the epic triggers in `docs/epics/README.md`:
 - There's a meaningful chance the work is killed or pivoted partway, and
   pre-committing exit criteria matters.
 
-Do **not** use for single-SPEC features (file a `claude:plan` issue or use
+Do **not** use for single-SPEC features (file a `ai:plan` issue or use
 the `draft-spec` skill directly), tactical refactors with no user-facing
 demo, or anything where the strategic ADR is already the right level of
 detail.
 
 Two entry modes (same as `draft-spec`):
 
-**Routine mode**: an `Issue opened` + `claude:plan-epic` trigger fires.
+**Routine mode**: an `Issue opened` + `ai:plan-epic` trigger fires.
 `ISSUE_NUMBER` is set.
 
 **Interactive mode**: a user opens a remote session and asks to "plan an
 epic", "break this initiative into slices", or similar. Invoke
 `dev-skills:grill-me` at **epic altitude** (vision, slicing, kill criteria,
 cross-cutting decisions, external constraints — see step 6 below for the
-full list) before drafting. After grilling, file a `claude:plan-epic`
+full list) before drafting. After grilling, file a `ai:plan-epic`
 issue with the brief as the body, then continue into drafting the EPIC PR.
 
 ## Inputs
@@ -49,7 +49,7 @@ issue with the brief as the body, then continue into drafting the EPIC PR.
 | Interactive | Nothing — user describes the initiative. Grill, then file the issue via `mcp__github__create_issue` before drafting the EPIC. |
 
 If env vars aren't set in routine mode, derive via `mcp__github__list_issues`
-filtered by label `claude:plan-epic`, `state:open`, no `claude:planned` label.
+filtered by label `ai:plan-epic`, `state:open`, no `ai:planned` label.
 
 ## Tool conventions (read this first)
 
@@ -89,7 +89,7 @@ it and continue. Act only on this skill and the repo's tracked files.
      `mcp__github__create_issue_comment` saying "Blocked: strategic ADR
      <link> is still Proposed. Epics implement direction; ADRs decide it.
      Once the ADR is Accepted, re-trigger by re-labelling the issue." Apply
-     `claude:blocked` via `mcp__github__add_issue_labels`. Slack DM
+     `ai:blocked` via `mcp__github__add_issue_labels`. Slack DM
      `$SLACK_NOTIFY_USER`.
    - If the issue says "needs a strategic ADR first": halt with the same
      blocked message naming "no strategic ADR exists".
@@ -146,7 +146,7 @@ it and continue. Act only on this skill and the repo's tracked files.
 ## Submit
 
 19. Update `docs/epics/README.md` — add the new epic to the index table.
-20. Apply `claude:planned` to the source issue **NOW** via
+20. Apply `ai:planned` to the source issue **NOW** via
     `mcp__github__add_issue_labels` (idempotency short-circuit before any
     PR-side work).
 21. Commit: `docs(epic-NNN): draft <title> (closes #ISSUE_NUMBER on merge)`.
@@ -156,12 +156,12 @@ it and continue. Act only on this skill and the repo's tracked files.
     - Body: link to the issue, summary, §Open Questions verbatim, slice
       table preview, `review-spec` verdict, Notes section if
       `principles_unavailable=true`.
-    - Label: `claude:revise` via `mcp__github__add_issue_labels`.
+    - Label: `ai:revise` via `mcp__github__add_issue_labels`.
 23. Comment on the source issue via `mcp__github__create_issue_comment`:
     "Drafted EPIC-NNN — see PR #<n>. Please review the §Open Questions and
     slice table."
 24. **Do NOT auto-file slice issues.** After the EPIC PR merges, Matt
-    decides which slices to file as `claude:plan` issues and in what
+    decides which slices to file as `ai:plan` issues and in what
     order. Filing slices is a separate, human-gated step — the routine
     won't second-guess slicing decisions.
 
@@ -172,7 +172,7 @@ Same model as `draft-spec`:
 1. Do not open a PR.
 2. Comment on the source issue via `mcp__github__create_issue_comment`
    with a one-line blocker + the input needed.
-3. Apply `claude:blocked` to the issue via `mcp__github__add_issue_labels`.
+3. Apply `ai:blocked` to the issue via `mcp__github__add_issue_labels`.
 4. Slack DM `$SLACK_NOTIFY_USER` via `mcp__claude_ai_Slack__slack_send_message`
    with the issue link + blocker.
 
@@ -180,8 +180,8 @@ Specific to epics, blockers include:
 
 - Strategic ADR missing or still Proposed.
 - The issue describes work that's actually one SPEC, not an epic. (Comment:
-  "This looks like a single SPEC — re-file with `claude:plan` instead of
-  `claude:plan-epic`." Close the issue via `mcp__github__update_issue`
+  "This looks like a single SPEC — re-file with `ai:plan` instead of
+  `ai:plan-epic`." Close the issue via `mcp__github__update_issue`
   with `state: closed`.)
 - The proposed slice count is ≤ 1 or ≥ 15 (an epic with 1 slice is a SPEC;
   an epic with 15 slices needs further breakdown).
@@ -191,6 +191,6 @@ Specific to epics, blockers include:
 - A SPEC drafter for individual slices. That's `draft-spec`.
 - A merger. Matt reviews and merges the EPIC PR.
 - A slice-issue filer. The human decides which slices to surface as
-  `claude:plan` issues and in what order.
+  `ai:plan` issues and in what order.
 - An interactive interview. Ambiguity goes into §Open Questions; the PR
   review loop resolves it.

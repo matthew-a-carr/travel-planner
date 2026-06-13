@@ -6,9 +6,9 @@
 
 ## Trigger
 
-GitHub: `Issue opened` with filter `Labels is one of: claude:plan`.
+GitHub: `Issue opened` with filter `Labels is one of: ai:plan`.
 
-The event fires when a new issue is opened with the `claude:plan` label
+The event fires when a new issue is opened with the `ai:plan` label
 (usually via the **Feature request** issue template).
 
 ## What to do
@@ -29,8 +29,8 @@ The event fires when a new issue is opened with the `claude:plan` label
      branch.
    - Self-review via the `review-spec` skill and
      `engineering-principles:architecture-review`.
-   - Open a PR with label `claude:revise` and a §Open Questions section.
-   - Apply `claude:planned` to the source issue + comment with the PR
+   - Open a PR with label `ai:revise` and a §Open Questions section.
+   - Apply `ai:planned` to the source issue + comment with the PR
      link.
 
 ## Tools to use
@@ -53,7 +53,7 @@ Per the skill's "If blocked" section. Specifically:
 - Work conflicts head-on with a Tier 1 principle.
 
 When blocked: do NOT open a PR. Comment on the source issue with the
-blocker line. Apply `claude:blocked`. Slack DM `$SLACK_NOTIFY_USER`.
+blocker line. Apply `ai:blocked`. Slack DM `$SLACK_NOTIFY_USER`.
 
 ## Reference
 
