@@ -15,8 +15,9 @@ import {
   mobileAuthCallbackErrorSchema,
   mobileAuthExchangeResponseSchema,
   mobileAuthStartResponseSchema,
+  mobileAuthTestTokenResponseSchema,
 } from '@travel-planner/shared';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebCryptoMobileAuthCrypto } from '@/infrastructure/auth/mobile-auth-crypto';
 import {
   type CreateTestAppContainerInput,
@@ -528,5 +529,130 @@ describe('/api/v1/auth/mobile/revoke', () => {
     const reuseBody = await reuseRes.json();
     apiErrorEnvelopeSchema.parse(reuseBody);
     expect(reuseBody.error.code).toBe('refresh_reused');
+  });
+});
+
+describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
+  const ORIGINAL_E2E_TEST_AUTH = process.env.E2E_TEST_AUTH;
+  const ORIGINAL_VERCEL = process.env.VERCEL;
+
+  afterEach(() => {
+    restoreEnv('E2E_TEST_AUTH', ORIGINAL_E2E_TEST_AUTH);
+    restoreEnv('VERCEL', ORIGINAL_VERCEL);
+  });
+
+  function restoreEnv(key: string, value: string | undefined): void {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+
+  /** Drive a real /start to obtain a live state row for the seeded challenge. */
+  async function startFlow(challenge: string): Promise<string> {
+    const { POST } = await import('./start/route');
+    const res = await POST(
+      new Request('http://localhost/api/v1/auth/mobile/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: challenge }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    return startSuccessEnvelope.parse(await res.json()).data.state;
+  }
+
+  function callTestToken(body: unknown): Promise<Response> {
+    return import('./test-token/route').then(({ POST }) =>
+      POST(
+        new Request('http://localhost/api/v1/auth/mobile/test-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }),
+      ),
+    );
+  }
+
+  it('404s when E2E_TEST_AUTH is unset (kill-criterion proof)', async () => {
+    delete process.env.E2E_TEST_AUTH;
+    delete process.env.VERCEL;
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const res = await callTestToken({ state: 'anything' });
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(apiErrorEnvelopeSchema.parse(body).error.code).toBe('not_found');
+  });
+
+  it('404s on Vercel even when E2E_TEST_AUTH is set (no-Vercel gate wins)', async () => {
+    process.env.E2E_TEST_AUTH = '1';
+    process.env.VERCEL = '1';
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const res = await callTestToken({ state: 'anything' });
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(apiErrorEnvelopeSchema.parse(body).error.code).toBe('not_found');
+  });
+
+  it('mints a redeemable code that the real /exchange accepts (both gates on)', async () => {
+    process.env.E2E_TEST_AUTH = '1';
+    delete process.env.VERCEL;
+
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const verifier = cryptoImpl.randomBase64url(32);
+    const challenge = await cryptoImpl.sha256Base64url(verifier);
+    const email = 'seam-approved@example.test';
+    await seedUser(db, { email, isApproved: true });
+
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    // /start → live state, then /test-token (no browser, no Google).
+    const state = await startFlow(challenge);
+    const mintRes = await callTestToken({ state, email });
+    expect(mintRes.status).toBe(200);
+    const mintBody = apiSuccessSchema(mobileAuthTestTokenResponseSchema).parse(
+      await mintRes.json(),
+    );
+    expect(mintBody.data.redirect_url).toMatch(/^travelplanner:\/\/auth\?code=/);
+
+    const code = new URLSearchParams(
+      mintBody.data.redirect_url.slice(mintBody.data.redirect_url.indexOf('?') + 1),
+    ).get('code');
+    expect(code).toBeTruthy();
+
+    // The real /exchange verifies the verifier against the minted challenge.
+    const { POST: exchangePOST } = await import('./exchange/route');
+    const exchangeRes = await exchangePOST(
+      new Request('http://localhost/api/v1/auth/mobile/exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, code_verifier: verifier }),
+      }),
+    );
+    expect(exchangeRes.status).toBe(200);
+    const tokens = exchangeSuccessEnvelope.parse(await exchangeRes.json()).data;
+    expect(typeof tokens.access_token).toBe('string');
+    expect(typeof tokens.refresh_token).toBe('string');
+  });
+
+  it('redirects with ?error=access_denied for an unapproved user', async () => {
+    process.env.E2E_TEST_AUTH = '1';
+    delete process.env.VERCEL;
+
+    const cryptoImpl = new WebCryptoMobileAuthCrypto();
+    const verifier = cryptoImpl.randomBase64url(32);
+    const challenge = await cryptoImpl.sha256Base64url(verifier);
+    const email = 'seam-pending@example.test';
+    await seedUser(db, { email, isApproved: false });
+
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    const state = await startFlow(challenge);
+    const mintRes = await callTestToken({ state, email });
+    expect(mintRes.status).toBe(200);
+    const mintBody = apiSuccessSchema(mobileAuthTestTokenResponseSchema).parse(
+      await mintRes.json(),
+    );
+    expect(mintBody.data.redirect_url).toContain('error=access_denied');
   });
 });

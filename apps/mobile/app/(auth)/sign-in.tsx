@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { apiPost } from '../../src/api/client';
 import { useAuth } from '../../src/auth/auth-context';
+import { resolveBrowserLeg } from '../../src/auth/e2e-browser-leg';
 import { generateVerifier, verifierToChallenge } from '../../src/auth/pkce';
 import { runSignInFlow } from '../../src/auth/sign-in-flow';
 
@@ -45,7 +45,10 @@ export default function SignInScreen() {
     setState({ status: 'in_flight' });
     const result = await runSignInFlow({
       apiPost,
-      openAuthSession: WebBrowser.openAuthSessionAsync,
+      // Normal builds open Google in the system browser; the E2E build
+      // (EXPO_PUBLIC_E2E_AUTH=1) substitutes the server test-auth seam so CI
+      // can sign in without Google (SPEC-014). Everything else stays real.
+      openAuthSession: resolveBrowserLeg(),
       generateVerifier,
       verifierToChallenge,
     });

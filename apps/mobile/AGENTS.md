@@ -173,6 +173,10 @@ fall back to the Simulator or point at prod.
   steps moved into `AuthProvider.signIn` (SPEC-007 §7.3 reshape).
   Returns `SignInResult = { success; tokens } | { cancelled } |
   { error }`.
+- `src/auth/e2e-browser-leg.ts` — `resolveBrowserLeg()` picks the
+  `runSignInFlow` browser leg: the real `WebBrowser.openAuthSessionAsync`,
+  or the E2E test-auth substitute when `EXPO_PUBLIC_E2E_AUTH=1` (SPEC-014).
+  See "Test-auth seam" below.
 - `src/auth/get-access-token.ts` — proactive refresh gateway. Every
   authenticated `/api/v1/*` call should route through here to obtain
   its bearer. Reads Keychain; if `now < expires_at - 60s` returns
@@ -333,13 +337,42 @@ notes for the configuration sketch.
 
 ### Maestro flows (E2E)
 
-One YAML per user journey under `.maestro/flows/`. Examples:
+One YAML per user journey under `.maestro/flows/`. Current flows:
 
-- `launch.yaml` — app boots and the Hello screen renders.
-- `login.yaml` — slice 6's sign-in journey.
-- `me-screen.yaml` — slice 7's milestone journey.
+- `sign-in.yaml` — launch smoke: app boots to the sign-in screen (does
+  NOT tap the button; the real Google sheet can't be driven by Maestro).
+- `signed-in-journey.yaml` — the EPIC-004 slice 2 milestone: launch →
+  sign in (via the test-auth seam, below) → trips list shows the seeded
+  Kyoto trip → Profile → sign out → back at sign-in. The first flow to go
+  past the front door.
 
 Use `id:` selectors over visible-text selectors where possible.
+
+### Test-auth seam (E2E sign-in without Google — SPEC-014)
+
+Maestro can't drive Google's consent screen, so the `signed-in-journey`
+flow signs in through a seam that replaces **only the browser leg** of the
+PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and AuthGuard all
+stay real:
+
+- **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
+  the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
+  `e2eOpenAuthSession` substitute when `EXPO_PUBLIC_E2E_AUTH=1` is inlined
+  at bundle time. The substitute extracts `state` from the authorise URL
+  and POSTs it to `POST /api/v1/auth/mobile/test-token`, returning the
+  deep link the server mints. The sign-in screen wires it via
+  `openAuthSession: resolveBrowserLeg()`.
+- **Server:** `apps/web/.../auth/mobile/test-token/route.ts` mints a
+  one-time exchange code for the seeded approved e2e user, keyed to the
+  state's stored PKCE challenge. **Double-gated, fail-closed:** enabled
+  only when `E2E_TEST_AUTH=1` AND not on Vercel; 404 otherwise (the
+  EPIC-004 kill-criterion, asserted by a route int-test). Deliberately
+  unpublished from the OpenAPI surface.
+- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1` (job env, inherited
+  by the backend) and `EXPO_PUBLIC_E2E_AUTH=1` (xcodebuild step). **Neither
+  flag is ever defined in Terraform or any Vercel env.** Running the
+  `signed-in-journey` flow locally needs both flags set the same way (slice
+  4 automates the local backend).
 
 ## Pnpm + Metro
 

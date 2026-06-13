@@ -278,6 +278,13 @@ jobs:
       AUTH_GOOGLE_ID: ci-placeholder-client-id
       AUTH_GOOGLE_SECRET: ci-placeholder-client-secret
       AUTH_URL: http://127.0.0.1:3000
+      # SPEC-014 / EPIC-004 slice 2: enables the gated test-auth seam
+      # (POST /api/v1/auth/mobile/test-token) on the backend the server boots
+      # below, so Maestro can sign in without Google. The endpoint 404s
+      # everywhere else — double-gated (this flag AND never on Vercel; neither
+      # flag is ever defined in Terraform or any Vercel env). The
+      # signed-in-journey flow depends on it.
+      E2E_TEST_AUTH: '1'
 
     steps:
       - uses: actions/checkout@v6
@@ -440,6 +447,12 @@ jobs:
           # `localhost`) so the bundle assertion below can't pass
           # vacuously. The simulator shares the host network.
           EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:3000
+          # SPEC-014 / EPIC-004 slice 2: selects the test-auth browser leg
+          # (src/auth/e2e-browser-leg.ts) at bundle time, so the signed-in
+          # journey signs in via the server seam instead of Google. Pairs with
+          # the job-level E2E_TEST_AUTH that enables the server endpoint. A
+          # CI-only, non-secret flag — never defined in any Vercel env.
+          EXPO_PUBLIC_E2E_AUTH: '1'
         run: |
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
