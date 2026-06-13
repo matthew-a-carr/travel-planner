@@ -465,13 +465,6 @@ jobs:
         # fails.
         working-directory: apps/mobile/ios
         env:
-          # Inlined into the JS bundle by the "Bundle React Native code
-          # and images" phase (SPEC-013). Points at the runner's LAN IP, not
-          # 127.0.0.1: the iOS Simulator cannot reach the host's loopback on
-          # the GitHub macOS runner but can reach its LAN address (SPEC-014).
-          # The backend binds 0.0.0.0 to answer on it. The real IP (not
-          # `localhost`) also keeps the bundle assertion below non-vacuous.
-          EXPO_PUBLIC_API_BASE_URL: http://${{ env.HOST_IP }}:3000
           # SPEC-014 / EPIC-004 slice 2: selects the test-auth browser leg
           # (src/auth/e2e-browser-leg.ts) at bundle time, so the signed-in
           # journey signs in via the server seam instead of Google. Pairs with
@@ -479,9 +472,17 @@ jobs:
           # CI-only, non-secret flag — never defined in any Vercel env.
           EXPO_PUBLIC_E2E_AUTH: '1'
         run: |
+          # EXPO_PUBLIC_API_BASE_URL points at the runner's LAN IP, not
+          # 127.0.0.1: the iOS Simulator cannot reach the host's loopback on the
+          # GitHub macOS runner but can reach its LAN address (SPEC-014); the
+          # backend binds 0.0.0.0 to answer on it. Exported here (rather than in
+          # the step `env:`) so the value comes straight from the HOST_IP shell
+          # env without a workflow expression. The "Bundle React Native code and
+          # images" phase inherits this exported env and inlines it.
+          export EXPO_PUBLIC_API_BASE_URL="http://${HOST_IP}:3000"
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
-          echo "Building workspace=$WORKSPACE scheme=$SCHEME"
+          echo "Building workspace=$WORKSPACE scheme=$SCHEME against $EXPO_PUBLIC_API_BASE_URL"
           # ARCHS=arm64: the .app only ever runs on this runner's own (arm64)
           # simulator, but Release defaults to ONLY_ACTIVE_ARCH=NO and compiles
           # every Pod for x86_64 too — roughly doubling compile time for slices
