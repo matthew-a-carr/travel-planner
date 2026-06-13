@@ -184,3 +184,35 @@ the next run localizes the failure definitively.
 
 **Triage:** investigation; the probe is diagnostic-only (gated behind the E2E
 flag) and comes out once the root cause is fixed.
+
+### 2026-06-13 — ROOT CAUSE PROVEN: sim can't reach host loopback
+
+**Step:** CI (run 27467051307) + fix
+**Type:** root cause + fix
+**Note:**
+
+The reachability probe was decisive: `signed-in-journey` failed on
+`Assertion is false: id: login-net-ok is visible` — `pingBackend()` (the app's
+fetch to `/api/auth/providers`) **failed**, so the **iOS Simulator cannot
+complete an HTTP request to the host's `127.0.0.1:3000`** on the GitHub macOS
+runner, even though the runner-side canary + seam smoke reach it fine. Not the
+flag, not the browser leg, not the auth chain — pure sim→host networking. This
+is the gap SPEC-013's smoke never exercised (it made no API call).
+
+Fix (Matt chose "try the infra fix"): bind the backend to all interfaces and
+point the app at the runner's LAN IP — the same approach `pnpm dev:mobile` uses
+for physical devices, which can't use the host's loopback either.
+- `ci.yml`: new "Detect runner host IP" step (`ipconfig getifaddr en0`) →
+  `HOST_IP` in `$GITHUB_ENV`.
+- `start-backend.sh`: `next start -H 0.0.0.0` (was `pnpm start`, loopback-only).
+- xcodebuild env: `EXPO_PUBLIC_API_BASE_URL=http://${HOST_IP}:3000`.
+- canary + seam smoke + bundle-URL assertion: all switched to `${HOST_IP}:3000`
+  (the canary now proves the 0.0.0.0 bind answers on the sim's address).
+- `AUTH_TRUST_HOST=true` so next-auth accepts the LAN-IP host on
+  `/api/auth/providers`.
+
+The `login-net-ok` probe stays as the fast reachability guard; it now proves the
+sim reaches `HOST_IP`.
+
+**Triage:** spec deviation (the harness reachability model changed from loopback
+to LAN-IP) — record in the deviations table at close-out.
