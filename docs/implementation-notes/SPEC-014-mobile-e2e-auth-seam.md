@@ -77,3 +77,37 @@ on the impl PR.
 
 **Triage:** spec post-impl note (runtime delta for slice 4's budget checkpoint
 recorded once the PR's `mobile-e2e` run lands).
+
+### 2026-06-13 — first `mobile-e2e` run red: ATS blocked the app's first request
+
+**Step:** CI (run 27460494075)
+**Type:** surprise (real bug, fixed)
+**Note:**
+
+`sign-in.yaml` passed; `signed-in-journey` failed all 3 attempts on
+`trips-screen-root is visible` after tapping Sign in (~86s each — waited the
+full 60s). `trips-screen-root` is the always-rendered trips wrapper, so the app
+never reached the trips screen → the **auth round-trip never completed**.
+
+Root cause: this was the **first CI run where the Release app makes a real
+`/api/v1/*` request** (EPIC-002's read screens were component-tested only;
+SPEC-013's smoke makes no API call). `app.json` had **no ATS config**, so the
+Release build's default App Transport Security **blocked cleartext HTTP to
+`http://127.0.0.1:3000`** — the very first call (`/start`, before the browser
+leg even runs) failed. The signed-out smoke passed precisely because it makes
+zero network calls.
+
+Fixes pushed:
+1. **`app.json` → `ios.infoPlist.NSAppTransportSecurity.NSAllowsLocalNetworking
+   = true`** — permits loopback/local cleartext only; production talks HTTPS to
+   `travel.matthewcarr.dev` and is unaffected. (Invalidates the mobile native
+   cache key → clean prebuild, correct per TD-009.)
+2. **Hardened `resolveBrowserLeg`** to read `EXPO_PUBLIC_E2E_AUTH` at module top
+   (a `const`, mirroring `client.ts`'s proven `BASE_URL` read) instead of a
+   default param — removes any doubt about bundle-time inlining of the flag.
+3. **Added a runner-side seam smoke** (`/start` → `/test-token`) before Maestro:
+   proves the server half (E2E_TEST_AUTH gate + mint + DB) independently, so any
+   future red journey is unambiguously the client half.
+
+**Triage:** spec deviation (the ATS requirement wasn't anticipated in the SPEC —
+add to deviations table at close-out).

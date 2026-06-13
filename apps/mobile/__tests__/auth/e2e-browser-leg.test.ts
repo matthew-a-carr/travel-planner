@@ -40,14 +40,12 @@ const AUTHORISE_URL = 'https://accounts.google.test/o/oauth2/v2/auth?state=the-l
 afterEach(() => jest.restoreAllMocks());
 
 describe('resolveBrowserLeg', () => {
-  it('returns the e2e substitute when the flag is "1"', () => {
-    expect(resolveBrowserLeg('1')).toBe(e2eOpenAuthSession);
+  it('returns the e2e substitute when enabled', () => {
+    expect(resolveBrowserLeg(true)).toBe(e2eOpenAuthSession);
   });
 
-  it('returns the real WebBrowser leg when the flag is unset or not "1"', () => {
-    expect(resolveBrowserLeg(undefined)).toBe(WebBrowser.openAuthSessionAsync);
-    expect(resolveBrowserLeg('0')).toBe(WebBrowser.openAuthSessionAsync);
-    expect(resolveBrowserLeg('true')).toBe(WebBrowser.openAuthSessionAsync);
+  it('returns the real WebBrowser leg when not enabled', () => {
+    expect(resolveBrowserLeg(false)).toBe(WebBrowser.openAuthSessionAsync);
   });
 });
 

@@ -513,6 +513,34 @@ jobs:
           fi
           echo "Bundle contains the backend URL — env inlined correctly."
 
+      # Server half of the test-auth seam (SPEC-014), exercised from the runner
+      # before any Maestro time is spent: /start → /test-token must mint a
+      # `?code=` deep link. This proves E2E_TEST_AUTH gated the endpoint ON and
+      # the mint path + DB work, so a red signed-in-journey flow downstream is
+      # unambiguously the *client* half (bundle flag / app networking), not the
+      # server. 43-char challenge satisfies the start schema (min 43).
+      - name: Test-auth seam smoke (server half)
+        run: |
+          set -euo pipefail
+          echo "::group::Seam smoke"
+          CHALLENGE="0123456789012345678901234567890123456789012"
+          START=$(curl --fail --silent --show-error -X POST \
+            http://127.0.0.1:3000/api/v1/auth/mobile/start \
+            -H 'Content-Type: application/json' \
+            -d "{\"code_challenge\":\"$CHALLENGE\"}")
+          STATE=$(printf '%s' "$START" | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['state'])")
+          MINT=$(curl --fail --silent --show-error -X POST \
+            http://127.0.0.1:3000/api/v1/auth/mobile/test-token \
+            -H 'Content-Type: application/json' \
+            -d "{\"state\":\"$STATE\"}")
+          printf '%s' "$MINT" | python3 -c "
+          import sys, json
+          url = json.load(sys.stdin)['data']['redirect_url']
+          assert 'code=' in url, f'expected a ?code= deep link, got: {url}'
+          print('Seam server half OK — minted', url[:34], '…')
+          "
+          echo "::endgroup::"
+
       - name: Wait for iOS Simulator to finish booting
         run: xcrun simctl bootstatus "$SIM_UDID" -b
 

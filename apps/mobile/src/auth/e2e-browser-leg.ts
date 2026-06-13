@@ -49,13 +49,22 @@ export const e2eOpenAuthSession: typeof WebBrowser.openAuthSessionAsync = async 
 };
 
 /**
- * Pick the browser leg for `runSignInFlow`. `flag` defaults to the bundle-time
- * `EXPO_PUBLIC_E2E_AUTH` env; pass it explicitly in tests.
+ * Whether the E2E test-auth browser leg is active. Read at module top — the
+ * same shape as `client.ts`'s `BASE_URL` read, which is the proven pattern for
+ * `EXPO_PUBLIC_*` bundle-time inlining (a member-expression babel-preset-expo
+ * statically replaces). `EXPO_PUBLIC_E2E_AUTH=1` is set only by the
+ * `mobile-e2e` xcodebuild step.
+ */
+const E2E_AUTH_ENABLED = process.env.EXPO_PUBLIC_E2E_AUTH === '1';
+
+/**
+ * Pick the browser leg for `runSignInFlow`. `enabled` defaults to the
+ * bundle-time `EXPO_PUBLIC_E2E_AUTH` flag; pass it explicitly in tests.
  */
 export function resolveBrowserLeg(
-  flag: string | undefined = process.env.EXPO_PUBLIC_E2E_AUTH,
+  enabled: boolean = E2E_AUTH_ENABLED,
 ): typeof WebBrowser.openAuthSessionAsync {
-  return flag === '1' ? e2eOpenAuthSession : WebBrowser.openAuthSessionAsync;
+  return enabled ? e2eOpenAuthSession : WebBrowser.openAuthSessionAsync;
 }
 
 function extractState(authoriseUrl: string): string | null {
