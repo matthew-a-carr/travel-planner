@@ -2,7 +2,7 @@
 
 ## Problem/Feature Description
 
-Your team has been using a spec-driven development workflow where engineers implement features based on formal SPEC documents. A pull request implementing SPEC-042 (a new payment processing feature) has just been labelled `claude:done` and is waiting for review.
+Your team has been using a spec-driven development workflow where engineers implement features based on formal SPEC documents. A pull request implementing SPEC-042 (a new payment processing feature) has just been labelled `ai:done` and is waiting for review.
 
 The diff adds a new domain service for processing refunds, a repository class, a server action, and supporting unit tests. However, the branch was submitted in a hurry and there are some concerns about code quality and completeness.
 

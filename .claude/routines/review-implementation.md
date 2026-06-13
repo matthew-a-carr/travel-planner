@@ -5,9 +5,9 @@
 ## Trigger
 
 GitHub: `Custom` event (`pull_request.labeled`) with filter
-`Labels is one of: claude:done`.
+`Labels is one of: ai:done`.
 
-Fires once when an implementation PR is labelled `claude:done` (the
+Fires once when an implementation PR is labelled `ai:done` (the
 `implement-spec` routine applies that label when it opens the PR). This gives
 Matt an agent-side review on the impl PR before he reads it — the code-review
 counterpart to `review-spec` on the spec PR.
@@ -35,7 +35,7 @@ counterpart to `review-spec` on the spec PR.
   reports. Addressing the findings and merging is `babysit-pr`'s job (under
   explicit instruction) or Matt's.
 - If a **Blocked** verdict surfaces a design question the SPEC never resolved,
-  apply `claude:blocked` to the PR + DM, same as the other routines.
+  apply `ai:blocked` to the PR + DM, same as the other routines.
 
 ## Tools
 

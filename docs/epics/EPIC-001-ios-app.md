@@ -141,7 +141,7 @@ Budgets are calendar days of focused work, not elapsed. Used by the §9
 criterion.
 
 SPECs for each slice are drafted by the `draft-spec` routine (from a
-`claude:plan` issue) only when that slice is ready to begin. Earlier slices may
+`ai:plan` issue) only when that slice is ready to begin. Earlier slices may
 be planned in detail; later slices stay intentionally vague until the preceding
 learnings come in.
 

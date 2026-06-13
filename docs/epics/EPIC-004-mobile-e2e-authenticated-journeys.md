@@ -133,7 +133,7 @@ for the full analysis.
 | 4 | **Diagnostics + local parity** — simulator screen recording + backend log artifacts on failure; `pnpm test:e2e:mobile` one-command local orchestration; budget validation over first 10 PRs; flow-authoring docs in mobile `AGENTS.md` | 6, 7 | _not yet planned_ | 2 | Not started |
 | 5 | **Write-journey readiness** — fixture isolation/reset strategy for mutating flows (unique-per-run data vs reseed), write-capable seed fixtures, pattern handoff so EPIC-003 slice 2 lands with a capture flow | 8 (enables) | _not yet planned_ | 3 | Not started |
 
-> SPECs are drafted lazily (one `claude:plan` issue per slice). Slice 4
+> SPECs are drafted lazily (one `ai:plan` issue per slice). Slice 4
 > can run parallel to slice 3. Slice 5 should land before EPIC-003's
 > capture sheet (its slice 2) reaches implementation.
 

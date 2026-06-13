@@ -17,5 +17,5 @@
 
 When blocked, agents:
 1. Comment on the relevant issue with the specific input needed
-2. Apply the `claude:blocked` label
+2. Apply the `ai:blocked` label
 3. DM `$SLACK_NOTIFY_USER` with the issue link and blocker summary

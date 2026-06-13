@@ -87,7 +87,7 @@ maps are **not** the bar for this epic (see §6).
 | 3 | Mobile **trips list** screen — `src/trips/` data hook + list UI + states (loading/empty/error) + tests | 1–2 | [SPEC-011 (Complete)](../specs/SPEC-011-mobile-trips-list.md) | 1 | 2–3d | Complete |
 | 4 | Mobile **trip detail** screen — timeline + spend rendering (**milestone slice**) | 3 | [SPEC-012 (Complete)](../specs/SPEC-012-mobile-trip-detail.md) | 2, 3 | 3–4d | Complete |
 
-SPECs are drafted lazily by `draft-spec` (from a `claude:plan` issue) when each
+SPECs are drafted lazily by `draft-spec` (from a `ai:plan` issue) when each
 slice is ready. Slices 1–2 (server) can run ahead of / parallel to 3.
 
 ## 8. Sequencing rationale
@@ -188,7 +188,7 @@ _None yet._
   18 commits, squash-merged `8ce73c5`). The single-PR shape was an
   interactive-session deviation from the per-slice routine flow (recorded in
   SPEC-009 deviation #1); slices 2–4's SPECs were drafted in-session rather
-  than via `claude:plan` issues.
+  than via `ai:plan` issues.
 - §5 success criteria all held: no use case forked (both endpoints compose
   existing repositories through `getAppContainer()`), ADR 056 envelope +
   OpenAPI regenerated (one minor bump 1.1.0 → 1.2.0 covering both endpoints),

@@ -83,7 +83,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   validation and manual debugging. The interactive `grill-me` /
   `plan-feature` / `plan-epic` skills were retired from this repo; the new
   `draft-spec` and `revise-spec` skills replace them, and `implement-spec`
-  was rewired to fire on a merged spec PR with the `claude:implement` label.
+  was rewired to fire on a merged spec PR with the `ai:implement` label.
   Operations runbook: `docs/operations/autonomous-workflow.md`.
 - Pinned `engineering-principles@matthew-a-carr` and
   `dev-skills@matthew-a-carr` in `.claude/settings.json` via the

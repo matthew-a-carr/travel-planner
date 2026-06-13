@@ -5,10 +5,10 @@
 
 ## Trigger
 
-GitHub: `Issue opened` with filter `Labels is one of: claude:plan-epic`.
+GitHub: `Issue opened` with filter `Labels is one of: ai:plan-epic`.
 
 Fired when an issue is opened with the **Epic** issue template (which
-pre-applies `claude:plan-epic`).
+pre-applies `ai:plan-epic`).
 
 ## What to do
 
@@ -23,11 +23,11 @@ pre-applies `claude:plan-epic`).
    - Write `docs/epics/EPIC-NNN-<slug>.md` on a `claude/epic-NNN-<slug>`
      branch, with a slice table seeded but no per-slice SPECs yet.
    - Self-review via `review-spec` and `architecture-review`.
-   - Open the PR with label `claude:revise` and a §Open Questions section.
-   - Apply `claude:planned` to the source issue + comment with the PR
+   - Open the PR with label `ai:revise` and a §Open Questions section.
+   - Apply `ai:planned` to the source issue + comment with the PR
      link.
 4. **Do NOT auto-file slice issues** after the EPIC PR merges. Matt
-   decides which slices to surface as `claude:plan` issues and in what
+   decides which slices to surface as `ai:plan` issues and in what
    order.
 
 ## Tools to use
@@ -42,10 +42,10 @@ Same as `draft-spec`:
 
 - Strategic ADR missing / Proposed.
 - Issue describes work that's actually one SPEC (suggest re-filing with
-  `claude:plan`).
+  `ai:plan`).
 - Proposed slice count ≤ 1 or ≥ 15.
 
-Block by: not opening a PR + comment + `claude:blocked` + Slack DM.
+Block by: not opening a PR + comment + `ai:blocked` + Slack DM.
 
 ## Reference
 

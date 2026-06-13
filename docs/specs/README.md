@@ -7,7 +7,7 @@ See [AGENTS.md](../../AGENTS.md) for the spec-driven development workflow and
 [CONSTITUTION.md](../../CONSTITUTION.md) §3 for TDD rules.
 
 Per ADR 057, SPECs are drafted by the `draft-spec` routine in response to a
-GitHub issue labelled `claude:plan`. Pre-spec draft briefs from the previous
+GitHub issue labelled `ai:plan`. Pre-spec draft briefs from the previous
 interactive flow no longer exist — the issue body itself is the input the
 routine consumes. Per-spec rolling implementation notes live in
 [`../implementation-notes/`](../implementation-notes/).
@@ -15,10 +15,10 @@ routine consumes. Per-spec rolling implementation notes live in
 ## Lifecycle
 
 ```
-Issue opened (claude:plan)
-  → draft-spec routine opens a spec PR → status: Draft (PR labelled claude:revise)
-    → review comments + claude:revise-now → revise-spec routine pushes updates
-      → merge spec PR with claude:implement → status: Approved (implicit)
+Issue opened (ai:plan)
+  → draft-spec routine opens a spec PR → status: Draft (PR labelled ai:revise)
+    → review comments + ai:revise-now → revise-spec routine pushes updates
+      → merge spec PR with ai:implement → status: Approved (implicit)
         → implement-spec routine → status: In Progress
           → impl PR merged → status: Complete
                           → Abandoned (if cancelled)
@@ -26,7 +26,7 @@ Issue opened (claude:plan)
 
 - **Draft** — SPEC written by `draft-spec`, awaiting human review on the
   spec PR.
-- **Approved** — spec PR merged with `claude:implement` (no separate status
+- **Approved** — spec PR merged with `ai:implement` (no separate status
   string in the SPEC body — the routine simply moves on).
 - **In Progress** — `implement-spec` is running.
 - **Complete** — all acceptance criteria met, verification suite green,

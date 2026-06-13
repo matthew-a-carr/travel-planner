@@ -8,7 +8,7 @@
 
 > A spec is one shippable unit. It either stands alone or is a slice of an
 > epic. If the work needs more than one spec to deliver demoable value, file a
-> `claude:plan-epic` issue first (the `draft-epic` routine drafts the EPIC) and
+> `ai:plan-epic` issue first (the `draft-epic` routine drafts the EPIC) and
 > link from this field.
 >
 > **Fill in every section.** Use `N/A — [reason]` for sections that genuinely

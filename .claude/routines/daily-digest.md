@@ -17,12 +17,12 @@ attention today.
 
 Gather, using `mcp__github__*` tools:
 
-1. Issues with `claude:blocked`.
-2. PRs with `claude:blocked`.
-3. PRs opened or merged in the last 24h with any `claude:*` label.
-4. Open spec/epic PRs awaiting review (`claude:revise` label, no
-   `claude:revise-now`).
-5. In-flight impl PRs with `claude:done` (need merge).
+1. Issues with `ai:blocked`.
+2. PRs with `ai:blocked`.
+3. PRs opened or merged in the last 24h with any `ai:*` label.
+4. Open spec/epic PRs awaiting review (`ai:revise` label, no
+   `ai:revise-now`).
+5. In-flight impl PRs with `ai:done` (need merge).
 
 If ALL of those are empty → exit without sending anything.
 

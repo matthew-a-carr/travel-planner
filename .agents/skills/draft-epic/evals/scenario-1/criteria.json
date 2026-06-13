@@ -14,17 +14,17 @@
     },
     {
       "name": "Proposed ADR label",
-      "description": "The report states the claude:blocked label should be applied to issue-A",
+      "description": "The report states the ai:blocked label should be applied to issue-A",
       "max_score": 8
     },
     {
       "name": "Single-SPEC redirected",
-      "description": "The report identifies issue-B (single deliverable) as NOT suitable for an epic and recommends closing or re-filing with claude:plan instead of claude:plan-epic",
+      "description": "The report identifies issue-B (single deliverable) as NOT suitable for an epic and recommends closing or re-filing with ai:plan instead of ai:plan-epic",
       "max_score": 10
     },
     {
       "name": "Single-SPEC comment text",
-      "description": "The report states the comment to post says something like 'This looks like a single SPEC — re-file with claude:plan instead of claude:plan-epic'",
+      "description": "The report states the comment to post says something like 'This looks like a single SPEC — re-file with ai:plan instead of ai:plan-epic'",
       "max_score": 10
     },
     {
@@ -34,7 +34,7 @@
     },
     {
       "name": "Too-few slices label",
-      "description": "The report states the claude:blocked label should be applied to issue-C",
+      "description": "The report states the ai:blocked label should be applied to issue-C",
       "max_score": 8
     },
     {

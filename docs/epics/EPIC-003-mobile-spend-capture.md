@@ -118,7 +118,7 @@ writes, still Expo-Go, App-Store-grade bar).
 | 4 | **Entry management UX** — per-destination entry list, edit sheet, swipe-to-delete with confirm + undo window | 3–4 | _not yet planned_ | 2, 3 | Not started |
 | 5 | **App-Store polish pass** — design tokens (type/spacing/colour), dark mode across all screens incl. EPIC-002's, Dynamic Type + VoiceOver audit, transitions/haptics consistency, app icon + splash refresh | 6 | _not yet planned_ | 2 | Not started |
 
-> SPECs are drafted lazily (one `claude:plan` issue per slice). Slice 3 can
+> SPECs are drafted lazily (one `ai:plan` issue per slice). Slice 3 can
 > run parallel to slice 2; slice 5 can start once slice 2's patterns exist.
 
 ## 8. Sequencing rationale

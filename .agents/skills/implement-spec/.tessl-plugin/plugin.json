@@ -1,6 +1,6 @@
 {
   "name": "matthew-a-carr/implement-spec",
-  "description": "Implement an approved feature specification. Triggered by a routine when a spec PR is merged with the `claude:implement` label (per ADR 057), or by a human asking \"implement SPEC-NNN\" interactively. Follows the spec's implementation order using TDD, logs deviations, runs the full verification suite, opens an implementation PR with label `claude:done`, and closes out the spec with post-implementation notes and tech debt capture.",
+  "description": "Implement an approved feature specification. Triggered by a routine when a spec PR is merged with the `ai:implement` label (per ADR 057), or by a human asking \"implement SPEC-NNN\" interactively. Follows the spec's implementation order using TDD, logs deviations, runs the full verification suite, opens an implementation PR with label `ai:done`, and closes out the spec with post-implementation notes and tech debt capture.",
   "skills": [
     "."
   ],

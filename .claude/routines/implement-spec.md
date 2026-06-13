@@ -4,9 +4,9 @@
 
 ## Trigger
 
-GitHub: `PR merged` with filter `Labels is one of: claude:implement`.
+GitHub: `PR merged` with filter `Labels is one of: ai:implement`.
 
-Fires when a spec PR is merged into `main` with the `claude:implement`
+Fires when a spec PR is merged into `main` with the `ai:implement`
 label applied. That label is Matt's "approve and execute" signal.
 
 ## What to do
@@ -29,13 +29,13 @@ label applied. That label is Matt's "approve and execute" signal.
      `pnpm lint && pnpm db:check:migrations && pnpm type-check && pnpm
      test:unit && pnpm test:integration && pnpm build` (with the dummy
      `POSTGRES_URL` per ADR 010).
-   - Retry verification up to 3 times. If still failing, block (claude:blocked
+   - Retry verification up to 3 times. If still failing, block (ai:blocked
      + DM with the failure output + one-line root-cause guess).
    - Triage the notes file at close-out → deviations table /
      post-impl notes / `docs/tech-debt.md` / discarded.
    - Update spec status to `Complete`, populate deviations,
      `CHANGELOG.md`, parent epic's slice table (if any).
-   - Push the branch and open the impl PR with label `claude:done`.
+   - Push the branch and open the impl PR with label `ai:done`.
 
 ## Mobile slices
 
@@ -64,7 +64,7 @@ merging."
 - The implementation needs a design decision the SPEC didn't anticipate
   and the §Open Questions process should have caught.
 
-Block by: apply `claude:blocked` to the impl PR (open it as draft if not
+Block by: apply `ai:blocked` to the impl PR (open it as draft if not
 yet open) + comment with the verification output + Slack DM.
 
 ## Reference
