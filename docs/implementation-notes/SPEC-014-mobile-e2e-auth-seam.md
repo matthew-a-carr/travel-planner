@@ -151,3 +151,36 @@ self-diagnosing:
 
 **Triage:** keep as investigation log; fold the resolved cause into the
 deviations table once the marker reveals it.
+
+### 2026-06-13 — third run: marker ON, crash gone, journey still hangs
+
+**Step:** CI (run 27466436294)
+**Type:** investigation (root cause narrowed)
+**Note:**
+
+The diagnostics paid off:
+- `E2E test-auth substitute is wired into the bundle (marker ON)` — the flag
+  inlines and the substitute IS selected (so it was never the real Google
+  browser leg).
+- `Seam server half OK — minted …code=…` — server half good.
+- Web `E2E tests` went green — confirms that failure was a flake.
+- **All three Maestro attempts are now clean ~75s hangs** on `trips-screen-root`
+  — **no more 7s crash**, so dropping `new URL()` fixed the native crash.
+
+Remaining: with the substitute selected and no crash, the journey still hangs
+~75s on the first authenticated action. That's an unresolved `await` — almost
+certainly the simulator's HTTP request to `127.0.0.1:3000` not completing
+(RN `fetch` has no timeout). A 75s hang on loopback is unusual, so rather than
+guess a fourth time I added a **decisive split**:
+1. `pingBackend()` + an E2E-gated on-mount probe on the sign-in screen renders
+   `login-net-ok` / `login-net-fail`; the journey asserts `login-net-ok` BEFORE
+   tapping. Pass ⇒ sim reaches backend (hang is in the auth chain); fail ⇒
+   sim→backend networking is the blocker.
+2. A 15s `AbortController` timeout in the api client so any future hang becomes
+   a fast `internal` error instead of a 75s stall.
+
+Cannot run Maestro/iOS from this Linux session, so CI is the only iOS env;
+the next run localizes the failure definitively.
+
+**Triage:** investigation; the probe is diagnostic-only (gated behind the E2E
+flag) and comes out once the root cause is fixed.

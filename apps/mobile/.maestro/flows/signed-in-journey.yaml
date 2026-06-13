@@ -33,6 +33,15 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'login-screen-root'
     timeout: 60000
+# SPEC-014 reachability diagnostic: prove the simulator can complete an HTTP
+# request to the backend before we exercise the auth flow. If this fails, the
+# problem is sim→backend networking; if it passes but the journey still stalls,
+# the problem is in the auth chain. The sign-in screen pings the backend on
+# mount (E2E build only) and renders login-net-ok / login-net-fail.
+- extendedWaitUntil:
+    visible:
+      id: 'login-net-ok'
+    timeout: 30000
 - tapOn:
     id: 'login-google-button'
 - extendedWaitUntil:

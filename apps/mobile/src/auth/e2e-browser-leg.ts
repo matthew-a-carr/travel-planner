@@ -70,6 +70,11 @@ export const e2eOpenAuthSession: typeof WebBrowser.openAuthSessionAsync = async 
   return { type: 'success', url: result.data.redirect_url };
 };
 
+/** Whether this is an E2E test-auth build. Used to gate diagnostic-only UI. */
+export function isE2eBuild(): boolean {
+  return E2E_AUTH_ENABLED;
+}
+
 /**
  * Pick the browser leg for `runSignInFlow`. `enabled` defaults to the
  * bundle-time `EXPO_PUBLIC_E2E_AUTH` flag; pass it explicitly in tests.
