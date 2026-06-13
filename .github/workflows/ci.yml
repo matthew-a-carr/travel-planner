@@ -513,6 +513,21 @@ jobs:
           fi
           echo "Bundle contains the backend URL — env inlined correctly."
 
+          # SPEC-014: prove EXPO_PUBLIC_E2E_AUTH inlined so the signed-in
+          # journey uses the test-auth substitute, not the real Google browser
+          # leg (which would hang Maestro). e2e-browser-leg.ts folds the flag to
+          # exactly one marker; _ON means the substitute is wired, _OFF means
+          # the flag did not reach the bundle.
+          if grep -q 'SPEC014_E2E_AUTH_BUNDLE_OFF' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::EXPO_PUBLIC_E2E_AUTH did NOT inline to '1' — substitute browser leg is OFF in the bundle"
+            exit 1
+          fi
+          if ! grep -q 'SPEC014_E2E_AUTH_BUNDLE_ON' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::E2E auth bundle marker missing entirely — e2e-browser-leg not bundled as expected"
+            exit 1
+          fi
+          echo "E2E test-auth substitute is wired into the bundle (marker ON)."
+
       # Server half of the test-auth seam (SPEC-014), exercised from the runner
       # before any Maestro time is spent: /start → /test-token must mint a
       # `?code=` deep link. This proves E2E_TEST_AUTH gated the endpoint ON and

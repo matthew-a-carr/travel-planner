@@ -111,3 +111,43 @@ Fixes pushed:
 
 **Triage:** spec deviation (the ATS requirement wasn't anticipated in the SPEC —
 add to deviations table at close-out).
+
+### 2026-06-13 — second run still red; both e2e jobs failing
+
+**Step:** CI (run 27461170338)
+**Type:** surprise (investigation)
+**Note:**
+
+After the ATS commit, *both* `E2E tests` (web Playwright) and `mobile-e2e`
+failed.
+
+- **Web `E2E tests`**: `08-trip-stage.spec.ts` — the "Thailand" country
+  autocomplete option click timed out. A **web-only flake** unrelated to
+  SPEC-014 (my branch touches no web UI; the same job was green on the prior
+  run with identical web code). A fresh run re-tests it.
+- **`mobile-e2e`**: the **runner-side seam smoke PASSED**
+  (`Seam server half OK — minted travelplanner://auth?code=…`), proving the
+  server half works end-to-end. `signed-in-journey` still failed: two attempts
+  **hung 60s** on `trips-screen-root`, one **crashed in 7s**.
+
+Diagnosis: server is fine; the failure is the **client half**. A 60s hang after
+tapping sign-in is an `await` that never resolves — either the real
+`WebBrowser` leg opened (flag not selected) or `new URL()` on the long OAuth URL
+hung/crashed Hermes (the 7s crash fits a native `new URL` fault that JS
+try/catch can't catch). Since I can't run Maestro on Linux, I made the next run
+self-diagnosing:
+
+1. **Removed `new URL()`** from `extractState` — parse `state` with
+   `URLSearchParams` only (the same primitive `runSignInFlow`'s deep-link parser
+   uses; RN's `URL.searchParams` is non-functional and `new URL` can crash
+   Hermes natively).
+2. **Bundle marker** (`SPEC014_E2E_AUTH_BUNDLE_ON/OFF`): the flag folds to one
+   greppable string; a new CI assertion fails the build if `_OFF` is present or
+   `_ON` is missing — so the run now *proves* whether `EXPO_PUBLIC_E2E_AUTH`
+   inlined and the substitute is wired.
+3. **Stronger ATS**: added explicit `127.0.0.1`/`localhost`
+   `NSExceptionAllowsInsecureHTTPLoads` domains alongside
+   `NSAllowsLocalNetworking`, in case the latter doesn't cover literal loopback.
+
+**Triage:** keep as investigation log; fold the resolved cause into the
+deviations table once the marker reveals it.
