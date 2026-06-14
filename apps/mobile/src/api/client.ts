@@ -141,26 +141,6 @@ async function request<T>(
 }
 
 /**
- * Liveness probe used by the E2E reachability diagnostic (SPEC-014): can the
- * device actually complete an HTTP request to the configured backend? Hits the
- * unauthenticated NextAuth providers endpoint (same one the CI canary curls)
- * with the standard request timeout. Returns true on any 2xx. Diagnostic-only;
- * gated behind the E2E build flag at the call site.
- */
-export async function pingBackend(timeoutMs = REQUEST_TIMEOUT_MS): Promise<boolean> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${BASE_URL}/api/auth/providers`, { signal: controller.signal });
-    return res.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/**
  * Build a synthetic ApiError when the failure originated client-side
  * (network down, malformed body) so the type contract is uniform.
  * Status is a placeholder (500) — semantically there isn't a real

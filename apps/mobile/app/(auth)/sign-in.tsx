@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { apiPost, pingBackend } from '../../src/api/client';
+import { apiPost } from '../../src/api/client';
 import { useAuth } from '../../src/auth/auth-context';
-import { isE2eBuild, resolveBrowserLeg } from '../../src/auth/e2e-browser-leg';
+import { resolveBrowserLeg } from '../../src/auth/e2e-browser-leg';
 import { generateVerifier, verifierToChallenge } from '../../src/auth/pkce';
 import { runSignInFlow } from '../../src/auth/sign-in-flow';
 
@@ -40,23 +40,6 @@ export default function SignInScreen() {
   const router = useRouter();
   const auth = useAuth();
   const [state, setState] = useState<ScreenState>({ status: 'idle' });
-
-  // E2E-only reachability diagnostic (SPEC-014): the signed-in journey hangs on
-  // the first authenticated request, so before tapping we prove whether the
-  // simulator can even reach the backend. Renders `login-net-ok` /
-  // `login-net-fail` for the Maestro flow to assert. Inert (no probe, no
-  // testID) in real builds — `isE2eBuild()` is false there.
-  const [netProbe, setNetProbe] = useState<'pending' | 'ok' | 'fail'>('pending');
-  useEffect(() => {
-    if (!isE2eBuild()) return;
-    let active = true;
-    void pingBackend().then((ok) => {
-      if (active) setNetProbe(ok ? 'ok' : 'fail');
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const onSignInPress = async (): Promise<void> => {
     setState({ status: 'in_flight' });
@@ -114,8 +97,6 @@ export default function SignInScreen() {
           Sign in with Google
         </Text>
       </Pressable>
-
-      {isE2eBuild() ? <View testID={`login-net-${netProbe}`} /> : null}
 
       {state.status === 'error' ? (
         <View style={{ marginTop: 24, maxWidth: 320 }} testID="login-screen-error">
