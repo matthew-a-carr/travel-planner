@@ -373,6 +373,9 @@ of being wrong):
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
 | 1 | SPEC + implementation in one PR on the session branch | Matt's standing instruction; EPIC-002 / SPEC-013 precedent | Single review gate | Yes (authorised) |
+| 2 | iOS App Transport Security blocked the app's first cleartext request; added `NSAllowsLocalNetworking` + `127.0.0.1`/`localhost` exception domains in `app.json` | Not anticipated in the SPEC — the Release build ships no ATS dev exceptions, and this is the first CI journey to make an authenticated request | One-line `infoPlist` addition; production talks HTTPS and is unaffected | Yes |
+| 3 | `runSignInFlow`'s browser-leg substitute dropped `new URL()` in favour of `URLSearchParams`-only parsing | `new URL()` on a long OAuth URL crashed Hermes natively (uncatchable) and RN's `URL.searchParams` is non-functional | Substitute is crash-free; matches the proven deep-link parser | Yes |
+| 4 | **The live sign-in→trips-list→sign-out Maestro flow + AC 1/4/7's blocking journey are descoped to EPIC-004 slice 3** (TD-010). Slice 2 ships only the server seam + client harness + CI seam-smoke/bundle-marker (all green) | The iOS Simulator can't reach the host backend on the macOS runner on **any** address (loopback or LAN IP), while the runner reaches it fine (canary + seam smoke pass). ATS exceptions, `NSAllowsLocalNetworking`, `0.0.0.0` bind, and LAN-IP targeting all failed to make the sim reach it — an iOS-sim-on-CI networking wall needing hands-on Mac debugging | The double-gate (AC3/AC4), server mint (AC1/AC2 server half), substitute selection (AC6), and seam-smoke all remain proven & green; the on-device journey (AC7) and its supporting probe are removed from this PR | No — tracked as **TD-010**, owned by slice 3 |
 
 ### Post-Implementation Notes
 

@@ -128,8 +128,8 @@ for the full analysis.
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
 | 1 | **Real backend in the loop** — native Postgres on the macOS runner + migrate + deterministic e2e seed + real server boot + app bundle pointed at it; existing smoke flow proves the app launches clean against a live backend; runtime baseline recorded | 1 | [SPEC-013](../specs/SPEC-013-mobile-e2e-real-backend.md) (Complete) | — | Complete |
-| 2 | **Past the front door** (**milestone**) — server test-mint endpoint (double-gated) + E2E build's browser-leg injection at the `runSignInFlow(deps)` seam + 404 gate integration test + full sign-in → trips list → sign-out journey flow | 2, 5 | [SPEC-014](../specs/SPEC-014-mobile-e2e-auth-seam.md) (Complete) | 1 | Complete |
-| 3 | **Read-journey coverage** — trip detail flow against the seeded Kyoto trip (legs, fixed costs, spend summary) + not-found flow + list↔detail navigation assertions | 3, 4 | _not yet planned_ | 2 | Not started |
+| 2 | **Past the front door** (**milestone**) — server test-mint endpoint (double-gated) + E2E build's browser-leg injection at the `runSignInFlow(deps)` seam + 404 gate integration test + runner-side seam smoke + bundle-flag wiring. **Descoped (deviation #1):** the live sign-in → trips list → sign-out Maestro flow could not run on the macOS runner because the iOS Simulator cannot reach the host backend (any address) — it moves to slice 3 with the harness + server seam fully landed | 2 | [SPEC-014](../specs/SPEC-014-mobile-e2e-auth-seam.md) (Complete, descoped) | 1 | Complete (server seam + harness; live journey → slice 3) |
+| 3 | **Read-journey + sign-in coverage** — **first solve the iOS-sim → host-backend reachability blocker (deviation #1 / TD-010)**, then the sign-in → trips list → sign-out journey + trip detail flow against the seeded Kyoto trip (legs, fixed costs, spend summary) + not-found flow + list↔detail navigation assertions | 2, 3, 4 | _not yet planned_ | 2 | Not started |
 | 4 | **Diagnostics + local parity** — simulator screen recording + backend log artifacts on failure; `pnpm test:e2e:mobile` one-command local orchestration; budget validation over first 10 PRs; flow-authoring docs in mobile `AGENTS.md` | 6, 7 | _not yet planned_ | 2 | Not started |
 | 5 | **Write-journey readiness** — fixture isolation/reset strategy for mutating flows (unique-per-run data vs reseed), write-capable seed fixtures, pattern handoff so EPIC-003 slice 2 lands with a capture flow | 8 (enables) | _not yet planned_ | 3 | Not started |
 
@@ -293,11 +293,14 @@ slice.
 | 2026-06-12 | 1 | SPEC-013 | Drafted / In progress | Spec + implementation in one session/PR at Matt's instruction (issue #146); resolves §13 deferred Q1–Q3. |
 | 2026-06-12 | 1 | SPEC-013 | Complete | mobile-e2e green first attempt with real backend (run 27410045709); +~46s attributable runtime — pivot criterion nowhere near firing. Impl PR linked on open. |
 | 2026-06-13 | 2 | SPEC-014 | Drafted / In progress | Spec + implementation in one session/PR (EPIC-002 / SPEC-013 precedent); resolves §13 deferred Q4. Double-gated `/test-token` seam + bundle-flag browser-leg injection + signed-in-journey flow. |
-| 2026-06-13 | 2 | SPEC-014 | Complete | Full local suite green (lint, type-check, web unit 439, mobile unit 124, integration 330, build, openapi:check). Kill-criterion proof (404-when-unset) lands as a route int-test. `mobile-e2e` signed-in journey validated on the impl PR's CI run. |
+| 2026-06-13 | 2 | SPEC-014 | Complete | Full local suite green (lint, type-check, web unit 439, mobile unit 124, integration 330, build, openapi:check). Kill-criterion proof (404-when-unset) lands as a route int-test. |
+| 2026-06-13 | 2 | SPEC-014 | Complete (descoped) | The server test-token seam, client substitute harness, double-gate, runner-side seam smoke, and bundle-flag wiring all landed and are green. The live sign-in→list→sign-out Maestro flow was descoped (deviation #1) — the iOS Simulator can't reach the host backend on the macOS runner (proven: server reachable from the runner via canary/seam-smoke; the app's on-device probe failed on both 127.0.0.1 and the host LAN IP). Live journey → slice 3. |
 
 ## Epic-level deviations
 
-_None yet._
+| # | Deviation | Reason | Impact on other slices | Resolved? |
+|---|-----------|--------|------------------------|-----------|
+| 1 | Slice 2's **live** sign-in→trips-list→sign-out Maestro flow is descoped to slice 3; slice 2 ships only the server seam + client harness + CI seam-smoke/bundle-marker (all green) | The iOS Simulator on the GitHub macOS runner cannot complete an HTTP request to the host backend on **any** address (loopback `127.0.0.1` *or* the host LAN IP), while the runner itself reaches it fine (canary + server seam smoke pass). Attempted fixes — ATS exceptions, `NSAllowsLocalNetworking`, binding the server `0.0.0.0`, targeting the runner LAN IP — did not make the sim reach the backend. The residual is almost certainly an iOS-sim-on-CI networking constraint (iOS 14+ Local Network privacy prompt for LAN IPs; nested-VM loopback not mapping to host) that needs hands-on Mac debugging | Slice 3 must solve the reachability blocker (TD-010) **before** authoring any signed-in flow; the harness, server seam, and fixtures are all ready for it | No — tracked as TD-010, owned by slice 3 |
 
 ## Post-epic notes
 

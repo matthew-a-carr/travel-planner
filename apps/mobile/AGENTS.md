@@ -341,19 +341,23 @@ One YAML per user journey under `.maestro/flows/`. Current flows:
 
 - `sign-in.yaml` — launch smoke: app boots to the sign-in screen (does
   NOT tap the button; the real Google sheet can't be driven by Maestro).
-- `signed-in-journey.yaml` — the EPIC-004 slice 2 milestone: launch →
-  sign in (via the test-auth seam, below) → trips list shows the seeded
-  Kyoto trip → Profile → sign out → back at sign-in. The first flow to go
-  past the front door.
+
+The **live signed-in journey** (sign in via the seam → trips list → sign
+out) is **deferred to EPIC-004 slice 3** — it is blocked on the iOS-sim →
+host-backend reachability issue (TD-010 / EPIC-004 deviation #1): on the
+macOS runner the simulator can't reach the host server on any address even
+though the runner can. The server seam + client harness below are landed and
+proven; slice 3 solves reachability first, then authors the flow.
 
 Use `id:` selectors over visible-text selectors where possible.
 
 ### Test-auth seam (E2E sign-in without Google — SPEC-014)
 
-Maestro can't drive Google's consent screen, so the `signed-in-journey`
-flow signs in through a seam that replaces **only the browser leg** of the
-PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and AuthGuard all
-stay real:
+Maestro can't drive Google's consent screen, so the (future, slice-3)
+signed-in journey signs in through a seam that replaces **only the browser
+leg** of the PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and
+AuthGuard all stay real. The seam (server + client + CI assertions) is
+landed and green; only the live Maestro flow is deferred (TD-010):
 
 - **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
   the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
