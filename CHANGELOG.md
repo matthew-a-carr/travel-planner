@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.20.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.19.0...v1.20.0) (2026-06-14)
+
+
+### Features
+
+* **spec-014:** mobile e2e test-auth seam — server seam + client harness (EPIC-004 slice 2) ([8018861](https://github.com/matthew-a-carr/travel-planner/commit/801886107a0a254a3038640ec182c79e7a64b63c))
+
 ## [1.19.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.18.0...v1.19.0) (2026-06-12)
 
 
