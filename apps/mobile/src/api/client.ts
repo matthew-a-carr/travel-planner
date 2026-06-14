@@ -30,6 +30,15 @@ import type { ZodType } from 'zod';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
+/**
+ * Hard ceiling on any single request. React Native's `fetch` has NO default
+ * timeout, so a backend the device can't complete a connection to hangs the
+ * caller indefinitely (observed as a 60–75s Maestro stall in the SPEC-014 e2e
+ * journey). An AbortController bounds it so a stuck request surfaces as a fast
+ * `internal` error instead of an opaque hang.
+ */
+const REQUEST_TIMEOUT_MS = 15000;
+
 export type ApiSuccess<T> = { ok: true; data: T };
 export type ApiFailure = { ok: false; error: ApiError };
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
@@ -82,10 +91,19 @@ async function request<T>(
   if (bearer !== undefined) headers.Authorization = `Bearer ${bearer}`;
 
   let response: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    response = await fetch(`${BASE_URL}${path}`, { method, headers, body });
+    response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body,
+      signal: controller.signal,
+    });
   } catch {
     return { ok: false, error: synthesiseError('internal', 'Could not reach the server.', path) };
+  } finally {
+    clearTimeout(timer);
   }
 
   // 204 No Content — no body to parse. Skip the json() call entirely
