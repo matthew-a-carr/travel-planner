@@ -35,7 +35,7 @@ What this means in practice:
   - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
     tech-stack, behavioural-rules, plus the `apply-principles` and
     `architecture-review` skills.
-  - `dev-skills@matthew-a-carr` — TDD loop, handoff, design grilling,
+  - `agent-skills@matthew-a-carr` — TDD loop, handoff, design grilling,
     GitHub PR helpers, CLI design, etc. The autonomous routines don't
     depend on these but they're available if an interactive session
     wants them.
@@ -306,7 +306,7 @@ conversation. The agent will:
    as the source of truth — there's no turn-by-turn interview; the
    `draft-spec` skill records any unresolved ambiguity in the SPEC's §Open
    Questions section for the PR review loop to settle. For an **epic**,
-   `draft-epic` still runs `dev-skills:grill-me` at epic altitude (vision,
+   `draft-epic` still runs `agent-skills:grill-me` at epic altitude (vision,
    slicing, kill criteria, cross-cutting decisions) before drafting.
 2. File a `ai:plan` or `ai:plan-epic` GitHub issue with that
    description (or the grilled epic brief) as the body, so the
@@ -379,7 +379,7 @@ Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`)
 
 The old `grill-me` / `plan-feature` / `plan-epic` skills were removed when
 the autonomous flow landed. `grill-me` is still available via the user-level
-`dev-skills@matthew-a-carr` plugin (also auto-loaded) if an interactive session
+`agent-skills@matthew-a-carr` plugin (also auto-loaded) if an interactive session
 genuinely needs it — it's just no longer part of the default lifecycle.
 
 #### How skills work

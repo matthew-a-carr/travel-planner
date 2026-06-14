@@ -94,7 +94,7 @@ PR that includes one of these, recommend splitting it out, not merging the group
 
 - A grouped `minor-and-patch` npm PR or a `github-actions` minor/patch PR,
   **with all required checks green** and release notes showing no breaking
-  change, is the merge candidate (this is what `dev-skills:dependabot-pr-merge`
+  change, is the merge candidate (this is what `agent-skills:dependabot-pr-merge`
   automates). Recommend **Merge**.
 
 ### Red CI
