@@ -17,15 +17,18 @@ export function MoveTripForm({ tripId, targets }: { tripId: string; targets: Mov
   if (targets.length === 0) return null;
 
   return (
-    <form action={dispatch} className="flex items-center gap-2">
-      <label htmlFor="move-trip-target" className="text-sm text-zinc-500 dark:text-zinc-300">
+    <form action={dispatch} className="space-y-2">
+      <label
+        htmlFor="move-trip-target"
+        className="block text-xs font-medium text-zinc-500 dark:text-zinc-400"
+      >
         Move to
       </label>
       <select
         id="move-trip-target"
         name="targetOrganizationId"
         defaultValue={targets[0]?.id}
-        className="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
+        className="block w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-100"
       >
         {targets.map((target) => (
           <option key={target.id} value={target.id}>
@@ -36,7 +39,7 @@ export function MoveTripForm({ tripId, targets }: { tripId: string; targets: Mov
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        className="w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
       >
         {isPending ? 'Moving…' : 'Move'}
       </button>

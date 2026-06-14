@@ -27,6 +27,7 @@ import { FixedCostCategoryBreakdown } from '@/ui/components/FixedCostCategoryBre
 import { FixedCostSection } from '@/ui/components/FixedCostSection';
 import { JourneyMapSection } from '@/ui/components/JourneyMapSection';
 import { MoveTripForm } from '@/ui/components/MoveTripForm';
+import { TripActionsMenu } from '@/ui/components/TripActionsMenu';
 import { TripNarrativePanel } from '@/ui/components/TripNarrativePanel';
 import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
 import { TripTabs } from '@/ui/components/TripTabs';
@@ -73,6 +74,8 @@ export default async function TripDetailPage({ params }: Props) {
             name: organization.organization.name,
           }))
       : [];
+  const canDelete = canDeleteTrips(membership.role);
+  const hasMoreActions = moveTargets.length > 0 || canDelete;
 
   const renderedAt = new Date();
   const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult] =
@@ -257,17 +260,19 @@ export default async function TripDetailPage({ params }: Props) {
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-8 px-4 pb-12 pt-8">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{trip.name}</h1>
-            <StatusBadge status={trip.status} />
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-300">
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{trip.name}</h1>
+              <StatusBadge status={trip.status} />
+            </div>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
               {context.organizations.find(
                 (organization) => organization.organization.id === trip.organizationId,
               )?.organization.name ?? 'Organization'}
             </p>
           </div>
-          <div className="space-y-2 text-right">
+          <div className="flex items-center gap-1.5">
             <TripAssistantDrawer
               tripId={trip.id}
               suggestedPrompts={getSuggestedPrompts({
@@ -278,8 +283,15 @@ export default async function TripDetailPage({ params }: Props) {
               })}
             />
             <EditTripButton trip={trip} />
-            <MoveTripForm tripId={trip.id} targets={moveTargets} />
-            {canDeleteTrips(membership.role) && <DeleteTripButton tripId={trip.id} />}
+            {hasMoreActions && (
+              <TripActionsMenu>
+                {moveTargets.length > 0 && <MoveTripForm tripId={trip.id} targets={moveTargets} />}
+                {moveTargets.length > 0 && canDelete && (
+                  <div className="border-t border-zinc-100 dark:border-zinc-800" />
+                )}
+                {canDelete && <DeleteTripButton tripId={trip.id} />}
+              </TripActionsMenu>
+            )}
           </div>
         </header>
 
@@ -339,7 +351,7 @@ function StatusBadge({ status }: { status: Trip['status'] }) {
   };
   return (
     <span
-      className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${colours[status] ?? ''}`}
+      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${colours[status] ?? ''}`}
     >
       {status}
     </span>
