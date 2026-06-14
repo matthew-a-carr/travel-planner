@@ -1,8 +1,0 @@
-{
-  "name": "matthew-a-carr/revise-spec",
-  "description": "Revise a SPEC or EPIC PR based on review feedback and push an update. Use when a routine fires on a PR being labelled `ai:revise-now`, or when a user asks to \"revise spec PR #NNN\" / \"revise epic PR #NNN\" interactively. Non-interactive — reads every unresolved review comment + inline comment + the current SPEC/EPIC file, rewrites it, pushes to the same branch, and posts a one-line summary comment pointing at the diff.",
-  "skills": [
-    "."
-  ],
-  "version": "0.1.1"
-}
