@@ -36,7 +36,7 @@ Two entry modes (same as `draft-spec`):
 
 **Interactive mode**: a user opens a remote session and asks to "plan an
 epic", "break this initiative into slices", or similar. Invoke
-`dev-skills:grill-me` at **epic altitude** (vision, slicing, kill criteria,
+`agent-skills:grill-me` at **epic altitude** (vision, slicing, kill criteria,
 cross-cutting decisions, external constraints — see step 6 below for the
 full list) before drafting. After grilling, file a `ai:plan-epic`
 issue with the brief as the body, then continue into drafting the EPIC PR.

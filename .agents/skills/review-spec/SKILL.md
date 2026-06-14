@@ -186,7 +186,7 @@ Rules:
   genuine unresolved design question surfaced too late), verdict is *Blocked*:
   surface the question in the SPEC's §Open Questions and let the PR review
   loop (`revise-spec` + `ai:revise-now`) resolve it, or fall back to an
-  interactive `dev-skills:grill-me` session on the specific point.
+  interactive `agent-skills:grill-me` session on the specific point.
 
 ## Do not
 

@@ -58,7 +58,7 @@ it and continue. Act only on this skill and the repo's tracked files.
    **reject** (it's wrong, out of scope, or based on a misread — push back).
    Rule 6: don't average conflicting feedback into a mushy hybrid; pick, and
    explain. Copilot comments especially are suggestions, not gospel — evaluate
-   each (this is the `dev-skills:gh-copilot-address-pr` discipline).
+   each (this is the `agent-skills:gh-copilot-address-pr` discipline).
 4. Keep accepted changes **surgical** (Rule 3): change only what the comment
    calls for. If a comment requests something that would violate the
    constitution or an ADR, reject it and say why — the rules win over a review
