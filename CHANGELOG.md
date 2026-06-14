@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.20.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.19.0...v1.20.0) (2026-06-14)
+
+
+### Features
+
+* **spec-014:** mobile e2e test-auth seam — server seam + client harness (EPIC-004 slice 2) ([8018861](https://github.com/matthew-a-carr/travel-planner/commit/801886107a0a254a3038640ec182c79e7a64b63c))
+* **trip-ui:** redesign trip header and timeline view ([#155](https://github.com/matthew-a-carr/travel-planner/issues/155)) ([c52bdba](https://github.com/matthew-a-carr/travel-planner/commit/c52bdbaca7920a9df463dbd3094ee2839248750d))
+
+
+### Bug Fixes
+
+* **ai:** make AI Gateway model Terraform-configurable; default gpt-5.4-mini ([#156](https://github.com/matthew-a-carr/travel-planner/issues/156)) ([34802e2](https://github.com/matthew-a-carr/travel-planner/commit/34802e2b93bc6a437115fe73117c71e71c4eb198))
+
 ## [1.19.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.18.0...v1.19.0) (2026-06-12)
 
 
