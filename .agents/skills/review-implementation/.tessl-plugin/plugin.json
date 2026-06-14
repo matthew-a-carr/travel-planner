@@ -1,8 +1,0 @@
-{
-  "name": "matthew-a-carr/review-implementation",
-  "description": "Repo-aware review of an implementation PR (the `ai:done` PR) against the SPEC it implements, the constitution, the ADRs, and the doc-staleness rules. Use when a routine fires on a PR labelled `ai:done`, when a human says \"review impl PR #NNN\" / \"review the implementation for SPEC-NNN\", or as a self-review step inside `implement-spec` before the PR is opened. Read-only — produces a structured report and never edits code or merges.",
-  "skills": [
-    "."
-  ],
-  "version": "0.1.0"
-}

@@ -35,18 +35,18 @@ What this means in practice:
   - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
     tech-stack, behavioural-rules, plus the `apply-principles` and
     `architecture-review` skills.
-  - `agent-skills@matthew-a-carr` — TDD loop, handoff, design grilling,
-    GitHub PR helpers, CLI design, etc. The autonomous routines don't
-    depend on these but they're available if an interactive session
-    wants them.
+  - `agent-skills@matthew-a-carr` — lifecycle skills (draft-spec,
+    implement-spec, review-spec, revise-spec, draft-epic, babysit-pr,
+    triage-dependabot, write-adr, sync-docs, review-implementation,
+    review-tech-debt) plus TDD, handoff, design grilling, GitHub PR
+    helpers, CLI design, etc. The autonomous routines source their
+    skills from this plugin.
   The pin lives in the repo (not just Matt's user-level config) so any
   session/clone *requests* both. Loading is **best-effort**, not guaranteed:
   a marketplace plugin may need a trust prompt that a headless routine can't
   answer, so `apply-principles` / `architecture-review` may silently not load
-  in a routine run. Skills treat them as best-effort (the routine still
-  succeeds without them); verify via a `Run now` + transcript read, and if a
-  routine ever genuinely *depends* on one, vendor it into `.agents/skills/`
-  the way `grill-me` was.
+  in a routine run. If a routine ever genuinely *depends* on a skill that
+  fails to load, vendor it into `.agents/skills/` as a local override.
 
 Operations runbook: [`docs/operations/autonomous-workflow.md`](./docs/operations/autonomous-workflow.md).
 
@@ -60,7 +60,7 @@ This is a pnpm monorepo (ADR 046). The web application lives at
 
 ```
 travel-planner/
-├── .agents/skills/   ← agent skills (Open Skills format, ADR 047)
+├── .agents/skills/   ← local-only skills (deploy-smoke-test); lifecycle skills via agent-skills plugin
 ├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
 ├── packages/         ← shared workspace packages (empty for now)
 ├── docs/             ← project-wide docs and ADRs
@@ -342,32 +342,14 @@ Skills follow the [Open Skills format](https://agentskills.io/specification):
 each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 (`name` + `description`) and a markdown body with step-by-step instructions.
 
+Most skills are provided by the `agent-skills@matthew-a-carr` plugin — they
+are generic, repo-agnostic skills that read per-repo config from
+`docs/agents/verification.md`. Only repo-specific skills live locally:
+
 ```
 .agents/skills/
-├── draft-spec/
-│   └── SKILL.md        ← Issue (ai:plan) → SPEC PR (autonomous)
-├── draft-epic/
-│   └── SKILL.md        ← Issue (ai:plan-epic) → EPIC PR (autonomous)
-├── revise-spec/
-│   └── SKILL.md        ← PR + review comments → updated SPEC/EPIC (autonomous)
-├── implement-spec/
-│   └── SKILL.md        ← Merged spec PR → implementation PR (autonomous)
-├── review-spec/
-│   └── SKILL.md        ← Read-only consistency check (SPEC)
-├── review-implementation/
-│   └── SKILL.md        ← Read-only review of the impl (ai:done) PR
-├── write-adr/
-│   └── SKILL.md        ← New ADR + README index + supersession wiring
-├── sync-docs/
-│   └── SKILL.md        ← Diff-driven doc-staleness sweep (OpenAPI, symlinks, index)
-├── babysit-pr/
-│   └── SKILL.md        ← Address review comments → wait green → squash-merge
-├── triage-dependabot/
-│   └── SKILL.md        ← Repo-aware Dependabot PR triage
-├── deploy-smoke-test/
-│   └── SKILL.md        ← Post-deploy prod health check (Vercel + canaries)
-└── review-tech-debt/
-    └── SKILL.md        ← Triage tech-debt register
+└── deploy-smoke-test/
+    └── SKILL.md        ← Post-deploy prod health check (Vercel + canaries)
 ```
 
 Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`):
@@ -377,53 +359,40 @@ Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`)
 - `architecture-review` — review a diff against the principles. Called by
   `draft-spec` and `revise-spec` after writing.
 
-The old `grill-me` / `plan-feature` / `plan-epic` skills were removed when
-the autonomous flow landed. `grill-me` is still available via the user-level
-`agent-skills@matthew-a-carr` plugin (also auto-loaded) if an interactive session
-genuinely needs it — it's just no longer part of the default lifecycle.
-
 #### How skills work
 
-1. **Discovery** — at session start, agents scan `.agents/skills/` and read
-   each `SKILL.md`'s `name` and `description` fields (~100 tokens per skill).
+1. **Discovery** — at session start, agents scan `.agents/skills/` for local
+   skills and load plugin-provided skills from the marketplace.
 2. **Activation** — when a task matches a skill's description, the agent reads
    the full `SKILL.md` body into context.
 3. **Execution** — the agent follows the step-by-step instructions in the body.
 
 #### Skill index
 
-| Skill | Invocation | What it does |
-|-------|-----------|--------------|
-| [`draft-spec`](./.agents/skills/draft-spec/SKILL.md) | Routine on `Issue opened` + label `ai:plan`; or "draft a spec from issue #NNN" | Read issue → draft SPEC → open PR with §Open Questions |
-| [`draft-epic`](./.agents/skills/draft-epic/SKILL.md) | Routine on `Issue opened` + label `ai:plan-epic`; or "draft an epic from issue #NNN" | Read issue → draft EPIC (slice table, kill criteria, cross-cutting decisions) → open PR. Does NOT auto-file slice issues |
-| [`revise-spec`](./.agents/skills/revise-spec/SKILL.md) | Routine on PR labelled `ai:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
-| [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates draft → ready-for-review and merged → implementation |
-| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | Routine on merged spec PR with label `ai:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `ai:done` |
-| [`review-implementation`](./.agents/skills/review-implementation/SKILL.md) | Routine on PR labelled `ai:done`; "review impl PR #NNN"; or self-review inside `implement-spec` | Read-only review of the impl diff against SPEC, constitution, ADRs, doc-staleness. Gates `ai:done` → merge |
-| [`write-adr`](./.agents/skills/write-adr/SKILL.md) | A change meets an ADR trigger; "write an ADR for X"; or called by `implement-spec` / `draft-spec` | New ADR (CONSTITUTION §7 template) + `docs/decisions/README.md` index row + supersession status lines |
-| [`sync-docs`](./.agents/skills/sync-docs/SKILL.md) | Close-out of `implement-spec`; Pass 6 of `review-implementation`; or "sync the docs" | Diff → doc-review table → patch stale docs + run OpenAPI / symlink / index checks |
-| [`babysit-pr`](./.agents/skills/babysit-pr/SKILL.md) | "babysit PR #NNN" / "address the comments and merge when green" | Triage + apply review comments → push → wait green → squash-merge. Escalates instead of forcing |
-| [`triage-dependabot`](./.agents/skills/triage-dependabot/SKILL.md) | "triage the dependabot PRs" | Apply repo dependency rules (Expo lockstep, TS6/Vite8 holds, dev-only CVEs) → merge/hold/close recommendation |
-| [`deploy-smoke-test`](./.agents/skills/deploy-smoke-test/SKILL.md) | After merge to `main`; or "is prod healthy?" / "smoke test production" | Verify Vercel Production deploy is READY + matches `main`; HTTP canaries; migrations; Sentry spike check |
-| [`review-tech-debt`](./.agents/skills/review-tech-debt/SKILL.md) | Weekly routine; or "review tech debt" | Assess → categorise → report → act |
+| Skill | Source | Invocation | What it does |
+|-------|--------|------------|--------------|
+| `draft-spec` | plugin | Routine on `Issue opened` + label `ai:plan`; or "draft a spec from issue #NNN" | Read issue → draft SPEC → open PR with §Open Questions |
+| `draft-epic` | plugin | Routine on `Issue opened` + label `ai:plan-epic`; or "draft an epic from issue #NNN" | Read issue → draft EPIC (slice table, kill criteria, cross-cutting decisions) → open PR |
+| `revise-spec` | plugin | Routine on PR labelled `ai:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
+| `review-spec` | plugin | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt |
+| `implement-spec` | plugin | Routine on merged spec PR with label `ai:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `ai:done` |
+| `review-implementation` | plugin | Routine on PR labelled `ai:done`; "review impl PR #NNN" | Read-only review of the impl diff against SPEC, constitution, ADRs, doc-staleness |
+| `write-adr` | plugin | A change meets an ADR trigger; "write an ADR for X" | New ADR + `docs/decisions/README.md` index row + supersession status lines |
+| `sync-docs` | plugin | Close-out of `implement-spec`; or "sync the docs" | Diff → doc-review table → patch stale docs + generated artifact checks |
+| `babysit-pr` | plugin | "babysit PR #NNN" / "address the comments and merge when green" | Triage + apply review comments → push → wait green → squash-merge |
+| `triage-dependabot` | plugin | "triage the dependabot PRs" | Apply repo dependency rules → merge/hold/close recommendation |
+| `review-tech-debt` | plugin | Weekly routine; or "review tech debt" | Assess → categorise → report → act |
+| [`deploy-smoke-test`](./.agents/skills/deploy-smoke-test/SKILL.md) | local | After merge to `main`; or "is prod healthy?" | Verify Vercel Production deploy is READY + HTTP canaries + migrations |
 
 #### Adding a new skill
 
-To add a new skill, create a directory under `.agents/skills/` with a `SKILL.md`:
-
-```yaml
----
-name: my-skill-name          # must match directory name; lowercase + hyphens only
-description: >               # 1–1024 chars; describes WHAT it does and WHEN to use it
-  Do X when the user asks Y.
----
-
-# Step-by-step instructions here...
-```
+For **repo-specific** skills, create a directory under `.agents/skills/` with a
+`SKILL.md`. For **generic** skills that should be shared across repos,
+contribute them to
+[`agent-skills`](https://github.com/matthew-a-carr/agent-skills).
 
 See the [Agent Skills specification](https://agentskills.io/specification) for
-the full format reference, and `.agents/skills/draft-spec/SKILL.md` for a
-working autonomous-flow example.
+the full format reference.
 
 Epics, specs, per-spec implementation notes, and the tech debt register
 live in `docs/epics/`, `docs/specs/`, `docs/implementation-notes/`, and
