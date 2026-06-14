@@ -117,3 +117,37 @@ export const mobileAuthRevokeRequestSchema = z.object({
   refresh_token: z.string().min(1),
 });
 export type MobileAuthRevokeRequest = z.infer<typeof mobileAuthRevokeRequestSchema>;
+
+// ---------------------------------------------------------------------------
+// POST /api/v1/auth/mobile/test-token (E2E test-auth seam — SPEC-014)
+// ---------------------------------------------------------------------------
+
+/**
+ * Body for the **test-only** auth seam (EPIC-004 slice 2). Replaces only the
+ * browser leg of the PKCE flow: given a live `state` from a prior `/start`,
+ * the server mints a one-time exchange code for a seeded approved user keyed
+ * to that state's stored `code_challenge`. `email` defaults server-side to the
+ * deterministic e2e fixtures user; an override exists only so negative tests
+ * can point at a different seeded user.
+ *
+ * The endpoint is double-gated (explicit `E2E_TEST_AUTH` flag AND never on
+ * Vercel) and 404s by construction otherwise, so these schemas are
+ * deliberately **not** registered in the public OpenAPI surface
+ * (`apps/web/scripts/generate-openapi.ts`).
+ */
+export const mobileAuthTestTokenRequestSchema = z.object({
+  state: z.string().min(1),
+  email: z.string().email().optional(),
+});
+export type MobileAuthTestTokenRequest = z.infer<typeof mobileAuthTestTokenRequestSchema>;
+
+/**
+ * Response: the `travelplanner://auth?...` deep link the substitute browser
+ * leg returns to `runSignInFlow`. Carries `?code=<one-time>` on success or
+ * `?error=<reason>` on failure — the identical shape `/callback` 302-redirects
+ * to, so the orchestrator can't tell the seam from the real flow.
+ */
+export const mobileAuthTestTokenResponseSchema = z.object({
+  redirect_url: z.string().min(1),
+});
+export type MobileAuthTestTokenResponse = z.infer<typeof mobileAuthTestTokenResponseSchema>;

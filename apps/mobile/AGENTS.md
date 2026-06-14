@@ -53,12 +53,12 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   runners), `pnpm db:migrate && pnpm db:seed && pnpm seed:e2e`
   (deterministic fixtures from
   `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
-  production Next server; the Release bundle inlines
-  `EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000` and the job asserts
-  both (canary curl + bundle `strings` grep) before Maestro runs. That's
-  the iOS Simulator gate — if it fails on the routine's PR, Matt picks it
-  up via the standard CI-failure email + the routine's `claude:blocked`
-  flow.
+  production Next server bound to `0.0.0.0`; the Release bundle inlines
+  `EXPO_PUBLIC_API_BASE_URL=http://<runner-LAN-IP>:3000` and the job
+  asserts both (canary curl + bundle `strings` grep) before Maestro runs.
+  That's the iOS Simulator gate — if it fails on the routine's PR, Matt
+  picks it up via the standard CI-failure email + the routine's
+  `ai:blocked` flow.
 
 ## Dev loop (manual / human-driven only)
 
@@ -173,6 +173,10 @@ fall back to the Simulator or point at prod.
   steps moved into `AuthProvider.signIn` (SPEC-007 §7.3 reshape).
   Returns `SignInResult = { success; tokens } | { cancelled } |
   { error }`.
+- `src/auth/e2e-browser-leg.ts` — `resolveBrowserLeg()` picks the
+  `runSignInFlow` browser leg: the real `WebBrowser.openAuthSessionAsync`,
+  or the E2E test-auth substitute when `EXPO_PUBLIC_E2E_AUTH=1` (SPEC-014).
+  See "Test-auth seam" below.
 - `src/auth/get-access-token.ts` — proactive refresh gateway. Every
   authenticated `/api/v1/*` call should route through here to obtain
   its bearer. Reads Keychain; if `now < expires_at - 60s` returns
@@ -333,13 +337,46 @@ notes for the configuration sketch.
 
 ### Maestro flows (E2E)
 
-One YAML per user journey under `.maestro/flows/`. Examples:
+One YAML per user journey under `.maestro/flows/`. Current flows:
 
-- `launch.yaml` — app boots and the Hello screen renders.
-- `login.yaml` — slice 6's sign-in journey.
-- `me-screen.yaml` — slice 7's milestone journey.
+- `sign-in.yaml` — launch smoke: app boots to the sign-in screen (does
+  NOT tap the button; the real Google sheet can't be driven by Maestro).
+
+The **live signed-in journey** (sign in via the seam → trips list → sign
+out) is **deferred to EPIC-004 slice 3** — it is blocked on the iOS-sim →
+host-backend reachability issue (TD-010 / EPIC-004 deviation #1): on the
+macOS runner the simulator can't reach the host server on any address even
+though the runner can. The server seam + client harness below are landed and
+proven; slice 3 solves reachability first, then authors the flow.
 
 Use `id:` selectors over visible-text selectors where possible.
+
+### Test-auth seam (E2E sign-in without Google — SPEC-014)
+
+Maestro can't drive Google's consent screen, so the (future, slice-3)
+signed-in journey signs in through a seam that replaces **only the browser
+leg** of the PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and
+AuthGuard all stay real. The seam (server + client + CI assertions) is
+landed and green; only the live Maestro flow is deferred (TD-010):
+
+- **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
+  the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
+  `e2eOpenAuthSession` substitute when `EXPO_PUBLIC_E2E_AUTH=1` is inlined
+  at bundle time. The substitute extracts `state` from the authorise URL
+  and POSTs it to `POST /api/v1/auth/mobile/test-token`, returning the
+  deep link the server mints. The sign-in screen wires it via
+  `openAuthSession: resolveBrowserLeg()`.
+- **Server:** `apps/web/.../auth/mobile/test-token/route.ts` mints a
+  one-time exchange code for the seeded approved e2e user, keyed to the
+  state's stored PKCE challenge. **Double-gated, fail-closed:** enabled
+  only when `E2E_TEST_AUTH=1` AND not on Vercel; 404 otherwise (the
+  EPIC-004 kill-criterion, asserted by a route int-test). Deliberately
+  unpublished from the OpenAPI surface.
+- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1` (job env, inherited
+  by the backend) and `EXPO_PUBLIC_E2E_AUTH=1` (xcodebuild step). **Neither
+  flag is ever defined in Terraform or any Vercel env.** Running the
+  `signed-in-journey` flow locally needs both flags set the same way (slice
+  4 automates the local backend).
 
 ## Pnpm + Metro
 

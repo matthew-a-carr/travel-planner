@@ -278,6 +278,17 @@ jobs:
       AUTH_GOOGLE_ID: ci-placeholder-client-id
       AUTH_GOOGLE_SECRET: ci-placeholder-client-secret
       AUTH_URL: http://127.0.0.1:3000
+      # The app reaches the backend on the runner's LAN IP (SPEC-014), not the
+      # AUTH_URL host, so next-auth must trust the inbound host (e.g. the
+      # /api/auth/providers canary) rather than reject it as untrusted.
+      AUTH_TRUST_HOST: 'true'
+      # SPEC-014 / EPIC-004 slice 2: enables the gated test-auth seam
+      # (POST /api/v1/auth/mobile/test-token) on the backend the server boots
+      # below, so Maestro can sign in without Google. The endpoint 404s
+      # everywhere else — double-gated (this flag AND never on Vercel; neither
+      # flag is ever defined in Terraform or any Vercel env). The
+      # signed-in-journey flow depends on it.
+      E2E_TEST_AUTH: '1'
 
     steps:
       - uses: actions/checkout@v6
@@ -357,6 +368,25 @@ jobs:
           POSTGRES_URL: postgresql://build:build@localhost:5432/build
         run: pnpm build
 
+      # The iOS Simulator cannot reach the host's loopback (127.0.0.1) on the
+      # GitHub macOS runner — proven by SPEC-014's on-device reachability probe
+      # (the runner-side canary/seam-smoke reach 127.0.0.1 fine, the app does
+      # not). The sim CAN reach the host's LAN IP, so we bind the server to all
+      # interfaces (start-backend.sh: -H 0.0.0.0) and point the app at the
+      # runner's en0 address — the same approach `pnpm dev:mobile` uses for
+      # physical devices.
+      - name: Detect runner host IP for the simulator
+        run: |
+          set -euo pipefail
+          HOST_IP=$(ipconfig getifaddr en0 || true)
+          [ -z "$HOST_IP" ] && HOST_IP=$(ipconfig getifaddr en1 || true)
+          if [ -z "$HOST_IP" ]; then
+            echo "::error::Could not determine the runner host IP (en0/en1)"
+            exit 1
+          fi
+          echo "Runner host IP: $HOST_IP"
+          echo "HOST_IP=$HOST_IP" >> "$GITHUB_ENV"
+
       - name: Start backend server (background)
         run: apps/mobile/scripts/ci/start-backend.sh
 
@@ -435,15 +465,24 @@ jobs:
         # fails.
         working-directory: apps/mobile/ios
         env:
-          # Inlined into the JS bundle by the "Bundle React Native code
-          # and images" phase (SPEC-013). 127.0.0.1 (not the code default
-          # `localhost`) so the bundle assertion below can't pass
-          # vacuously. The simulator shares the host network.
-          EXPO_PUBLIC_API_BASE_URL: http://127.0.0.1:3000
+          # SPEC-014 / EPIC-004 slice 2: selects the test-auth browser leg
+          # (src/auth/e2e-browser-leg.ts) at bundle time, so the signed-in
+          # journey signs in via the server seam instead of Google. Pairs with
+          # the job-level E2E_TEST_AUTH that enables the server endpoint. A
+          # CI-only, non-secret flag — never defined in any Vercel env.
+          EXPO_PUBLIC_E2E_AUTH: '1'
         run: |
+          # EXPO_PUBLIC_API_BASE_URL points at the runner's LAN IP, not
+          # 127.0.0.1: the iOS Simulator cannot reach the host's loopback on the
+          # GitHub macOS runner but can reach its LAN address (SPEC-014); the
+          # backend binds 0.0.0.0 to answer on it. Exported here (rather than in
+          # the step `env:`) so the value comes straight from the HOST_IP shell
+          # env without a workflow expression. The "Bundle React Native code and
+          # images" phase inherits this exported env and inlines it.
+          export EXPO_PUBLIC_API_BASE_URL="http://${HOST_IP}:3000"
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
-          echo "Building workspace=$WORKSPACE scheme=$SCHEME"
+          echo "Building workspace=$WORKSPACE scheme=$SCHEME against $EXPO_PUBLIC_API_BASE_URL"
           # ARCHS=arm64: the .app only ever runs on this runner's own (arm64)
           # simulator, but Release defaults to ONLY_ACTIVE_ARCH=NO and compiles
           # every Pod for x86_64 too — roughly doubling compile time for slices
@@ -470,14 +509,16 @@ jobs:
         working-directory: apps/mobile/ios
         run: |
           echo "::group::Backend canary"
+          # Curl the LAN IP (not loopback) to prove the 0.0.0.0 bind answers on
+          # the same address the simulator will use (SPEC-014).
           if ! curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
-              http://127.0.0.1:3000/api/auth/providers >/dev/null; then
-            echo "::error::Backend canary failed — server not responding on :3000"
+              "http://${HOST_IP}:3000/api/auth/providers" >/dev/null; then
+            echo "::error::Backend canary failed — server not responding on ${HOST_IP}:3000"
             echo "── tail of backend.log ──"
             tail -n 80 "$RUNNER_TEMP/backend.log" || true
             exit 1
           fi
-          echo "Backend is serving."
+          echo "Backend is serving on ${HOST_IP}:3000."
           echo "::endgroup::"
 
           APP_PATH=$(find build/Build/Products/Release-iphonesimulator -maxdepth 2 -name '*.app' -type d | head -1)
@@ -494,11 +535,54 @@ jobs:
           # exit can SIGPIPE strings (status 141) if this step ever gains
           # `shell: bash` (which GitHub runs with -o pipefail).
           strings "$BUNDLE" > "$RUNNER_TEMP/bundle-strings.txt"
-          if ! grep -q '127\.0\.0\.1:3000' "$RUNNER_TEMP/bundle-strings.txt"; then
-            echo "::error::EXPO_PUBLIC_API_BASE_URL not found in the JS bundle — env was not inlined"
+          if ! grep -qF "${HOST_IP}:3000" "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::EXPO_PUBLIC_API_BASE_URL (${HOST_IP}:3000) not found in the JS bundle — env was not inlined"
             exit 1
           fi
-          echo "Bundle contains the backend URL — env inlined correctly."
+          echo "Bundle contains the backend URL (${HOST_IP}:3000) — env inlined correctly."
+
+          # SPEC-014: prove EXPO_PUBLIC_E2E_AUTH inlined so the signed-in
+          # journey uses the test-auth substitute, not the real Google browser
+          # leg (which would hang Maestro). e2e-browser-leg.ts folds the flag to
+          # exactly one marker; _ON means the substitute is wired, _OFF means
+          # the flag did not reach the bundle.
+          if grep -q 'SPEC014_E2E_AUTH_BUNDLE_OFF' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::EXPO_PUBLIC_E2E_AUTH did NOT inline to '1' — substitute browser leg is OFF in the bundle"
+            exit 1
+          fi
+          if ! grep -q 'SPEC014_E2E_AUTH_BUNDLE_ON' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::E2E auth bundle marker missing entirely — e2e-browser-leg not bundled as expected"
+            exit 1
+          fi
+          echo "E2E test-auth substitute is wired into the bundle (marker ON)."
+
+      # Server half of the test-auth seam (SPEC-014), exercised from the runner
+      # before any Maestro time is spent: /start → /test-token must mint a
+      # `?code=` deep link. This proves E2E_TEST_AUTH gated the endpoint ON and
+      # the mint path + DB work, so a red signed-in-journey flow downstream is
+      # unambiguously the *client* half (bundle flag / app networking), not the
+      # server. 43-char challenge satisfies the start schema (min 43).
+      - name: Test-auth seam smoke (server half)
+        run: |
+          set -euo pipefail
+          echo "::group::Seam smoke"
+          CHALLENGE="0123456789012345678901234567890123456789012"
+          START=$(curl --fail --silent --show-error -X POST \
+            "http://${HOST_IP}:3000/api/v1/auth/mobile/start" \
+            -H 'Content-Type: application/json' \
+            -d "{\"code_challenge\":\"$CHALLENGE\"}")
+          STATE=$(printf '%s' "$START" | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['state'])")
+          MINT=$(curl --fail --silent --show-error -X POST \
+            "http://${HOST_IP}:3000/api/v1/auth/mobile/test-token" \
+            -H 'Content-Type: application/json' \
+            -d "{\"state\":\"$STATE\"}")
+          printf '%s' "$MINT" | python3 -c "
+          import sys, json
+          url = json.load(sys.stdin)['data']['redirect_url']
+          assert 'code=' in url, f'expected a ?code= deep link, got: {url}'
+          print('Seam server half OK — minted', url[:34], '…')
+          "
+          echo "::endgroup::"
 
       - name: Wait for iOS Simulator to finish booting
         run: xcrun simctl bootstatus "$SIM_UDID" -b

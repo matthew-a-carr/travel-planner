@@ -1,8 +1,0 @@
-{
-  "name": "matthew-a-carr/deploy-smoke-test",
-  "description": "Confirm a production deploy actually landed and is healthy. Verifies the latest Vercel Production deployment is READY and matches the current `main` commit, runs HTTP canary checks against travel.matthewcarr.dev, confirms migrations applied, and checks for a post-deploy Sentry error spike. Use after merging to `main`, or when a human asks \"is prod healthy?\" / \"did the deploy go out?\" / \"smoke test production\". Read-only against prod by default.",
-  "skills": [
-    "."
-  ],
-  "version": "0.1.0"
-}

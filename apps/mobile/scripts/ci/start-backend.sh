@@ -7,6 +7,12 @@
 #   - Auth env (AUTH_SECRET etc.) is set at the job level, mirroring the
 #     web e2e job — next-auth needs it at boot.
 #
+# Binds `-H 0.0.0.0` (all interfaces, not just loopback) so the iOS
+# Simulator can reach the server via the runner's LAN IP — the sim cannot
+# reach the host's 127.0.0.1 on the GitHub macOS runner (proven by
+# SPEC-014's on-device reachability probe). The app's
+# EXPO_PUBLIC_API_BASE_URL points at that LAN IP (HOST_IP).
+#
 # The server is intentionally NOT awaited here: the canary step curls it
 # after xcodebuild, by which point the ~5s boot is long done — same
 # overlap trick as the background simulator boot (ADR 055).
@@ -20,9 +26,11 @@ set -euo pipefail
 
 LOG_FILE="${RUNNER_TEMP:-/tmp}/backend.log"
 
-nohup pnpm start >"$LOG_FILE" 2>&1 &
+# Call the web app's `next start` directly with -H 0.0.0.0 — forwarding the
+# flag cleanly through the nested root→web pnpm `start` scripts is fragile.
+nohup pnpm --filter @travel-planner/web exec next start -H 0.0.0.0 >"$LOG_FILE" 2>&1 &
 BACKEND_PID=$!
-echo "Backend starting (pid $BACKEND_PID), log: $LOG_FILE"
+echo "Backend starting (pid $BACKEND_PID) bound to 0.0.0.0, log: $LOG_FILE"
 
 if [ -n "${GITHUB_ENV:-}" ]; then
   echo "BACKEND_PID=$BACKEND_PID" >>"$GITHUB_ENV"

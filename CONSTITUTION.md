@@ -5,7 +5,7 @@
 
 > **Cross-repo principles.** This project inherits the shared engineering
 > principles defined in
-> [`matthew-a-carr/engineering-principles`](https://github.com/matthew-a-carr/engineering-principles),
+> [`engineering-principles`](https://github.com/matthew-a-carr/ai-plugins/tree/main/plugins/engineering-principles),
 > installed as a Claude Code plugin (marketplace `matthew-a-carr`). Its tiers —
 > `principles/constitution.md` (P1–P33), `principles/cloud-native.md`,
 > `principles/tech-stack.md` — load in every session and are surfaced by the

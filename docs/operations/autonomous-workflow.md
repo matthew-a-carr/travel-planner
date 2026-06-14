@@ -36,13 +36,13 @@ genuinely stuck.
    {
      "enabledPlugins": {
        "engineering-principles@matthew-a-carr": true,
-       "dev-skills@matthew-a-carr": true
+       "agent-skills@matthew-a-carr": true
      },
      "extraKnownMarketplaces": {
        "matthew-a-carr": {
          "source": {
            "source": "github",
-           "repo": "matthew-a-carr/claude-plugins"
+           "repo": "matthew-a-carr/ai-plugins"
          }
        }
      }
@@ -56,7 +56,7 @@ genuinely stuck.
    - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
      tech-stack, behavioural-rules, `apply-principles`, and
      `architecture-review`.
-   - `dev-skills@matthew-a-carr` — TDD, handoff, grilling, GitHub PR
+   - `agent-skills@matthew-a-carr` — TDD, handoff, grilling, GitHub PR
      helpers, CLI design.
 
    If a routine session reports "skill not found: apply-principles", the
@@ -73,17 +73,17 @@ verify ONE routine works against a throwaway label before wiring all six
 against the real labels.
 
 ```bash
-gh label create "claude:test-routine" --color "ededed" --description "Throwaway label for smoke-testing the autonomous loop"
+gh label create "ai:test-routine" --color "ededed" --description "Throwaway label for smoke-testing the autonomous loop"
 ```
 
 Configure exactly one routine — pick `draft-spec` — with trigger `Issue
-opened` + `Labels is one of` → `claude:test-routine` instead of `claude:plan`.
+opened` + `Labels is one of` → `ai:test-routine` instead of `ai:plan`.
 Set the `SLACK_NOTIFY_USER` env var. Save.
 
 Open a test issue:
 
 ```bash
-gh issue create --title "smoke-test: please ignore" --label claude:test-routine --body "Throwaway issue to verify the routine fires, the plugin loads, and the Slack DM reaches me. Routine should comment on this issue then bail."
+gh issue create --title "smoke-test: please ignore" --label ai:test-routine --body "Throwaway issue to verify the routine fires, the plugin loads, and the Slack DM reaches me. Routine should comment on this issue then bail."
 ```
 
 Then, within a minute or two, check `claude.ai/code/routines` → the routine's
@@ -99,20 +99,20 @@ Then, within a minute or two, check `claude.ai/code/routines` → the routine's
 If any of those fail, fix the gap (re-check user-level `~/.claude/settings.json`,
 confirm Claude GitHub App installed, confirm Slack connector active) before
 configuring the other five routines. Then close the smoke-test issue,
-delete the `claude:test-routine` label, and re-point the `draft-spec`
-trigger at `claude:plan`.
+delete the `ai:test-routine` label, and re-point the `draft-spec`
+trigger at `ai:plan`.
 
 ## Labels — create these once
 
 ```bash
-gh label create "claude:plan"        --color "1d76db" --description "Fires draft-spec routine on issue open"
-gh label create "claude:plan-epic"   --color "0e8a16" --description "Fires draft-epic routine on issue open"
-gh label create "claude:planned"     --color "c5def5" --description "Set by draft-spec/draft-epic after PR opens — prevents re-drafting"
-gh label create "claude:revise"      --color "fbca04" --description "Applied to spec PRs awaiting human review"
-gh label create "claude:revise-now"  --color "d93f0b" --description "Apply to fire revise-spec routine on the PR"
-gh label create "claude:implement"   --color "0e8a16" --description "Apply to spec PR before merging — fires implement-spec on merge"
-gh label create "claude:blocked"     --color "b60205" --description "Routine couldn't proceed; needs human input"
-gh label create "claude:done"        --color "5319e7" --description "Applied by implement-spec when impl PR is ready for review"
+gh label create "ai:plan"        --color "1d76db" --description "Fires draft-spec routine on issue open"
+gh label create "ai:plan-epic"   --color "0e8a16" --description "Fires draft-epic routine on issue open"
+gh label create "ai:planned"     --color "c5def5" --description "Set by draft-spec/draft-epic after PR opens — prevents re-drafting"
+gh label create "ai:revise"      --color "fbca04" --description "Applied to spec PRs awaiting human review"
+gh label create "ai:revise-now"  --color "d93f0b" --description "Apply to fire revise-spec routine on the PR"
+gh label create "ai:implement"   --color "0e8a16" --description "Apply to spec PR before merging — fires implement-spec on merge"
+gh label create "ai:blocked"     --color "b60205" --description "Routine couldn't proceed; needs human input"
+gh label create "ai:done"        --color "5319e7" --description "Applied by implement-spec when impl PR is ready for review"
 ```
 
 Run these from a checkout of `travel-planner` with `gh auth login` complete.
@@ -173,10 +173,10 @@ and NOTIFY_REPO are set on this routine.
 
 | # | Name | Trigger | Canonical prompt file |
 |---|---|---|---|
-| 1 | `draft-spec` | GitHub: `Issue opened` + filter `Labels is one of: claude:plan` | [`.claude/routines/draft-spec.md`](../../.claude/routines/draft-spec.md) |
-| 2 | `draft-epic` | GitHub: `Issue opened` + filter `Labels is one of: claude:plan-epic` | [`.claude/routines/draft-epic.md`](../../.claude/routines/draft-epic.md) |
-| 3 | `revise-spec` | GitHub: `Custom` event `pull_request.labeled` + filter `Labels is one of: claude:revise-now` | [`.claude/routines/revise-spec.md`](../../.claude/routines/revise-spec.md) |
-| 4 | `implement-spec` | GitHub: `PR merged` + filter `Labels is one of: claude:implement` | [`.claude/routines/implement-spec.md`](../../.claude/routines/implement-spec.md) |
+| 1 | `draft-spec` | GitHub: `Issue opened` + filter `Labels is one of: ai:plan` | [`.claude/routines/draft-spec.md`](../../.claude/routines/draft-spec.md) |
+| 2 | `draft-epic` | GitHub: `Issue opened` + filter `Labels is one of: ai:plan-epic` | [`.claude/routines/draft-epic.md`](../../.claude/routines/draft-epic.md) |
+| 3 | `revise-spec` | GitHub: `Custom` event `pull_request.labeled` + filter `Labels is one of: ai:revise-now` | [`.claude/routines/revise-spec.md`](../../.claude/routines/revise-spec.md) |
+| 4 | `implement-spec` | GitHub: `PR merged` + filter `Labels is one of: ai:implement` | [`.claude/routines/implement-spec.md`](../../.claude/routines/implement-spec.md) |
 | 5 | `daily-digest` | Schedule: `0 17 * * *` (17:00 UTC) | [`.claude/routines/daily-digest.md`](../../.claude/routines/daily-digest.md) |
 | 6 | `weekly-tech-debt` | Schedule: `0 17 * * 0` (Sun 17:00 UTC) | [`.claude/routines/weekly-tech-debt.md`](../../.claude/routines/weekly-tech-debt.md) |
 
@@ -203,7 +203,7 @@ shell.
 Once the six routines above are configured, kick off the first epic:
 
 ```bash
-gh issue create --title "epic: mobile feature parity with web" --label "claude:plan-epic" --body-file - <<'EOF'
+gh issue create --title "epic: mobile feature parity with web" --label "ai:plan-epic" --body-file - <<'EOF'
 **Vision:** the mobile app reaches feature parity with the web app for everything currently shipped to authenticated users.
 
 **Definition of done:**
@@ -242,7 +242,7 @@ The draft-epic routine will refine this into a proper slice ledger.
 EOF
 ```
 
-Once the epic PR is merged, file one `claude:plan` issue per slice (or ask the
+Once the epic PR is merged, file one `ai:plan` issue per slice (or ask the
 `draft-epic` routine to do it for you in a follow-up).
 
 ## Notification contract — what Matt sees

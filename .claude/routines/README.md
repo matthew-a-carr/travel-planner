@@ -20,11 +20,11 @@ covers the one-time setup; the files here cover the recurring behaviour.
 
 | Routine | File | Trigger |
 |---|---|---|
-| `draft-spec` | [`draft-spec.md`](./draft-spec.md) | GitHub: `Issue opened` + label `claude:plan` |
-| `draft-epic` | [`draft-epic.md`](./draft-epic.md) | GitHub: `Issue opened` + label `claude:plan-epic` |
-| `revise-spec` | [`revise-spec.md`](./revise-spec.md) | GitHub: `Custom` event (`pull_request.labeled`) + label `claude:revise-now` |
-| `implement-spec` | [`implement-spec.md`](./implement-spec.md) | GitHub: `PR merged` + label `claude:implement` |
-| `review-implementation` | [`review-implementation.md`](./review-implementation.md) | GitHub: `Custom` event (`pull_request.labeled`) + label `claude:done` |
+| `draft-spec` | [`draft-spec.md`](./draft-spec.md) | GitHub: `Issue opened` + label `ai:plan` |
+| `draft-epic` | [`draft-epic.md`](./draft-epic.md) | GitHub: `Issue opened` + label `ai:plan-epic` |
+| `revise-spec` | [`revise-spec.md`](./revise-spec.md) | GitHub: `Custom` event (`pull_request.labeled`) + label `ai:revise-now` |
+| `implement-spec` | [`implement-spec.md`](./implement-spec.md) | GitHub: `PR merged` + label `ai:implement` |
+| `review-implementation` | [`review-implementation.md`](./review-implementation.md) | GitHub: `Custom` event (`pull_request.labeled`) + label `ai:done` |
 | `daily-digest` | [`daily-digest.md`](./daily-digest.md) | Schedule: `0 17 * * *` (17:00 UTC = 18:00 BST) |
 | `weekly-tech-debt` | [`weekly-tech-debt.md`](./weekly-tech-debt.md) | Schedule: `0 17 * * 0` (Sun 17:00 UTC) |
 

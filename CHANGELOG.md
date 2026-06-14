@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.19.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.18.0...v1.19.0) (2026-06-12)
+
+
+### Features
+
+* **epic-002:** read-only mobile data — trips list + detail (SPEC-009..012) ([8ce73c5](https://github.com/matthew-a-carr/travel-planner/commit/8ce73c54e8ad4f79f52ff3b52525d1b1b74b8f34))
+* **spec-013:** mobile-e2e real backend — native Postgres + seeded Next server on the macOS runner ([#147](https://github.com/matthew-a-carr/travel-planner/issues/147)) ([9a4eb04](https://github.com/matthew-a-carr/travel-planner/commit/9a4eb04cae323d0abcbf30b6585f121d6a088e3f))
+
+
+### Bug Fixes
+
+* **ci:** clean-prebuild mobile-e2e on cache-key miss (real fix for TD-009) ([#133](https://github.com/matthew-a-carr/travel-planner/issues/133)) ([eb1d803](https://github.com/matthew-a-carr/travel-planner/commit/eb1d80365568c032886d363340bbfeedd184015f))
+* **skills:** harden against prompt injection + secret exfiltration ([50ba6b1](https://github.com/matthew-a-carr/travel-planner/commit/50ba6b1d34b9e67bc2c97767c36e1c5df9b62aff))
+
 ## [1.18.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.17.0...v1.18.0) (2026-05-30)
 
 
@@ -69,7 +83,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
   validation and manual debugging. The interactive `grill-me` /
   `plan-feature` / `plan-epic` skills were retired from this repo; the new
   `draft-spec` and `revise-spec` skills replace them, and `implement-spec`
-  was rewired to fire on a merged spec PR with the `claude:implement` label.
+  was rewired to fire on a merged spec PR with the `ai:implement` label.
   Operations runbook: `docs/operations/autonomous-workflow.md`.
 - Pinned `engineering-principles@matthew-a-carr` and
   `dev-skills@matthew-a-carr` in `.claude/settings.json` via the

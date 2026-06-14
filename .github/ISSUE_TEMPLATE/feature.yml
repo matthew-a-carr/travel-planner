@@ -1,7 +1,7 @@
 name: Feature request (auto-spec)
 description: Describe a feature. The draft-spec routine will turn this into a SPEC PR.
 title: "feat: "
-labels: ["claude:plan"]
+labels: ["ai:plan"]
 body:
   - type: markdown
     attributes:
@@ -79,4 +79,4 @@ body:
     attributes:
       value: |
         ---
-        When you submit, the `claude:plan` label fires the **draft-spec routine**. The PR will be linked back here as a comment, and the issue will be labelled `claude:planned`. To revise the resulting SPEC, drop comments on the PR and apply the `claude:revise-now` label. To approve and trigger implementation, merge the PR with the `claude:implement` label.
+        When you submit, the `ai:plan` label fires the **draft-spec routine**. The PR will be linked back here as a comment, and the issue will be labelled `ai:planned`. To revise the resulting SPEC, drop comments on the PR and apply the `ai:revise-now` label. To approve and trigger implementation, merge the PR with the `ai:implement` label.
