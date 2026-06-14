@@ -36,13 +36,13 @@ genuinely stuck.
    {
      "enabledPlugins": {
        "engineering-principles@matthew-a-carr": true,
-       "dev-skills@matthew-a-carr": true
+       "agent-skills@matthew-a-carr": true
      },
      "extraKnownMarketplaces": {
        "matthew-a-carr": {
          "source": {
            "source": "github",
-           "repo": "matthew-a-carr/claude-plugins"
+           "repo": "matthew-a-carr/ai-plugins"
          }
        }
      }
@@ -56,7 +56,7 @@ genuinely stuck.
    - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
      tech-stack, behavioural-rules, `apply-principles`, and
      `architecture-review`.
-   - `dev-skills@matthew-a-carr` — TDD, handoff, grilling, GitHub PR
+   - `agent-skills@matthew-a-carr` — TDD, handoff, grilling, GitHub PR
      helpers, CLI design.
 
    If a routine session reports "skill not found: apply-principles", the

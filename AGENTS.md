@@ -3,7 +3,7 @@
 > Read [`CONSTITUTION.md`](./CONSTITUTION.md) before writing any code.
 > This file is the operational quick-reference. The constitution is the law.
 > The constitution inherits the shared
-> [`engineering-principles`](https://github.com/matthew-a-carr/engineering-principles)
+> [`engineering-principles`](https://github.com/matthew-a-carr/ai-plugins/tree/main/plugins/engineering-principles)
 > plugin (cite principles by anchor — P5, C8, T3); use its `apply-principles`
 > skill before a non-trivial change and `architecture-review` on a diff.
 
@@ -31,7 +31,7 @@ What this means in practice:
   cloud sessions bootstrap Docker + Terraform + gh + pnpm install +
   Playwright automatically; local sessions skip the bootstrap.
 - Two plugins are pinned in `.claude/settings.json` via the
-  `matthew-a-carr` marketplace (`matthew-a-carr/claude-plugins`):
+  `matthew-a-carr` marketplace (`matthew-a-carr/ai-plugins`):
   - `engineering-principles@matthew-a-carr` — constitution, cloud-native,
     tech-stack, behavioural-rules, plus the `apply-principles` and
     `architecture-review` skills.
@@ -389,7 +389,7 @@ Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`)
 For **repo-specific** skills, create a directory under `.agents/skills/` with a
 `SKILL.md`. For **generic** skills that should be shared across repos,
 contribute them to
-[`agent-skills`](https://github.com/matthew-a-carr/agent-skills).
+[`agent-skills`](https://github.com/matthew-a-carr/ai-plugins/tree/main/plugins/agent-skills).
 
 See the [Agent Skills specification](https://agentskills.io/specification) for
 the full format reference.

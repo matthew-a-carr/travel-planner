@@ -30,7 +30,7 @@ schedule (≥1h interval), API (HTTP POST to `/fire`), and GitHub (native
 webhook on PR, release, and issue events — including `Issue opened` with a
 `Labels is one of` filter and a `Custom` option for finer-grained events). The
 project pins the relevant plugins in its own `.claude/settings.json`
-(via the `matthew-a-carr/claude-plugins` marketplace), so the principles
+(via the `matthew-a-carr/ai-plugins` marketplace), so the principles
 and helper skills auto-load in every routine session and every fresh clone
 — independent of any user-level config.
 
@@ -75,7 +75,7 @@ Interactive grilling is replaced by:
   rewrites the spec accordingly, pushing to the same `claude/spec-NNN-*` branch.
 
 `grill-me` remains available via the user-level
-`dev-skills@matthew-a-carr` plugin install (also pinned in this repo's
+`agent-skills@matthew-a-carr` plugin install (also pinned in this repo's
 `.claude/settings.json` so it auto-loads in every routine session) — agents
 can still invoke it manually if a session genuinely needs interactive
 interrogation. It is just
@@ -122,9 +122,9 @@ Consequences for the codebase:
   based Maestro flows on macOS runners.
 - The repo's `.claude/hooks/session-start.sh` already gates its work on
   `CLAUDE_CODE_REMOTE=true`, which is correct.
-- `engineering-principles@matthew-a-carr` and `dev-skills@matthew-a-carr`
+- `engineering-principles@matthew-a-carr` and `agent-skills@matthew-a-carr`
   are both pinned in this repo's `.claude/settings.json` via the
-  `matthew-a-carr/claude-plugins` marketplace, so routines and fresh clones
+  `matthew-a-carr/ai-plugins` marketplace, so routines and fresh clones
   load the same plugin set regardless of who's running them.
 
 ### 5. Notification policy: blockers only
