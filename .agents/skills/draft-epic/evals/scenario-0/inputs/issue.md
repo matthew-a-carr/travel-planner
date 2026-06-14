@@ -1,6 +1,6 @@
 # Add multi-tenant support to the platform
 
-**Label**: claude:plan-epic  
+**Label**: ai:plan-epic  
 **Strategic ADR**: docs/adr/adr-007-multi-tenancy.md
 
 ## Vision

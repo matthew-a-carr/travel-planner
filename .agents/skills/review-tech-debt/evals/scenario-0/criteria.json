@@ -53,8 +53,8 @@
       "max_score": 8
     },
     {
-      "name": "claude:plan reference",
-      "description": "For at least one item categorised as needing a spec, the report recommends filing a `claude:plan` GitHub issue",
+      "name": "ai:plan reference",
+      "description": "For at least one item categorised as needing a spec, the report recommends filing a `ai:plan` GitHub issue",
       "max_score": 12
     }
   ]

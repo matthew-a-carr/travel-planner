@@ -1,5 +1,5 @@
 {
-  "context": "Tests whether the agent correctly handles two blocked scenarios: a rebase conflict (abort, post specific PR comment, apply claude:blocked, remove claude:revise-now, Slack DM) and all-ambiguous-comments (no revision commit, post blocked PR comment, apply claude:blocked, remove claude:revise-now, Slack DM). Focuses on the exact actions, ordering, and content of each response.",
+  "context": "Tests whether the agent correctly handles two blocked scenarios: a rebase conflict (abort, post specific PR comment, apply ai:blocked, remove ai:revise-now, Slack DM) and all-ambiguous-comments (no revision commit, post blocked PR comment, apply ai:blocked, remove ai:revise-now, Slack DM). Focuses on the exact actions, ordering, and content of each response.",
   "type": "weighted_checklist",
   "checklist": [
     {
@@ -14,17 +14,17 @@
     },
     {
       "name": "Rebase conflict PR comment text",
-      "description": "rebase_conflict_response.md contains a PR comment that includes the word 'Blocked', references the conflict cause (direct edit in GitHub UI), and instructs to pull/merge manually then re-apply `claude:revise-now`",
+      "description": "rebase_conflict_response.md contains a PR comment that includes the word 'Blocked', references the conflict cause (direct edit in GitHub UI), and instructs to pull/merge manually then re-apply `ai:revise-now`",
       "max_score": 10
     },
     {
       "name": "Rebase blocked label applied",
-      "description": "rebase_conflict_response.md lists applying the `claude:blocked` label to the PR as an action",
+      "description": "rebase_conflict_response.md lists applying the `ai:blocked` label to the PR as an action",
       "max_score": 8
     },
     {
       "name": "Rebase revise-now label removed",
-      "description": "rebase_conflict_response.md lists removing the `claude:revise-now` label from the PR as an action",
+      "description": "rebase_conflict_response.md lists removing the `ai:revise-now` label from the PR as an action",
       "max_score": 8
     },
     {
@@ -44,7 +44,7 @@
     },
     {
       "name": "Ambiguous blocked label and removal",
-      "description": "blocked_response.md lists both applying `claude:blocked` AND removing `claude:revise-now` from the PR as actions in the ambiguous-comments scenario",
+      "description": "blocked_response.md lists both applying `ai:blocked` AND removing `ai:revise-now` from the PR as actions in the ambiguous-comments scenario",
       "max_score": 8
     },
     {

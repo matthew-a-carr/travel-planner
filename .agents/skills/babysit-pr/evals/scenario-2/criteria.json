@@ -24,7 +24,7 @@
     },
     {
       "name": "PR 301 label linkage noted",
-      "description": "PR 301 entry acknowledges the claude:implement-spec label or SPEC-88 closure and notes that the linkage should be confirmed after merge",
+      "description": "PR 301 entry acknowledges the ai:implement-spec label or SPEC-88 closure and notes that the linkage should be confirmed after merge",
       "max_score": 8
     },
     {

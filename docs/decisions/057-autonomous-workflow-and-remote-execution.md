@@ -48,11 +48,11 @@ The new flow has five stages, with the human acting only at submission and
 review gates:
 
 ```
-Matt opens issue (labelled claude:plan)
+Matt opens issue (labelled ai:plan)
   → routine drafts SPEC, opens spec PR
     → Matt reviews PR (comments / re-labels)
       → routine revises spec, pushes updates
-        → Matt merges spec PR + applies claude:implement label
+        → Matt merges spec PR + applies ai:implement label
           → routine implements, opens impl PR
             → Matt merges impl PR
 ```
@@ -88,17 +88,17 @@ bridge required.
 
 | Stage | Trigger | Filter |
 |---|---|---|
-| Plan a feature | `Issue opened` | `Labels is one of` → `claude:plan` |
-| Plan an epic | `Issue opened` | `Labels is one of` → `claude:plan-epic` |
-| Revise a spec PR | `Custom` (PR labeled) | `Labels is one of` → `claude:revise-now` |
-| Implement | `PR merged` | `Labels is one of` → `claude:implement` |
+| Plan a feature | `Issue opened` | `Labels is one of` → `ai:plan` |
+| Plan an epic | `Issue opened` | `Labels is one of` → `ai:plan-epic` |
+| Revise a spec PR | `Custom` (PR labeled) | `Labels is one of` → `ai:revise-now` |
+| Implement | `PR merged` | `Labels is one of` → `ai:implement` |
 | Daily digest | Schedule (18:00 BST) | — |
 | Weekly tech-debt review | Schedule (Sun 18:00 BST) | — |
 
-Matt drives all of this from labels: open an issue with `claude:plan`, the
+Matt drives all of this from labels: open an issue with `ai:plan`, the
 draft-spec routine fires. Drop review comments on the spec PR, then re-label
-it `claude:revise-now`; the revise routine fires. Merge the spec PR with
-`claude:implement` applied; the implement routine fires.
+it `ai:revise-now`; the revise routine fires. Merge the spec PR with
+`ai:implement` applied; the implement routine fires.
 
 API trigger endpoints are reserved as an escape hatch for external systems
 (e.g. Sentry alerts kicking a triage routine) but are not part of the default
@@ -152,8 +152,8 @@ is the success signal.
 - Cross-laptop continuity: Matt can submit an issue from his phone, the
   routine handles it, and the PR is reviewable from anywhere.
 - Mobile parity becomes a queue of issues rather than a sequence of typing
-  sessions. One `claude:plan-epic` issue ("mobile feature parity with web")
-  spawns EPIC-002, which spawns one `claude:plan` issue per slice.
+  sessions. One `ai:plan-epic` issue ("mobile feature parity with web")
+  spawns EPIC-002, which spawns one `ai:plan` issue per slice.
 - Routine runs are reviewable as full sessions at claude.ai/code/session_XXX
   if Matt wants to inspect what the agent did.
 
@@ -182,14 +182,14 @@ is the success signal.
   ID. The reviewer renames one in PR review. Cost of getting this wrong
   is one rename; cost of preventing it (lockfile, central counter) is
   not worth it. Same applies to ADR numbering.
-- **Duplicate draft on slow `claude:planned` apply.** Step 23 of
-  `draft-spec` applies `claude:planned` to the source issue *after* the
+- **Duplicate draft on slow `ai:planned` apply.** Step 23 of
+  `draft-spec` applies `ai:planned` to the source issue *after* the
   PR opens. A second webhook event firing before that apply lands could
   start a second draft. Mitigation: step 23 has been moved *before* heavy
   work where possible (so the label is applied early), but the residual
   race is acceptable because the second draft will collide on branch
   name (`claude/spec-NNN-<slug>`) and fail loud.
-- **Label-removal race in `revise-spec`.** The `claude:revise-now` label
+- **Label-removal race in `revise-spec`.** The `ai:revise-now` label
   must be removed *only after* the revision is pushed. The skill
   enforces this ordering; reordering would loop.
 
@@ -213,7 +213,7 @@ is the success signal.
 - ADR 048's **rolling implementation notes** mechanism is retained. The
   grilling step is what 057 supersedes.
 - ADR 049's epic tier is unchanged in structure; only the trigger changes
-  (issue with `claude:plan-epic` label instead of "user invokes plan-epic
+  (issue with `ai:plan-epic` label instead of "user invokes plan-epic
   skill").
 - Existing in-flight SPECs (currently none are in-flight on this branch)
   remain valid. The new flow applies to any SPEC drafted after this ADR

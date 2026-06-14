@@ -43,8 +43,8 @@
       "max_score": 10
     },
     {
-      "name": "claude:blocked label target",
-      "description": "escalation-protocol.md specifies applying 'claude:blocked' to the open impl PR, OR to the source SPEC PR if no impl PR exists yet",
+      "name": "ai:blocked label target",
+      "description": "escalation-protocol.md specifies applying 'ai:blocked' to the open impl PR, OR to the source SPEC PR if no impl PR exists yet",
       "max_score": 10
     },
     {

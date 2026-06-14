@@ -344,7 +344,7 @@ names the rejected alternative and the cost of being wrong):
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | SPEC + implementation in one PR, on the session branch, instead of a standalone spec PR merged with `claude:implement` | Matt's instruction in-session ("do the slice and then the implementation"); EPIC-002 precedent | Single review gate instead of two | Yes (authorised) |
+| 1 | SPEC + implementation in one PR, on the session branch, instead of a standalone spec PR merged with `ai:implement` | Matt's instruction in-session ("do the slice and then the implementation"); EPIC-002 precedent | Single review gate instead of two | Yes (authorised) |
 | 2 | Spec text amended mid-PR (fixture-seed location `scripts/` → `src/infrastructure/db/seed/`, job-level auth env, canary route named, `packages/shared/**` filter pulled in) | `review-spec` self-review findings, applied before implementation started | Implementation matches the final spec; no code-level drift | Yes |
 
 ### Post-Implementation Notes

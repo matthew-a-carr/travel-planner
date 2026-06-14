@@ -1,6 +1,6 @@
 # Issue B: Add CSV Export to Reports
 
-**Label**: claude:plan-epic  
+**Label**: ai:plan-epic  
 **Number**: #202  
 **Strategic ADR**: N/A
 

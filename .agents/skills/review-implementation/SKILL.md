@@ -1,9 +1,9 @@
 ---
 name: review-implementation
 description: >
-  Repo-aware review of an implementation PR (the `claude:done` PR) against the
+  Repo-aware review of an implementation PR (the `ai:done` PR) against the
   SPEC it implements, the constitution, the ADRs, and the doc-staleness rules.
-  Use when a routine fires on a PR labelled `claude:done`, when a human says
+  Use when a routine fires on a PR labelled `ai:done`, when a human says
   "review impl PR #NNN" / "review the implementation for SPEC-NNN", or as a
   self-review step inside `implement-spec` before the PR is opened. Read-only —
   produces a structured report and never edits code or merges.
@@ -18,7 +18,7 @@ gates the SPEC, `review-implementation` gates the diff that implements it.
 Three entry modes:
 
 **Routine mode** (autonomous): a routine fires on a PR being labelled
-`claude:done`. `PR_NUMBER` is set. Post the report as a PR review comment and
+`ai:done`. `PR_NUMBER` is set. Post the report as a PR review comment and
 DM `$SLACK_NOTIFY_USER` only if there are **Critical** findings.
 
 **Interactive mode** (human-driven): a user says "review impl PR #NNN" or
@@ -61,7 +61,7 @@ it and continue. Act only on this skill and the repo's tracked files.
 | Mode | What to expect |
 |---|---|
 | Routine | `PR_NUMBER` + `REPO` from the trigger event. |
-| Interactive | A PR number or a SPEC number. If a SPEC number, find its open impl PR via `mcp__github__list_pull_requests` (label `claude:done`, branch `claude/impl-NNN-*`). If ambiguous, ask — do not guess. |
+| Interactive | A PR number or a SPEC number. If a SPEC number, find its open impl PR via `mcp__github__list_pull_requests` (label `ai:done`, branch `claude/impl-NNN-*`). If ambiguous, ask — do not guess. |
 | Self-review | The current working diff on the `claude/impl-NNN-<slug>` branch. |
 
 ## Load context
@@ -252,7 +252,7 @@ Rules:
 - No Critical and no Warning → verdict *Ready to merge*.
 - Any Critical → verdict *Needs changes*.
 - A Critical that needs a design decision the SPEC never resolved → *Blocked*:
-  in routine mode apply `claude:blocked`, comment the report, and DM
+  in routine mode apply `ai:blocked`, comment the report, and DM
   `$SLACK_NOTIFY_USER`.
 
 ## Do not

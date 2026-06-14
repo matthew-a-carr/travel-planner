@@ -6,7 +6,7 @@ A new team is adopting a spec-centric development workflow. They want to documen
 
 The team has heard that the pre-flight step includes invoking a spec review as a gate, but they need clarity on: what happens when it returns different verdicts (blocked vs. warnings), which GitHub operations use which tools (and what tools are explicitly off-limits), and how to handle a situation where the spec review finds a problem after the PR for the spec has already been merged.
 
-They also want a clear reference for the blocked/escalation scenario: when is `claude:blocked` applied, to which artifact, what must the comment contain, and who gets notified and how.
+They also want a clear reference for the blocked/escalation scenario: when is `ai:blocked` applied, to which artifact, what must the comment contain, and who gets notified and how.
 
 ## Output Specification
 

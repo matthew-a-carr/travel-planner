@@ -21,7 +21,7 @@ Write an epic when:
 
 Do **not** write an epic for:
 - Single-SPEC features (open a Feature request issue with label
-  `claude:plan` instead).
+  `ai:plan` instead).
 - Tactical refactors with no user-facing demo.
 - Anything where the strategic ADR is already the right level of detail
   and slicing is obvious.
@@ -29,21 +29,21 @@ Do **not** write an epic for:
 ## Lifecycle
 
 ```
-Issue opened (claude:plan-epic)
+Issue opened (ai:plan-epic)
   → draft-spec routine writes EPIC-NNN → opens epic PR
-    → human reviews / labels claude:revise-now → revise loop
-      → epic PR merged → human files claude:plan issues for each slice
+    → human reviews / labels ai:revise-now → revise loop
+      → epic PR merged → human files ai:plan issues for each slice
         → each slice flows through the standard SPEC lifecycle
 ```
 
 1. Strategic ADR exists (or is drafted alongside).
-2. Open an issue with the **Epic** template (label `claude:plan-epic`). The
+2. Open an issue with the **Epic** template (label `ai:plan-epic`). The
    `draft-spec` skill (epic mode) writes EPIC-NNN on a `claude/epic-NNN-*`
    branch and opens a PR. Per ADR 057.
-3. Human reviews. Feedback loop runs via PR comments + `claude:revise-now`
+3. Human reviews. Feedback loop runs via PR comments + `ai:revise-now`
    label.
 4. Merge the epic PR. The routine does NOT auto-file slice issues — Matt
-   files one `claude:plan` issue per slice (or asks a follow-up routine
+   files one `ai:plan` issue per slice (or asks a follow-up routine
    run to file them).
 5. Each slice flows through the standard SPEC lifecycle (see
    `docs/specs/README.md`).

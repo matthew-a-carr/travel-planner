@@ -76,7 +76,7 @@ Each later slice should add user-visible value, not just infrastructure.
 | 1 | ... | "A user can …" | SPEC-NNN (Draft) | — | Not started |
 | 2 | ... | ... | _not yet planned_ | Slice 1 | Not started |
 
-> SPECs are drafted by the `draft-spec` routine (from a `claude:plan` issue)
+> SPECs are drafted by the `draft-spec` routine (from a `ai:plan` issue)
 > only when the slice is ready to be implemented. Earlier slices may be planned
 > in detail; later slices are intentionally vague until preceding learnings
 > come in.

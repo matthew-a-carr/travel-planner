@@ -54,7 +54,7 @@
     },
     {
       "name": "Label removal order",
-      "description": "revision_plan.md or pr_comment_summary.md explicitly states that removing `claude:revise-now` must happen after pushing and after posting PR comments",
+      "description": "revision_plan.md or pr_comment_summary.md explicitly states that removing `ai:revise-now` must happen after pushing and after posting PR comments",
       "max_score": 10
     }
   ]

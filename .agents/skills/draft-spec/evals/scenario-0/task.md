@@ -2,7 +2,7 @@
 
 ## Problem/Feature Description
 
-A startup engineering team uses an automated system to turn GitHub issues into feature spec documents. The system runs as a scheduled routine: when an issue is labelled `claude:plan`, an agent reads the issue, drafts a SPEC document, and opens a pull request for human review.
+A startup engineering team uses an automated system to turn GitHub issues into feature spec documents. The system runs as a scheduled routine: when an issue is labelled `ai:plan`, an agent reads the issue, drafts a SPEC document, and opens a pull request for human review.
 
 Your job is to simulate the **submission phase** of this routine. A new feature has already been drafted as `docs/specs/SPEC-042-user-notifications.md` in a local git worktree (branch `claude/spec-042-user-notifications`), and the source GitHub issue is #88 in repo `acme-corp/travel-planner`.
 

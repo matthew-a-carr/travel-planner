@@ -227,12 +227,12 @@ documented in earlier revisions of this file is **superseded** by the issue-
 template + routine model below.
 
 ```
-Matt opens issue (claude:plan or claude:plan-epic)
+Matt opens issue (ai:plan or ai:plan-epic)
   → draft-spec / draft-epic routine opens a spec/epic PR
-    → Matt reviews PR, drops comments, labels claude:revise-now
+    → Matt reviews PR, drops comments, labels ai:revise-now
       → revise-spec routine rewrites and pushes
-        → Matt merges spec PR with claude:implement label
-          → implement-spec routine opens an implementation PR (claude:done)
+        → Matt merges spec PR with ai:implement label
+          → implement-spec routine opens an implementation PR (ai:done)
             → Matt merges impl PR
 ```
 
@@ -254,12 +254,12 @@ Write an epic when:
 - There's a meaningful chance the work is killed or pivoted partway, and
   pre-committing exit criteria matters.
 
-Open an issue with the **Epic** template (label `claude:plan-epic`).
+Open an issue with the **Epic** template (label `ai:plan-epic`).
 
 ### When to write a spec
 
 Write a spec (open an issue with the **Feature request** template, label
-`claude:plan`) when:
+`ai:plan`) when:
 - Adding a new user-facing feature
 - Making a significant change to domain logic
 - Adding a new integration or external service
@@ -274,17 +274,17 @@ Do NOT write a spec for:
 ### How feedback flows
 
 - **Drafted SPEC PR not quite right?** Drop review comments on the PR, then
-  apply label `claude:revise-now`. The `revise-spec` routine rewrites and
+  apply label `ai:revise-now`. The `revise-spec` routine rewrites and
   removes the label.
 - **Drafted SPEC is wrong on a fundamental axis?** Close the spec PR with a
   comment explaining; close the source issue or re-open with refined wording.
   The routine doesn't second-guess closes.
 - **SPEC drafted with §Open Questions you want answered before merging?**
-  Reply on the PR inline, then apply `claude:revise-now`. The routine
+  Reply on the PR inline, then apply `ai:revise-now`. The routine
   resolves the questions in the same loop.
-- **Approval = merge with `claude:implement`.** Merging the spec PR with that
+- **Approval = merge with `ai:implement`.** Merging the spec PR with that
   label fires the implement routine.
-- **Implementation hit a wall?** The routine applies `claude:blocked` and
+- **Implementation hit a wall?** The routine applies `ai:blocked` and
   Slack DMs Matt with the one-liner.
 
 ### Capture cheap, triage deliberate (unchanged from ADR 048)
@@ -308,12 +308,12 @@ conversation. The agent will:
    Questions section for the PR review loop to settle. For an **epic**,
    `draft-epic` still runs `dev-skills:grill-me` at epic altitude (vision,
    slicing, kill criteria, cross-cutting decisions) before drafting.
-2. File a `claude:plan` or `claude:plan-epic` GitHub issue with that
+2. File a `ai:plan` or `ai:plan-epic` GitHub issue with that
    description (or the grilled epic brief) as the body, so the
    source-of-truth lives where the autonomous flow expects it.
 3. Continue straight into the `draft-spec` / `draft-epic` skill —
    drafting the SPEC/EPIC and opening the PR in the same session, no need
-   to wait for the routine. The issue gets `claude:planned` so the
+   to wait for the routine. The issue gets `ai:planned` so the
    routine won't redo the work.
 
 From your end it feels like a single conversation: "plan a feature that
@@ -345,9 +345,9 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 ```
 .agents/skills/
 ├── draft-spec/
-│   └── SKILL.md        ← Issue (claude:plan) → SPEC PR (autonomous)
+│   └── SKILL.md        ← Issue (ai:plan) → SPEC PR (autonomous)
 ├── draft-epic/
-│   └── SKILL.md        ← Issue (claude:plan-epic) → EPIC PR (autonomous)
+│   └── SKILL.md        ← Issue (ai:plan-epic) → EPIC PR (autonomous)
 ├── revise-spec/
 │   └── SKILL.md        ← PR + review comments → updated SPEC/EPIC (autonomous)
 ├── implement-spec/
@@ -355,7 +355,7 @@ each skill is a directory containing a `SKILL.md` file with YAML frontmatter
 ├── review-spec/
 │   └── SKILL.md        ← Read-only consistency check (SPEC)
 ├── review-implementation/
-│   └── SKILL.md        ← Read-only review of the impl (claude:done) PR
+│   └── SKILL.md        ← Read-only review of the impl (ai:done) PR
 ├── write-adr/
 │   └── SKILL.md        ← New ADR + README index + supersession wiring
 ├── sync-docs/
@@ -394,12 +394,12 @@ genuinely needs it — it's just no longer part of the default lifecycle.
 
 | Skill | Invocation | What it does |
 |-------|-----------|--------------|
-| [`draft-spec`](./.agents/skills/draft-spec/SKILL.md) | Routine on `Issue opened` + label `claude:plan`; or "draft a spec from issue #NNN" | Read issue → draft SPEC → open PR with §Open Questions |
-| [`draft-epic`](./.agents/skills/draft-epic/SKILL.md) | Routine on `Issue opened` + label `claude:plan-epic`; or "draft an epic from issue #NNN" | Read issue → draft EPIC (slice table, kill criteria, cross-cutting decisions) → open PR. Does NOT auto-file slice issues |
-| [`revise-spec`](./.agents/skills/revise-spec/SKILL.md) | Routine on PR labelled `claude:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
+| [`draft-spec`](./.agents/skills/draft-spec/SKILL.md) | Routine on `Issue opened` + label `ai:plan`; or "draft a spec from issue #NNN" | Read issue → draft SPEC → open PR with §Open Questions |
+| [`draft-epic`](./.agents/skills/draft-epic/SKILL.md) | Routine on `Issue opened` + label `ai:plan-epic`; or "draft an epic from issue #NNN" | Read issue → draft EPIC (slice table, kill criteria, cross-cutting decisions) → open PR. Does NOT auto-file slice issues |
+| [`revise-spec`](./.agents/skills/revise-spec/SKILL.md) | Routine on PR labelled `ai:revise-now`; or "revise spec PR #NNN" | Read review comments → rewrite SPEC or EPIC → push to same branch |
 | [`review-spec`](./.agents/skills/review-spec/SKILL.md) | "Review SPEC-NNN" | Read-only consistency check against constitution, ADRs, parent epic, tech debt. Gates draft → ready-for-review and merged → implementation |
-| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | Routine on merged spec PR with label `claude:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `claude:done` |
-| [`review-implementation`](./.agents/skills/review-implementation/SKILL.md) | Routine on PR labelled `claude:done`; "review impl PR #NNN"; or self-review inside `implement-spec` | Read-only review of the impl diff against SPEC, constitution, ADRs, doc-staleness. Gates `claude:done` → merge |
+| [`implement-spec`](./.agents/skills/implement-spec/SKILL.md) | Routine on merged spec PR with label `ai:implement`; or "implement SPEC-NNN" | TDD → rolling notes → verification → impl PR with label `ai:done` |
+| [`review-implementation`](./.agents/skills/review-implementation/SKILL.md) | Routine on PR labelled `ai:done`; "review impl PR #NNN"; or self-review inside `implement-spec` | Read-only review of the impl diff against SPEC, constitution, ADRs, doc-staleness. Gates `ai:done` → merge |
 | [`write-adr`](./.agents/skills/write-adr/SKILL.md) | A change meets an ADR trigger; "write an ADR for X"; or called by `implement-spec` / `draft-spec` | New ADR (CONSTITUTION §7 template) + `docs/decisions/README.md` index row + supersession status lines |
 | [`sync-docs`](./.agents/skills/sync-docs/SKILL.md) | Close-out of `implement-spec`; Pass 6 of `review-implementation`; or "sync the docs" | Diff → doc-review table → patch stale docs + run OpenAPI / symlink / index checks |
 | [`babysit-pr`](./.agents/skills/babysit-pr/SKILL.md) | "babysit PR #NNN" / "address the comments and merge when green" | Triage + apply review comments → push → wait green → squash-merge. Escalates instead of forcing |
@@ -440,8 +440,8 @@ Routine configuration (one-time setup): [`docs/operations/autonomous-workflow.md
 ## Adding a feature — standard sequence
 
 The default path is the autonomous flow described above: open an issue with
-the Feature request template (label `claude:plan`), review the SPEC PR the
-routine opens, merge with `claude:implement`. The remaining steps below are
+the Feature request template (label `ai:plan`), review the SPEC PR the
+routine opens, merge with `ai:implement`. The remaining steps below are
 what the `implement-spec` routine performs — listed here for reference and
 for the rare case where you're driving implementation interactively.
 
@@ -459,7 +459,7 @@ for the rare case where you're driving implementation interactively.
 7. Update `CHANGELOG.md` under `## [Unreleased]`.
 8. **Review and patch any docs that describe stale state** (see Doc review below).
 9. **Write an ADR** if the change meets the trigger criteria below.
-10. Open the implementation PR with label `claude:done` and a Conventional
+10. Open the implementation PR with label `ai:done` and a Conventional
     Commit title — Matt reviews and merges.
 
 ---
