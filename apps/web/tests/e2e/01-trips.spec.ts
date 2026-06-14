@@ -199,6 +199,8 @@ test.describe('Trip deletion', () => {
     await expect(page.getByRole('heading', { name: tripName })).toBeVisible();
     const tripUrl = page.url();
 
+    // Delete now lives behind the header's "More trip actions" overflow menu.
+    await page.getByRole('button', { name: 'More trip actions' }).click();
     await page.getByRole('button', { name: /delete trip/i }).click();
     await expect(page.getByRole('heading', { name: /delete trip/i })).toBeVisible();
     await page.getByRole('button', { name: /delete permanently/i }).click();

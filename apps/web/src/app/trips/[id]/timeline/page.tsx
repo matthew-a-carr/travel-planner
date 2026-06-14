@@ -8,8 +8,8 @@ import { getAuthenticatedAccessContext } from '@/infrastructure/organization/act
 import { AuthenticatedAppHeader } from '@/ui/components/AuthenticatedAppHeader';
 import { TripTabs } from '@/ui/components/TripTabs';
 import { PasteItineraryPanel } from './PasteItineraryPanel';
-import { TimelineGantt } from './TimelineGantt';
 import { TimelineInsightsPanel } from './TimelineInsightsPanel';
+import { TripTimeline } from './TripTimeline';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -87,7 +87,7 @@ export default async function TripTimelinePage({ params }: Props) {
 
         <PasteItineraryPanel tripId={id} defaultCurrency={trip.totalBudget.currency} />
 
-        <TimelineGantt destinations={sortedDestinations} fixedCosts={fixedCosts} />
+        <TripTimeline destinations={sortedDestinations} fixedCosts={fixedCosts} />
 
         <TimelineInsightsPanel findings={findings} aiAvailable={aiAvailable} />
       </div>

@@ -16,7 +16,7 @@ export function DeleteTripButton({ tripId }: { tripId: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Delete trip"
-        className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-500/10"
+        className="w-full rounded-lg px-3 py-1.5 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
       >
         Delete trip
       </button>
