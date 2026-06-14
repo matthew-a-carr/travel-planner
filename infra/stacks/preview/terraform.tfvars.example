@@ -12,3 +12,8 @@ preview_auth_secret = "replace-with-openssl-rand-base64-32"
 # open_previews = {
 #   "123" = "feature/example"
 # }
+
+# AI Gateway model id (provider/model). Defaults to openai/gpt-5.4-mini
+# (on the AI Gateway free tier). Set this to a model your Vercel plan/tier
+# can access to switch models without a code change, then re-apply. See ADR 040.
+# ai_gateway_model = "openai/gpt-5.4-mini"

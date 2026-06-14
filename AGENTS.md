@@ -500,7 +500,7 @@ RESEND_API_KEY=          # Resend API key (required in production)
 EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
 EMAIL_FROM_NAME=Travel Planner
 AI_GATEWAY_API_KEY=      # Vercel AI Gateway key (local dev / non-Vercel CI). On Vercel deployments this is unset and the SDK uses VERCEL_OIDC_TOKEN automatically. See ADR 040.
-# AI_GATEWAY_MODEL=      # override model id (defaults to google/gemini-3-flash, gateway-routed)
+# AI_GATEWAY_MODEL=      # override model id (defaults to openai/gpt-5.4-mini, gateway-routed). Terraform-managed in prod/preview via the ai_gateway_model variable — see ADR 040.
 ```
 
 Bootstrap the first admin user in each environment:

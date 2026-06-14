@@ -28,14 +28,26 @@ Use the **Vercel AI Gateway** as the only outbound LLM endpoint. Talk to it
 through the **Vercel AI SDK** (`ai` + `@ai-sdk/anthropic`) using
 `generateObject` with Zod schemas.
 
-The default model is **Google Gemini 3 Flash**, exposed via the gateway under
-model id `google/gemini-3-flash` and overridable via `AI_GATEWAY_MODEL`. We
-moved off Claude Sonnet 4.6 (the original choice — see *Provider selection*
-below) for cost: Flash 3 is roughly an order of magnitude cheaper on input
-tokens and ~6× cheaper on output tokens, with reasoning quality competitive
-for itinerary extraction, timeline insights, and conversational tool-use.
-The override mechanism is unchanged so individual deployments can switch
-back per-environment if needed.
+The default model is **OpenAI GPT-5.4 Mini**, exposed via the gateway under
+model id `openai/gpt-5.4-mini` and overridable via `AI_GATEWAY_MODEL`. It sits
+on the AI Gateway **free tier**, is small and fast (flash-class latency), and
+has reliable native structured outputs — which matters because every affordance
+calls `generateObject` with a Zod schema — plus tool calling for the chat
+assistant. We moved off `google/gemini-3-flash`, the previous default, because
+on the project's current Vercel plan the Gateway free tier rejects it (the
+Vertex-routed provider returns a 403 `RestrictedModelsError`). Earlier history:
+the original choice was Claude Sonnet 4.6, later swapped to Gemini 3 Flash for
+cost (~10× cheaper input). The override mechanism is unchanged so individual
+deployments can switch per-environment if needed.
+
+`AI_GATEWAY_MODEL` is managed by Terraform for the deployed environments: the
+`ai_gateway_model` variable in `infra/stacks/prod` and `infra/stacks/preview`
+sets it as a Vercel environment variable (default `openai/gpt-5.4-mini`).
+Switching models in production or preview is therefore a `terraform.tfvars`
+change plus an apply — no application code change. Local dev / non-Vercel CI
+still read `AI_GATEWAY_MODEL` from `.env.local` or CI env. This is what makes a
+plan/tier model restriction (the 403 above) a config change rather than a code
+change: point the variable at an accessible model and apply.
 
 ### Provider selection
 
