@@ -49,9 +49,9 @@ describe('gatewayModelId', () => {
     vi.unstubAllEnvs();
   });
 
-  it('returns the default Gemini Flash model id when AI_GATEWAY_MODEL is unset', () => {
+  it('returns the default GPT-5.4 Mini model id when AI_GATEWAY_MODEL is unset', () => {
     vi.stubEnv('AI_GATEWAY_MODEL', '');
-    expect(gatewayModelId()).toBe('google/gemini-3-flash');
+    expect(gatewayModelId()).toBe('openai/gpt-5.4-mini');
   });
 
   it('returns the override when AI_GATEWAY_MODEL is set', () => {

@@ -45,6 +45,11 @@ locals {
       sensitive = false
       comment   = "Managed by Terraform: preview invite sender name (logging provider)"
     }
+    "AI_GATEWAY_MODEL" = {
+      value     = var.ai_gateway_model
+      sensitive = false
+      comment   = "Managed by Terraform: AI Gateway model id (provider/model). See ADR 040."
+    }
   }
 
   preview_postgres_urls = nonsensitive(module.preview_branches.postgres_urls)

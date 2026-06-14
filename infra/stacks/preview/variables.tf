@@ -77,3 +77,9 @@ variable "sentry_auth_token" {
   default     = ""
 }
 
+variable "ai_gateway_model" {
+  description = "Model id (provider/model) for AI Gateway calls, set as AI_GATEWAY_MODEL. Change here to switch models without a code change. See ADR 040."
+  type        = string
+  default     = "openai/gpt-5.4-mini"
+}
+

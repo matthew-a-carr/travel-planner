@@ -3,16 +3,17 @@
  *
  * The `provider/model` form is resolved by the AI SDK's gateway provider
  * (`@ai-sdk/gateway`) and routed through the Vercel AI Gateway. Default is
- * Google's Gemini 3 Flash — chosen for its low cost (~10× cheaper input
- * than Claude Sonnet 4.6) and strong reasoning at flash latency. Override
- * via `AI_GATEWAY_MODEL`.
+ * OpenAI's GPT-5.4 Mini — a small, fast model on the AI Gateway free tier
+ * with reliable native structured outputs (the app leans on `generateObject`
+ * + Zod) and tool calling. Override via `AI_GATEWAY_MODEL`; in the deployed
+ * environments that var is Terraform-managed (`ai_gateway_model`). See ADR 040.
  *
  * Note: the adapter classes are still named `Anthropic*` for historical
  * reasons (the gateway abstraction was introduced when Anthropic was the
  * default). They are model-agnostic in practice — the gateway dispatches
  * based on the model id string. A rename to `Gateway*` is a follow-up.
  */
-export const DEFAULT_MODEL_ID = 'google/gemini-3-flash';
+export const DEFAULT_MODEL_ID = 'openai/gpt-5.4-mini';
 
 /**
  * True when AI Gateway calls have a chance of authenticating.

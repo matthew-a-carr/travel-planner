@@ -113,6 +113,13 @@ locals {
       sensitive = true
       comment   = "Managed by Terraform: Sentry auth token for build-time source map upload"
     },
+    {
+      key       = "AI_GATEWAY_MODEL"
+      value     = var.ai_gateway_model
+      target    = toset(["production"])
+      sensitive = false
+      comment   = "Managed by Terraform: AI Gateway model id (provider/model). See ADR 040."
+    },
   ]
 }
 

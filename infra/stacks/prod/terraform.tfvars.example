@@ -25,3 +25,8 @@ sentry_team       = "replace-with-sentry-team-slug"
 # Vercel auto-injects into the runtime. No long-lived secret is needed in
 # production. Local dev sets AI_GATEWAY_API_KEY in .env.local. See ADR 040.
 
+# AI Gateway model id (provider/model). Defaults to openai/gpt-5.4-mini
+# (on the AI Gateway free tier). Set this to a model your Vercel plan/tier
+# can access to switch models without a code change, then re-apply. See ADR 040.
+# ai_gateway_model = "openai/gpt-5.4-mini"
+
