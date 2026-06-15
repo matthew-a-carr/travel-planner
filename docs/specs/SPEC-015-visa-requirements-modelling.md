@@ -1,7 +1,7 @@
 # SPEC-015: Visa Requirements — Data & Domain Modelling
 
 **Date:** 2026-06-15
-**Status:** Draft
+**Status:** In Progress
 **Author:** agent (interactive planning session)
 **Approved by:** —
 **Parent epic:** — (a "Visa requirements end-to-end" epic, covering UI
