@@ -29,6 +29,9 @@ export const users = pgTable('users', {
   isAdmin: boolean('is_admin').notNull().default(false),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   image: text('image'),
+  // Drives age-based visa eligibility (SPEC-015). PII — read only for the
+  // signed-in user; never logged or sent to AI prompts. Date-only.
+  dateOfBirth: date('date_of_birth'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -333,4 +336,103 @@ export const authRateLimitAttempts = pgTable(
     occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [index('idx_auth_rate_limit_attempts_key_time').on(t.key, t.occurredAt)],
+);
+
+// ─── Visa requirements (SPEC-015) ─────────────────────────────────────────────
+
+/**
+ * A traveller's passports. Visa rules differ per passport; assessment evaluates
+ * every passport and auto-selects the most favourable per destination. First
+ * pass seeds only GBR. Junction pattern mirrors `organization_memberships`.
+ */
+export const userPassports = pgTable(
+  'user_passports',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    nationality: text('nationality').notNull(), // ISO 3166-1 alpha-3, e.g. "GBR"
+    label: text('label'), // optional display label ("UK passport")
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.nationality] })],
+);
+
+/**
+ * A visa zone — a group of countries that share one allowance (e.g. the
+ * Schengen Area's "90 days in any 180"). The zone owns the shared rolling
+ * window; member countries are listed in `visa_zone_membership`.
+ */
+export const visaZones = pgTable('visa_zones', {
+  code: text('code').primaryKey(), // e.g. "SCHENGEN"
+  name: text('name').notNull(),
+  rollingAllowanceDays: integer('rolling_allowance_days'), // e.g. 90
+  rollingWindowDays: integer('rolling_window_days'), // e.g. 180
+  notes: text('notes'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const visaZoneMembership = pgTable(
+  'visa_zone_membership',
+  {
+    zoneCode: text('zone_code')
+      .notNull()
+      .references(() => visaZones.code, { onDelete: 'cascade' }),
+    alpha3: text('alpha3').notNull(), // ISO 3166-1 alpha-3 member country
+  },
+  (t) => [primaryKey({ columns: [t.zoneCode, t.alpha3] })],
+);
+
+/**
+ * The frozen, temporal visa-rule reference data (SPEC-015). One row per
+ * (nationality, destination, purpose, valid_from). Selected at assessment time
+ * by intersecting the trip's travel window with [valid_from, valid_to].
+ * `source: 'ai-extracted'` rows are human-reviewed in the seed PR diff before
+ * a reviewer may promote them to 'manual'.
+ */
+export const visaRules = pgTable(
+  'visa_rules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    nationality: text('nationality').notNull(), // traveller passport alpha-3
+    destination: text('destination').notNull(), // destination country alpha-3
+    zoneCode: text('zone_code'), // null, or e.g. "SCHENGEN"
+
+    purpose: text('purpose').notNull().default('tourism'), // VisaPurpose
+    workRights: boolean('work_rights').notNull().default(false),
+    minAgeYears: integer('min_age_years'),
+    maxAgeYears: integer('max_age_years'),
+    eligibilityNotes: text('eligibility_notes'),
+
+    category: text('category').notNull(), // VisaCategory
+    maxStayDays: integer('max_stay_days'),
+    visaValidityDays: integer('visa_validity_days'),
+    entryType: text('entry_type').notNull().default('single'), // 'single' | 'multiple'
+    minDaysOutBeforeReturn: integer('min_days_out_before_return'),
+    // Rolling window flattened to two nullable ints (both-or-neither).
+    rollingAllowanceDays: integer('rolling_allowance_days'),
+    rollingWindowDays: integer('rolling_window_days'),
+
+    otherRequirements: jsonb('other_requirements').notNull().default(sql`'[]'::jsonb`),
+
+    validFrom: date('valid_from').notNull(),
+    validTo: date('valid_to'), // null = open-ended
+
+    source: text('source').notNull().default('ai-extracted'), // 'ai-extracted' | 'manual'
+    sourceNote: text('source_note'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [
+    index('idx_visa_rules_nat_dest').on(t.nationality, t.destination),
+    index('idx_visa_rules_zone').on(t.zoneCode),
+    uniqueIndex('uq_visa_rules_nat_dest_purpose_from').on(
+      t.nationality,
+      t.destination,
+      t.purpose,
+      t.validFrom,
+    ),
+  ],
 );
