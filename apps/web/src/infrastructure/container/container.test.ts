@@ -13,6 +13,7 @@ function createFakeContainer(): AppContainer {
     countryReferenceRepository: {} as AppContainer['countryReferenceRepository'],
     organizationRepository: {} as AppContainer['organizationRepository'],
     userAccessRepository: {} as AppContainer['userAccessRepository'],
+    userProfileRepository: {} as AppContainer['userProfileRepository'],
     inviteEmailService: {} as AppContainer['inviteEmailService'],
     itineraryParser: {} as AppContainer['itineraryParser'],
     timelineInsightsService: {} as AppContainer['timelineInsightsService'],
