@@ -51,9 +51,14 @@ src/infrastructure/
       drizzle-mobile-auth-exchange-code-repository.ts
       drizzle-refresh-token-repository.ts
       drizzle-visa-rule-repository.ts   ← visa rules + zone memberships (SPEC-015)
+  ai/
+      gateway-visa-rule-extractor.ts ← one-off AI extraction adapter + Zod schema (SPEC-015 §H)
+      visa-extraction-checks.ts      ← pure sanity checks + seed serialiser (unit-tested)
+      vercel-gateway-client.ts       ← AI Gateway model-id + credential helpers (ADR 040)
     seed/
       country-list-seed.ts       ← generated seed data for ~200 countries
-      visa-rule-seed.ts          ← visa rules + Schengen zone/membership seed (SPEC-015)
+      visa-rule-seed.ts          ← hand-authored visa rules + Schengen zone/membership seed (SPEC-015)
+      visa-rule-ai-seed.ts       ← AUTO-GENERATED ai-extracted visa rules (pnpm visa:fetch)
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
       e2e-fixtures.ts            ← deterministic e2e fixtures + applyE2eFixtures (SPEC-013)
       seed-e2e.ts                ← e2e fixture runner (pnpm seed:e2e)

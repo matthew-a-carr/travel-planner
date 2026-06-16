@@ -180,6 +180,7 @@ ln -s AGENTS.md CLAUDE.md
 | DB migrations | `pnpm db:migrate` |
 | Generate migration | `pnpm db:generate` |
 | Seed reference data | `pnpm db:seed` |
+| Extract visa rules (one-off AI job → committed seed) | `pnpm visa:fetch` |
 | e2e tests (umbrella — web Playwright + mobile Maestro) | `pnpm test:e2e` |
 | e2e — web only (Playwright; Docker required — Testcontainers manages the DB) | `pnpm test:e2e:web` |
 | e2e — web Playwright UI mode | `pnpm test:e2e:web:ui` |

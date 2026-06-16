@@ -91,6 +91,29 @@ groups can look up member-country rules.
 
 ---
 
+### 2026-06-16 00:45 — Step 9 (AI extraction job) implemented as a follow-up
+
+**Step:** §12 step 9
+**Type:** decision
+**Note:**
+
+Added the `VisaRuleExtractor` port, the `GatewayVisaRuleExtractor` adapter
+(`generateObject` + Zod, ADR 040), the pure `visa-extraction-checks.ts`
+(sanity checks + seed serialiser, 7 unit tests), the `fetch-visa-rules` script
+wired as `pnpm visa:fetch`, and an AUTO-GENERATED (initially empty)
+`visa-rule-ai-seed.ts` that the seed runner now upserts alongside the
+hand-authored rules. Decisions: (a) AI rules write to a **separate** generated
+file so the reviewed hand-authored seed is never clobbered; (b) the script
+defaults to a small curated destination set (override via argv) to avoid an
+accidental ~200-country run; (c) the script's AI call is not unit-tested (only
+the deterministic plumbing is) — factual accuracy stays a human-review gate.
+Steps 10 (run the broad seed + review) and 11 (hardcoded-assumption removal)
+remain.
+
+**Triage (filled at close-out):** post-impl-note
+
+---
+
 ## Close-out triage summary
 
 | Entry | Landed in |
@@ -99,3 +122,4 @@ groups can look up member-country rules.
 | 2 (scope/deferral) | Post-impl note + PR body |
 | 3 (integration env) | Post-impl note + PR body |
 | 4 (evaluator deviations) | Spec deviation #1 |
+| 5 (step 9 extraction job) | Post-impl note + PR body |

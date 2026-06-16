@@ -349,13 +349,17 @@ re-runnable. No feature flag needed because nothing user-facing ships here.
 
 ## 12. Implementation order
 
-> **Status (2026-06-15):** steps 1–8 + 12 are implemented (schema/migration,
-> the full pure evaluator with 22 unit tests, the repository + int-test, the
-> initial hand-authored GBR seed, the `assess-trip-visas` use case + int-test,
-> ADR 061 + doc sync). Steps 9–11 (AI extraction script, broad AI-extracted
-> seed, replacing the hardcoded "UK passport holder" assumption) are deferred to
-> a flagged follow-up — see the implementation notes. SPEC stays **In Progress**
-> until they land.
+> **Status (2026-06-16):** steps 1–9 + 12 are implemented. PR #160 landed the
+> foundation (schema/migration, the full pure evaluator with 22 unit tests, the
+> repository + int-test, the initial hand-authored GBR seed, the
+> `assess-trip-visas` use case + int-test, ADR 061 + doc sync). A follow-up
+> adds **step 9** — the `VisaRuleExtractor` port + `GatewayVisaRuleExtractor`
+> adapter + `fetch-visa-rules` script (`pnpm visa:fetch`) + Zod schema +
+> deterministic sanity-check/serialiser unit tests, writing into the
+> AUTO-GENERATED `visa-rule-ai-seed.ts`. Remaining: **step 10** (run the broad
+> GBR seed, human-review the diff) and **step 11** (replace the hardcoded "UK
+> passport holder" assumption — lands with profile capture, EPIC-005 slice 2/3).
+> SPEC stays **In Progress** until they land.
 
 1. [ ] **Intent:** `visa_rules` / `visa_zones` / `visa_zone_membership` /
    `user_passports` / `users.date_of_birth` schema + migration. **Verification:**

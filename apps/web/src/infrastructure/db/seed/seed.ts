@@ -10,6 +10,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { countryReferenceData, visaRules, visaZoneMembership, visaZones } from '../schema';
 import { COUNTRY_LIST_SEED } from './country-list-seed';
+import { AI_VISA_RULES_SEED } from './visa-rule-ai-seed';
 import { VISA_RULES_SEED, VISA_ZONE_MEMBERSHIP_SEED, VISA_ZONES_SEED } from './visa-rule-seed';
 
 async function seed() {
@@ -74,8 +75,11 @@ async function seed() {
     await db.insert(visaZoneMembership).values(member).onConflictDoNothing();
   }
 
-  console.log(`Seeding ${VISA_RULES_SEED.length} visa rule(s)...`);
-  for (const rule of VISA_RULES_SEED) {
+  const allVisaRules = [...VISA_RULES_SEED, ...AI_VISA_RULES_SEED];
+  console.log(
+    `Seeding ${allVisaRules.length} visa rule(s) (${VISA_RULES_SEED.length} manual, ${AI_VISA_RULES_SEED.length} ai-extracted)...`,
+  );
+  for (const rule of allVisaRules) {
     await db
       .insert(visaRules)
       .values({ ...rule, otherRequirements: rule.otherRequirements, updatedAt: new Date() })
