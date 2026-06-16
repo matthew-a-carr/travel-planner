@@ -124,7 +124,7 @@ an `ai:plan` issue) when the slice is ready.
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
 | 1 | **Modelling foundation** — `visa_rules`/`visa_zones`/`visa_zone_membership`/`user_passports`/`users.date_of_birth` schema, pure `src/domain/visa/` evaluator, `assess-trip-visas` use case, AI-extraction seed job, initial `GBR` seed (incl. Schengen + Australia), remove the hardcoded "UK passport holder" assumption | (foundation — enables 1–6) | [SPEC-015](../specs/SPEC-015-visa-requirements-modelling.md) (In Progress) | — | In Progress |
-| 2 | **Traveller profile capture** — profile page to add/remove passports + set date of birth; persistence (`user_passports`, `users.date_of_birth`) via a use case + server action; assessment reads real profile data | 1 | _not yet planned_ | 1 | Not started |
+| 2 | **Traveller profile capture** — profile page to add/remove passports + set date of birth; persistence (`user_passports`, `users.date_of_birth`) via a use case + server action; assessment reads real profile data | 1 | [SPEC-016](../specs/SPEC-016-traveller-profile-capture.md) (In Progress) | 1 | In Progress |
 | 3 | **Visas panel on the trip page (default Tourism)** — trip detail page renders per-country `CountryCoverage` + warnings (overstay, Schengen, single-entry, cooling-off), wired via a server-side call to `assess-trip-visas` through `getAppContainer()`. **Milestone slice** | 2–4, 6 | _not yet planned_ | 1, 2 | Not started |
 | 4 | **Per-trip intent selector** — persisted trip `intent` (Tourism / Working holiday / Long stay) drives `preferPurposes`; panel re-assesses; Australia Working Holiday case end-to-end | 5 | _not yet planned_ | 3 | Not started |
 | 5 | **Broad GBR seed + accuracy pass** — run `visa:fetch` across the full country list, human-review the diff, commit; `unknown` countries surfaced honestly in the panel | 6 | _not yet planned_ | 1, 3 | Not started |
@@ -250,6 +250,8 @@ Numbers claimed at write time.
 |------|---------|------|---------------|-------|
 | 2026-06-15 | — | — | Drafted | EPIC-005 drafted (interactive session). Foundation slice already specced + merged as SPEC-015. Awaiting human review of §13 Open Questions + slice table. |
 | 2026-06-15 | 1 | SPEC-015 | In Progress | Foundation slice implementation opened: domain evaluator + schema/migration + repository + seed + `assess-trip-visas` use case + ADR 061. AI extraction job, broad seed, and the hardcoded-assumption removal deferred (SPEC §12 steps 9–11). |
+| 2026-06-15 | 1 | SPEC-015 | Merged | Foundation (PR #160) + AI extraction job (PR #162) merged to main; steps 1–9 + 12 done. Steps 10–11 still pending. |
+| 2026-06-16 | 2 | SPEC-016 | In Progress | Traveller profile capture drafted + implemented: `/settings/profile` page, `user-profile` domain + repository + get/update use cases, SettingsNav tab. No migration (reuses SPEC-015 tables). |
 
 ## Epic-level deviations
 

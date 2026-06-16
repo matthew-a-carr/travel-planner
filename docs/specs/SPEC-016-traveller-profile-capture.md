@@ -227,8 +227,18 @@ the assumption removal).
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | ... | ... | ... | Yes / No → TD-NNN |
+| 1 | `TravellerProfile`/`Passport` reused from `domain/visa/types.ts` rather than relocated to `domain/user-profile/` | Avoids churning the merged SPEC-015 types; only one consumer (visa) today | None functional; a future non-visa consumer may justify relocation | Yes (accepted) |
 
 ### Post-Implementation Notes
 
-_To be filled by the implementing agent._
+- No migration needed — SPEC-015 already shipped `users.date_of_birth` and
+  `user_passports`. This slice is purely additive (domain validator, repository,
+  two use cases, a page + form + nav tab).
+- `save` is delete-all-then-insert inside a transaction, which makes "remove a
+  passport" trivially correct (the stored set always equals the submitted set).
+- Integration (3 files) and e2e (1 file) are CI-gated — the sandbox can't pull
+  the Testcontainers Postgres image (Docker Hub rate limit). Unit (477), lint,
+  type-check, and `pnpm build` pass locally.
+- The hardcoded "UK passport holder" assumption in `anthropic-timeline-insights.ts`
+  is intentionally **not** removed here — it lands with slice 3 when the panel /
+  insights actually read the profile.
