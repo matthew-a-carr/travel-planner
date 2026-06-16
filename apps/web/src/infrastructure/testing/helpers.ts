@@ -80,6 +80,10 @@ export async function truncateAll(db: Db): Promise<void> {
   await db.delete(schema.mobileAuthExchangeCodes);
   await db.delete(schema.refreshTokens);
   await db.delete(schema.authRateLimitAttempts);
+  await db.delete(schema.userPassports);
+  await db.delete(schema.visaRules);
+  await db.delete(schema.visaZoneMembership);
+  await db.delete(schema.visaZones);
   await db.delete(schema.users);
   await db.delete(schema.countryReferenceData);
 }

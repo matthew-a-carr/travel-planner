@@ -50,8 +50,10 @@ src/infrastructure/
       drizzle-mobile-auth-state-repository.ts
       drizzle-mobile-auth-exchange-code-repository.ts
       drizzle-refresh-token-repository.ts
+      drizzle-visa-rule-repository.ts   ← visa rules + zone memberships (SPEC-015)
     seed/
       country-list-seed.ts       ← generated seed data for ~200 countries
+      visa-rule-seed.ts          ← visa rules + Schengen zone/membership seed (SPEC-015)
       seed.ts                    ← idempotent upsert runner (pnpm db:seed)
       e2e-fixtures.ts            ← deterministic e2e fixtures + applyE2eFixtures (SPEC-013)
       seed-e2e.ts                ← e2e fixture runner (pnpm seed:e2e)

@@ -37,6 +37,7 @@ src/application/
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
     bulk-add-destinations.ts      + bulk-add-destinations.int-test.ts
     analyse-trip-timeline.ts      + analyse-trip-timeline.int-test.ts
+    assess-trip-visas.ts          + assess-trip-visas.int-test.ts
     parse-itinerary-text.ts       + parse-itinerary-text.int-test.ts
     process-chat-message.ts       + process-chat-message.int-test.ts
     summarise-trip-narrative.ts   + summarise-trip-narrative.int-test.ts

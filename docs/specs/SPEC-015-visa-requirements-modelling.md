@@ -1,7 +1,7 @@
 # SPEC-015: Visa Requirements — Data & Domain Modelling
 
 **Date:** 2026-06-15
-**Status:** Draft
+**Status:** In Progress
 **Author:** agent (interactive planning session)
 **Approved by:** —
 **Parent epic:** — (a "Visa requirements end-to-end" epic, covering UI
@@ -349,6 +349,14 @@ re-runnable. No feature flag needed because nothing user-facing ships here.
 
 ## 12. Implementation order
 
+> **Status (2026-06-15):** steps 1–8 + 12 are implemented (schema/migration,
+> the full pure evaluator with 22 unit tests, the repository + int-test, the
+> initial hand-authored GBR seed, the `assess-trip-visas` use case + int-test,
+> ADR 061 + doc sync). Steps 9–11 (AI extraction script, broad AI-extracted
+> seed, replacing the hardcoded "UK passport holder" assumption) are deferred to
+> a flagged follow-up — see the implementation notes. SPEC stays **In Progress**
+> until they land.
+
 1. [ ] **Intent:** `visa_rules` / `visa_zones` / `visa_zone_membership` /
    `user_passports` / `users.date_of_birth` schema + migration. **Verification:**
    `pnpm db:generate && pnpm db:check:migrations`; migration is transactional.
@@ -427,7 +435,7 @@ register at implementation time; log any newly-discovered items.)
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | ... | ... | ... | Yes / No → TD-NNN |
+| 1 | `evaluateCoverage` returns a `CoverageEvaluation`, not a full `CountryCoverage`; `pickBestCoverage` tie-breaks on fewer-violations rather than `maxStayDays`/`entryType`; `CountryStay` gained a `countries` field | `evaluateCoverage` can't know the passport; `CountryCoverage` doesn't carry the dropped tie-break fields; zone groups need member countries for rule lookup | None on behaviour — all acceptance criteria covered by tests | Yes |
 
 ### Post-Implementation Notes
 
