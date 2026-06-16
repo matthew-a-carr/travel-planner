@@ -47,6 +47,10 @@ src/domain/
     delete-user.ts        ← domain constraints for soft-deletion
     delete-user.test.ts
     user-access-repository.ts ← UserAccessRepository interface
+  user-profile/
+    user-profile.ts       ← validateTravellerProfileInput (alpha-3 normalise, dedupe, DOB rules)
+    user-profile.test.ts
+    user-profile-repository.ts ← UserProfileRepository interface (passports + DOB)
   visa/
     types.ts              ← VisaRule, TravellerProfile, CountryStay, CountryCoverage, VisaAssessment
     visa.ts               ← pure evaluator (stay aggregation across cities/zones, eligibility +

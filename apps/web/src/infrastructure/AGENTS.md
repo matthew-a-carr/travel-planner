@@ -51,6 +51,7 @@ src/infrastructure/
       drizzle-mobile-auth-exchange-code-repository.ts
       drizzle-refresh-token-repository.ts
       drizzle-visa-rule-repository.ts   ← visa rules + zone memberships (SPEC-015)
+      drizzle-user-profile-repository.ts ← passports + date of birth (SPEC-016)
   ai/
       gateway-visa-rule-extractor.ts ← one-off AI extraction adapter + Zod schema (SPEC-015 §H)
       visa-extraction-checks.ts      ← pure sanity checks + seed serialiser (unit-tested)

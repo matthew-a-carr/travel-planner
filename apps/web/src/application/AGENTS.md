@@ -38,6 +38,8 @@ src/application/
     bulk-add-destinations.ts      + bulk-add-destinations.int-test.ts
     analyse-trip-timeline.ts      + analyse-trip-timeline.int-test.ts
     assess-trip-visas.ts          + assess-trip-visas.int-test.ts
+    get-traveller-profile.ts      + get-traveller-profile.int-test.ts
+    update-traveller-profile.ts   + update-traveller-profile.int-test.ts
     parse-itinerary-text.ts       + parse-itinerary-text.int-test.ts
     process-chat-message.ts       + process-chat-message.int-test.ts
     summarise-trip-narrative.ts   + summarise-trip-narrative.int-test.ts

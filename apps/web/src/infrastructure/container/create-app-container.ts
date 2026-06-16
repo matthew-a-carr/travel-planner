@@ -16,6 +16,7 @@ import { DrizzleSpendEntryRepository } from '@/infrastructure/db/repositories/dr
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
 import { DrizzleTripRepository } from '@/infrastructure/db/repositories/drizzle-trip-repository';
 import { DrizzleUserAccessRepository } from '@/infrastructure/db/repositories/drizzle-user-access-repository';
+import { DrizzleUserProfileRepository } from '@/infrastructure/db/repositories/drizzle-user-profile-repository';
 import { createInviteEmailService } from '@/infrastructure/email/create-invite-email-service';
 import type { AppContainer } from './types';
 
@@ -47,6 +48,7 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     countryReferenceRepository: new DrizzleCountryReferenceRepository(dbClient),
     organizationRepository: new DrizzleOrganizationRepository(dbClient),
     userAccessRepository: new DrizzleUserAccessRepository(dbClient),
+    userProfileRepository: new DrizzleUserProfileRepository(dbClient),
     inviteEmailService: createInviteEmailService(),
     itineraryParser: ai.itineraryParser,
     timelineInsightsService: ai.timelineInsightsService,
