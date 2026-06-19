@@ -228,8 +228,17 @@ the assessment errors, so it can't break the trip page.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | ... | ... | ... | Yes / No → TD-NNN |
+| 1 | The "UK passport holder" removal was done via an optional `nationalities` field + defaulted use-case param (not a required field) | Keep the existing timeline-insights feature/tests undisturbed | None — default preserves prior wording when no profile nationality | Yes |
 
 ### Post-Implementation Notes
 
-_To be filled by the implementing agent._
+- The Visas panel reads server-side via `getAppContainer()` → `assess-trip-visas`
+  (no AI at runtime, ADR 061). It fails soft: a `Result` error renders the
+  empty/no-data state and logs, so it can never break the trip page.
+- `visaRuleRepository` was added to the container in this slice — SPEC-015 created
+  the repository but nothing called it at runtime until now.
+- SPEC-015 §12 step 11 (hardcoded "UK passport holder") is **resolved** here.
+- The remaining EPIC-005 work is slice 4 (per-trip intent selector) and slice 5
+  (broad GBR seed via `pnpm visa:fetch` + human review, needs an AI key).
+- Integration + e2e are CI-gated (Docker Hub rate limit in the sandbox); unit
+  (484), lint, type-check, and `pnpm build` pass locally.
