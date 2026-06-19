@@ -79,7 +79,7 @@ export function VisasPanel({ assessment, nameByAlpha3, hasPassports }: Props) {
         </ul>
       )}
 
-      <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+      <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
         Based on your{' '}
         <Link href="/settings/profile" className="underline">
           saved passports
