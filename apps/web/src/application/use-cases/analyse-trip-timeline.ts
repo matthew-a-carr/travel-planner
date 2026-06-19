@@ -23,6 +23,7 @@ export async function analyseTripTimeline(
   cache: AiCacheRepository,
   hashFn: (input: string) => string,
   tripId: string,
+  nationalities: readonly string[] = [],
 ): Promise<Result<readonly TimelineFinding[]>> {
   const trip = await tripRepo.findById(tripId);
   if (!trip) return err(`Trip not found: ${tripId}`);
@@ -35,13 +36,16 @@ export async function analyseTripTimeline(
 
   const deterministic = detectDeterministicFindings(destinations, references);
 
-  const cacheKey = hashFn(`${INSIGHTS_CACHE_KIND}:${stableStateKey(destinations, fixedCosts)}`);
+  const nationalityKey = [...nationalities].sort().join(',');
+  const cacheKey = hashFn(
+    `${INSIGHTS_CACHE_KIND}:${nationalityKey}:${stableStateKey(destinations, fixedCosts)}`,
+  );
   let aiFindings: readonly TimelineFinding[];
   const cached = await cache.get<readonly TimelineFinding[]>(cacheKey);
   if (cached) {
     aiFindings = cached;
   } else {
-    const outcome = await insights.analyse({ destinations, fixedCosts });
+    const outcome = await insights.analyse({ destinations, fixedCosts, nationalities });
     if (!outcome.ok) {
       // AI is best-effort — return deterministic findings on AI failure.
       return ok(deterministic);

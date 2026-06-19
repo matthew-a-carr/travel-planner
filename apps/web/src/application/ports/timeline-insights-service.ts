@@ -4,6 +4,11 @@ import type { Destination, TripFixedCost } from '@/domain/trip/types';
 export type AnalyseTimelineInput = {
   readonly destinations: readonly Destination[];
   readonly fixedCosts: readonly TripFixedCost[];
+  /**
+   * Traveller passport nationality display name(s), e.g. ["United Kingdom"].
+   * Drives visa-related findings. Empty/omitted falls back to the UK.
+   */
+  readonly nationalities?: readonly string[];
 };
 
 export type AnalyseTimelineOutcome =

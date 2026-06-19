@@ -14,6 +14,7 @@ function createFakeContainer(): AppContainer {
     organizationRepository: {} as AppContainer['organizationRepository'],
     userAccessRepository: {} as AppContainer['userAccessRepository'],
     userProfileRepository: {} as AppContainer['userProfileRepository'],
+    visaRuleRepository: {} as AppContainer['visaRuleRepository'],
     inviteEmailService: {} as AppContainer['inviteEmailService'],
     itineraryParser: {} as AppContainer['itineraryParser'],
     timelineInsightsService: {} as AppContainer['timelineInsightsService'],

@@ -26,8 +26,16 @@ import {
   organizationMemberships,
   organizations,
   users,
+  visaRules,
+  visaZoneMembership,
+  visaZones,
 } from '../../../src/infrastructure/db/schema';
 import { COUNTRY_LIST_SEED } from '../../../src/infrastructure/db/seed/country-list-seed';
+import {
+  VISA_RULES_SEED,
+  VISA_ZONE_MEMBERSHIP_SEED,
+  VISA_ZONES_SEED,
+} from '../../../src/infrastructure/db/seed/visa-rule-seed';
 import {
   E2E_AUTH_STATE_FILE,
   E2E_FIXTURES_DIR,
@@ -104,6 +112,25 @@ export default async function globalSetup(): Promise<void> {
       });
   }
   console.log('[e2e] Country reference data seeded.');
+
+  // ── 3b. Seed visa reference data (zones, memberships, rules) ────────────────
+  console.log('[e2e] Seeding visa reference data…');
+  for (const zone of VISA_ZONES_SEED) {
+    await db
+      .insert(visaZones)
+      .values({ ...zone, updatedAt: new Date() })
+      .onConflictDoNothing();
+  }
+  for (const member of VISA_ZONE_MEMBERSHIP_SEED) {
+    await db.insert(visaZoneMembership).values(member).onConflictDoNothing();
+  }
+  for (const rule of VISA_RULES_SEED) {
+    await db
+      .insert(visaRules)
+      .values({ ...rule, otherRequirements: rule.otherRequirements, updatedAt: new Date() })
+      .onConflictDoNothing();
+  }
+  console.log('[e2e] Visa reference data seeded.');
 
   // ── 4. Create test user ─────────────────────────────────────────────────────
   const userId = crypto.randomUUID();
