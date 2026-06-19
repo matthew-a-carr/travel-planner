@@ -32,7 +32,7 @@ date, amount, category).
 Return *only* findings of these kinds — nothing else:
 - 'seasonality': a destination falls in a clearly unfavourable season (heavy wet season, off-peak shutdown, extreme heat/cold) given its country and dates.
 - 'transport-missing': a long inter-country leg between consecutive dated destinations has no fixed-cost row of category 'transport' anywhere on or close to the transition date.
-- 'visa-required': the destination's country typically requires a short-stay tourist visa for a UK passport holder, and the trip has no fixed-cost row of category 'visas' for it. Be conservative — only emit when the visa requirement is well-established (e.g. Vietnam e-visa, India e-visa, China L visa, Russia, Saudi Arabia). Do *not* emit for visa-free or visa-on-arrival destinations. The suggestion must include the phrase "verify with the embassy" because policies change.
+- 'visa-required': the destination's country typically requires a short-stay tourist visa for the traveller's passport nationality (given below), and the trip has no fixed-cost row of category 'visas' for it. Be conservative — only emit when the visa requirement is well-established for that nationality. Do *not* emit for visa-free or visa-on-arrival destinations. The suggestion must include the phrase "verify with the embassy" because policies change.
 - 'event-clash': the destination's date range overlaps a major festival, public-holiday cluster, or sporting event well-known to spike prices or close attractions (e.g. Songkran in Thailand, Tet in Vietnam, Diwali in India, Carnival in Rio, European school summer holidays). Skip if unsure.
 - 'peak-pricing': the destination's date range overlaps the well-known peak tourist season for the country/region (e.g. July–August in Mediterranean Europe, Dec–Feb in the Caribbean, mid-Jul to mid-Aug in Japan around Obon) and the comfort level is not already 'luxury'. Only emit when it materially affects accommodation or transport cost.
 
@@ -92,12 +92,16 @@ export class AnthropicTimelineInsights implements TimelineInsightsService {
       return { ok: true, findings: [] };
     }
 
+    const nationalities = input.nationalities?.filter((n) => n.trim() !== '') ?? [];
+    const passportLine =
+      nationalities.length > 0 ? nationalities.join(' or ') : 'the United Kingdom';
+
     try {
       const { object } = await generateObject({
         model: this.modelId,
         schema: insightsSchema,
         system: SYSTEM_PROMPT,
-        prompt: `Trip:\n${JSON.stringify(toJson(input), null, 2)}`,
+        prompt: `Traveller passport nationality: ${passportLine}\nTrip:\n${JSON.stringify(toJson(input), null, 2)}`,
       });
       const findings: TimelineFinding[] = object.findings.map((f) => ({
         stopId: f.stopId,

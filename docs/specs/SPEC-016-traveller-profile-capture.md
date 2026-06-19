@@ -1,7 +1,7 @@
 # SPEC-016: Traveller Profile — Passports & Date of Birth Capture
 
 **Date:** 2026-06-16
-**Status:** In Progress
+**Status:** Complete
 **Author:** agent (interactive session)
 **Approved by:** —
 **Parent epic:** [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) — slice 2

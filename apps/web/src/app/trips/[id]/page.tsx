@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
+import { assessTripVisas } from '@/application/use-cases/assess-trip-visas';
 import { getCountryReferences } from '@/application/use-cases/get-country-references';
+import { getTravellerProfile } from '@/application/use-cases/get-traveller-profile';
 import { summariseTripNarrative } from '@/application/use-cases/summarise-trip-narrative';
 import { getSuggestedPrompts } from '@/domain/chat/suggested-prompts';
 import { sortDestinations } from '@/domain/destination/destination';
@@ -31,6 +33,7 @@ import { TripActionsMenu } from '@/ui/components/TripActionsMenu';
 import { TripNarrativePanel } from '@/ui/components/TripNarrativePanel';
 import { TripNextStepsPanel } from '@/ui/components/TripNextStepsPanel';
 import { TripTabs } from '@/ui/components/TripTabs';
+import { VisasPanel } from '@/ui/components/VisasPanel';
 import { getTripStage, hasTwoOrMoreDatedDestinations } from './trip-stage';
 
 type Props = { params: Promise<{ id: string }> };
@@ -53,6 +56,8 @@ export default async function TripDetailPage({ params }: Props) {
     tripFixedCostRepository,
     tripNarrativeService,
     tripRepository,
+    userProfileRepository,
+    visaRuleRepository,
   } = getAppContainer();
   const trip = await tripRepository.findById(id);
   if (!trip) notFound();
@@ -78,7 +83,7 @@ export default async function TripDetailPage({ params }: Props) {
   const hasMoreActions = moveTargets.length > 0 || canDelete;
 
   const renderedAt = new Date();
-  const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult] =
+  const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult, travellerProfile] =
     await Promise.all([
       destinationRepository.findByTrip(id),
       spendEntryRepository.findByTrip(id),
@@ -95,8 +100,23 @@ export default async function TripDetailPage({ params }: Props) {
         id,
         renderedAt,
       ),
+      getTravellerProfile(userProfileRepository, context.userId),
     ]);
   const tripNarrative = narrativeResult.ok ? narrativeResult.value : { narrative: '', bullets: [] };
+
+  const visaAssessmentResult = await assessTripVisas(
+    destinationRepository,
+    countryReferenceRepository,
+    visaRuleRepository,
+    { tripId: id, profile: travellerProfile },
+  );
+  if (!visaAssessmentResult.ok) {
+    console.warn('visa assessment failed', { tripId: id, error: visaAssessmentResult.error });
+  }
+  const visaAssessment = visaAssessmentResult.ok
+    ? visaAssessmentResult.value
+    : { coverages: [], unknownCountries: [] };
+  const visaNameByAlpha3 = new Map(countryReferences.map((c) => [c.alpha3, c.country]));
 
   const sorted = sortDestinations(destinations);
   const summary = getTripBudgetSummary(trip, destinations, fixedCosts);
@@ -307,6 +327,12 @@ export default async function TripDetailPage({ params }: Props) {
         {showBudgetOverview && <BudgetOverviewCard summary={summary} fixedCosts={fixedCosts} />}
 
         <TripNarrativePanel narrative={tripNarrative.narrative} bullets={tripNarrative.bullets} />
+
+        <VisasPanel
+          assessment={visaAssessment}
+          nameByAlpha3={visaNameByAlpha3}
+          hasPassports={travellerProfile.passports.length > 0}
+        />
 
         {allBurndownAlerts.length > 0 && <BudgetAlertBanner alerts={allBurndownAlerts} />}
 

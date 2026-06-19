@@ -19,6 +19,7 @@ import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repositor
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { UserAccessRepository } from '@/domain/user-access/user-access-repository';
 import type { UserProfileRepository } from '@/domain/user-profile/user-profile-repository';
+import type { VisaRuleRepository } from '@/domain/visa/visa-rule-repository';
 
 export type AppContainer = {
   readonly tripRepository: TripRepository;
@@ -29,6 +30,7 @@ export type AppContainer = {
   readonly organizationRepository: OrganizationRepository;
   readonly userAccessRepository: UserAccessRepository;
   readonly userProfileRepository: UserProfileRepository;
+  readonly visaRuleRepository: VisaRuleRepository;
   readonly inviteEmailService: InviteEmailService;
   readonly itineraryParser: ItineraryParser;
   readonly timelineInsightsService: TimelineInsightsService;

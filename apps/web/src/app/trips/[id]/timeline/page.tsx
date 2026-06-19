@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { analyseTripTimeline } from '@/application/use-cases/analyse-trip-timeline';
+import { getTravellerProfile } from '@/application/use-cases/get-traveller-profile';
 import { sortDestinations } from '@/domain/destination/destination';
 import { hasAiCredentials } from '@/infrastructure/ai/vercel-gateway-client';
 import { auth } from '@/infrastructure/auth';
@@ -30,6 +31,7 @@ export default async function TripTimelinePage({ params }: Props) {
     timelineInsightsService,
     tripFixedCostRepository,
     tripRepository,
+    userProfileRepository,
   } = getAppContainer();
 
   const trip = await tripRepository.findById(id);
@@ -40,6 +42,16 @@ export default async function TripTimelinePage({ params }: Props) {
     context.userId,
   );
   if (!membership) notFound();
+
+  const [profile, references] = await Promise.all([
+    getTravellerProfile(userProfileRepository, context.userId),
+    countryReferenceRepository.findAll(),
+  ]);
+  const nameByAlpha3 = new Map(references.map((r) => [r.alpha3, r.country]));
+  const nationalities =
+    profile.passports.length > 0
+      ? profile.passports.map((p) => nameByAlpha3.get(p.nationality) ?? p.nationality)
+      : ['United Kingdom'];
 
   const [destinations, fixedCosts, insightsResult] = await Promise.all([
     destinationRepository.findByTrip(id),
@@ -53,6 +65,7 @@ export default async function TripTimelinePage({ params }: Props) {
       aiCacheRepository,
       hashFn,
       id,
+      nationalities,
     ),
   ]);
 
