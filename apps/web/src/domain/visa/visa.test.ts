@@ -10,8 +10,21 @@ import {
   evaluateRollingWindow,
   filterEligibleRules,
   pickBestCoverage,
+  preferPurposesForIntent,
   selectApplicableRule,
 } from './visa';
+
+describe('preferPurposesForIntent', () => {
+  it('keeps short-stay purposes for tourism', () => {
+    expect(preferPurposesForIntent('tourism')).toEqual(['tourism', 'business', 'transit']);
+  });
+  it('prefers working-holiday for the working-holiday intent', () => {
+    expect(preferPurposesForIntent('working-holiday')).toEqual(['working-holiday']);
+  });
+  it('prefers longer-stay routes for long-stay', () => {
+    expect(preferPurposesForIntent('long-stay')).toEqual(['working-holiday', 'study']);
+  });
+});
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
 

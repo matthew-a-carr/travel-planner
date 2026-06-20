@@ -112,6 +112,7 @@ export const trips = pgTable(
     totalBudgetAmount: integer('total_budget_amount').notNull(),
     totalBudgetCurrency: text('total_budget_currency').notNull().default('GBP'),
     status: text('status').notNull().default('planning'),
+    intent: text('intent').notNull().default('tourism'), // TripIntent — drives visa-rule selection (SPEC-018)
     ownerId: text('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

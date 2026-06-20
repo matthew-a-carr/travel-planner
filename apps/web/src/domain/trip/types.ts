@@ -59,6 +59,15 @@ export type ComfortLevel = 'budget' | 'mid' | 'luxury';
 
 export type TripStatus = 'planning' | 'active' | 'completed';
 
+/** What the traveller intends to do on a trip — drives visa-rule selection. */
+export type TripIntent = 'tourism' | 'working-holiday' | 'long-stay';
+
+export const TRIP_INTENTS: readonly TripIntent[] = ['tourism', 'working-holiday', 'long-stay'];
+
+export function isTripIntent(value: unknown): value is TripIntent {
+  return typeof value === 'string' && (TRIP_INTENTS as readonly string[]).includes(value);
+}
+
 export type SpendCategory =
   | 'accommodation'
   | 'food'

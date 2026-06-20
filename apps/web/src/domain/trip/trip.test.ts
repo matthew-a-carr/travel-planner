@@ -9,7 +9,18 @@ import {
   validateTripBudgetEdit,
 } from './trip';
 import type { Destination, Trip, TripFixedCost } from './types';
-import { moneyUnchecked as money } from './types';
+import { isTripIntent, moneyUnchecked as money } from './types';
+
+describe('isTripIntent', () => {
+  it('accepts the known intents and rejects anything else', () => {
+    expect(isTripIntent('tourism')).toBe(true);
+    expect(isTripIntent('working-holiday')).toBe(true);
+    expect(isTripIntent('long-stay')).toBe(true);
+    expect(isTripIntent('holiday')).toBe(false);
+    expect(isTripIntent(null)).toBe(false);
+    expect(isTripIntent(42)).toBe(false);
+  });
+});
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 

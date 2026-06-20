@@ -1,0 +1,1 @@
+ALTER TABLE "trips" ADD COLUMN "intent" text DEFAULT 'tourism' NOT NULL;

@@ -15,6 +15,7 @@ import { calculateTotalSpend } from '@/domain/spending/spend-entry';
 import { buildBudgetWaterfall, getTripBudgetSummary } from '@/domain/trip/trip';
 import type { Trip, TripFixedCost } from '@/domain/trip/types';
 import { formatMoney } from '@/domain/trip/types';
+import { preferPurposesForIntent } from '@/domain/visa/visa';
 import { auth } from '@/infrastructure/auth';
 import { getAppContainer } from '@/infrastructure/container';
 import { getAuthenticatedAccessContext } from '@/infrastructure/organization/active-organization';
@@ -83,32 +84,41 @@ export default async function TripDetailPage({ params }: Props) {
   const hasMoreActions = moveTargets.length > 0 || canDelete;
 
   const renderedAt = new Date();
-  const [destinations, allSpend, fixedCosts, countryReferences, narrativeResult, travellerProfile] =
-    await Promise.all([
-      destinationRepository.findByTrip(id),
-      spendEntryRepository.findByTrip(id),
-      tripFixedCostRepository.findByTrip(id),
-      getCountryReferences(countryReferenceRepository),
-      summariseTripNarrative(
-        tripRepository,
-        destinationRepository,
-        tripFixedCostRepository,
-        spendEntryRepository,
-        tripNarrativeService,
-        aiCacheRepository,
-        hashFn,
-        id,
-        renderedAt,
-      ),
-      getTravellerProfile(userProfileRepository, context.userId),
-    ]);
+  const [
+    destinations,
+    allSpend,
+    fixedCosts,
+    countryReferences,
+    narrativeResult,
+    travellerProfile,
+    rawTripIntent,
+  ] = await Promise.all([
+    destinationRepository.findByTrip(id),
+    spendEntryRepository.findByTrip(id),
+    tripFixedCostRepository.findByTrip(id),
+    getCountryReferences(countryReferenceRepository),
+    summariseTripNarrative(
+      tripRepository,
+      destinationRepository,
+      tripFixedCostRepository,
+      spendEntryRepository,
+      tripNarrativeService,
+      aiCacheRepository,
+      hashFn,
+      id,
+      renderedAt,
+    ),
+    getTravellerProfile(userProfileRepository, context.userId),
+    tripRepository.getIntent(id),
+  ]);
   const tripNarrative = narrativeResult.ok ? narrativeResult.value : { narrative: '', bullets: [] };
+  const tripIntent = rawTripIntent ?? 'tourism';
 
   const visaAssessmentResult = await assessTripVisas(
     destinationRepository,
     countryReferenceRepository,
     visaRuleRepository,
-    { tripId: id, profile: travellerProfile },
+    { tripId: id, profile: travellerProfile, preferPurposes: preferPurposesForIntent(tripIntent) },
   );
   if (!visaAssessmentResult.ok) {
     console.warn('visa assessment failed', { tripId: id, error: visaAssessmentResult.error });
@@ -329,6 +339,8 @@ export default async function TripDetailPage({ params }: Props) {
         <TripNarrativePanel narrative={tripNarrative.narrative} bullets={tripNarrative.bullets} />
 
         <VisasPanel
+          tripId={id}
+          intent={tripIntent}
           assessment={visaAssessment}
           nameByAlpha3={visaNameByAlpha3}
           hasPassports={travellerProfile.passports.length > 0}

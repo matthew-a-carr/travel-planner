@@ -4,7 +4,7 @@
 // a trip's destinations + dates, the traveller's profile, and a frozen set of
 // visa rules, produce a VisaAssessment. No I/O, no AI, no exceptions.
 
-import type { Destination, Result } from '../trip/types';
+import type { Destination, Result, TripIntent } from '../trip/types';
 import { err, ok } from '../trip/types';
 import {
   type Alpha3,
@@ -22,6 +22,22 @@ import {
 } from './types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * Map a trip's intent to the visa purposes the evaluator should prefer when
+ * auto-selecting a rule. "Tourism" keeps the short-stay default; the others
+ * pull longer-stay routes (e.g. a working-holiday visa) to the front.
+ */
+export function preferPurposesForIntent(intent: TripIntent): readonly VisaPurpose[] {
+  switch (intent) {
+    case 'working-holiday':
+      return ['working-holiday'];
+    case 'long-stay':
+      return ['working-holiday', 'study'];
+    default:
+      return SHORT_STAY_PURPOSES;
+  }
+}
 
 // ─── Date helpers (date-only ISO arithmetic) ────────────────────────────────
 

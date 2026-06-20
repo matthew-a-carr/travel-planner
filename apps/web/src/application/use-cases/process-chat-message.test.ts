@@ -51,6 +51,8 @@ function makeTripRepo(trip: Trip | null = makeTrip()): TripRepository {
     findAllByOrganization: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
+    getIntent: vi.fn().mockResolvedValue('tourism'),
+    setIntent: vi.fn(),
   };
 }
 

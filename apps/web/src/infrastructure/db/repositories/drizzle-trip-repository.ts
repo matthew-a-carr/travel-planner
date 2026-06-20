@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Currency, Trip, TripStatus } from '@/domain/trip/types';
+import type { Currency, Trip, TripIntent, TripStatus } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
 import type { Db } from '../client';
 import { trips } from '../schema';
@@ -73,5 +73,14 @@ export class DrizzleTripRepository implements TripRepository {
 
   async delete(id: string): Promise<void> {
     await this.db.delete(trips).where(eq(trips.id, id));
+  }
+
+  async getIntent(id: string): Promise<TripIntent | null> {
+    const rows = await this.db.select({ intent: trips.intent }).from(trips).where(eq(trips.id, id));
+    return rows[0] ? (rows[0].intent as TripIntent) : null;
+  }
+
+  async setIntent(id: string, intent: TripIntent): Promise<void> {
+    await this.db.update(trips).set({ intent, updatedAt: new Date() }).where(eq(trips.id, id));
   }
 }
