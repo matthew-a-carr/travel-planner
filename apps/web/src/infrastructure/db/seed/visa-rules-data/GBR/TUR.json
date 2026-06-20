@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "TUR",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": null,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": 90,
+    "rollingWindowDays": 180,
+    "otherRequirements": [
+      "Applies to British citizen passports only; other British passport types need a visa",
+      "Passport must be valid for at least 150 days after arrival and have at least 1 blank page",
+      "Get your passport stamped at land-border crossings"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Turkey travel advice — visa-free for up to 90 days in any 180-day period (https://www.gov.uk/foreign-travel-advice/turkey/entry-requirements)"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "CAN",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "eta",
+    "maxStayDays": 180,
+    "visaValidityDays": 1825,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Hold an Electronic Travel Authorisation (eTA) when arriving by air; valid up to 5 years or until the passport expires",
+      "Border officials may ask for a return or onward ticket and proof of sufficient funds"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Canada travel advice — visa-free visits normally up to 6 months with an eTA for air travel (https://www.gov.uk/foreign-travel-advice/canada/entry-requirements)"
+  }
+]

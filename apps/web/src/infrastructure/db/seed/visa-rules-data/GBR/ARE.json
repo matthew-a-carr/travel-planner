@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "ARE",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-on-arrival",
+    "maxStayDays": null,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": 90,
+    "rollingWindowDays": 180,
+    "otherRequirements": [
+      "A free visit/tourist visa is stamped in your passport on arrival",
+      "Passport must be valid for at least 6 months after the date you arrive",
+      "Overstaying the 90-day allowance incurs daily fines"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk United Arab Emirates travel advice — free visa on arrival, up to 90 days in any 180-day period (https://www.gov.uk/foreign-travel-advice/united-arab-emirates/entry-requirements)"
+  }
+]
