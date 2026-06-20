@@ -180,7 +180,8 @@ ln -s AGENTS.md CLAUDE.md
 | DB migrations | `pnpm db:migrate` |
 | Generate migration | `pnpm db:generate` |
 | Seed reference data | `pnpm db:seed` |
-| Extract visa rules (one-off AI job → committed seed) | `pnpm visa:fetch` |
+| Extract visa rules (subscription Agent-SDK/Codex → committed JSON artifacts) | `pnpm visa:extract --runner=claude\|codex <DEST…>` |
+| Regenerate / drift-check the visa extraction JSON schema | `pnpm visa:schema` / `pnpm visa:schema:check` |
 | e2e tests (umbrella — web Playwright + mobile Maestro) | `pnpm test:e2e` |
 | e2e — web only (Playwright; Docker required — Testcontainers manages the DB) | `pnpm test:e2e:web` |
 | e2e — web Playwright UI mode | `pnpm test:e2e:web:ui` |
@@ -384,6 +385,7 @@ Plugin-provided skills (auto-loaded via `engineering-principles@matthew-a-carr`)
 | `triage-dependabot` | plugin | "triage the dependabot PRs" | Apply repo dependency rules → merge/hold/close recommendation |
 | `review-tech-debt` | plugin | Weekly routine; or "review tech debt" | Assess → categorise → report → act |
 | [`deploy-smoke-test`](./.agents/skills/deploy-smoke-test/SKILL.md) | local | After merge to `main`; or "is prod healthy?" | Verify Vercel Production deploy is READY + HTTP canaries + migrations |
+| [`extract-visa-rules`](./.agents/skills/extract-visa-rules/SKILL.md) | local | "run the visa extraction" / broaden visa coverage; or on a schedule | Research visa policy per (nationality, destination) via Claude Agent SDK or Codex → committed, schema-validated JSON artifacts (ADR 062) |
 
 #### Adding a new skill
 
@@ -500,8 +502,9 @@ AUTH_ENABLE_LOCAL_DEV=false   # set true to allow local-dev credentials outside 
 RESEND_API_KEY=          # Resend API key (required in production)
 EMAIL_FROM_ADDRESS=hello@mail.matthewcarr.dev
 EMAIL_FROM_NAME=Travel Planner
-AI_GATEWAY_API_KEY=      # Vercel AI Gateway key (local dev / non-Vercel CI). On Vercel deployments this is unset and the SDK uses VERCEL_OIDC_TOKEN automatically. See ADR 040.
+AI_GATEWAY_API_KEY=      # Vercel AI Gateway key for runtime AI (itinerary parse, timeline insights, chat). On Vercel deployments this is unset and the SDK uses VERCEL_OIDC_TOKEN automatically. See ADR 040. NOT used by visa extraction (ADR 062).
 # AI_GATEWAY_MODEL=      # override model id (defaults to openai/gpt-5.4-mini, gateway-routed). Terraform-managed in prod/preview via the ai_gateway_model variable — see ADR 040.
+# CLAUDE_CODE_OAUTH_TOKEN=  # operator's Claude subscription token (run `claude setup-token`) for `pnpm visa:extract --runner=claude`. Run-time only for the offline extraction job; never used by the app. See ADR 062. (Codex path uses `codex login` instead.)
 ```
 
 Bootstrap the first admin user in each environment:

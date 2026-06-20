@@ -126,8 +126,8 @@ an `ai:plan` issue) when the slice is ready.
 | 1 | **Modelling foundation** — `visa_rules`/`visa_zones`/`visa_zone_membership`/`user_passports`/`users.date_of_birth` schema, pure `src/domain/visa/` evaluator, `assess-trip-visas` use case, AI-extraction seed job, initial `GBR` seed (incl. Schengen + Australia), remove the hardcoded "UK passport holder" assumption | (foundation — enables 1–6) | [SPEC-015](../specs/SPEC-015-visa-requirements-modelling.md) (In Progress) | — | In Progress |
 | 2 | **Traveller profile capture** — profile page to add/remove passports + set date of birth; persistence (`user_passports`, `users.date_of_birth`) via a use case + server action; assessment reads real profile data | 1 | [SPEC-016](../specs/SPEC-016-traveller-profile-capture.md) (Complete) | 1 | Complete |
 | 3 | **Visas panel on the trip page (default Tourism)** — trip detail page renders per-country `CountryCoverage` + warnings (overstay, Schengen, single-entry, cooling-off), wired via a server-side call to `assess-trip-visas` through `getAppContainer()`. **Milestone slice** | 2–4, 6 | [SPEC-017](../specs/SPEC-017-visas-panel.md) (Complete) | 1, 2 | Complete |
-| 4 | **Per-trip intent selector** — persisted trip `intent` (Tourism / Working holiday / Long stay) drives `preferPurposes`; panel re-assesses; Australia Working Holiday case end-to-end | 5 | [SPEC-018](../specs/SPEC-018-trip-intent-selector.md) (In Progress) | 3 | In Progress |
-| 5 | **Broad GBR seed + accuracy pass** — run `visa:fetch` across the full country list, human-review the diff, commit; `unknown` countries surfaced honestly in the panel | 6 | _not yet planned_ | 1, 3 | Not started |
+| 4 | **Per-trip intent selector** — persisted trip `intent` (Tourism / Working holiday / Long stay) drives `preferPurposes`; panel re-assesses; Australia Working Holiday case end-to-end | 5 | [SPEC-018](../specs/SPEC-018-trip-intent-selector.md) (Complete) | 3 | Complete |
+| 5 | **Broad visa coverage — extraction skill + deploy ingestion** — `pnpm visa:extract` (Claude Agent SDK / Codex, subscription auth) → committed JSON artifacts → idempotent ingest at deploy; operator runs the extraction, reviews the diff | 6 | [SPEC-019](../specs/SPEC-019-visa-extraction-skill.md) (In Progress) | 1, 3 | In Progress |
 
 ## 8. Sequencing rationale
 
@@ -256,6 +256,8 @@ Numbers claimed at write time.
 | 2026-06-16 | 3 | SPEC-017 | In Progress | Milestone Visas panel drafted + implemented: server-rendered panel on the trip page from `assess-trip-visas`, `visaRuleRepository` wired into the container, retired the hardcoded "UK passport holder" assumption (SPEC-015 step 11). |
 | 2026-06-16 | 3 | SPEC-017 | Complete | Merged (PR #165); CI green after a WCAG contrast fix on the panel footer. |
 | 2026-06-16 | 4 | SPEC-018 | In Progress | Per-trip intent selector drafted + implemented: `trips.intent` column + migration 0016, `TripRepository.get/setIntent`, `set-trip-intent` use case, `preferPurposesForIntent`, `TripIntentSelector` in the panel header. |
+| 2026-06-16 | 4 | SPEC-018 | Complete | Merged (PR #166); CI green first run. |
+| 2026-06-20 | 5 | SPEC-019 | In Progress | Re-architected extraction (ADR 062): subscription Agent-SDK/Codex skill → committed JSON artifacts → idempotent deploy ingestion (`ingestVisaData`). Replaced the gateway extractor + TS-seed path. Operator runs the extraction; the diff review is the accuracy gate. |
 
 ## Epic-level deviations
 

@@ -69,4 +69,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [058](058-mobile-phase-2-read-only-data.md) | Mobile Phase 2 — Read-Only Data over the Existing Foundation | 2026-05-30 | Accepted |
 | [059](059-mobile-phase-3-spend-capture-writes.md) | Mobile Phase 3 — Spend Capture over a v1 Write Surface | 2026-06-12 | Accepted |
 | [060](060-mobile-e2e-real-backend-authenticated-journeys.md) | Mobile E2E Phase 2 — Real Backend and Authenticated Journeys in CI | 2026-06-12 | Accepted |
-| [061](061-visa-requirements-deterministic-evaluation-over-frozen-seed.md) | Visa Requirements — Deterministic Evaluation over an AI-Extracted Frozen Seed, with First-Class Zones | 2026-06-15 | Accepted |
+| [061](061-visa-requirements-deterministic-evaluation-over-frozen-seed.md) | Visa Requirements — Deterministic Evaluation over an AI-Extracted Frozen Seed, with First-Class Zones | 2026-06-15 | Accepted (mechanism partly superseded by 062) |
+| [062](062-visa-extraction-via-agent-sdk-codex-skill.md) | Visa Extraction via a Subscription-Auth Agent-SDK/Codex Skill, Ingested at Deploy | 2026-06-20 | Accepted |

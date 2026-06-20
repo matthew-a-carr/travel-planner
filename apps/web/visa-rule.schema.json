@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "rules": {
+      "maxItems": 6,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "tourism",
+              "business",
+              "working-holiday",
+              "transit",
+              "study"
+            ],
+            "description": "The visa purpose this rule covers"
+          },
+          "workRights": {
+            "type": "boolean",
+            "description": "Whether the visa permits paid work"
+          },
+          "minAgeYears": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxAgeYears": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligibilityNotes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "visa-free",
+              "visa-on-arrival",
+              "e-visa",
+              "eta",
+              "visa-required",
+              "admission-refused"
+            ]
+          },
+          "maxStayDays": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "visaValidityDays": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "entryType": {
+            "type": "string",
+            "enum": [
+              "single",
+              "multiple"
+            ]
+          },
+          "minDaysOutBeforeReturn": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rollingWindow": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "allowanceDays": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "windowDays": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "allowanceDays",
+                  "windowDays"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "otherRequirements": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 200
+            }
+          },
+          "sourceNote": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 300,
+            "description": "Citation for this rule (e.g. gov.uk page)"
+          }
+        },
+        "required": [
+          "purpose",
+          "workRights",
+          "minAgeYears",
+          "maxAgeYears",
+          "eligibilityNotes",
+          "category",
+          "maxStayDays",
+          "visaValidityDays",
+          "entryType",
+          "minDaysOutBeforeReturn",
+          "rollingWindow",
+          "otherRequirements",
+          "sourceNote"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "rules"
+  ],
+  "additionalProperties": false
+}

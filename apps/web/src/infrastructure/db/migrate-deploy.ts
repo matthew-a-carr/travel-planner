@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import { ingestVisaData } from './ingest-visa-rules';
 
 const MIGRATION_LOCK_KEY = 982451653;
 
@@ -21,6 +22,9 @@ async function runMigrationsForDeployment() {
     console.log('Running deployment migrations...');
     await migrate(db, { migrationsFolder: './drizzle' });
     console.log('Deployment migrations complete.');
+
+    const counts = await ingestVisaData(db);
+    console.log(`Ingested ${counts.zones} visa zone(s) and ${counts.rules} visa rule(s).`);
   } finally {
     await sql`select pg_advisory_unlock(${MIGRATION_LOCK_KEY})`;
     await sql.end();

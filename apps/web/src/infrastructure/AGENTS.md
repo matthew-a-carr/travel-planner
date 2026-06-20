@@ -52,15 +52,17 @@ src/infrastructure/
       drizzle-refresh-token-repository.ts
       drizzle-visa-rule-repository.ts   ← visa rules + zone memberships (SPEC-015)
       drizzle-user-profile-repository.ts ← passports + date of birth (SPEC-016)
+    ingest-visa-rules.ts   ← ingestVisaData(): zones + manual seed + JSON artifacts → upsert (SPEC-019)
   ai/
-      gateway-visa-rule-extractor.ts ← one-off AI extraction adapter + Zod schema (SPEC-015 §H)
-      visa-extraction-checks.ts      ← pure sanity checks + seed serialiser (unit-tested)
       vercel-gateway-client.ts       ← AI Gateway model-id + credential helpers (ADR 040)
+  visa-extraction/
+      extraction-schema.ts ← Zod contract + system prompt (→ visa-rule.schema.json); SPEC-019/ADR 062
+      checks.ts            ← pure cross-field sanity checks (unit-tested)
     seed/
       country-list-seed.ts       ← generated seed data for ~200 countries
       visa-rule-seed.ts          ← hand-authored visa rules + Schengen zone/membership seed (SPEC-015)
-      visa-rule-ai-seed.ts       ← AUTO-GENERATED ai-extracted visa rules (pnpm visa:fetch)
-      seed.ts                    ← idempotent upsert runner (pnpm db:seed)
+      visa-rules-data/           ← committed AI-extracted JSON artifacts (pnpm visa:extract; SPEC-019)
+      seed.ts                    ← idempotent upsert runner (pnpm db:seed → ingestVisaData)
       e2e-fixtures.ts            ← deterministic e2e fixtures + applyE2eFixtures (SPEC-013)
       seed-e2e.ts                ← e2e fixture runner (pnpm seed:e2e)
   testing/

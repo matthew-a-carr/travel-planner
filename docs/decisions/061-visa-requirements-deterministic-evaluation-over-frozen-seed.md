@@ -1,7 +1,7 @@
 # ADR 061: Visa Requirements — Deterministic Evaluation over an AI-Extracted Frozen Seed, with First-Class Zones
 
 **Date:** 2026-06-15
-**Status:** Accepted
+**Status:** Accepted (acquisition *mechanism* superseded by [ADR 062](062-visa-extraction-via-agent-sdk-codex-skill.md); the determinism / human-review boundary stands)
 
 ## Context
 
