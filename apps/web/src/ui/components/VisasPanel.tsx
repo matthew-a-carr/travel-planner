@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import type { TripIntent } from '@/domain/trip/types';
 import type { Alpha3, VisaAssessment } from '@/domain/visa/types';
+import { TripIntentSelector } from './TripIntentSelector';
 import { buildVisaRows, type VisaRowSeverity } from './visa-panel-view';
 
 const SEVERITY_STYLE: Record<VisaRowSeverity, string> = {
@@ -12,12 +14,14 @@ const SEVERITY_STYLE: Record<VisaRowSeverity, string> = {
 };
 
 type Props = {
+  readonly tripId: string;
+  readonly intent: TripIntent;
   readonly assessment: VisaAssessment;
   readonly nameByAlpha3: ReadonlyMap<Alpha3, string>;
   readonly hasPassports: boolean;
 };
 
-export function VisasPanel({ assessment, nameByAlpha3, hasPassports }: Props) {
+export function VisasPanel({ tripId, intent, assessment, nameByAlpha3, hasPassports }: Props) {
   const rows = buildVisaRows(assessment, nameByAlpha3);
 
   return (
@@ -25,12 +29,12 @@ export function VisasPanel({ assessment, nameByAlpha3, hasPassports }: Props) {
       aria-labelledby="visas-heading"
       className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900"
     >
-      <h2
-        id="visas-heading"
-        className="mb-3 text-base font-semibold text-zinc-900 dark:text-zinc-100"
-      >
-        Visas
-      </h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="visas-heading" className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          Visas
+        </h2>
+        <TripIntentSelector tripId={tripId} intent={intent} />
+      </div>
 
       {!hasPassports ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">

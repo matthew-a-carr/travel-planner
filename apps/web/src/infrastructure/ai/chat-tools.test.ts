@@ -86,6 +86,8 @@ function makeDeps(overrides: {
       findAllByOrganization: vi.fn(),
       save: vi.fn(),
       delete: vi.fn(),
+      getIntent: vi.fn().mockResolvedValue('tourism'),
+      setIntent: vi.fn(),
     } as TripRepository,
     destinationRepository: {
       findById: vi.fn(),
