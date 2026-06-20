@@ -199,8 +199,18 @@ revert PR + drop the column.
 
 | # | Deviation | Reason | Impact | Resolved? |
 |---|-----------|--------|--------|-----------|
-| 1 | ... | ... | ... | Yes / No → TD-NNN |
+| 1 | Intent stored via dedicated `TripRepository.get/setIntent` methods rather than on the `Trip` aggregate | ~20 `Trip` construction sites would otherwise need churning | One extra cheap query on the trip page; intent isn't on the `Trip` type | Yes (accepted) |
 
 ### Post-Implementation Notes
 
-_To be filled by the implementing agent._
+- `trips.intent` is a nullable-with-default-`'tourism'` additive column — existing
+  trips keep current behaviour (no re-assessment change until a user opts in).
+- The selector lives in the Visas panel header and auto-submits; the server
+  action authorises by org membership (AC5).
+- "Long stay" maps to `['working-holiday','study']`; no `study` rules are seeded
+  yet, so it currently behaves like working-holiday with a study fallback.
+- This completes the headline "go to Australia to live" journey end-to-end.
+- Remaining EPIC-005 work: slice 5 (broad GBR seed via `pnpm visa:fetch` + human
+  review — needs an AI key).
+- Integration + e2e are CI-gated (Docker Hub rate limit); unit (488), lint,
+  type-check, migrations, and `pnpm build` pass locally.
