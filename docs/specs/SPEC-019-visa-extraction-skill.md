@@ -1,7 +1,7 @@
 # SPEC-019: Visa Extraction via Agent-SDK / Codex Skill, Ingested at Deploy
 
 **Date:** 2026-06-20
-**Status:** In Progress
+**Status:** Complete
 **Author:** agent (interactive session)
 **Approved by:** —
 **Parent epic:** [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) — slice 5
@@ -203,3 +203,11 @@ corrupts existing rows.
   async-generator → `result` message with `structured_output`; subscription auth
   via `CLAUDE_CODE_OAUTH_TOKEN`.
 - This completes EPIC-005's machinery; merged + extracted, the epic is shippable.
+- **Initial broad GBR batch ingested (2026-06-21).** 18 destinations researched
+  against gov.uk foreign travel advice and committed as `visa-rules-data/GBR/*.json`
+  (NZL, CAN, IND, SGP, ARE, TUR, CHN, IDN, MYS, MEX, ZAF, BRA, EGY, MAR, LKA, QAT,
+  KOR, PHL), schema-validated via `loadExtractedVisaRules` (PRs #169). Merged to
+  main; the production deploy ran `ingestVisaData` (chained `db:migrate:deploy &&
+  db:seed`) and reached READY on `travel.matthewcarr.dev`. Two time-boxed rules
+  are flagged: CHN `validTo: 2026-12-31` and a KOR K-ETA exemption note. This
+  closes EPIC-005 slice 5 (broad GBR coverage).

@@ -51,8 +51,8 @@ Issue opened (ai:plan)
 | [012](SPEC-012-mobile-trip-detail.md) | Mobile Trip Detail Screen — Timeline + Spend | [EPIC-002](../epics/EPIC-002-mobile-read-only-data.md) | 2026-06-11 | Complete |
 | [013](SPEC-013-mobile-e2e-real-backend.md) | Mobile E2E — Real Backend in the CI Loop | [EPIC-004](../epics/EPIC-004-mobile-e2e-authenticated-journeys.md) | 2026-06-12 | Complete |
 | [014](SPEC-014-mobile-e2e-auth-seam.md) | Mobile E2E — Test-Auth Seam + Signed-In Journey (milestone) | [EPIC-004](../epics/EPIC-004-mobile-e2e-authenticated-journeys.md) | 2026-06-13 | Complete |
-| [015](SPEC-015-visa-requirements-modelling.md) | Visa Requirements — Data & Domain Modelling | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-15 | In Progress |
+| [015](SPEC-015-visa-requirements-modelling.md) | Visa Requirements — Data & Domain Modelling | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-15 | Complete |
 | [016](SPEC-016-traveller-profile-capture.md) | Traveller Profile — Passports & Date of Birth Capture | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-16 | Complete |
 | [017](SPEC-017-visas-panel.md) | Visas Panel on the Trip Page (Milestone) | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-16 | Complete |
 | [018](SPEC-018-trip-intent-selector.md) | Per-Trip Visa Intent Selector | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-16 | Complete |
-| [019](SPEC-019-visa-extraction-skill.md) | Visa Extraction via Agent-SDK / Codex Skill, Ingested at Deploy | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-20 | In Progress |
+| [019](SPEC-019-visa-extraction-skill.md) | Visa Extraction via Agent-SDK / Codex Skill, Ingested at Deploy | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-20 | Complete |
