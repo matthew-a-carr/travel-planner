@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "MEX",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 180,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free for tourism; the immigration officer decides the length of stay granted, up to a maximum of 180 days",
+      "Passport must be valid for the duration of your stay",
+      "You may be asked to show proof of onward or return travel and sufficient funds"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Mexico travel advice — visa-free for tourism, stay of up to 180 days granted on entry (https://www.gov.uk/foreign-travel-advice/mexico/entry-requirements)"
+  }
+]

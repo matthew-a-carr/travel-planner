@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "NZL",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "eta",
+    "maxStayDays": 180,
+    "visaValidityDays": 730,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Hold a New Zealand Electronic Travel Authority (NZeTA) before travel; it is valid for 2 years and allows multiple visits",
+      "Pay the International Visitor Conservation and Tourism Levy (IVL) when applying for the NZeTA",
+      "Passport must be valid for at least 3 months after your planned departure date"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk New Zealand travel advice — visa-free visits up to 6 months with an NZeTA (https://www.gov.uk/foreign-travel-advice/new-zealand/entry-requirements)"
+  }
+]

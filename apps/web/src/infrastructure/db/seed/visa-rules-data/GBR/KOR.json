@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "KOR",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 90,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free entry for tourism or short-term business for up to 90 days",
+      "British nationals are exempt from the K-ETA until 31 December 2026; after that a K-ETA may be required before travel",
+      "You must have an onward or return ticket; working while visiting visa-free is not permitted"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk South Korea travel advice — visa-free for up to 90 days; K-ETA exemption for British nationals until 31 December 2026 (https://www.gov.uk/foreign-travel-advice/south-korea/entry-requirements)"
+  }
+]

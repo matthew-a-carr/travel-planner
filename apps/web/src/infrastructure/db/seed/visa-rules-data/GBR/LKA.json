@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "LKA",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "eta",
+    "maxStayDays": 30,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Apply online for an Electronic Travel Authorization (ETA) before travel; it is issued free of charge and valid for a 30-day stay",
+      "You can apply to extend your stay online through the Sri Lanka immigration portal",
+      "No visa is needed to transit by air if your connecting flight is within 24 hours of arrival"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Sri Lanka travel advice — ETA required, free of charge since 25 May 2026, valid for 30 days (https://www.gov.uk/foreign-travel-advice/sri-lanka/entry-requirements)"
+  }
+]

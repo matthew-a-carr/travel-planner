@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "QAT",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 30,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "A free visa waiver is granted on arrival for tourism, valid for up to 30 days",
+      "To stay longer than 30 days you must extend the visa waiver before it expires through the Qatar Ministry of Interior",
+      "If staying more than 30 days you must buy health insurance from a Ministry of Public Health (MOPH) registered provider before travel"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Qatar travel advice — free visa waiver on arrival for up to 30 days (https://www.gov.uk/foreign-travel-advice/qatar/entry-requirements)"
+  }
+]

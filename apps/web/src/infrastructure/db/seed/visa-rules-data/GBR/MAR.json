@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "MAR",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 90,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free entry for tourism for up to 90 days; to stay longer request an extension at a Moroccan police station",
+      "Passport must be valid for at least 3 months after your date of arrival",
+      "Make sure your passport is stamped on entry to avoid difficulties leaving"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Morocco travel advice — visa-free visits for tourism up to 90 days (https://www.gov.uk/foreign-travel-advice/morocco/entry-requirements)"
+  }
+]

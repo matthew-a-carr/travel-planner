@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "SGP",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 90,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Submit an SG Arrival Card before arrival",
+      "Passport must be valid for at least 6 months after the date you arrive",
+      "Length of stay (typically 30 to 90 days) is at the discretion of the immigration officer"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Singapore travel advice — visa-free for tourism/business, normally 30 to 90 days (https://www.gov.uk/foreign-travel-advice/singapore/entry-requirements)"
+  }
+]

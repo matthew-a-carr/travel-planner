@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "IND",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "e-visa",
+    "maxStayDays": 90,
+    "visaValidityDays": 365,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Apply for an e-Tourist visa online before travel (30-day, 1-year or 5-year options)",
+      "Passport must have at least 6 months validity when you apply",
+      "Complete the online e-arrival card up to 72 hours before arrival"
+    ],
+    "validFrom": "2026-06-20",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk India travel advice — a visa is required; e-Tourist visa available to UK nationals (https://www.gov.uk/foreign-travel-advice/india/entry-requirements). Per-stay cap modelled conservatively at 90 days; verify the exact option's terms."
+  }
+]

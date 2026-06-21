@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "IDN",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-on-arrival",
+    "maxStayDays": 30,
+    "visaValidityDays": null,
+    "entryType": "single",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Buy a visa on arrival (or an e-VOA online before travel) for stays up to 30 days; it can be extended once for a further 30 days",
+      "Passport must be valid for at least 6 months from your date of arrival",
+      "Travellers to Bali must pay the tourism levy before or on arrival"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Indonesia travel advice — visa on arrival for tourism up to 30 days, extendable once (https://www.gov.uk/foreign-travel-advice/indonesia/entry-requirements)"
+  }
+]
