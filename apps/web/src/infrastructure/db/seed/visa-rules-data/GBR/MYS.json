@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "MYS",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 90,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free entry for tourism for up to 90 days",
+      "Complete the Malaysia Digital Arrival Card (MDAC) within 3 days before arrival",
+      "Passport must be valid for at least 6 months from your date of arrival"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Malaysia travel advice — visa-free visits for tourism up to 90 days (https://www.gov.uk/foreign-travel-advice/malaysia/entry-requirements)"
+  }
+]

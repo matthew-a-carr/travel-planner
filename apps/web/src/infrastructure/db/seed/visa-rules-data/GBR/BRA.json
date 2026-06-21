@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "BRA",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 90,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free entry for tourism for up to 90 days, extendable in-country up to a total of 180 days in any 12-month period",
+      "Passport must be valid for at least 6 months from your date of arrival",
+      "You may be asked to show proof of onward or return travel"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Brazil travel advice — visa-free visits for tourism up to 90 days (https://www.gov.uk/foreign-travel-advice/brazil/entry-requirements)"
+  }
+]

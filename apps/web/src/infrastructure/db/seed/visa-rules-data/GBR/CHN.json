@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "CHN",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "visa-free",
+    "maxStayDays": 30,
+    "visaValidityDays": null,
+    "entryType": "multiple",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "Visa-free entry for stays up to 30 days under China's unilateral trial, currently extended to 31 December 2026",
+      "Passport must be valid for at least 6 months and have at least 2 blank pages",
+      "For stays longer than 30 days or non-tourist purposes you must obtain a visa in advance"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": "2026-12-31",
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk China travel advice — visa-free visits up to 30 days under the trial scheme running to 31 December 2026 (https://www.gov.uk/foreign-travel-advice/china/entry-requirements)"
+  }
+]

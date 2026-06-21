@@ -1,0 +1,28 @@
+[
+  {
+    "nationality": "GBR",
+    "destination": "EGY",
+    "zoneCode": null,
+    "purpose": "tourism",
+    "workRights": false,
+    "minAgeYears": null,
+    "maxAgeYears": null,
+    "eligibilityNotes": null,
+    "category": "e-visa",
+    "maxStayDays": 90,
+    "visaValidityDays": 90,
+    "entryType": "single",
+    "minDaysOutBeforeReturn": null,
+    "rollingAllowanceDays": null,
+    "rollingWindowDays": null,
+    "otherRequirements": [
+      "A visa is normally required; apply for a tourist e-visa online before travel (valid up to 3 months) or buy a visa on arrival ($30 cash) at approved airports",
+      "If arriving by air to Sharm El-Sheikh and staying under 15 days within the Sharm/Dahab/Nuweiba/Taba resort area you get a free entry-permission stamp instead",
+      "Passport must be valid for at least 6 months from your date of arrival"
+    ],
+    "validFrom": "2026-06-21",
+    "validTo": null,
+    "source": "ai-extracted",
+    "sourceNote": "gov.uk Egypt travel advice — visa required; tourist e-visa valid up to 3 months, or visa on arrival; Sinai resort exemption under 15 days (https://www.gov.uk/foreign-travel-advice/egypt/entry-requirements)"
+  }
+]
