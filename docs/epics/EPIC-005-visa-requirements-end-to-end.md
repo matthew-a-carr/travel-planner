@@ -1,7 +1,7 @@
 # EPIC-005: Visa Requirements — End-to-End
 
 **Date:** 2026-06-15
-**Status:** Draft
+**Status:** Complete
 **Strategic ADR:** — (no separate strategic ADR; the determinism-boundary /
 zones decision is captured as ADR 061, triggered by the foundation slice — see
 §16. This epic operationalises a product need rather than a standalone strategic
@@ -49,20 +49,21 @@ can't vet.
 
 The epic is **Complete** when:
 
-- [ ] A signed-in user can record their passport(s) and date of birth on a
-      **profile page**, persisted and reused across trips.
-- [ ] A trip detail page shows a **Visas panel** with per-country coverage
+- [x] A signed-in user can record their passport(s) and date of birth on a
+      **profile page**, persisted and reused across trips. *(SPEC-016)*
+- [x] A trip detail page shows a **Visas panel** with per-country coverage
       (status, max stay, days planned, entries) and clear warnings for
-      overstay, Schengen 90/180, single-entry side-trips, and cooling-off.
-- [ ] The panel is correct for the four canonical cases: a long single-country
+      overstay, Schengen 90/180, single-entry side-trips, and cooling-off. *(SPEC-017)*
+- [x] The panel is correct for the four canonical cases: a long single-country
       stay across multiple cities, a multi-country Schengen overstay, a
-      single-entry re-entry, and an age-gated Working Holiday option.
-- [ ] A **per-trip intent selector** (Tourism / Working holiday / Long stay)
-      re-assesses the trip; the Australia Working Holiday case works end-to-end.
-- [ ] **Broad GBR destination coverage** is seeded and human-reviewed; countries
+      single-entry re-entry, and an age-gated Working Holiday option. *(SPEC-017/018)*
+- [x] A **per-trip intent selector** (Tourism / Working holiday / Long stay)
+      re-assesses the trip; the Australia Working Holiday case works end-to-end. *(SPEC-018)*
+- [x] **Broad GBR destination coverage** is seeded and human-reviewed; countries
       with no data are shown honestly as "no visa data yet", never silently.
-- [ ] The hardcoded "UK passport holder" assumption is gone; the web app has no
-      regression and all pre-existing tests stay green.
+      *(SPEC-019 — 18 destinations ingested at deploy, 2026-06-21)*
+- [x] The hardcoded "UK passport holder" assumption is gone; the web app has no
+      regression and all pre-existing tests stay green. *(SPEC-017)*
 
 Non-UK nationalities, a mobile surface, and visa-fee budgeting are **not** the
 bar (see §6).
@@ -123,11 +124,11 @@ an `ai:plan` issue) when the slice is ready.
 
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
-| 1 | **Modelling foundation** — `visa_rules`/`visa_zones`/`visa_zone_membership`/`user_passports`/`users.date_of_birth` schema, pure `src/domain/visa/` evaluator, `assess-trip-visas` use case, AI-extraction seed job, initial `GBR` seed (incl. Schengen + Australia), remove the hardcoded "UK passport holder" assumption | (foundation — enables 1–6) | [SPEC-015](../specs/SPEC-015-visa-requirements-modelling.md) (In Progress) | — | In Progress |
+| 1 | **Modelling foundation** — `visa_rules`/`visa_zones`/`visa_zone_membership`/`user_passports`/`users.date_of_birth` schema, pure `src/domain/visa/` evaluator, `assess-trip-visas` use case, AI-extraction seed job, initial `GBR` seed (incl. Schengen + Australia), remove the hardcoded "UK passport holder" assumption | (foundation — enables 1–6) | [SPEC-015](../specs/SPEC-015-visa-requirements-modelling.md) (Complete) | — | Complete |
 | 2 | **Traveller profile capture** — profile page to add/remove passports + set date of birth; persistence (`user_passports`, `users.date_of_birth`) via a use case + server action; assessment reads real profile data | 1 | [SPEC-016](../specs/SPEC-016-traveller-profile-capture.md) (Complete) | 1 | Complete |
 | 3 | **Visas panel on the trip page (default Tourism)** — trip detail page renders per-country `CountryCoverage` + warnings (overstay, Schengen, single-entry, cooling-off), wired via a server-side call to `assess-trip-visas` through `getAppContainer()`. **Milestone slice** | 2–4, 6 | [SPEC-017](../specs/SPEC-017-visas-panel.md) (Complete) | 1, 2 | Complete |
 | 4 | **Per-trip intent selector** — persisted trip `intent` (Tourism / Working holiday / Long stay) drives `preferPurposes`; panel re-assesses; Australia Working Holiday case end-to-end | 5 | [SPEC-018](../specs/SPEC-018-trip-intent-selector.md) (Complete) | 3 | Complete |
-| 5 | **Broad visa coverage — extraction skill + deploy ingestion** — `pnpm visa:extract` (Claude Agent SDK / Codex, subscription auth) → committed JSON artifacts → idempotent ingest at deploy; operator runs the extraction, reviews the diff | 6 | [SPEC-019](../specs/SPEC-019-visa-extraction-skill.md) (In Progress) | 1, 3 | In Progress |
+| 5 | **Broad visa coverage — extraction skill + deploy ingestion** — `pnpm visa:extract` (Claude Agent SDK / Codex, subscription auth) → committed JSON artifacts → idempotent ingest at deploy; operator runs the extraction, reviews the diff | 6 | [SPEC-019](../specs/SPEC-019-visa-extraction-skill.md) (Complete) | 1, 3 | Complete |
 
 ## 8. Sequencing rationale
 
@@ -258,11 +259,30 @@ Numbers claimed at write time.
 | 2026-06-16 | 4 | SPEC-018 | In Progress | Per-trip intent selector drafted + implemented: `trips.intent` column + migration 0016, `TripRepository.get/setIntent`, `set-trip-intent` use case, `preferPurposesForIntent`, `TripIntentSelector` in the panel header. |
 | 2026-06-16 | 4 | SPEC-018 | Complete | Merged (PR #166); CI green first run. |
 | 2026-06-20 | 5 | SPEC-019 | In Progress | Re-architected extraction (ADR 062): subscription Agent-SDK/Codex skill → committed JSON artifacts → idempotent deploy ingestion (`ingestVisaData`). Replaced the gateway extractor + TS-seed path. Operator runs the extraction; the diff review is the accuracy gate. |
+| 2026-06-21 | 5 | SPEC-019 | Complete | Initial broad GBR batch — 18 destinations (NZL, CAN, IND, SGP, ARE, TUR, CHN, IDN, MYS, MEX, ZAF, BRA, EGY, MAR, LKA, QAT, KOR, PHL) researched against gov.uk, schema-validated, merged (PR #169), and ingested at deploy (production READY on `travel.matthewcarr.dev`). Closes the broad-coverage DoD item. |
+| 2026-06-21 | — | EPIC-005 | Complete | All six DoD items met; slices 1–5 Complete. SPEC-015 flipped to Complete (its remaining steps 10/11 landed via SPEC-017 + SPEC-019). |
 
 ## Epic-level deviations
 
-_None yet._
+| # | Deviation | Reason | Resolved? |
+|---|-----------|--------|-----------|
+| 1 | Slice-5 data acquisition re-architected mid-epic (gateway extractor → subscription Agent-SDK/Codex skill, JSON artifacts ingested at deploy) | Operator wanted to run extraction on their own Claude/Codex subscription on a schedule, not a metered gateway key | Yes — captured as SPEC-019 + ADR 062; ADR 061's determinism boundary unchanged |
 
 ## Post-epic notes
 
-_Filled when the epic closes._
+- **Shipped end-to-end.** A signed-in GBR traveller records passports + DOB on
+  `/settings/profile`, opens a trip, and sees a deterministic Visas panel with
+  per-country/zone coverage and warnings (overstay, Schengen 90/180, single-entry,
+  cooling-off) — personalised, with **no AI at request time**. A per-trip intent
+  selector turns the "go to Australia to live" journey into a checkable plan.
+- **Data sourcing** landed as a reusable, provider-agnostic extraction skill
+  (`pnpm visa:extract --runner=claude|codex`, ADR 062): one Zod contract → JSON
+  Schema → schema-validated committed artifacts → idempotent `ingestVisaData` at
+  deploy. The diff review is the factual-accuracy gate (ADR 061/062). 18 GBR
+  destinations are live; broadening coverage is now a repeatable run + review loop.
+- **Kill/pivot criteria (§9) not triggered:** every researched top-GBR destination
+  was expressible in the SPEC-015 model (incl. two rolling-window single-country
+  cases, ARE/TUR, and time-boxed validity, CHN), so the determinism bet held.
+- **Parking lot carried forward (§14):** non-UK nationalities, a `/api/v1/.../visa-assessment`
+  endpoint + mobile panel, visa-fee budgeting, per-destination intent, and document/
+  application tracking remain future work — none block this epic's value.

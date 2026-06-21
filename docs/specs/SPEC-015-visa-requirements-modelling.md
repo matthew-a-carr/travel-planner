@@ -1,7 +1,7 @@
 # SPEC-015: Visa Requirements — Data & Domain Modelling
 
 **Date:** 2026-06-15
-**Status:** In Progress
+**Status:** Complete
 **Author:** agent (interactive planning session)
 **Approved by:** —
 **Parent epic:** — (a "Visa requirements end-to-end" epic, covering UI
@@ -356,10 +356,13 @@ re-runnable. No feature flag needed because nothing user-facing ships here.
 > adds **step 9** — the `VisaRuleExtractor` port + `GatewayVisaRuleExtractor`
 > adapter + `fetch-visa-rules` script (`pnpm visa:fetch`) + Zod schema +
 > deterministic sanity-check/serialiser unit tests, writing into the
-> AUTO-GENERATED `visa-rule-ai-seed.ts`. Remaining: **step 10** (run the broad
-> GBR seed, human-review the diff) and **step 11** (replace the hardcoded "UK
-> passport holder" assumption — lands with profile capture, EPIC-005 slice 2/3).
-> SPEC stays **In Progress** until they land.
+> AUTO-GENERATED `visa-rule-ai-seed.ts`. **Both remaining steps have now landed:**
+> **step 11** (replace the hardcoded "UK passport holder" assumption) shipped with
+> the Visas panel (EPIC-005 slice 3, SPEC-017), and **step 10** (broad GBR seed +
+> human-reviewed diff) shipped via the SPEC-019 extraction skill — the gateway
+> `visa:fetch`/`visa-rule-ai-seed.ts` path of step 9 was **superseded by ADR 062**
+> (subscription Agent-SDK/Codex artifacts ingested at deploy). SPEC is now
+> **Complete**.
 
 1. [ ] **Intent:** `visa_rules` / `visa_zones` / `visa_zone_membership` /
    `user_passports` / `users.date_of_birth` schema + migration. **Verification:**
