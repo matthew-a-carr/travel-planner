@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.21.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.20.0...v1.21.0) (2026-06-21)
+
+
+### Features
+
+* **spec-015:** AI extraction job for visa rules ([#162](https://github.com/matthew-a-carr/travel-planner/issues/162)) ([9cd1f7d](https://github.com/matthew-a-carr/travel-planner/commit/9cd1f7dac39218fde26f54d1b7a2975a94bb4612))
+* **spec-015:** visa requirements data & domain modelling (foundation) ([#160](https://github.com/matthew-a-carr/travel-planner/issues/160)) ([a58d026](https://github.com/matthew-a-carr/travel-planner/commit/a58d026e4286b677f35885ade65d945b799f0e33))
+* **spec-016:** traveller profile capture (passports + DOB) ([#164](https://github.com/matthew-a-carr/travel-planner/issues/164)) ([2b150e6](https://github.com/matthew-a-carr/travel-planner/commit/2b150e6be89d74c634faf01bc6d18e73fe1ac19b))
+* **spec-017:** visas panel on the trip page (milestone) ([#165](https://github.com/matthew-a-carr/travel-planner/issues/165)) ([98726e0](https://github.com/matthew-a-carr/travel-planner/commit/98726e0b022bc22efb297871aec99ef22f2be6d0))
+* **spec-018:** per-trip visa intent selector ([#166](https://github.com/matthew-a-carr/travel-planner/issues/166)) ([c4e1e89](https://github.com/matthew-a-carr/travel-planner/commit/c4e1e89de3c883c6b695aa053312acd077b8dd0a))
+* **spec-019:** visa extraction via Agent-SDK/Codex skill, ingested at deploy ([#167](https://github.com/matthew-a-carr/travel-planner/issues/167)) ([3c8ab2f](https://github.com/matthew-a-carr/travel-planner/commit/3c8ab2fb9763726472c626c3c38547753178948b))
+* **visa-data:** broad GBR visa-rule batch — 18 destinations ([#169](https://github.com/matthew-a-carr/travel-planner/issues/169)) ([68faf93](https://github.com/matthew-a-carr/travel-planner/commit/68faf93e672ff5820a89cdbd291eb4d003e0f9de))
+
 ## [1.20.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.19.0...v1.20.0) (2026-06-14)
 
 
