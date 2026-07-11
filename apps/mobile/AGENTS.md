@@ -53,10 +53,10 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   runners), `pnpm db:migrate && pnpm db:seed && pnpm seed:e2e`
   (deterministic fixtures from
   `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
-  production Next server bound to IPv6 any-address `::` (dual-stack on the
-  macOS runner); the Release bundle inlines
-  `EXPO_PUBLIC_API_BASE_URL=http://localhost:3000` and the job
-  asserts both (canary curl + bundle `strings` grep) before Maestro runs.
+  production Next server behind an ephemeral HTTPS tunnel (ADR 065); the
+  Release bundle inlines the generated `EXPO_PUBLIC_API_BASE_URL` and a masked
+  per-run auth-seam secret, and the job asserts the tunnel, URL, and secret
+  markers before Maestro runs.
   That's the iOS Simulator gate — if it fails on the routine's PR, Matt
   picks it up via the standard CI-failure email + the routine's
   `ai:blocked` flow.
@@ -372,11 +372,10 @@ Use `id:` selectors over visible-text selectors where possible.
 
 ### Test-auth seam (E2E sign-in without Google — SPEC-014)
 
-Maestro can't drive Google's consent screen, so the (future, slice-3)
+Maestro can't drive Google's consent screen, so the
 signed-in journey signs in through a seam that replaces **only the browser
 leg** of the PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and
-AuthGuard all stay real. The seam (server + client + CI assertions) is
-landed and green; only the live Maestro flow is deferred (TD-010):
+AuthGuard all stay real:
 
 - **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
   the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
@@ -387,15 +386,14 @@ landed and green; only the live Maestro flow is deferred (TD-010):
   `openAuthSession: resolveBrowserLeg()`.
 - **Server:** `apps/web/.../auth/mobile/test-token/route.ts` mints a
   one-time exchange code for the seeded approved e2e user, keyed to the
-  state's stored PKCE challenge. **Double-gated, fail-closed:** enabled
-  only when `E2E_TEST_AUTH=1` AND not on Vercel; 404 otherwise (the
-  EPIC-004 kill-criterion, asserted by a route int-test). Deliberately
-  unpublished from the OpenAPI surface.
-- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1` (job env, inherited
-  by the backend) and `EXPO_PUBLIC_E2E_AUTH=1` (xcodebuild step). **Neither
-  flag is ever defined in Terraform or any Vercel env.** Running the
-  `signed-in-journey` flow locally needs both flags set the same way (slice
-  4 automates the local backend).
+  state's stored PKCE challenge. **Triple-gated, fail-closed:** enabled only
+  when `E2E_TEST_AUTH=1`, not on Vercel, and the request supplies the masked
+  per-run `X-E2E-Test-Secret`; 404 otherwise. Deliberately unpublished from
+  the OpenAPI surface.
+- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1`, generates
+  `E2E_TEST_AUTH_SECRET`, and builds the secret plus
+  `EXPO_PUBLIC_E2E_AUTH=1` into the undistributed CI app. These values are
+  never defined in Terraform or any Vercel env.
 
 ## Pnpm + Metro
 

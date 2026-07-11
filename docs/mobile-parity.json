@@ -21,7 +21,7 @@
       "id": "auth.sign-in-out",
       "title": "Sign in and sign out",
       "slice": 1,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/auth.spec.ts", "apps/web/tests/e2e/accessibility.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
       "contractEvidence": ["packages/shared/src/mobile-auth.ts"]
@@ -30,7 +30,7 @@
       "id": "auth.session",
       "title": "Restore and revoke an authenticated session",
       "slice": 1,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/11-api-me.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
       "contractEvidence": ["packages/shared/src/mobile-auth.ts", "packages/shared/src/me.ts"]
@@ -48,7 +48,7 @@
       "id": "trips.list",
       "title": "List the user's visible trips",
       "slice": 1,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
       "contractEvidence": ["packages/shared/src/trip.ts"]
@@ -57,7 +57,7 @@
       "id": "trips.detail-read",
       "title": "Read trip plan, destinations, fixed costs, and spend summary",
       "slice": 1,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
       "contractEvidence": ["packages/shared/src/trip.ts"]
@@ -66,7 +66,7 @@
       "id": "trips.create",
       "title": "Create a trip",
       "slice": 3,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
       "contractEvidence": ["packages/shared/src/trip.ts"]
@@ -75,7 +75,7 @@
       "id": "trips.update",
       "title": "Edit trip identity, budget, and status",
       "slice": 3,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
       "contractEvidence": ["packages/shared/src/trip.ts"]
@@ -84,7 +84,7 @@
       "id": "trips.delete",
       "title": "Delete a trip",
       "slice": 3,
-      "status": "complete",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
       "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
       "contractEvidence": ["packages/shared/src/trip.ts"]
@@ -93,64 +93,64 @@
       "id": "trips.stage-guidance",
       "title": "Show stage-aware next-step guidance",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/08-trip-stage.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "destinations.create",
       "title": "Add destinations with allocation validation",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts", "apps/web/tests/e2e/08-trip-stage.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "destinations.update",
       "title": "Edit destination identity, dates, and budget",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "destinations.delete",
       "title": "Remove a destination",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "fixed-costs.create",
       "title": "Add a categorised fixed cost",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "fixed-costs.update",
       "title": "Edit a fixed cost",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "fixed-costs.delete",
       "title": "Delete a fixed cost",
       "slice": 3,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "spend.create",

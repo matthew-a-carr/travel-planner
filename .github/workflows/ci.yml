@@ -288,8 +288,9 @@ jobs:
       # SPEC-014 / EPIC-004 slice 2: enables the gated test-auth seam
       # (POST /api/v1/auth/mobile/test-token) on the backend the server boots
       # below, so Maestro can sign in without Google. The endpoint 404s
-      # everywhere else — double-gated (this flag AND never on Vercel; neither
-      # flag is ever defined in Terraform or any Vercel env). The
+      # everywhere else — triple-gated (this flag, never on Vercel, and the
+      # random per-run secret generated below; none is ever defined in
+      # Terraform or any Vercel env). The
       # signed-in-journey flow depends on it.
       E2E_TEST_AUTH: '1'
 
@@ -371,8 +372,60 @@ jobs:
           POSTGRES_URL: postgresql://build:build@localhost:5432/build
         run: pnpm build
 
+      - name: Generate per-run E2E auth secret
+        run: |
+          set -euo pipefail
+          SECRET=$(openssl rand -hex 32)
+          echo "::add-mask::$SECRET"
+          echo "E2E_TEST_AUTH_SECRET=$SECRET" >> "$GITHUB_ENV"
+
       - name: Start backend server (background)
         run: apps/mobile/scripts/ci/start-backend.sh
+
+      - name: Start ephemeral HTTPS tunnel
+        run: |
+          set -euo pipefail
+          if ! curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
+              "http://localhost:3000/api/auth/providers" >/dev/null; then
+            echo "::error::Backend canary failed before tunnel startup"
+            tail -n 80 "$RUNNER_TEMP/backend.log" || true
+            exit 1
+          fi
+
+          CLOUDFLARED_VERSION="2026.7.1"
+          CLOUDFLARED_SHA256="6d4b59383cdad387834d7ae5704fc512882b2d078074bf5770e02b186a0981ed"
+          ARCHIVE="$RUNNER_TEMP/cloudflared-darwin-arm64.tgz"
+          BIN_DIR="$RUNNER_TEMP/cloudflared-bin"
+          mkdir -p "$BIN_DIR"
+          curl --fail --location --silent --show-error \
+            "https://github.com/cloudflare/cloudflared/releases/download/$CLOUDFLARED_VERSION/cloudflared-darwin-arm64.tgz" \
+            --output "$ARCHIVE"
+          echo "$CLOUDFLARED_SHA256  $ARCHIVE" | shasum -a 256 -c
+          tar -xzf "$ARCHIVE" -C "$BIN_DIR"
+
+          nohup "$BIN_DIR/cloudflared" tunnel --url http://localhost:3000 --no-autoupdate \
+            > "$RUNNER_TEMP/cloudflared.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/cloudflared.pid"
+
+          E2E_API_BASE_URL=""
+          for _ in $(seq 1 60); do
+            E2E_API_BASE_URL=$(grep -Eo 'https://[-a-z0-9]+\.trycloudflare\.com' \
+              "$RUNNER_TEMP/cloudflared.log" | head -1 || true)
+            if [ -n "$E2E_API_BASE_URL" ]; then
+              break
+            fi
+            sleep 1
+          done
+          if [ -z "$E2E_API_BASE_URL" ]; then
+            echo "::error::cloudflared did not publish an ephemeral tunnel URL"
+            tail -n 100 "$RUNNER_TEMP/cloudflared.log" || true
+            exit 1
+          fi
+          echo "E2E_API_BASE_URL=$E2E_API_BASE_URL" >> "$GITHUB_ENV"
+          echo "Tunnel ready: $E2E_API_BASE_URL"
+
+          curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
+            "$E2E_API_BASE_URL/api/auth/providers" >/dev/null
 
       # Start booting the simulator in the background as early as
       # possible — boot takes ~60s on a fresh runner and is independent
@@ -456,11 +509,11 @@ jobs:
           # CI-only, non-secret flag — never defined in any Vercel env.
           EXPO_PUBLIC_E2E_AUTH: '1'
         run: |
-          # SPEC-020 uses the Simulator's documented Mac-host route by hostname.
-          # SPEC-014 tried numeric loopback and the runner LAN address; neither
-          # completed in the app. `localhost` is deliberately a distinct tracer
-          # bullet and is covered by NSAllowsLocalNetworking in app.json.
-          export EXPO_PUBLIC_API_BASE_URL="http://localhost:3000"
+          # ADR 065: the hosted simulator cannot reach the runner's loopback or
+          # LAN addresses. Build the short-lived HTTPS tunnel URL and per-run
+          # seam secret into this CI-only app artifact.
+          export EXPO_PUBLIC_API_BASE_URL="$E2E_API_BASE_URL"
+          export EXPO_PUBLIC_E2E_AUTH_SECRET="$E2E_TEST_AUTH_SECRET"
           WORKSPACE=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WORKSPACE" .xcworkspace)
           echo "Building workspace=$WORKSPACE scheme=$SCHEME against $EXPO_PUBLIC_API_BASE_URL"
@@ -491,13 +544,15 @@ jobs:
         run: |
           echo "::group::Backend canary"
           if ! curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
-              "http://localhost:3000/api/auth/providers" >/dev/null; then
-            echo "::error::Backend canary failed — server not responding on localhost:3000"
+              "$E2E_API_BASE_URL/api/auth/providers" >/dev/null; then
+            echo "::error::Backend canary failed through ephemeral HTTPS tunnel"
             echo "── tail of backend.log ──"
             tail -n 80 "$RUNNER_TEMP/backend.log" || true
+            echo "── tail of cloudflared.log ──"
+            tail -n 80 "$RUNNER_TEMP/cloudflared.log" || true
             exit 1
           fi
-          echo "Backend is serving on localhost:3000."
+          echo "Backend is serving through the ephemeral HTTPS tunnel."
           echo "::endgroup::"
 
           APP_PATH=$(find build/Build/Products/Release-iphonesimulator -maxdepth 2 -name '*.app' -type d | head -1)
@@ -514,11 +569,12 @@ jobs:
           # exit can SIGPIPE strings (status 141) if this step ever gains
           # `shell: bash` (which GitHub runs with -o pipefail).
           strings "$BUNDLE" > "$RUNNER_TEMP/bundle-strings.txt"
-          if ! grep -qF "localhost:3000" "$RUNNER_TEMP/bundle-strings.txt"; then
-            echo "::error::EXPO_PUBLIC_API_BASE_URL (localhost:3000) not found in the JS bundle — env was not inlined"
+          TUNNEL_HOST=${E2E_API_BASE_URL#https://}
+          if ! grep -qF "$TUNNEL_HOST" "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::Ephemeral tunnel host not found in the JS bundle — env was not inlined"
             exit 1
           fi
-          echo "Bundle contains the backend URL (localhost:3000) — env inlined correctly."
+          echo "Bundle contains the ephemeral tunnel host — env inlined correctly."
 
           # SPEC-014: prove EXPO_PUBLIC_E2E_AUTH inlined so the signed-in
           # journey uses the test-auth substitute, not the real Google browser
@@ -535,6 +591,16 @@ jobs:
           fi
           echo "E2E test-auth substitute is wired into the bundle (marker ON)."
 
+          if grep -q 'SPEC065_E2E_AUTH_SECRET_BUNDLE_OFF' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::Per-run E2E auth secret was not inlined into the CI bundle"
+            exit 1
+          fi
+          if ! grep -q 'SPEC065_E2E_AUTH_SECRET_BUNDLE_ON' "$RUNNER_TEMP/bundle-strings.txt"; then
+            echo "::error::E2E auth secret bundle marker missing entirely"
+            exit 1
+          fi
+          echo "Per-run E2E auth secret is wired into the bundle (marker ON)."
+
       # Server half of the test-auth seam (SPEC-014), exercised from the runner
       # before any Maestro time is spent: /start → /test-token must mint a
       # `?code=` deep link. This proves E2E_TEST_AUTH gated the endpoint ON and
@@ -547,13 +613,14 @@ jobs:
           echo "::group::Seam smoke"
           CHALLENGE="0123456789012345678901234567890123456789012"
           START=$(curl --fail --silent --show-error -X POST \
-            "http://localhost:3000/api/v1/auth/mobile/start" \
+            "$E2E_API_BASE_URL/api/v1/auth/mobile/start" \
             -H 'Content-Type: application/json' \
             -d "{\"code_challenge\":\"$CHALLENGE\"}")
           STATE=$(printf '%s' "$START" | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['state'])")
           MINT=$(curl --fail --silent --show-error -X POST \
-            "http://localhost:3000/api/v1/auth/mobile/test-token" \
+            "$E2E_API_BASE_URL/api/v1/auth/mobile/test-token" \
             -H 'Content-Type: application/json' \
+            -H "X-E2E-Test-Secret: $E2E_TEST_AUTH_SECRET" \
             -d "{\"state\":\"$STATE\"}")
           printf '%s' "$MINT" | python3 -c "
           import sys, json
@@ -619,6 +686,15 @@ jobs:
         with:
           name: backend-log
           path: ${{ runner.temp }}/backend.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload tunnel log on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cloudflared-log
+          path: ${{ runner.temp }}/cloudflared.log
           retention-days: 7
           if-no-files-found: ignore
 

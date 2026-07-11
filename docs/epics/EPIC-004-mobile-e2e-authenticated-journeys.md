@@ -52,9 +52,9 @@ for the full analysis.
 - [ ] Journey flows exist and block CI for: sign-in → trips list;
       trip detail; sign-out. The not-found state is covered by a flow
       **or** an explicitly recorded RNTL-only decision (§13 Q5).
-- [ ] The test-auth seam is double-gated (explicit env flag + never on
-      Vercel) and an integration test proves the endpoint 404s when the
-      flag is unset.
+- [ ] The test-auth seam is triple-gated (explicit env flag + never on
+      Vercel + random per-run request secret) and integration tests prove the
+      endpoint 404s when any gate is absent.
 - [ ] A failed run uploads Maestro report + simulator screen recording +
       backend logs (7-day retention).
 - [ ] `pnpm test:e2e:mobile` runs the same flows locally with one
@@ -255,7 +255,7 @@ slice.
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
 | macOS-native Postgres provisioning is fiddly / runner-image drift breaks it | Medium | Slice 1 overrun, recurring CI breakage | Pin versions in slice 1; pivot criterion caps the spend; fixture-server fallback documented |
-| Test-auth seam gating judged insufficient | Low | Security exposure or epic killed | Double gate + 404 integration test + no-Vercel rule designed in before code; kill criterion honoured |
+| Test-auth seam gating judged insufficient | Low | Security exposure or epic killed | ADR 065 adds a random per-run secret to the flag + no-Vercel gates; 404 integration tests cover each failure mode |
 | Job runtime creeps past budget as flows accumulate | Medium | Cost band breached, slower mobile PRs | §9 stop-adding criterion; journey-granularity rule; `.next`/pg caching levers in slice 1/4 |
 | Flake returns on the bigger surface (TD-009 history) | Medium | Trust in the gate erodes, `main` blocked | Freeze criterion; retry + recording artifacts make flakes diagnosable rather than folklore |
 | EPIC-003 slice 2 arrives before slice 5 | Medium | Capture sheet lands flow-less, retrofit tax | Explicit cross-epic dependency in §7/§11; revisit sequencing at EPIC-003 slice-1 close |

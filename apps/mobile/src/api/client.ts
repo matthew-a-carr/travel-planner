@@ -57,12 +57,14 @@ export async function apiPost<T = undefined>(
   responseSchema?: ZodType<T>,
   bearer?: string,
   idempotencyKey?: string,
+  additionalHeaders?: Readonly<Record<string, string>>,
 ): Promise<ApiResult<T>> {
   return request(path, responseSchema, {
     method: 'POST',
     body: JSON.stringify(body),
     bearer,
     idempotencyKey,
+    additionalHeaders,
   });
 }
 
@@ -105,14 +107,15 @@ type RequestOptions = {
   body?: string;
   bearer?: string;
   idempotencyKey?: string;
+  additionalHeaders?: Readonly<Record<string, string>>;
 };
 
 async function request<T>(
   path: string,
   responseSchema: ZodType<T> | undefined,
-  { method, body, bearer, idempotencyKey }: RequestOptions,
+  { method, body, bearer, idempotencyKey, additionalHeaders }: RequestOptions,
 ): Promise<ApiResult<T>> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...additionalHeaders };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (bearer !== undefined) headers.Authorization = `Bearer ${bearer}`;
   if (idempotencyKey !== undefined) headers['Idempotency-Key'] = idempotencyKey;

@@ -536,10 +536,13 @@ describe('/api/v1/auth/mobile/revoke', () => {
 
 describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
   const ORIGINAL_E2E_TEST_AUTH = process.env.E2E_TEST_AUTH;
+  const ORIGINAL_E2E_TEST_AUTH_SECRET = process.env.E2E_TEST_AUTH_SECRET;
   const ORIGINAL_VERCEL = process.env.VERCEL;
+  const TEST_SECRET = '0123456789abcdef0123456789abcdef';
 
   afterEach(() => {
     restoreEnv('E2E_TEST_AUTH', ORIGINAL_E2E_TEST_AUTH);
+    restoreEnv('E2E_TEST_AUTH_SECRET', ORIGINAL_E2E_TEST_AUTH_SECRET);
     restoreEnv('VERCEL', ORIGINAL_VERCEL);
   });
 
@@ -562,12 +565,12 @@ describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
     return startSuccessEnvelope.parse(await res.json()).data.state;
   }
 
-  function callTestToken(body: unknown): Promise<Response> {
+  function callTestToken(body: unknown, secret = TEST_SECRET): Promise<Response> {
     return import('./test-token/route').then(({ POST }) =>
       POST(
         new Request('http://localhost/api/v1/auth/mobile/test-token', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'X-E2E-Test-Secret': secret },
           body: JSON.stringify(body),
         }),
       ),
@@ -587,6 +590,7 @@ describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
 
   it('404s on Vercel even when E2E_TEST_AUTH is set (no-Vercel gate wins)', async () => {
     process.env.E2E_TEST_AUTH = '1';
+    process.env.E2E_TEST_AUTH_SECRET = TEST_SECRET;
     process.env.VERCEL = '1';
     await withFakeContainer(new FakeGoogleOAuthClient());
 
@@ -596,8 +600,22 @@ describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
     expect(apiErrorEnvelopeSchema.parse(body).error.code).toBe('not_found');
   });
 
-  it('mints a redeemable code that the real /exchange accepts (both gates on)', async () => {
+  it('404s when the per-run secret is missing or incorrect', async () => {
     process.env.E2E_TEST_AUTH = '1';
+    process.env.E2E_TEST_AUTH_SECRET = TEST_SECRET;
+    delete process.env.VERCEL;
+    await withFakeContainer(new FakeGoogleOAuthClient());
+
+    expect((await callTestToken({ state: 'anything' }, '')).status).toBe(404);
+    expect((await callTestToken({ state: 'anything' }, 'incorrect-secret')).status).toBe(404);
+    expect(
+      (await callTestToken({ state: 'anything' }, 'é'.repeat(TEST_SECRET.length))).status,
+    ).toBe(404);
+  });
+
+  it('mints a redeemable code that the real /exchange accepts (all gates on)', async () => {
+    process.env.E2E_TEST_AUTH = '1';
+    process.env.E2E_TEST_AUTH_SECRET = TEST_SECRET;
     delete process.env.VERCEL;
 
     const cryptoImpl = new WebCryptoMobileAuthCrypto();
@@ -639,6 +657,7 @@ describe('/api/v1/auth/mobile/test-token (E2E seam — SPEC-014)', () => {
 
   it('redirects with ?error=access_denied for an unapproved user', async () => {
     process.env.E2E_TEST_AUTH = '1';
+    process.env.E2E_TEST_AUTH_SECRET = TEST_SECRET;
     delete process.env.VERCEL;
 
     const cryptoImpl = new WebCryptoMobileAuthCrypto();

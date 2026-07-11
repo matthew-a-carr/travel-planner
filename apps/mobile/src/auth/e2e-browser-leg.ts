@@ -16,7 +16,7 @@ import { apiPost } from '../api/client';
  * Selection lives behind `resolveBrowserLeg(enabled)` (the `enabled` parameter
  * is injectable so unit tests don't depend on Expo's bundle-time
  * `EXPO_PUBLIC_*` inlining). The server endpoint is the security-sensitive
- * half — double-gated and 404 everywhere but the e2e job — so shipping this
+ * half — triple-gated and 404 everywhere but the e2e job — so shipping this
  * inert client code is harmless.
  */
 
@@ -30,6 +30,7 @@ const ERROR_RETURN_URL = 'travelplanner://auth?error=server_error';
  * `mobile-e2e` xcodebuild step.
  */
 const E2E_AUTH_ENABLED = process.env.EXPO_PUBLIC_E2E_AUTH === '1';
+const E2E_AUTH_SECRET = process.env.EXPO_PUBLIC_E2E_AUTH_SECRET ?? '';
 
 /**
  * Bundle diagnostic (SPEC-014). After babel-preset-expo inlines the flag,
@@ -43,6 +44,11 @@ const E2E_AUTH_ENABLED = process.env.EXPO_PUBLIC_E2E_AUTH === '1';
 export const E2E_AUTH_BUNDLE_MARKER = E2E_AUTH_ENABLED
   ? 'SPEC014_E2E_AUTH_BUNDLE_ON'
   : 'SPEC014_E2E_AUTH_BUNDLE_OFF';
+
+export const E2E_AUTH_SECRET_BUNDLE_MARKER =
+  E2E_AUTH_ENABLED && E2E_AUTH_SECRET.length >= 32
+    ? 'SPEC065_E2E_AUTH_SECRET_BUNDLE_ON'
+    : 'SPEC065_E2E_AUTH_SECRET_BUNDLE_OFF';
 
 /**
  * Substitute for `WebBrowser.openAuthSessionAsync`. Extracts the `state` from
@@ -62,6 +68,9 @@ export const e2eOpenAuthSession: typeof WebBrowser.openAuthSessionAsync = async 
     '/api/v1/auth/mobile/test-token',
     { state },
     mobileAuthTestTokenResponseSchema,
+    undefined,
+    undefined,
+    E2E_AUTH_SECRET.length > 0 ? { 'X-E2E-Test-Secret': E2E_AUTH_SECRET } : undefined,
   );
   if (!result.ok) {
     return { type: 'success', url: ERROR_RETURN_URL };
@@ -84,6 +93,7 @@ export function resolveBrowserLeg(
 ): typeof WebBrowser.openAuthSessionAsync {
   // Reference the marker so the bundler retains it for the CI grep diagnostic.
   if (E2E_AUTH_BUNDLE_MARKER.length === 0) throw new Error('unreachable');
+  if (E2E_AUTH_SECRET_BUNDLE_MARKER.length === 0) throw new Error('unreachable');
   return enabled ? e2eOpenAuthSession : WebBrowser.openAuthSessionAsync;
 }
 

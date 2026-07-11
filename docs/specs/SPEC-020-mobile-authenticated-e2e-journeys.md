@@ -30,18 +30,17 @@ backend, gated auth seam, fixture, test-pyramid, and native-UI decisions from
 [EPIC-006 §10](../epics/EPIC-006-mobile-web-capability-parity.md#10-cross-cutting-decisions)
 and [ADR 060](../decisions/060-mobile-e2e-real-backend-authenticated-journeys.md).
 
-Apple documents that local-network privacy is not implemented in Simulator,
-and Expo's Release-Simulator guidance uses `localhost` for a server on the Mac.
-The first tracer bullet therefore uses the hostname `localhost`, not the
-numeric loopback or LAN address tried by SPEC-014.
+The bounded `localhost` tracer also produced zero backend requests. Per the
+epic's kill/pivot criterion, [ADR 065](../decisions/065-mobile-e2e-ephemeral-https-tunnel.md)
+now gives the same runner-local real backend an ephemeral HTTPS origin.
 
 ## 3. Acceptance criteria
 
 1. Given the `mobile-e2e` job, when the Release bundle is built, then
-   `EXPO_PUBLIC_API_BASE_URL` is `http://localhost:3000`, the backend answers
-   there, and the bundle contains that origin.
+   `EXPO_PUBLIC_API_BASE_URL` is the per-run HTTPS tunnel origin, the backend
+   answers through it, and the bundle contains that origin.
 2. Given a fresh installed E2E app, when Maestro taps Sign in, then the existing
-   double-gated test browser leg completes real `/start` → `/test-token` →
+   secret-protected test browser leg completes real `/start` → `/test-token` →
    `/exchange` → Keychain → `/me` and the trips screen renders.
 3. Given the deterministic fixtures, when the authenticated journey opens
    `Kyoto Adventure`, then the detail screen renders both destination legs,
@@ -74,14 +73,14 @@ numeric loopback or LAN address tried by SPEC-014.
 - New mobile product features or new v1 endpoints.
 - Real Google consent automation, Android, physical-device automation, and
   visual regression — inherited EPIC non-goals.
-- Changing the double-gated test-auth endpoint or exposing it in OpenAPI.
+- Exposing the test-auth endpoint in OpenAPI.
 
 ## 6. Prerequisites
 
 - SPEC-013 and SPEC-014 are complete: real backend/fixtures and both halves of
   the test-auth seam are already merged.
-- `E2E_TEST_AUTH=1` and `EXPO_PUBLIC_E2E_AUTH=1` remain CI-only; Vercel never
-  defines either.
+- `E2E_TEST_AUTH=1`, `EXPO_PUBLIC_E2E_AUTH=1`, and the per-run secret remain
+  CI-only; Vercel never defines them.
 - The GitHub job has a bootable iOS Simulator and can build the existing Expo
   SDK 54 Release app.
 
@@ -96,10 +95,11 @@ fixture source.
 
 ### Behaviour
 
-The server and auth seam are unchanged. The CI bundle origin changes from the
-runner's LAN IP to `http://localhost:3000`. The Next server may continue
-binding `0.0.0.0`; it therefore answers both the host canary and Simulator
-loopback without another server mode.
+The real server and database stay runner-local. A checksum-pinned
+`cloudflared` process exposes them at a generated HTTPS origin, which is built
+into the CI Release bundle. The auth seam additionally requires a masked,
+random per-run request secret so publishing the otherwise synthetic backend
+does not publish the test-login capability.
 
 One `authenticated-read-journey.yaml` flow owns the stateful journey so flow
 ordering and Keychain persistence cannot leak between independent flows:
@@ -121,9 +121,9 @@ reused unchanged.
 
 ### External integrations
 
-No new integration. Apple Simulator and Expo/React Native behavior are the
-existing platform boundary. The test-auth seam continues to replace Google
-only inside the E2E bundle.
+Cloudflare Quick Tunnels provide transport only; the system under test remains
+the local production Next server and PostgreSQL. The test-auth seam continues
+to replace Google only inside the E2E bundle.
 
 ### UI / UX
 
@@ -133,14 +133,13 @@ all existing controls retain their labels, roles, and 44-point targets.
 ## 8. Security & data considerations
 
 - Threats considered: accidentally enabling the auth seam in production,
-  exposing the local HTTP exception beyond local resources, fixture data
-  escaping CI, and unauthorised trip enumeration through the not-found flow.
-- Mitigations: SPEC-014's exact-value env flag plus no-Vercel gate remain
-  integration-tested; `NSAllowsLocalNetworking` is already scoped to local
-  resources; fixtures are synthetic and runner-local; missing and forbidden
-  trips retain the same neutral 404 state.
-- Secrets needed: none. CI auth/JWT values remain explicit non-secret
-  throwaway strings.
+  exposing the seam through the public tunnel, fixture data escaping CI, and
+  unauthorised trip enumeration through the not-found flow.
+- Mitigations: exact opt-in flag, no-Vercel gate, and constant-time per-run
+  secret comparison all return the same 404 on failure; fixtures are synthetic
+  and runner-local; missing and forbidden trips retain the same neutral 404.
+- The random secret is GitHub-masked, exists only for one job, is embedded only
+  in the undistributed CI app, and is excluded from uploaded artifacts.
 
 ## 9. Test plan
 
@@ -176,8 +175,8 @@ Tests are written before implementation per CONSTITUTION §3.
 
 ## 10. Observability
 
-- The runner-side backend canary and `/start` → `/test-token` seam smoke remain
-  separate fail-fast stages.
+- Local and tunnel canaries plus `/start` → `/test-token` seam smoke remain
+  separate fail-fast stages; tunnel logs are uploaded on failure.
 - On a red Maestro flow, the backend log shows whether any app request arrived;
   an auth/UI failure therefore differs from a transport failure.
 - Full screen recording and structured app-side network diagnostics remain
@@ -185,10 +184,8 @@ Tests are written before implementation per CONSTITUTION §3.
 
 ## 11. Rollback / safety
 
-Revert the slice commit. CI returns to the signed-out smoke and the LAN-IP
-bundle target; production, database schema, and deployed API remain unchanged.
-If localhost cannot work on the runner, revert the tracer bullet before
-implementing ADR 060's reviewed HTTPS/remote-backend pivot.
+Revert the slice commit. CI returns to the signed-out smoke; production,
+database schema, and deployed API remain unchanged.
 
 ## 12. Implementation order
 
@@ -196,9 +193,10 @@ implementing ADR 060's reviewed HTTPS/remote-backend pivot.
    recorded runner failures are the existing red evidence for this exact
    behavior. **Verification:** YAML parses and every selector resolves to a
    committed screen `testID`; do not push an intentionally failing commit.
-2. [ ] **Intent:** Point build, canary, seam smoke, and bundle assertion at
-   `http://localhost:3000`; remove obsolete LAN-IP detection. **Verification:**
-   workflow diff contains one canonical origin and `git diff --check` passes.
+2. [x] **Intent:** Apply the bounded HTTPS pivot after loopback, LAN,
+   `localhost`, and dual-stack bindings produced no app requests.
+   **Verification:** ADR 065 records the decision; tunnel origin and secret
+   markers are asserted before Maestro.
 3. [ ] **Intent:** Add only the stable detail evidence selectors the journey
    needs. **Verification:** focused RNTL detail test is red then green.
 4. [ ] **Intent:** Run local non-Simulator gates. **Verification:** `pnpm lint`,
@@ -215,14 +213,14 @@ implementing ADR 060's reviewed HTTPS/remote-backend pivot.
 
 ### ADR?
 
-- [ ] New library, external tool, or vendor
+- [x] New library, external tool, or vendor
 - [x] CI pipeline or workflow structural change
 - [ ] New project-wide standard
 - [ ] Non-obvious architectural trade-off
 - [ ] Cross-cutting decision not already settled by the parent epic
 
-**ADRs to write:** none for the localhost correction; ADR 055/060 already own
-the CI architecture. Amend ADR 060 only if the epic's remote-HTTPS pivot fires.
+**ADRs to write:** ADR 065 records the fired HTTPS pivot and secret boundary;
+ADR 060 remains authoritative for real-backend fidelity.
 
 ### Tech debt
 
@@ -234,10 +232,9 @@ and retry insurance remain unchanged.
 
 ## 14. Risks & open questions
 
-- **Choice made:** try hostname loopback (`localhost`) once, based on Apple and
-  Expo Simulator guidance. **Rejected:** another numeric/LAN address guess.
-  **Cost if wrong:** one macOS CI iteration, after which the pre-committed HTTPS
-  pivot is used.
+- **Observed:** hostname loopback and IPv6 any-address binding still produced
+  zero backend requests from the app. The pre-committed HTTPS pivot is now
+  implemented; no further address guesses are in scope.
 - Maestro deep-link syntax may vary with the generated Expo Router scheme.
   The chosen URL is `travelplanner:///trips/<id>`; if the route does not open,
   use the Router-generated equivalent without changing product code.

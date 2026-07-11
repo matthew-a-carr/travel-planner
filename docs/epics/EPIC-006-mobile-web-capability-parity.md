@@ -86,7 +86,7 @@ changes the direction from staged mobile subsets to durable capability parity.
 - Android, TestFlight/App Store distribution, offline-first sync, push
   notifications, or background work; these do not change capability parity on
   the existing iOS target.
-- Automating the real Google consent screen; the double-gated E2E browser-leg
+- Automating the real Google consent screen; the triple-gated E2E browser-leg
   seam remains the accepted boundary.
 - Duplicating every Playwright edge case in Maestro; state/edge coverage stays
   lower in the test pyramid.
@@ -145,7 +145,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 | Parity ledger | Versioned machine-readable manifest with resolvable evidence paths and a blocking validator | “Keep parity” must be mechanical, not aspirational (P14) |
 | Mobile architecture | Expo Router screens remain thin; feature hooks/clients in `src/`; no imports from web delivery/UI | Matches ADR 052 and keeps dependencies inward |
 | E2E | One Maestro flow per golden journey against real server/Postgres; component/integration tests own branches | Risk-proportional test pyramid (P7) |
-| Auth | Existing server-mediated PKCE and double-gated test browser leg until TD-004's trigger | Avoids relitigating ADR 051/060 inside parity slices |
+| Auth | Existing server-mediated PKCE and triple-gated test browser leg until TD-004's trigger | Avoids relitigating ADR 051/060/065 inside parity slices |
 | Accessibility | Native equivalents of WCAG intent: VoiceOver names/roles, Dynamic Type, contrast, dark mode, 44pt targets | P18 applies to both delivery surfaces |
 | Roles | Admin/owner/member capabilities are all in scope; the same authorisation use cases gate both clients | Feature parity includes authorised administration, not only traveller reads |
 | Observability | Existing server telemetry remains canonical; mobile errors carry request IDs and Sentry is revisited before release distribution | Cross-client diagnosis without a second backend telemetry model |
@@ -172,7 +172,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 
 | # | Question | Owner | Answer by slice |
 |---|----------|-------|-----------------|
-| 1 | Does `http://localhost` with the current ATS local-network declaration work on the GitHub arm64 simulator, or must E2E pivot to ephemeral HTTPS? | Slice 1 | 1 |
+| 1 | Does `http://localhost` with the current ATS local-network declaration work on the GitHub arm64 simulator, or must E2E pivot to ephemeral HTTPS? **Resolved:** no app request reached loopback; ADR 065 applies the HTTPS pivot. | Slice 1 | 1 |
 | 2 | Should organization/access administration use one mobile settings hierarchy or separate owner/admin sections? | Matt / slice SPEC | 7 |
 | 3 | Which chart primitives satisfy VoiceOver without adding a new native chart dependency? | Slice SPEC | 4 |
 | 4 | Can assistant streaming reuse the v1 envelope/SSE conventions with bearer auth without a second client library? | Slice SPEC | 5 |
@@ -199,7 +199,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 
 | Slice | Likely ADR(s) | Notes |
 |-------|---------------|-------|
-| 1 | Amend ADR 060 only if runner-local backend pivots to HTTPS deployment | Hostname/ATS correction alone is implementation detail |
+| 1 | ADR 065 records the ephemeral HTTPS transport pivot and secret boundary | Direct runner transport failed across loopback, LAN, hostname, and dual-stack bindings |
 | 4 | Native chart library choice, only if built-in primitives are insufficient | New dependency requires an ADR |
 | 5 | v1 assistant streaming contract, if existing conventions do not settle it | Contract shape may be cross-cutting |
 | 8 | Distribution/observability ADR only if scope expands beyond Expo Go | Current epic does not fund App Store delivery |
@@ -224,11 +224,13 @@ only close gaps revealed by evidence, not introduce a new foundation.
 | 2026-07-11 | 2 | SPEC-021 | In progress | Started the dependency-free capability manifest and CI validator while the authoritative SPEC-020 macOS run executes. Diagnostics/local orchestration remain later work in this slice. |
 | 2026-07-11 | 3 | SPEC-022 | In progress | Split trip CRUD from destination/fixed-cost CRUD so the first atomic write contract, idempotency transaction boundary, native form, and write E2E remain one reviewable vertical slice. |
 | 2026-07-11 | 3 | SPEC-023 | In progress | Reuse ADR 064 for the remaining trip-planning child resources and include stage guidance/budget suggestions so slice 3 closes without a UI-only follow-up. |
+| 2026-07-11 | 1 | SPEC-020 | In progress | The bounded `localhost` + IPv6 tracer still produced zero app requests. Fired the epic pivot and adopted ADR 065's checksum-pinned ephemeral HTTPS tunnel with a per-run secret. |
 
 ## Epic-level deviations
 
 | # | Deviation | Reason | Impact on other slices | Resolved? |
 |---|-----------|--------|------------------------|-----------|
+| 1 | Simulator transport uses an ephemeral HTTPS tunnel instead of direct runner networking. | Numeric loopback, LAN, hostname loopback, and IPv4/IPv6 bindings all produced zero app requests while runner canaries stayed green. | Preserves the real backend and shared contracts; adds a pinned external transport dependency and per-run seam credential. | Yes — ADR 065 |
 
 ## Post-epic notes
 

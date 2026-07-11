@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { mobileAuthTestTokenRequestSchema as Body } from '@travel-planner/shared';
 import { makeMintTestExchangeCode } from '@/application/use-cases/auth/mobile/mint-test-exchange-code';
 import { getAppContainer } from '@/infrastructure/container';
@@ -14,8 +15,9 @@ import { respondWithData } from '../../../_lib/respond';
  * (`apps/mobile/src/auth/e2e-browser-leg.ts`) calls this and feeds the
  * returned deep link back into the real `/exchange`.
  *
- * **Double-gated, fail-closed** (ADR 060 §10): the endpoint is invisible (404)
- * unless `E2E_TEST_AUTH === '1'` AND the process is not on Vercel. Both gates
+ * **Triple-gated, fail-closed** (ADR 065): the endpoint is invisible (404)
+ * unless `E2E_TEST_AUTH === '1'`, the process is not on Vercel, and the
+ * request presents the per-run secret in `X-E2E-Test-Secret`. All gates
  * are evaluated per request so the route int-test can toggle them between
  * cases. The flags live only in `ci.yml` — never in Terraform / Vercel env /
  * `.env*`. AC3 (404 when unset) is EPIC-004's literal kill-criterion proof.
@@ -24,16 +26,25 @@ import { respondWithData } from '../../../_lib/respond';
  * it's a test backdoor, not a product contract.
  */
 
-function seamEnabled(): boolean {
+function seamEnabled(request: Request): boolean {
   const flagOn = process.env.E2E_TEST_AUTH === '1';
   const onVercel = (process.env.VERCEL ?? '').trim() === '1';
-  return flagOn && !onVercel;
+  const expectedSecret = process.env.E2E_TEST_AUTH_SECRET ?? '';
+  const suppliedSecret = request.headers.get('X-E2E-Test-Secret') ?? '';
+  return flagOn && !onVercel && secretsMatch(expectedSecret, suppliedSecret);
+}
+
+function secretsMatch(expected: string, supplied: string): boolean {
+  const expectedBytes = Buffer.from(expected);
+  const suppliedBytes = Buffer.from(supplied);
+  if (expectedBytes.length < 32 || expectedBytes.length !== suppliedBytes.length) return false;
+  return timingSafeEqual(expectedBytes, suppliedBytes);
 }
 
 export async function POST(request: Request): Promise<Response> {
   // Gate first — no body parsing, no DB access when disabled. 404 makes the
   // route indistinguishable from one that doesn't exist.
-  if (!seamEnabled()) {
+  if (!seamEnabled(request)) {
     return respondWithError(request, 'not_found', { detail: 'Not found.' });
   }
 

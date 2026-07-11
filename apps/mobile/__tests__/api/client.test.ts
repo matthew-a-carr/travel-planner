@@ -111,6 +111,27 @@ describe('apiPost', () => {
     });
   });
 
+  it('forwards additional headers without allowing them to override canonical headers', async () => {
+    const spy = mockFetch(
+      new Response(JSON.stringify(successEnvelope({ message: 'ok' }, '/api/v1/echo')), {
+        status: 200,
+      }),
+    );
+
+    await apiPost('/api/v1/echo', {}, echoResponseSchema, 'access-token-xyz', undefined, {
+      Authorization: 'attacker-controlled',
+      'Content-Type': 'text/plain',
+      'X-E2E-Test-Secret': 'per-run-secret',
+    });
+
+    const init = spy.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.headers).toMatchObject({
+      Authorization: 'Bearer access-token-xyz',
+      'Content-Type': 'application/json',
+      'X-E2E-Test-Secret': 'per-run-secret',
+    });
+  });
+
   it('parses a 400 envelope via apiErrorEnvelopeSchema and returns failure with the RFC 7807 error', async () => {
     mockFetch(
       new Response(

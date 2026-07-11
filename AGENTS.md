@@ -532,8 +532,8 @@ itself changes, and can be forced on any branch via `workflow_dispatch`
 with `mobile: true`. Since SPEC-013 / ADR 060 the macOS `mobile-e2e` job
 runs Maestro against a **real backend**: native PostgreSQL (no Docker on
 macOS runners) + `db:migrate`/`db:seed`/`seed:e2e` + the production Next
-server. SPEC-020 points the Release bundle at `http://localhost:3000`; a
-runner canary, bundle-URL assertion, and test-auth seam smoke all gate Maestro.
+server behind an ephemeral, checksum-pinned HTTPS tunnel (ADR 065). Tunnel and
+bundle assertions plus the per-run-secret test-auth seam smoke all gate Maestro.
 The lint job also validates `docs/mobile-parity.json`; changing that ledger
 forces the mobile jobs so a completed-evidence claim is exercised in CI.
 
