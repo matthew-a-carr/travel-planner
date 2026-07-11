@@ -67,7 +67,8 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [056](056-api-response-envelope-and-openapi.md) | REST API Response Envelope and OpenAPI Publication | 2026-05-21 | Accepted |
 | [057](057-autonomous-workflow-and-remote-execution.md) | Autonomous Workflow and Remote-Only Execution | 2026-05-23 | Accepted |
 | [058](058-mobile-phase-2-read-only-data.md) | Mobile Phase 2 — Read-Only Data over the Existing Foundation | 2026-05-30 | Accepted |
-| [059](059-mobile-phase-3-spend-capture-writes.md) | Mobile Phase 3 — Spend Capture over a v1 Write Surface | 2026-06-12 | Accepted |
+| [059](059-mobile-phase-3-spend-capture-writes.md) | Mobile Phase 3 — Spend Capture over a v1 Write Surface | 2026-06-12 | Partially superseded by ADR 063 |
 | [060](060-mobile-e2e-real-backend-authenticated-journeys.md) | Mobile E2E Phase 2 — Real Backend and Authenticated Journeys in CI | 2026-06-12 | Accepted |
 | [061](061-visa-requirements-deterministic-evaluation-over-frozen-seed.md) | Visa Requirements — Deterministic Evaluation over an AI-Extracted Frozen Seed, with First-Class Zones | 2026-06-15 | Accepted (mechanism partly superseded by 062) |
 | [062](062-visa-extraction-via-agent-sdk-codex-skill.md) | Visa Extraction via a Subscription-Auth Agent-SDK/Codex Skill, Ingested at Deploy | 2026-06-20 | Accepted |
+| [063](063-mobile-web-capability-parity-over-shared-v1-contracts.md) | Mobile-Web Capability Parity over Shared v1 Contracts | 2026-07-11 | Accepted |
