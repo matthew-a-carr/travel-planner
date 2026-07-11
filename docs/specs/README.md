@@ -58,3 +58,4 @@ Issue opened (ai:plan)
 | [019](SPEC-019-visa-extraction-skill.md) | Visa Extraction via Agent-SDK / Codex Skill, Ingested at Deploy | [EPIC-005](../epics/EPIC-005-visa-requirements-end-to-end.md) | 2026-06-20 | In Progress |
 | [020](SPEC-020-mobile-authenticated-e2e-journeys.md) | Mobile Authenticated E2E Journeys | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |
 | [021](SPEC-021-mobile-parity-manifest.md) | Machine-Checked Mobile Parity Manifest | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |
+| [022](SPEC-022-mobile-trip-crud.md) | Mobile Trip CRUD over Atomic v1 Commands | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |

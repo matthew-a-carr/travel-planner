@@ -25,6 +25,7 @@ import {
   apiErrorEnvelopeSchema,
   apiErrorSchema,
   apiSuccessSchema,
+  createTripRequestSchema,
   meResponseSchema,
   mobileAuthExchangeRequestSchema,
   mobileAuthExchangeResponseSchema,
@@ -32,12 +33,14 @@ import {
   mobileAuthRevokeRequestSchema,
   mobileAuthStartRequestSchema,
   mobileAuthStartResponseSchema,
+  organizationSummarySchema,
   requestEchoSchema,
   tripDestinationSchema,
   tripDetailSchema,
   tripFixedCostSchema,
   tripSpendSummarySchema,
   tripSummarySchema,
+  updateTripRequestSchema,
 } from '@travel-planner/shared';
 import * as z from 'zod';
 import { stringify } from 'yaml';
@@ -73,6 +76,9 @@ function buildComponentSchemas(): Record<string, unknown> {
   registry.add(tripFixedCostSchema, { id: 'TripFixedCost' });
   registry.add(tripSpendSummarySchema, { id: 'TripSpendSummary' });
   registry.add(tripDetailSchema, { id: 'TripDetail' });
+  registry.add(createTripRequestSchema, { id: 'CreateTripRequest' });
+  registry.add(updateTripRequestSchema, { id: 'UpdateTripRequest' });
+  registry.add(organizationSummarySchema, { id: 'OrganizationSummary' });
 
   // Per-endpoint success envelopes — `data` is the registered payload schema,
   // so it resolves to a `$ref`.
@@ -88,6 +94,12 @@ function buildComponentSchemas(): Record<string, unknown> {
   });
   registry.add(apiSuccessSchema(tripDetailSchema), {
     id: 'TripDetailSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(tripSummarySchema), {
+    id: 'TripSummarySuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(z.array(organizationSummarySchema)), {
+    id: 'OrganizationsListSuccessEnvelope',
   });
 
   const { schemas } = z.toJSONSchema(registry, {
@@ -113,6 +125,13 @@ const errorResponse = (description: string) => ({
   description,
   ...jsonBody('ApiErrorEnvelope'),
 });
+const idempotencyKeyParameter = {
+  name: 'Idempotency-Key',
+  in: 'header',
+  required: true,
+  schema: { type: 'string', minLength: 1, maxLength: 255 },
+  description: 'Client-generated retry key scoped to the authenticated user and operation.',
+};
 
 /** Assemble the full OpenAPI 3.1 document object. */
 export function buildOpenApiDocument(): Record<string, unknown> {
@@ -212,6 +231,19 @@ export function buildOpenApiDocument(): Record<string, unknown> {
             '401': errorResponse('No valid session or bearer token.'),
           },
         },
+        post: {
+          summary: 'Create a trip',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [idempotencyKeyParameter],
+          requestBody: { required: true, ...jsonBody('CreateTripRequest') },
+          responses: {
+            '201': { description: 'The created trip.', ...jsonBody('TripSummarySuccessEnvelope') },
+            '400': errorResponse('Missing idempotency key or invalid request body.'),
+            '401': errorResponse('No valid session or bearer token.'),
+            '403': errorResponse('The caller is not a member of the organization.'),
+            '409': errorResponse('The idempotency key was reused with a different request.'),
+          },
+        },
       },
       '/api/v1/trips/{id}': {
         get: {
@@ -238,6 +270,63 @@ export function buildOpenApiDocument(): Record<string, unknown> {
             },
             '401': errorResponse('No valid session or bearer token.'),
             '404': errorResponse('Unknown trip, or not visible to the caller.'),
+          },
+        },
+        patch: {
+          summary: 'Update a trip',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+              description: 'Trip id.',
+            },
+            idempotencyKeyParameter,
+          ],
+          requestBody: { required: true, ...jsonBody('UpdateTripRequest') },
+          responses: {
+            '200': { description: 'The updated trip.', ...jsonBody('TripSummarySuccessEnvelope') },
+            '400': errorResponse('Missing idempotency key or invalid request body.'),
+            '401': errorResponse('No valid session or bearer token.'),
+            '404': errorResponse('Unknown trip, or not visible to the caller.'),
+            '409': errorResponse('The idempotency key was reused with a different request.'),
+          },
+        },
+        delete: {
+          summary: 'Delete a trip',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+              description: 'Trip id.',
+            },
+            idempotencyKeyParameter,
+          ],
+          responses: {
+            '204': { description: 'Trip deleted.' },
+            '400': errorResponse('Missing idempotency key.'),
+            '401': errorResponse('No valid session or bearer token.'),
+            '403': errorResponse('Only organization owners can delete trips.'),
+            '404': errorResponse('Unknown trip.'),
+            '409': errorResponse('The idempotency key was reused with a different request.'),
+          },
+        },
+      },
+      '/api/v1/organizations': {
+        get: {
+          summary: "List the caller's organizations",
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          responses: {
+            '200': {
+              description: 'Organization choices and the caller role in each.',
+              ...jsonBody('OrganizationsListSuccessEnvelope'),
+            },
+            '401': errorResponse('No valid session or bearer token.'),
           },
         },
       },

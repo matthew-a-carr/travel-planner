@@ -10,7 +10,7 @@ jest.mock('../../src/auth/get-access-token', () => ({
   getAccessToken: () => mockGetAccessToken(),
 }));
 
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useTripDetail } from '../../src/trips/use-trip-detail';
 
 const DETAIL = {
@@ -146,7 +146,7 @@ describe('useTripDetail', () => {
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     fetchSpy.mockResolvedValueOnce(envelope({ data: DETAIL }));
-    result.current.reload();
+    act(() => result.current.reload());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
   });
@@ -163,12 +163,17 @@ describe('useTripDetail', () => {
       }),
     );
 
-    const refreshPromise = result.current.refresh();
+    let refreshPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      refreshPromise = result.current.refresh();
+    });
     await waitFor(() => expect(result.current.refreshing).toBe(true));
     expect(result.current.state.status).toBe('loaded');
 
-    release(envelope({ data: { ...DETAIL, name: 'Japan 2026 (updated)' } }));
-    await refreshPromise;
+    await act(async () => {
+      release(envelope({ data: { ...DETAIL, name: 'Japan 2026 (updated)' } }));
+      await refreshPromise;
+    });
 
     await waitFor(() => expect(result.current.refreshing).toBe(false));
     expect(result.current.state).toMatchObject({

@@ -2,7 +2,7 @@ import { eq, inArray } from 'drizzle-orm';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { ComfortLevel, Currency, Destination } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { destinations } from '../schema';
 
 function toDestination(row: typeof destinations.$inferSelect): Destination {
@@ -48,7 +48,7 @@ function toRow(d: Destination): typeof destinations.$inferInsert {
 }
 
 export class DrizzleDestinationRepository implements DestinationRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findById(id: string): Promise<Destination | null> {
     const rows = await this.db.select().from(destinations).where(eq(destinations.id, id));

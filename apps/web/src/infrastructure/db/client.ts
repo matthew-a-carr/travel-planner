@@ -29,3 +29,6 @@ function createDb() {
 export const db = createDb();
 
 export type Db = typeof db;
+
+/** Drizzle query surface shared by the root client and transaction clients. */
+export type DbSession = Omit<Db, '$client'>;

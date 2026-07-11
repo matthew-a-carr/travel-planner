@@ -53,7 +53,8 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   runners), `pnpm db:migrate && pnpm db:seed && pnpm seed:e2e`
   (deterministic fixtures from
   `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
-  production Next server bound to `0.0.0.0`; the Release bundle inlines
+  production Next server bound to IPv6 any-address `::` (dual-stack on the
+  macOS runner); the Release bundle inlines
   `EXPO_PUBLIC_API_BASE_URL=http://localhost:3000` and the job
   asserts both (canary curl + bundle `strings` grep) before Maestro runs.
   That's the iOS Simulator gate — if it fails on the routine's PR, Matt
@@ -153,6 +154,12 @@ fall back to the Simulator or point at prod.
     (SPEC-012, the EPIC-002 milestone): timeline legs + spend summary
     via `src/trips/use-trip-detail.ts`; `not_found` is a first-class
     state.
+  - `app/(app)/trips/new.tsx` — authenticated trip creation at `/trips/new`;
+    loads organization choices through `use-organizations` and sends a fresh
+    idempotency key through `trip-commands`.
+  - `app/(app)/trips/[id]/edit.tsx` — trip edit/delete at
+    `/trips/{id}/edit`; uses the canonical v1 commands and confirms destructive
+    deletion.
   - Both groups have a thin `_layout.tsx` (Stack with
     `headerShown: false`).
   - **Never create a bare `app/index.tsx`** — it would collide with
@@ -162,8 +169,9 @@ fall back to the Simulator or point at prod.
   sign-in orchestrator, auth Context, proactive-refresh gateway),
   `src/api/` (fetch wrapper validating responses via
   `@travel-planner/shared` schemas; supports 204 No Content for
-  endpoints like `/revoke`), and `src/trips/` (EPIC-002: `use-trips`
-  data hook + deterministic display formatters). Add new
+  endpoints like `/revoke`, all HTTP verbs, and idempotency headers), and
+  `src/trips/` (read hooks, organization choices, write commands, and
+  deterministic display formatters). Add new
   subdirectories as feature areas land.
 
 ### Auth machinery (slices 6 + 7 — SPEC-006 + SPEC-007)
@@ -199,7 +207,8 @@ fall back to the Simulator or point at prod.
   → /me with rollback on failure. `signOut()` reads tokens first,
   flips state + clears Keychain optimistically, then fire-and-forget
   POST `/api/v1/auth/mobile/revoke` in the background.
-- `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
+- `src/api/client.ts` — `apiGet<T>` / `apiPost<T>` / `apiPatch<T>` /
+  `apiDelete<T>` over native fetch,
   validating responses via `@travel-planner/shared` schemas. After
   SPEC-008 / ADR 056 the wrapper expects every `/api/v1/*` body to
   carry the standard envelope: 2xx bodies are parsed with

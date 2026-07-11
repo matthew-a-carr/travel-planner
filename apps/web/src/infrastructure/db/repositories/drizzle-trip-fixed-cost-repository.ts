@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
 import type { Currency, FixedCostCategory, TripFixedCost } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { tripFixedCosts } from '../schema';
 
 function toFixedCost(row: typeof tripFixedCosts.$inferSelect): TripFixedCost {
@@ -19,7 +19,7 @@ function toFixedCost(row: typeof tripFixedCosts.$inferSelect): TripFixedCost {
 }
 
 export class DrizzleTripFixedCostRepository implements TripFixedCostRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findById(id: string): Promise<TripFixedCost | null> {
     const rows = await this.db.select().from(tripFixedCosts).where(eq(tripFixedCosts.id, id));

@@ -128,6 +128,14 @@ describe('TripsScreen', () => {
     expect(mockPush).toHaveBeenCalledWith('/me');
   });
 
+  it('opens the native create-trip form', () => {
+    render(<TripsScreen />);
+
+    fireEvent.press(screen.getByTestId('trips-screen-create'));
+
+    expect(mockPush).toHaveBeenCalledWith('/trips/new');
+  });
+
   it('(h) tapping a trip navigates to its detail route', () => {
     render(<TripsScreen />);
 

@@ -148,6 +148,29 @@ error response by hand.
 
 Server-Sent Events use `GET` with the `/stream` path suffix (see below).
 
+## Idempotent command retries (ADR 064)
+
+Every unsafe mobile-facing command requires a non-empty `Idempotency-Key`
+header of at most 255 characters. Mobile generates a fresh UUID, while the
+server treats the value as an opaque key.
+The key is scoped to the authenticated user and operation. The server hashes the
+canonical parsed request (including path parameters), then commits the command
+mutation and its exact status/body replay record in one Postgres transaction.
+
+- Same key and same canonical request: replay the original status and envelope
+  without invoking the use case again.
+- Same key and different request: return `409 conflict`.
+- Validation or authentication failures occur before a key is claimed.
+- Expected command results, including mapped 4xx results, are replayable;
+  unexpected exceptions roll back both the mutation and claim so a retry can run.
+- Never include credentials, tokens, or raw headers in the request hash or stored
+  response.
+
+The application port is `IdempotentCommandExecutor`; the Drizzle adapter and
+transaction-scoped repositories are constructed only in the composition root.
+External side effects require an outbox and must not run directly inside the
+command transaction.
+
 ## Streaming endpoints
 
 When an endpoint streams (SSE), it lives at the unary path with a

@@ -57,6 +57,17 @@ export default function TripDetailScreen() {
         >
           <Text style={styles.backButtonText}>‹ Trips</Text>
         </Pressable>
+        {state.status === 'loaded' && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit trip"
+            onPress={() => router.push(`/trips/${id}/edit`)}
+            style={({ pressed }) => [styles.editButton, pressed && styles.backButtonPressed]}
+            testID="trip-detail-edit"
+          >
+            <Text style={styles.backButtonText}>Edit</Text>
+          </Pressable>
+        )}
       </View>
 
       {state.status === 'loading' && (
@@ -229,6 +240,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -245,6 +257,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '500',
     color: '#0f172a',
+  },
+  editButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
   },
   centred: {
     flex: 1,

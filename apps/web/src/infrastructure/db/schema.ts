@@ -122,6 +122,35 @@ export const trips = pgTable(
   (t) => [index('idx_trips_organization_id').on(t.organizationId)],
 );
 
+/**
+ * Durable request claims and exact responses for retry-safe v1 commands
+ * (ADR 064). The row is inserted, the domain mutation runs, and the response
+ * is filled inside one transaction; a failed mutation leaves no claim behind.
+ */
+export const idempotentCommands = pgTable(
+  'idempotent_commands',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    operation: text('operation').notNull(),
+    idempotencyKey: text('idempotency_key').notNull(),
+    requestHash: text('request_hash').notNull(),
+    responseStatus: integer('response_status'),
+    responseBody: jsonb('response_body'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    completedAt: timestamp('completed_at'),
+  },
+  (command) => [
+    uniqueIndex('uq_idempotent_commands_user_operation_key').on(
+      command.userId,
+      command.operation,
+      command.idempotencyKey,
+    ),
+  ],
+);
+
 export const tripFixedCosts = pgTable(
   'trip_fixed_costs',
   {

@@ -66,28 +66,28 @@
       "id": "trips.create",
       "title": "Create a trip",
       "slice": 3,
-      "status": "missing",
+      "status": "complete",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "trips.update",
       "title": "Edit trip identity, budget, and status",
       "slice": 3,
-      "status": "missing",
+      "status": "complete",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "trips.delete",
       "title": "Delete a trip",
       "slice": 3,
-      "status": "missing",
+      "status": "complete",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "trips.stage-guidance",

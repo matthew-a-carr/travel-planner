@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { tripDetailSchema, tripSummarySchema } from './trip';
+import {
+  createTripRequestSchema,
+  tripDetailSchema,
+  tripSummarySchema,
+  updateTripRequestSchema,
+} from './trip';
 
 const validSummary = {
   id: '7f8b2c1a-0d9e-4f3a-8b6c-5d4e3f2a1b0c',
@@ -169,5 +174,56 @@ describe('tripDetailSchema', () => {
       destinations: [{ ...validDetail.destinations[0], startDate: 'next month' }],
     };
     expect(() => tripDetailSchema.parse(broken)).toThrow();
+  });
+});
+
+describe('trip command schemas', () => {
+  const organizationId = '1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+
+  it('accepts create and update commands in integer pence', () => {
+    expect(
+      createTripRequestSchema.parse({ organizationId, name: 'Japan', totalBudgetPence: 500_000 }),
+    ).toEqual({ organizationId, name: 'Japan', totalBudgetPence: 500_000 });
+    expect(
+      updateTripRequestSchema.parse({
+        name: 'Japan 2027',
+        totalBudgetPence: 600_000,
+        status: 'active',
+      }),
+    ).toEqual({ name: 'Japan 2027', totalBudgetPence: 600_000, status: 'active' });
+  });
+
+  it('trims names and rejects empty names', () => {
+    expect(
+      createTripRequestSchema.parse({ organizationId, name: '  Japan  ', totalBudgetPence: 1 }),
+    ).toMatchObject({ name: 'Japan' });
+    expect(() =>
+      createTripRequestSchema.parse({ organizationId, name: '   ', totalBudgetPence: 1 }),
+    ).toThrow();
+  });
+
+  it('rejects non-positive or fractional pence', () => {
+    for (const totalBudgetPence of [0, -1, 1.5]) {
+      expect(() =>
+        createTripRequestSchema.parse({ organizationId, name: 'Japan', totalBudgetPence }),
+      ).toThrow();
+    }
+  });
+
+  it('rejects unknown statuses and malformed organization IDs', () => {
+    expect(() =>
+      updateTripRequestSchema.parse({
+        name: 'Japan',
+        totalBudgetPence: 1,
+        status: 'archived',
+      }),
+    ).toThrow();
+    expect(() =>
+      createTripRequestSchema.parse({
+        organizationId: 'not-a-uuid',
+        name: 'Japan',
+        totalBudgetPence: 1,
+      }),
+    ).toThrow();
   });
 });

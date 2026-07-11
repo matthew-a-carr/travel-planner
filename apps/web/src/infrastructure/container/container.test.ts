@@ -23,6 +23,7 @@ function createFakeContainer(): AppContainer {
     hashFn: ((s: string) => s) as AppContainer['hashFn'],
     chatMessageRepository: {} as AppContainer['chatMessageRepository'],
     chatAssistant: {} as AppContainer['chatAssistant'],
+    idempotentCommandExecutor: {} as AppContainer['idempotentCommandExecutor'],
     mobileAuthStateRepository: {} as AppContainer['mobileAuthStateRepository'],
     mobileAuthExchangeCodeRepository: {} as AppContainer['mobileAuthExchangeCodeRepository'],
     refreshTokenRepository: {} as AppContainer['refreshTokenRepository'],

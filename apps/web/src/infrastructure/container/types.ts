@@ -1,6 +1,7 @@
 import type { AiCacheRepository } from '@/application/ports/ai-cache-repository';
 import type { ChatAssistantService } from '@/application/ports/chat-assistant';
 import type { ChatMessageRepository } from '@/application/ports/chat-message-repository';
+import type { IdempotentCommandExecutor } from '@/application/ports/idempotent-command-executor';
 import type { InviteEmailService } from '@/application/ports/invite-email-service';
 import type { ItineraryParser } from '@/application/ports/itinerary-parser';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
@@ -39,6 +40,7 @@ export type AppContainer = {
   readonly hashFn: (input: string) => string;
   readonly chatMessageRepository: ChatMessageRepository;
   readonly chatAssistant: ChatAssistantService;
+  readonly idempotentCommandExecutor: IdempotentCommandExecutor;
 
   // Mobile auth (SPEC-004 / ADR 051).
   readonly mobileAuthStateRepository: MobileAuthStateRepository;

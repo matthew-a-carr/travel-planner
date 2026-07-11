@@ -1,0 +1,75 @@
+# Native trip create → edit → delete journey (SPEC-022 / EPIC-006 slice 3).
+# Uses the real v1 contracts, atomic idempotency boundary, and seeded owner
+# organization. The flow is self-starting whether an earlier flow left the app
+# signed in or signed out.
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'login-screen-root'
+    commands:
+      - tapOn:
+          id: 'login-google-button'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 60000
+- tapOn:
+    id: 'trips-screen-create'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-create-root'
+    timeout: 30000
+- tapOn:
+    id: 'trip-create-organization-a0000000-0e2e-4000-8000-000000000001'
+- tapOn:
+    id: 'trip-create-name'
+- inputText: 'Mobile CRUD Journey'
+- tapOn:
+    id: 'trip-create-budget'
+- inputText: '4321'
+- hideKeyboard
+- tapOn:
+    id: 'trip-create-submit'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-root'
+    timeout: 30000
+- assertVisible: 'Mobile CRUD Journey'
+- tapOn:
+    id: 'trip-detail-edit'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-edit-root'
+    timeout: 30000
+- tapOn:
+    id: 'trip-edit-name'
+- eraseText
+- inputText: 'Mobile CRUD Updated'
+- tapOn:
+    id: 'trip-edit-budget'
+- eraseText
+- inputText: '5432'
+- hideKeyboard
+- tapOn:
+    id: 'trip-edit-status-completed'
+- tapOn:
+    id: 'trip-edit-submit'
+- extendedWaitUntil:
+    visible: 'Mobile CRUD Updated'
+    timeout: 30000
+- tapOn:
+    id: 'trip-detail-edit'
+- tapOn:
+    id: 'trip-edit-delete'
+- assertVisible:
+    id: 'trip-edit-delete-warning'
+- tapOn:
+    id: 'trip-edit-delete-confirm'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 30000
+- assertNotVisible: 'Mobile CRUD Updated'

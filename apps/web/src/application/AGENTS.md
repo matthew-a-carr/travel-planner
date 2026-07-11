@@ -18,6 +18,8 @@ and by code review / CI for the integration test requirement.
 
 ```
 src/application/
+  ports/
+    idempotent-command-executor.ts ← atomic command/replay boundary (ADR 064)
   email/
     base-email-template.ts         + base-email-template.test.ts
     user-added-invite-template.ts  + user-added-invite-template.test.ts

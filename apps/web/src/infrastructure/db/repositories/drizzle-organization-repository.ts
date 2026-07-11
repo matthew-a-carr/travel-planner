@@ -16,7 +16,7 @@ import type {
 } from '@/domain/organization/types';
 import { normalizeEmail } from '@/infrastructure/auth/access-policy';
 import { canonicalEmailSql } from '../canonical-email-sql';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { organizationMemberships, organizations, users } from '../schema';
 
 function toOrganization(row: typeof organizations.$inferSelect): Organization {
@@ -39,7 +39,7 @@ function toMembership(row: typeof organizationMemberships.$inferSelect): Organiz
 }
 
 export class DrizzleOrganizationRepository implements OrganizationRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findById(id: string): Promise<Organization | null> {
     const rows = await this.db

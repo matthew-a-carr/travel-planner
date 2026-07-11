@@ -10,7 +10,7 @@ jest.mock('../../src/auth/get-access-token', () => ({
   getAccessToken: () => mockGetAccessToken(),
 }));
 
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useTrips } from '../../src/trips/use-trips';
 
 const TRIP = {
@@ -115,7 +115,7 @@ describe('useTrips', () => {
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     fetchSpy.mockResolvedValueOnce(successEnvelope([TRIP]));
-    result.current.reload();
+    act(() => result.current.reload());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -133,13 +133,18 @@ describe('useTrips', () => {
       }),
     );
 
-    const refreshPromise = result.current.refresh();
+    let refreshPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      refreshPromise = result.current.refresh();
+    });
     await waitFor(() => expect(result.current.refreshing).toBe(true));
     // Stale list still visible mid-refresh — no loading flash.
     expect(result.current.state.status).toBe('loaded');
 
-    release(successEnvelope([]));
-    await refreshPromise;
+    await act(async () => {
+      release(successEnvelope([]));
+      await refreshPromise;
+    });
 
     await waitFor(() => expect(result.current.refreshing).toBe(false));
     expect(result.current.state).toEqual({ status: 'loaded', trips: [] });

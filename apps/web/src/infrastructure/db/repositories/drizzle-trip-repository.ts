@@ -2,7 +2,7 @@ import { desc, eq } from 'drizzle-orm';
 import type { TripRepository } from '@/domain/trip/trip-repository';
 import type { Currency, Trip, TripIntent, TripStatus } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { trips } from '../schema';
 
 function toTrip(row: typeof trips.$inferSelect): Trip {
@@ -33,7 +33,7 @@ function toRow(trip: Trip): typeof trips.$inferInsert {
 }
 
 export class DrizzleTripRepository implements TripRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findById(id: string): Promise<Trip | null> {
     const rows = await this.db.select().from(trips).where(eq(trips.id, id));

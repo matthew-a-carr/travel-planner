@@ -72,3 +72,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [061](061-visa-requirements-deterministic-evaluation-over-frozen-seed.md) | Visa Requirements — Deterministic Evaluation over an AI-Extracted Frozen Seed, with First-Class Zones | 2026-06-15 | Accepted (mechanism partly superseded by 062) |
 | [062](062-visa-extraction-via-agent-sdk-codex-skill.md) | Visa Extraction via a Subscription-Auth Agent-SDK/Codex Skill, Ingested at Deploy | 2026-06-20 | Accepted |
 | [063](063-mobile-web-capability-parity-over-shared-v1-contracts.md) | Mobile-Web Capability Parity over Shared v1 Contracts | 2026-07-11 | Accepted |
+| [064](064-atomic-idempotent-v1-command-execution.md) | Atomic Idempotent v1 Command Execution | 2026-07-11 | Accepted |

@@ -17,6 +17,7 @@
 const mockUseAuth = jest.fn();
 const mockUseTripDetail = jest.fn();
 const mockBack = jest.fn();
+const mockPush = jest.fn();
 const mockReload = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
@@ -27,7 +28,7 @@ jest.mock('../../../../src/trips/use-trip-detail', () => ({
   useTripDetail: (id: string) => mockUseTripDetail(id),
 }));
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn(), back: mockBack, replace: jest.fn() }),
+  useRouter: () => ({ push: mockPush, back: mockBack, replace: jest.fn() }),
   useLocalSearchParams: () => ({ id: 'trip-1' }),
 }));
 
@@ -227,5 +228,13 @@ describe('TripDetailScreen', () => {
     fireEvent.press(screen.getByTestId('trip-detail-back'));
 
     expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the native edit-trip form', () => {
+    render(<TripDetailScreen />);
+
+    fireEvent.press(screen.getByTestId('trip-detail-edit'));
+
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/edit');
   });
 });

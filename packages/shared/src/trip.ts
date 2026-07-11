@@ -121,3 +121,21 @@ export const tripDetailSchema = tripSummarySchema.extend({
   spend: tripSpendSummarySchema,
 });
 export type TripDetail = z.infer<typeof tripDetailSchema>;
+
+const tripNameSchema = z.string().trim().min(1).max(200);
+
+/** Create command for POST /api/v1/trips (SPEC-022). GBP is server-owned. */
+export const createTripRequestSchema = z.object({
+  organizationId: z.uuid(),
+  name: tripNameSchema,
+  totalBudgetPence: z.number().int().positive(),
+});
+export type CreateTripRequest = z.infer<typeof createTripRequestSchema>;
+
+/** Full replacement of the editable trip fields for PATCH /api/v1/trips/{id}. */
+export const updateTripRequestSchema = z.object({
+  name: tripNameSchema,
+  totalBudgetPence: z.number().int().positive(),
+  status: tripStatusSchema,
+});
+export type UpdateTripRequest = z.infer<typeof updateTripRequestSchema>;

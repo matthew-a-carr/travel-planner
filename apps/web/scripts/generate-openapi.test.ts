@@ -57,8 +57,26 @@ describe('OpenAPI generator', () => {
         '/api/v1/auth/mobile/revoke',
         '/api/v1/trips',
         '/api/v1/trips/{id}',
+        '/api/v1/organizations',
       ]),
     );
+  });
+
+  it('documents retry-safe trip commands and organization choices (SPEC-022)', () => {
+    const paths = doc.paths as Json;
+    const trips = paths['/api/v1/trips'] as Json;
+    const trip = paths['/api/v1/trips/{id}'] as Json;
+    const organizations = paths['/api/v1/organizations'] as Json;
+
+    expect(trips.post).toBeTypeOf('object');
+    expect(trip.patch).toBeTypeOf('object');
+    expect(trip.delete).toBeTypeOf('object');
+    expect(organizations.get).toBeTypeOf('object');
+    expect(((trips.post as Json).parameters as Json[])[0]).toMatchObject({
+      name: 'Idempotency-Key',
+      in: 'header',
+      required: true,
+    });
   });
 
   it('documents the trip detail payload with its nested components (SPEC-010)', () => {
