@@ -29,6 +29,18 @@
   origin, host canary, bundle assertion, and auth-seam smoke to the same
   hostname. The Next server remains bound to `0.0.0.0`.
 
+## 2026-07-11 — First authoritative run: address-family mismatch
+
+- Run 29147796434 passed the Release build, bundle URL/auth marker, server
+  seam, simulator boot, and app-install gates. All three Maestro attempts then
+  stalled on the first `/start` leg; the screenshot remained on the in-flight
+  sign-in button.
+- The app used hostname `localhost`, but Next was listening only on IPv4
+  `0.0.0.0`. Changed the bind to IPv6 `::` (dual-stack on the macOS runner).
+  The existing localhost canary continues to prove server boot; the rerun's
+  authenticated Maestro journey validates the specific address-family
+  mismatch from inside the Simulator.
+
 ## 2026-07-11 — Authenticated journey restored
 
 - Added one stateful Maestro flow covering test-auth sign-in, seeded trip list
