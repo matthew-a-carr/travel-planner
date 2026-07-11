@@ -50,6 +50,8 @@ const DETAIL = {
       name: 'Tokyo',
       country: 'Japan',
       city: 'Tokyo',
+      latitude: 35.6762,
+      longitude: 139.6503,
       startDate: '2026-09-01',
       endDate: '2026-09-10',
       estimatedBudget: { amountPence: 250_000, currency: 'GBP' as const },
@@ -62,6 +64,8 @@ const DETAIL = {
       name: 'Kyoto',
       country: 'Japan',
       city: null,
+      latitude: null,
+      longitude: null,
       startDate: null,
       endDate: null,
       estimatedBudget: { amountPence: 100_000, currency: 'GBP' as const },
@@ -201,6 +205,7 @@ describe('TripDetailScreen', () => {
 
     expect(screen.getByTestId('trip-detail-timeline-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('trip-detail-fixed-costs-empty')).toBeOnTheScreen();
+    expect(screen.getByTestId('trip-detail-next-steps')).toHaveTextContent(/Start shaping/);
   });
 
   it('(h) shows the over-allocation warning and negative available', () => {
@@ -236,5 +241,17 @@ describe('TripDetailScreen', () => {
     fireEvent.press(screen.getByTestId('trip-detail-edit'));
 
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/edit');
+  });
+
+  it('opens native destination and fixed-cost editors', () => {
+    render(<TripDetailScreen />);
+    fireEvent.press(screen.getByTestId('trip-detail-add-destination'));
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/destinations/new');
+    fireEvent.press(screen.getByTestId('trip-detail-destination-d1'));
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/destinations/d1');
+    fireEvent.press(screen.getByTestId('trip-detail-add-fixed-cost'));
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/fixed-costs/new');
+    fireEvent.press(screen.getByTestId('trip-detail-fixed-cost-f1'));
+    expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/fixed-costs/f1');
   });
 });

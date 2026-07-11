@@ -160,6 +160,9 @@ fall back to the Simulator or point at prod.
   - `app/(app)/trips/[id]/edit.tsx` — trip edit/delete at
     `/trips/{id}/edit`; uses the canonical v1 commands and confirms destructive
     deletion.
+  - `app/(app)/trips/[id]/destinations/[destinationId].tsx` and
+    `fixed-costs/[fixedCostId].tsx` — `new` creates and UUID values edit/delete
+    trip-planning children through atomic v1 commands (SPEC-023).
   - Both groups have a thin `_layout.tsx` (Stack with
     `headerShown: false`).
   - **Never create a bare `app/index.tsx`** — it would collide with
@@ -170,7 +173,7 @@ fall back to the Simulator or point at prod.
   `src/api/` (fetch wrapper validating responses via
   `@travel-planner/shared` schemas; supports 204 No Content for
   endpoints like `/revoke`, all HTTP verbs, and idempotency headers), and
-  `src/trips/` (read hooks, organization choices, write commands, and
+  `src/trips/` (read hooks, country/organization choices, write commands, and
   deterministic display formatters). Add new
   subdirectories as feature areas land.
 

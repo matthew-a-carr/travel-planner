@@ -171,6 +171,12 @@ transaction-scoped repositories are constructed only in the composition root.
 External side effects require an outbox and must not run directly inside the
 command transaction.
 
+Nested trip resources use the accessible parent as their authorization
+boundary. A child ID that is missing, belongs to another trip, or belongs to an
+inaccessible trip returns the same neutral `404 not_found`; handlers never
+reveal which check failed. Current nested command resources are destinations
+and fixed costs.
+
 ## Streaming endpoints
 
 When an endpoint streams (SSE), it lives at the unary path with a

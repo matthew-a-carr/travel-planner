@@ -1,6 +1,7 @@
 import { count } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTrip } from '@/application/use-cases/create-trip';
+import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
 import { DrizzleDestinationRepository } from '@/infrastructure/db/repositories/drizzle-destination-repository';
 import { DrizzleOrganizationRepository } from '@/infrastructure/db/repositories/drizzle-organization-repository';
 import { DrizzleTripFixedCostRepository } from '@/infrastructure/db/repositories/drizzle-trip-fixed-cost-repository';
@@ -37,6 +38,7 @@ function createExecutor() {
     destinationRepository: new DrizzleDestinationRepository(tx),
     tripFixedCostRepository: new DrizzleTripFixedCostRepository(tx),
     organizationRepository: new DrizzleOrganizationRepository(tx),
+    countryReferenceRepository: new DrizzleCountryReferenceRepository(tx),
   }));
 }
 

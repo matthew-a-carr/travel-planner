@@ -55,6 +55,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Trip detail now supplies stage-aware next steps and native
+  destination/fixed-cost create, edit, and delete journeys, including canonical
+  country/date/comfort budget suggestions and atomic retry-safe v1 commands.
+  (SPEC-023 / EPIC-006 slice 3.)
 - **Mobile:** Native create, edit, and delete trip journeys now use bearer-authenticated,
   atomically idempotent v1 commands, including organization selection, accessible
   forms, destructive confirmation, and real-backend Maestro coverage. The shared

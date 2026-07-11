@@ -28,6 +28,8 @@ const DETAIL = {
       name: 'Tokyo',
       country: 'Japan',
       city: 'Tokyo',
+      latitude: 35.6762,
+      longitude: 139.6503,
       startDate: '2026-09-01',
       endDate: '2026-09-10',
       estimatedBudget: { amountPence: 250_000, currency: 'GBP' },

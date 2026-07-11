@@ -25,6 +25,9 @@ import {
   apiErrorEnvelopeSchema,
   apiErrorSchema,
   apiSuccessSchema,
+  countryReferenceSummarySchema,
+  createDestinationRequestSchema,
+  createFixedCostRequestSchema,
   createTripRequestSchema,
   meResponseSchema,
   mobileAuthExchangeRequestSchema,
@@ -40,6 +43,8 @@ import {
   tripFixedCostSchema,
   tripSpendSummarySchema,
   tripSummarySchema,
+  updateDestinationRequestSchema,
+  updateFixedCostRequestSchema,
   updateTripRequestSchema,
 } from '@travel-planner/shared';
 import * as z from 'zod';
@@ -79,6 +84,11 @@ function buildComponentSchemas(): Record<string, unknown> {
   registry.add(createTripRequestSchema, { id: 'CreateTripRequest' });
   registry.add(updateTripRequestSchema, { id: 'UpdateTripRequest' });
   registry.add(organizationSummarySchema, { id: 'OrganizationSummary' });
+  registry.add(countryReferenceSummarySchema, { id: 'CountryReferenceSummary' });
+  registry.add(createDestinationRequestSchema, { id: 'CreateDestinationRequest' });
+  registry.add(updateDestinationRequestSchema, { id: 'UpdateDestinationRequest' });
+  registry.add(createFixedCostRequestSchema, { id: 'CreateFixedCostRequest' });
+  registry.add(updateFixedCostRequestSchema, { id: 'UpdateFixedCostRequest' });
 
   // Per-endpoint success envelopes — `data` is the registered payload schema,
   // so it resolves to a `$ref`.
@@ -100,6 +110,15 @@ function buildComponentSchemas(): Record<string, unknown> {
   });
   registry.add(apiSuccessSchema(z.array(organizationSummarySchema)), {
     id: 'OrganizationsListSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(z.array(countryReferenceSummarySchema)), {
+    id: 'CountriesListSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(tripDestinationSchema), {
+    id: 'TripDestinationSuccessEnvelope',
+  });
+  registry.add(apiSuccessSchema(tripFixedCostSchema), {
+    id: 'TripFixedCostSuccessEnvelope',
   });
 
   const { schemas } = z.toJSONSchema(registry, {
@@ -132,6 +151,49 @@ const idempotencyKeyParameter = {
   schema: { type: 'string', minLength: 1, maxLength: 255 },
   description: 'Client-generated retry key scoped to the authenticated user and operation.',
 };
+
+function childParameters(childId: string) {
+  return [
+    { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+    { name: childId, in: 'path', required: true, schema: { type: 'string' } },
+    idempotencyKeyParameter,
+  ];
+}
+
+function childUpdateOperation(
+  summary: string,
+  childId: string,
+  requestSchema: string,
+  responseSchema: string,
+) {
+  return {
+    summary,
+    security: [{ bearerAuth: [] }, { cookieSession: [] }],
+    parameters: childParameters(childId),
+    requestBody: { required: true, ...jsonBody(requestSchema) },
+    responses: {
+      '200': { description: 'Updated resource.', ...jsonBody(responseSchema) },
+      '400': errorResponse('Invalid request.'),
+      '401': errorResponse('Unauthenticated.'),
+      '404': errorResponse('Resource not found.'),
+      '409': errorResponse('Idempotency conflict.'),
+    },
+  };
+}
+
+function childDeleteOperation(summary: string, childId: string) {
+  return {
+    summary,
+    security: [{ bearerAuth: [] }, { cookieSession: [] }],
+    parameters: childParameters(childId),
+    responses: {
+      '204': { description: 'Resource deleted.' },
+      '401': errorResponse('Unauthenticated.'),
+      '404': errorResponse('Resource not found.'),
+      '409': errorResponse('Idempotency conflict.'),
+    },
+  };
+}
 
 /** Assemble the full OpenAPI 3.1 document object. */
 export function buildOpenApiDocument(): Record<string, unknown> {
@@ -329,6 +391,79 @@ export function buildOpenApiDocument(): Record<string, unknown> {
             '401': errorResponse('No valid session or bearer token.'),
           },
         },
+      },
+      '/api/v1/countries': {
+        get: {
+          summary: 'List country references and canonical daily budget suggestions',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          responses: {
+            '200': {
+              description: 'Country references.',
+              ...jsonBody('CountriesListSuccessEnvelope'),
+            },
+            '401': errorResponse('No valid session or bearer token.'),
+          },
+        },
+      },
+      '/api/v1/trips/{id}/destinations': {
+        post: {
+          summary: 'Add a destination',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            idempotencyKeyParameter,
+          ],
+          requestBody: { required: true, ...jsonBody('CreateDestinationRequest') },
+          responses: {
+            '201': {
+              description: 'Created destination.',
+              ...jsonBody('TripDestinationSuccessEnvelope'),
+            },
+            '400': errorResponse('Invalid request.'),
+            '401': errorResponse('Unauthenticated.'),
+            '404': errorResponse('Trip not found.'),
+            '409': errorResponse('Idempotency conflict.'),
+          },
+        },
+      },
+      '/api/v1/trips/{id}/destinations/{destinationId}': {
+        patch: childUpdateOperation(
+          'Update a destination',
+          'destinationId',
+          'UpdateDestinationRequest',
+          'TripDestinationSuccessEnvelope',
+        ),
+        delete: childDeleteOperation('Delete a destination', 'destinationId'),
+      },
+      '/api/v1/trips/{id}/fixed-costs': {
+        post: {
+          summary: 'Add a fixed cost',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            idempotencyKeyParameter,
+          ],
+          requestBody: { required: true, ...jsonBody('CreateFixedCostRequest') },
+          responses: {
+            '201': {
+              description: 'Created fixed cost.',
+              ...jsonBody('TripFixedCostSuccessEnvelope'),
+            },
+            '400': errorResponse('Invalid request.'),
+            '401': errorResponse('Unauthenticated.'),
+            '404': errorResponse('Trip not found.'),
+            '409': errorResponse('Idempotency conflict.'),
+          },
+        },
+      },
+      '/api/v1/trips/{id}/fixed-costs/{fixedCostId}': {
+        patch: childUpdateOperation(
+          'Update a fixed cost',
+          'fixedCostId',
+          'UpdateFixedCostRequest',
+          'TripFixedCostSuccessEnvelope',
+        ),
+        delete: childDeleteOperation('Delete a fixed cost', 'fixedCostId'),
       },
     },
     components: {

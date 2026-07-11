@@ -120,6 +120,7 @@ export default function TripDetailScreen() {
 }
 
 function TripDetailBody({ trip }: { trip: TripDetail }) {
+  const router = useRouter();
   return (
     <>
       <View style={styles.titleBlock}>
@@ -130,6 +131,15 @@ function TripDetailBody({ trip }: { trip: TripDetail }) {
           {STATUS_LABELS[trip.status]} · {formatDateRange(trip.startDate, trip.endDate)}
         </Text>
       </View>
+
+      {trip.destinations.length === 0 && trip.fixedCosts.length === 0 && (
+        <View style={styles.card} testID="trip-detail-next-steps">
+          <Text style={styles.sectionTitle}>Start shaping your trip</Text>
+          <Text style={styles.emptyText}>
+            Add a destination or fixed cost to allocate your budget.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.card} testID="trip-detail-spend">
         <Text style={styles.sectionTitle}>Spend</Text>
@@ -150,27 +160,43 @@ function TripDetailBody({ trip }: { trip: TripDetail }) {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Timeline</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Timeline</Text>
+          <Pressable
+            onPress={() => router.push(`/trips/${trip.id}/destinations/new`)}
+            testID="trip-detail-add-destination"
+          >
+            <Text style={styles.actionText}>Add destination</Text>
+          </Pressable>
+        </View>
         {trip.destinations.length === 0 ? (
           <Text style={styles.emptyText} testID="trip-detail-timeline-empty">
-            No destinations yet — add them on the web app.
+            No destinations yet.
           </Text>
         ) : (
           trip.destinations.map((destination) => (
-            <DestinationLeg destination={destination} key={destination.id} />
+            <DestinationLeg destination={destination} key={destination.id} tripId={trip.id} />
           ))
         )}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Fixed costs</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Fixed costs</Text>
+          <Pressable
+            onPress={() => router.push(`/trips/${trip.id}/fixed-costs/new`)}
+            testID="trip-detail-add-fixed-cost"
+          >
+            <Text style={styles.actionText}>Add fixed cost</Text>
+          </Pressable>
+        </View>
         {trip.fixedCosts.length === 0 ? (
           <Text style={styles.emptyText} testID="trip-detail-fixed-costs-empty">
             No fixed costs recorded.
           </Text>
         ) : (
           trip.fixedCosts.map((fixedCost) => (
-            <FixedCostRow fixedCost={fixedCost} key={fixedCost.id} />
+            <FixedCostRow fixedCost={fixedCost} key={fixedCost.id} tripId={trip.id} />
           ))
         )}
       </View>
@@ -197,12 +223,17 @@ function SpendRow({
   );
 }
 
-function DestinationLeg({ destination }: { destination: TripDestination }) {
+function DestinationLeg({ destination, tripId }: { destination: TripDestination; tripId: string }) {
+  const router = useRouter();
   const location = destination.city
     ? `${destination.city}, ${destination.country}`
     : destination.country;
   return (
-    <View style={styles.leg} testID={`trip-detail-destination-${destination.id}`}>
+    <Pressable
+      onPress={() => router.push(`/trips/${tripId}/destinations/${destination.id}`)}
+      style={styles.leg}
+      testID={`trip-detail-destination-${destination.id}`}
+    >
       <View style={styles.legTopRow}>
         <Text numberOfLines={1} style={styles.legName}>
           {destination.name}
@@ -216,19 +247,24 @@ function DestinationLeg({ destination }: { destination: TripDestination }) {
       <Text style={styles.legBudget}>
         {formatPence(destination.spent)} spent of {formatPence(destination.estimatedBudget)} budget
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
-function FixedCostRow({ fixedCost }: { fixedCost: TripFixedCost }) {
+function FixedCostRow({ fixedCost, tripId }: { fixedCost: TripFixedCost; tripId: string }) {
+  const router = useRouter();
   return (
-    <View style={styles.spendRow} testID={`trip-detail-fixed-cost-${fixedCost.id}`}>
+    <Pressable
+      onPress={() => router.push(`/trips/${tripId}/fixed-costs/${fixedCost.id}`)}
+      style={styles.spendRow}
+      testID={`trip-detail-fixed-cost-${fixedCost.id}`}
+    >
       <View style={styles.fixedCostLabelBlock}>
         <Text style={styles.spendLabel}>{fixedCost.label}</Text>
         <Text style={styles.fixedCostDate}>{formatIsoDate(fixedCost.date)}</Text>
       </View>
       <Text style={styles.spendValue}>{formatPence(fixedCost.amount)}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -332,6 +368,19 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#0f172a',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionText: {
+    color: '#0369a1',
+    fontSize: 14,
+    fontWeight: '600',
+    minHeight: 44,
+    textAlignVertical: 'center',
   },
   spendRow: {
     flexDirection: 'row',

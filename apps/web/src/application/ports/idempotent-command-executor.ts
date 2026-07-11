@@ -1,3 +1,4 @@
+import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import type { OrganizationRepository } from '@/domain/organization/organization-repository';
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
@@ -8,6 +9,7 @@ export type IdempotentCommandRepositories = {
   readonly destinationRepository: DestinationRepository;
   readonly tripFixedCostRepository: TripFixedCostRepository;
   readonly organizationRepository: OrganizationRepository;
+  readonly countryReferenceRepository: CountryReferenceRepository;
 };
 
 export type StoredHttpResponse = {

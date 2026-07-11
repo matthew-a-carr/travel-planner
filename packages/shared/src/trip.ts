@@ -29,7 +29,11 @@ export type WireTripStatus = z.infer<typeof tripStatusSchema>;
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 export const isoDateSchema = z
   .string()
-  .regex(isoDatePattern, 'expected an ISO 8601 calendar date (YYYY-MM-DD)');
+  .regex(isoDatePattern, 'expected an ISO 8601 calendar date (YYYY-MM-DD)')
+  .refine((value) => {
+    const parsed = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  }, 'expected a valid calendar date');
 
 export const comfortLevelSchema = z.enum(['budget', 'mid', 'luxury']);
 export type WireComfortLevel = z.infer<typeof comfortLevelSchema>;
@@ -78,6 +82,8 @@ export const tripDestinationSchema = z.object({
   name: z.string().min(1),
   country: z.string().min(1),
   city: z.string().nullable(),
+  latitude: z.number().min(-90).max(90).nullable(),
+  longitude: z.number().min(-180).max(180).nullable(),
   startDate: isoDateSchema.nullable(),
   endDate: isoDateSchema.nullable(),
   estimatedBudget: moneySchema,
@@ -139,3 +145,44 @@ export const updateTripRequestSchema = z.object({
   status: tripStatusSchema,
 });
 export type UpdateTripRequest = z.infer<typeof updateTripRequestSchema>;
+
+const nullableDatePair = z
+  .object({ startDate: isoDateSchema.nullable(), endDate: isoDateSchema.nullable() })
+  .refine((value) => (value.startDate === null) === (value.endDate === null), {
+    message: 'startDate and endDate must both be provided or both be null',
+  });
+
+const destinationCommandFields = z
+  .object({
+    name: z.string().trim().max(200),
+    country: z.string().trim().min(1).max(100),
+    city: z.string().trim().min(1).max(100).nullable(),
+    latitude: z.number().min(-90).max(90).nullable(),
+    longitude: z.number().min(-180).max(180).nullable(),
+    estimatedBudgetPence: z.number().int().positive(),
+    comfortLevel: comfortLevelSchema,
+  })
+  .and(nullableDatePair)
+  .refine((value) => (value.latitude === null) === (value.longitude === null), {
+    message: 'latitude and longitude must both be provided or both be null',
+  });
+
+export const createDestinationRequestSchema = destinationCommandFields;
+export type CreateDestinationRequest = z.infer<typeof createDestinationRequestSchema>;
+export const updateDestinationRequestSchema = destinationCommandFields.refine(
+  (value) => value.name.length > 0,
+  { message: 'name is required when updating a destination', path: ['name'] },
+);
+export type UpdateDestinationRequest = z.infer<typeof updateDestinationRequestSchema>;
+
+const fixedCostCommandFields = z.object({
+  label: z.string().trim().min(1).max(200),
+  amountPence: z.number().int().positive(),
+  category: fixedCostCategorySchema,
+  date: isoDateSchema,
+});
+
+export const createFixedCostRequestSchema = fixedCostCommandFields;
+export type CreateFixedCostRequest = z.infer<typeof createFixedCostRequestSchema>;
+export const updateFixedCostRequestSchema = fixedCostCommandFields;
+export type UpdateFixedCostRequest = z.infer<typeof updateFixedCostRequestSchema>;

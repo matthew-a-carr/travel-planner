@@ -70,12 +70,17 @@ export async function getTripDetailForUser(
   };
 }
 
-function toWireDestination(destination: Destination, spend: SpendEntry[]): WireTripDestination {
+export function toWireDestination(
+  destination: Destination,
+  spend: SpendEntry[] = [],
+): WireTripDestination {
   return {
     id: destination.id,
     name: destination.name,
     country: destination.country,
     city: destination.city,
+    latitude: destination.latitude,
+    longitude: destination.longitude,
     startDate: toIsoDate(destination.startDate),
     endDate: toIsoDate(destination.endDate),
     estimatedBudget: toWireMoney(destination.estimatedBudget),
@@ -85,7 +90,7 @@ function toWireDestination(destination: Destination, spend: SpendEntry[]): WireT
   };
 }
 
-function toWireFixedCost(fixedCost: TripFixedCost): WireTripFixedCost {
+export function toWireFixedCost(fixedCost: TripFixedCost): WireTripFixedCost {
   return {
     id: fixedCost.id,
     label: fixedCost.label,

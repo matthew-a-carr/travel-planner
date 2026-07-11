@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createDestinationRequestSchema,
+  createFixedCostRequestSchema,
   createTripRequestSchema,
   tripDetailSchema,
   tripSummarySchema,
+  updateDestinationRequestSchema,
   updateTripRequestSchema,
 } from './trip';
 
@@ -87,6 +90,8 @@ const validDetail = {
       name: 'Tokyo',
       country: 'Japan',
       city: 'Tokyo',
+      latitude: 35.6762,
+      longitude: 139.6503,
       startDate: '2026-09-01',
       endDate: '2026-09-10',
       estimatedBudget: gbp(250_000),
@@ -99,6 +104,8 @@ const validDetail = {
       name: 'Kyoto',
       country: 'Japan',
       city: null,
+      latitude: null,
+      longitude: null,
       startDate: null,
       endDate: null,
       estimatedBudget: gbp(100_000),
@@ -225,5 +232,71 @@ describe('trip command schemas', () => {
         totalBudgetPence: 1,
       }),
     ).toThrow();
+  });
+});
+
+describe('destination and fixed-cost command schemas', () => {
+  const destination = {
+    name: '',
+    country: 'Japan',
+    city: 'Tokyo',
+    latitude: 35.6762,
+    longitude: 139.6503,
+    estimatedBudgetPence: 120_000,
+    comfortLevel: 'mid',
+    startDate: '2027-04-01',
+    endDate: '2027-04-08',
+  };
+
+  it('accepts a destination with paired dates and coordinates', () => {
+    expect(createDestinationRequestSchema.parse(destination)).toEqual(destination);
+  });
+
+  it('allows an inferred name on create but requires an explicit name on update', () => {
+    expect(createDestinationRequestSchema.parse(destination).name).toBe('');
+    expect(() => updateDestinationRequestSchema.parse(destination)).toThrow();
+    expect(updateDestinationRequestSchema.parse({ ...destination, name: 'Tokyo' }).name).toBe(
+      'Tokyo',
+    );
+  });
+
+  it('rejects half a date or coordinate pair', () => {
+    expect(() => createDestinationRequestSchema.parse({ ...destination, endDate: null })).toThrow();
+    expect(() =>
+      createDestinationRequestSchema.parse({ ...destination, longitude: null }),
+    ).toThrow();
+  });
+
+  it('rejects invalid coordinate ranges and fractional pence', () => {
+    expect(() => createDestinationRequestSchema.parse({ ...destination, latitude: 91 })).toThrow();
+    expect(() =>
+      createDestinationRequestSchema.parse({ ...destination, estimatedBudgetPence: 1.5 }),
+    ).toThrow();
+  });
+
+  it('rejects impossible calendar dates', () => {
+    expect(() =>
+      createDestinationRequestSchema.parse({ ...destination, startDate: '2027-02-30' }),
+    ).toThrow();
+    expect(() =>
+      createFixedCostRequestSchema.parse({
+        label: 'Flights',
+        amountPence: 1,
+        category: 'transport',
+        date: '2027-13-01',
+      }),
+    ).toThrow();
+  });
+
+  it('accepts categorised fixed costs and rejects invalid values', () => {
+    const fixedCost = {
+      label: 'Flights',
+      amountPence: 50_000,
+      category: 'transport',
+      date: '2027-03-31',
+    };
+    expect(createFixedCostRequestSchema.parse(fixedCost)).toEqual(fixedCost);
+    expect(() => createFixedCostRequestSchema.parse({ ...fixedCost, amountPence: 0 })).toThrow();
+    expect(() => createFixedCostRequestSchema.parse({ ...fixedCost, category: 'misc' })).toThrow();
   });
 });

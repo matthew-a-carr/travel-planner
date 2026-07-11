@@ -1,0 +1,111 @@
+# Destination + fixed-cost write/read-back journey (SPEC-023).
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'login-screen-root'
+    commands:
+      - tapOn:
+          id: 'login-google-button'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 60000
+- tapOn:
+    id: 'trips-screen-item-b0000000-0e2e-4000-8000-000000000001'
+- scrollUntilVisible:
+    element:
+      id: 'trip-detail-add-destination'
+    direction: DOWN
+- tapOn:
+    id: 'trip-detail-add-destination'
+- extendedWaitUntil:
+    visible:
+      id: 'destination-editor-root'
+    timeout: 30000
+- tapOn:
+    id: 'destination-name'
+- inputText: 'Mobile Planning Stop'
+- tapOn:
+    id: 'destination-country'
+- inputText: 'Jap'
+- tapOn:
+    id: 'destination-country-JPN'
+- tapOn:
+    id: 'destination-start-date'
+- inputText: '2027-04-01'
+- tapOn:
+    id: 'destination-end-date'
+- inputText: '2027-04-08'
+- hideKeyboard
+- tapOn:
+    id: 'destination-submit'
+- extendedWaitUntil:
+    visible: 'Mobile Planning Stop'
+    timeout: 30000
+- tapOn: 'Mobile Planning Stop'
+- tapOn:
+    id: 'destination-name'
+- eraseText
+- inputText: 'Mobile Planning Updated'
+- hideKeyboard
+- tapOn:
+    id: 'destination-submit'
+- extendedWaitUntil:
+    visible: 'Mobile Planning Updated'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'trip-detail-add-fixed-cost'
+    direction: DOWN
+- tapOn:
+    id: 'trip-detail-add-fixed-cost'
+- tapOn:
+    id: 'fixed-cost-label'
+- inputText: 'Mobile Rail Pass'
+- tapOn:
+    id: 'fixed-cost-amount'
+- inputText: '250'
+- hideKeyboard
+- tapOn:
+    id: 'fixed-cost-category-transport'
+- tapOn:
+    id: 'fixed-cost-submit'
+- extendedWaitUntil:
+    visible: 'Mobile Rail Pass'
+    timeout: 30000
+- tapOn: 'Mobile Rail Pass'
+- tapOn:
+    id: 'fixed-cost-label'
+- eraseText
+- inputText: 'Mobile Rail Updated'
+- hideKeyboard
+- tapOn:
+    id: 'fixed-cost-submit'
+- extendedWaitUntil:
+    visible: 'Mobile Rail Updated'
+    timeout: 30000
+- tapOn: 'Mobile Rail Updated'
+- tapOn:
+    id: 'fixed-cost-delete'
+- tapOn:
+    id: 'fixed-cost-delete-confirm'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-root'
+    timeout: 30000
+- scrollUntilVisible:
+    element: 'Mobile Planning Updated'
+    direction: UP
+- tapOn: 'Mobile Planning Updated'
+- tapOn:
+    id: 'destination-delete'
+- tapOn:
+    id: 'destination-delete-confirm'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-root'
+    timeout: 30000
+- assertNotVisible: 'Mobile Planning Updated'
