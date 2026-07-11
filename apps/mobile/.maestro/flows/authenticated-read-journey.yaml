@@ -1,0 +1,83 @@
+# Authenticated read journey (SPEC-020, EPIC-006 slice 1).
+#
+# Exercises the real Release app against the real Next.js/Postgres backend:
+# test-auth browser substitute → PKCE exchange → Keychain → /me → trips list
+# → seeded trip detail → neutral not-found deep link → sign-out.
+#
+# Fixture IDs come from
+# apps/web/src/infrastructure/db/seed/e2e-fixtures.ts. Selectors use stable
+# testIDs only; formatting and edge states remain in Jest/RNTL.
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: 'login-screen-root'
+    timeout: 60000
+- tapOn:
+    id: 'login-google-button'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 60000
+- assertVisible:
+    id: 'trips-screen-item-b0000000-0e2e-4000-8000-000000000001'
+- tapOn:
+    id: 'trips-screen-item-b0000000-0e2e-4000-8000-000000000001'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-root'
+    timeout: 30000
+- assertVisible:
+    id: 'trip-detail-name'
+- assertVisible:
+    id: 'trip-detail-spend'
+- scrollUntilVisible:
+    element:
+      id: 'trip-detail-destination-c0000000-0e2e-4000-8000-000000000001'
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'trip-detail-destination-c0000000-0e2e-4000-8000-000000000002'
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'trip-detail-fixed-cost-d0000000-0e2e-4000-8000-000000000001'
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: 'trip-detail-back'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 30000
+- openLink: 'travelplanner:///trips/00000000-0000-4000-8000-000000000404'
+- runFlow:
+    when:
+      visible: 'Open in "Travel Planner"'
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-not-found'
+    timeout: 30000
+- tapOn:
+    id: 'trip-detail-back'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 30000
+- tapOn:
+    id: 'trips-screen-profile'
+- extendedWaitUntil:
+    visible:
+      id: 'me-screen-sign-out'
+    timeout: 30000
+- tapOn:
+    id: 'me-screen-sign-out'
+- extendedWaitUntil:
+    visible:
+      id: 'login-screen-root'
+    timeout: 30000

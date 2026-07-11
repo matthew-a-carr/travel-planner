@@ -481,7 +481,9 @@ describe('/api/v1/auth/mobile/revoke', () => {
     await withFakeContainer(new FakeGoogleOAuthClient());
     const cryptoImpl = new WebCryptoMobileAuthCrypto();
     const user = await seedUser(db, { isApproved: true });
-    const t0 = new Date('2026-05-22T10:00:00Z');
+    // The route evaluates expiry against the real clock. Keep this token
+    // healthy relative to that same clock so the test cannot expire over time.
+    const t0 = new Date();
 
     // Seed the original refresh token.
     const refreshTokenRepo = new DrizzleRefreshTokenRepository(db);

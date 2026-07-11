@@ -530,7 +530,8 @@ itself changes, and can be forced on any branch via `workflow_dispatch`
 with `mobile: true`. Since SPEC-013 / ADR 060 the macOS `mobile-e2e` job
 runs Maestro against a **real backend**: native PostgreSQL (no Docker on
 macOS runners) + `db:migrate`/`db:seed`/`seed:e2e` + the production Next
-server, with a canary + bundle-URL assertion gating before Maestro.
+server. SPEC-020 points the Release bundle at `http://localhost:3000`; a
+runner canary, bundle-URL assertion, and test-auth seam smoke all gate Maestro.
 
 The web jobs:
 

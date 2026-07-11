@@ -54,7 +54,7 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   (deterministic fixtures from
   `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
   production Next server bound to `0.0.0.0`; the Release bundle inlines
-  `EXPO_PUBLIC_API_BASE_URL=http://<runner-LAN-IP>:3000` and the job
+  `EXPO_PUBLIC_API_BASE_URL=http://localhost:3000` and the job
   asserts both (canary curl + bundle `strings` grep) before Maestro runs.
   That's the iOS Simulator gate — if it fails on the routine's PR, Matt
   picks it up via the standard CI-failure email + the routine's

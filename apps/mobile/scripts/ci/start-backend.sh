@@ -7,11 +7,9 @@
 #   - Auth env (AUTH_SECRET etc.) is set at the job level, mirroring the
 #     web e2e job — next-auth needs it at boot.
 #
-# Binds `-H 0.0.0.0` (all interfaces, not just loopback) so the iOS
-# Simulator can reach the server via the runner's LAN IP — the sim cannot
-# reach the host's 127.0.0.1 on the GitHub macOS runner (proven by
-# SPEC-014's on-device reachability probe). The app's
-# EXPO_PUBLIC_API_BASE_URL points at that LAN IP (HOST_IP).
+# Binds `-H 0.0.0.0` so both runner canaries and the iOS Simulator's
+# `localhost` route can reach the same process. SPEC-020 deliberately uses the
+# hostname rather than SPEC-014's failed numeric-loopback and LAN-IP targets.
 #
 # The server is intentionally NOT awaited here: the canary step curls it
 # after xcodebuild, by which point the ~5s boot is long done — same
