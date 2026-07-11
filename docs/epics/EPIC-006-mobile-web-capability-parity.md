@@ -96,7 +96,7 @@ changes the direction from staged mobile subsets to durable capability parity.
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
 | 1 | **Authenticated E2E unblock** — resolve TD-010 with a deterministic Simulator-to-backend route; sign-in → list/detail/not-found → sign-out journeys against the real backend. Completes EPIC-004 slice 3 | 1 | [SPEC-020 (Approved)](../specs/SPEC-020-mobile-authenticated-e2e-journeys.md) | EPIC-004 slices 1–2 | In progress |
-| 2 | **Parity contract + E2E operations** — capability manifest and CI validator; failure recordings/backend and app network diagnostics; one-command local orchestration. Completes EPIC-004 slice 4 | 7 | _not yet planned_ | 1 | Not started |
+| 2 | **Parity contract + E2E operations** — capability manifest and CI validator; failure recordings/backend and app network diagnostics; one-command local orchestration. Completes EPIC-004 slice 4 | 7 | [SPEC-021 (In Progress)](../specs/SPEC-021-mobile-parity-manifest.md) | 1 | In progress |
 | 3 | **Trip planning core** — bearer v1 create/edit/delete/move trip and destination/fixed-cost CRUD; mobile native forms and role-aware actions | 2 | _not yet planned_ | 1, 2 | Not started |
 | 4 | **Spend and financial insight** — idempotent spend create/edit/delete; summaries, category breakdown, alerts, charts, and burndown. Absorbs EPIC-003 | 3 | _not yet planned_ | 1–3 | Not started |
 | 5 | **Timeline and trip intelligence** — paste/parse/apply itinerary, timeline insights, narrative, and assistant history/streaming through bearer-aware contracts | 4 | _not yet planned_ | 3 | Not started |
@@ -221,6 +221,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 |------|---------|------|---------------|-------|
 | 2026-07-11 | — | — | Approved | Full mobile migration and 1:1 web capability parity directed by Matt; strategic ADR and slice plan recorded before implementation. |
 | 2026-07-11 | 1 | SPEC-020 | In progress | Authenticated real-backend journeys separated from the parity-ledger/diagnostics work to keep the networking fix independently reversible. |
+| 2026-07-11 | 2 | SPEC-021 | In progress | Started the dependency-free capability manifest and CI validator while the authoritative SPEC-020 macOS run executes. Diagnostics/local orchestration remain later work in this slice. |
 
 ## Epic-level deviations
 

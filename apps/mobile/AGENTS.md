@@ -73,8 +73,15 @@ pnpm test:mobile:watch # Jest watch mode (TDD loop)
 pnpm test:e2e:mobile   # Maestro E2E only (requires Maestro + iOS Simulator)
 pnpm test:e2e          # umbrella — Playwright (web) + Maestro (mobile) together
 pnpm type-check:mobile # tsc --noEmit on the mobile app only
+pnpm mobile:parity:check          # validate current capability/evidence claims
+pnpm mobile:parity:check:complete # epic close-out: reject every remaining gap
 pnpm lint              # repo-wide Biome — lints apps/mobile/app/** + apps/mobile/*.{ts,tsx,js,mjs} via biome.json includes
 ```
+
+`docs/mobile-parity.json` is the machine-readable 1:1 ledger (ADR 063). Add a
+stable capability ID when a numbered web E2E feature suite expands the product
+surface. Mark an entry `complete` only when its web, mobile, and shared-contract
+evidence paths all exist and the corresponding gates pass.
 
 To run on the author's iPhone: scan the QR with the Expo Go app
 (install from App Store). Expo Go runs the unsigned bundle

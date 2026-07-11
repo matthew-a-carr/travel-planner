@@ -42,6 +42,9 @@ jobs:
               # schema changes must re-run the mobile jobs even when no
               # mobile file changed.
               - 'packages/shared/**'
+              # A completed-evidence claim must exercise the mobile gates, not
+              # merely pass the manifest's path checks.
+              - 'docs/mobile-parity.json'
               # The mobile jobs are defined here — a PR that edits the
               # workflow (e.g. the xcodebuild invocation) must run them.
               - '.github/workflows/ci.yml'
@@ -69,6 +72,7 @@ jobs:
       - run: pnpm db:check:migrations
       - run: pnpm openapi:check
       - run: pnpm visa:schema:check
+      - run: pnpm mobile:parity:check
 
   type-check:
     name: Type check

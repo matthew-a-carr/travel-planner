@@ -23,6 +23,8 @@
     "test:e2e:web": "pnpm --filter @travel-planner/web test:e2e",
     "test:e2e:web:ui": "pnpm --filter @travel-planner/web test:e2e:ui",
     "test:e2e:mobile": "pnpm --filter @travel-planner/mobile test:e2e",
+    "mobile:parity:check": "node apps/mobile/scripts/check-parity-manifest.mjs",
+    "mobile:parity:check:complete": "node apps/mobile/scripts/check-parity-manifest.mjs --require-complete",
     "db:generate": "pnpm --filter @travel-planner/web db:generate",
     "db:push": "pnpm --filter @travel-planner/web db:push",
     "db:migrate": "pnpm --filter @travel-planner/web db:migrate",
