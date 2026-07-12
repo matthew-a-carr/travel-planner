@@ -428,9 +428,9 @@ jobs:
           # visible. Poll DNS-over-HTTPS first so macOS does not cache an early
           # NXDOMAIN and make every subsequent system-resolver retry fail.
           TUNNEL_HOST=${E2E_API_BASE_URL#https://}
-          DNS_READY=false
+          TUNNEL_IP=""
           for _ in $(seq 1 120); do
-            if curl --fail --silent --show-error --get \
+            TUNNEL_IP=$(curl --fail --silent --show-error --get \
                 -H 'accept: application/dns-json' \
                 --data-urlencode "name=$TUNNEL_HOST" \
                 --data-urlencode 'type=A' \
@@ -439,18 +439,27 @@ jobs:
           import json, sys
           response = json.load(sys.stdin)
           answers = response.get('Answer', [])
-          sys.exit(0 if response.get('Status') == 0 and any(answer.get('type') == 1 for answer in answers) else 1)
-          "; then
-              DNS_READY=true
+          addresses = [answer.get('data') for answer in answers if answer.get('type') == 1]
+          if response.get('Status') == 0 and addresses:
+              print(addresses[0])
+          " || true)
+            if [ -n "$TUNNEL_IP" ]; then
               break
             fi
             sleep 1
           done
-          if [ "$DNS_READY" != true ]; then
+          if [ -z "$TUNNEL_IP" ]; then
             echo "::error::Quick Tunnel DNS record did not become authoritative"
             tail -n 100 "$RUNNER_TEMP/cloudflared.log" || true
             exit 1
           fi
+
+          # CoreSimulator has its own resolver state and can retain the
+          # NXDOMAIN observed while Quick Tunnel is publishing its random
+          # hostname. Pin the authoritative answer on the ephemeral runner so
+          # both the host canary and the subsequently booted Simulator resolve
+          # the same TLS hostname without depending on either DNS cache.
+          printf '%s %s\n' "$TUNNEL_IP" "$TUNNEL_HOST" | sudo tee -a /etc/hosts >/dev/null
 
           curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
             "$E2E_API_BASE_URL/api/auth/providers" >/dev/null
