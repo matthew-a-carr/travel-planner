@@ -680,6 +680,14 @@ jobs:
           echo "Installing $APP_PATH"
           xcrun simctl install booted "$APP_PATH"
 
+      - name: Capture simulator application logs
+        run: |
+          nohup xcrun simctl spawn "$SIM_UDID" log stream \
+            --style compact \
+            --level debug \
+            --predicate 'eventMessage CONTAINS[c] "mobile-e2e-auth" OR process CONTAINS[c] "travelplanner"' \
+            > "$RUNNER_TEMP/simulator-app.log" 2>&1 &
+
       # Retry the flows up to 3 attempts. The cold-sim launch of a Release
       # RN bundle is intermittently unreliable on CI runners (transient app
       # crash on launch + cold-start latency) even on code that passes on
@@ -731,6 +739,15 @@ jobs:
         with:
           name: cloudflared-log
           path: ${{ runner.temp }}/cloudflared.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload simulator application log on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: simulator-app-log
+          path: ${{ runner.temp }}/simulator-app.log
           retention-days: 7
           if-no-files-found: ignore
 
