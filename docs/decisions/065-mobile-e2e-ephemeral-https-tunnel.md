@@ -28,8 +28,9 @@ duration of the job.
   verifies its pinned SHA-256 digest before execution.
 - The tunnel forwards its generated `https://*.trycloudflare.com` origin to
   runner-local port 3000. The Release bundle receives that origin through
-  `EXPO_PUBLIC_API_BASE_URL`; a tunnel canary and bundle-string assertion run
-  before Maestro.
+  `EXPO_PUBLIC_API_BASE_URL`; CI waits for its authoritative DNS record through
+  DNS-over-HTTPS before the first system-resolver lookup, then a tunnel canary
+  and bundle-string assertion run before Maestro.
 - CI generates a cryptographically random 256-bit secret for each run. The
   test-auth endpoint returns its existing neutral 404 unless the opt-in flag,
   no-Vercel gate, and constant-time comparison of `X-E2E-Test-Secret` all pass.

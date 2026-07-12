@@ -424,6 +424,34 @@ jobs:
           echo "E2E_API_BASE_URL=$E2E_API_BASE_URL" >> "$GITHUB_ENV"
           echo "Tunnel ready: $E2E_API_BASE_URL"
 
+          # Quick Tunnel prints the hostname before its DNS record is always
+          # visible. Poll DNS-over-HTTPS first so macOS does not cache an early
+          # NXDOMAIN and make every subsequent system-resolver retry fail.
+          TUNNEL_HOST=${E2E_API_BASE_URL#https://}
+          DNS_READY=false
+          for _ in $(seq 1 120); do
+            if curl --fail --silent --show-error --get \
+                -H 'accept: application/dns-json' \
+                --data-urlencode "name=$TUNNEL_HOST" \
+                --data-urlencode 'type=A' \
+                'https://cloudflare-dns.com/dns-query' \
+              | python3 -c "
+          import json, sys
+          response = json.load(sys.stdin)
+          answers = response.get('Answer', [])
+          sys.exit(0 if response.get('Status') == 0 and any(answer.get('type') == 1 for answer in answers) else 1)
+          "; then
+              DNS_READY=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$DNS_READY" != true ]; then
+            echo "::error::Quick Tunnel DNS record did not become authoritative"
+            tail -n 100 "$RUNNER_TEMP/cloudflared.log" || true
+            exit 1
+          fi
+
           curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors \
             "$E2E_API_BASE_URL/api/auth/providers" >/dev/null
 
