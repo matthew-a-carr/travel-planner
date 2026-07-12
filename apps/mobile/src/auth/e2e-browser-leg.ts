@@ -45,11 +45,6 @@ export const E2E_AUTH_BUNDLE_MARKER = E2E_AUTH_ENABLED
   ? 'SPEC014_E2E_AUTH_BUNDLE_ON'
   : 'SPEC014_E2E_AUTH_BUNDLE_OFF';
 
-export const E2E_AUTH_SECRET_BUNDLE_MARKER =
-  E2E_AUTH_ENABLED && E2E_AUTH_SECRET.length >= 32
-    ? 'SPEC065_E2E_AUTH_SECRET_BUNDLE_ON'
-    : 'SPEC065_E2E_AUTH_SECRET_BUNDLE_OFF';
-
 /**
  * Substitute for `WebBrowser.openAuthSessionAsync`. Extracts the `state` from
  * the Google authorise URL, asks the server to mint a one-time exchange code
@@ -93,7 +88,6 @@ export function resolveBrowserLeg(
 ): typeof WebBrowser.openAuthSessionAsync {
   // Reference the marker so the bundler retains it for the CI grep diagnostic.
   if (E2E_AUTH_BUNDLE_MARKER.length === 0) throw new Error('unreachable');
-  if (E2E_AUTH_SECRET_BUNDLE_MARKER.length === 0) throw new Error('unreachable');
   return enabled ? e2eOpenAuthSession : WebBrowser.openAuthSessionAsync;
 }
 

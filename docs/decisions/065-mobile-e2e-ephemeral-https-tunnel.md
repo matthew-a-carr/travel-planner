@@ -35,7 +35,9 @@ duration of the job.
   test-auth endpoint returns its existing neutral 404 unless the opt-in flag,
   no-Vercel gate, and constant-time comparison of `X-E2E-Test-Secret` all pass.
   The CI-only Release bundle receives the secret through
-  `EXPO_PUBLIC_E2E_AUTH_SECRET`. GitHub masks it and no artifact records it.
+  `EXPO_PUBLIC_E2E_AUTH_SECRET`. CI verifies the exact masked value exists in
+  the bundle without printing it; the temporary strings file is not uploaded,
+  so no artifact records the credential.
 - Tunnel and backend logs are uploaded only on failure. The public origin is
   ephemeral; the database contains deterministic synthetic fixtures and is
   destroyed with the runner.

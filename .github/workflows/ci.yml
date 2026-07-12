@@ -619,15 +619,14 @@ jobs:
           fi
           echo "E2E test-auth substitute is wired into the bundle (marker ON)."
 
-          if grep -q 'SPEC065_E2E_AUTH_SECRET_BUNDLE_OFF' "$RUNNER_TEMP/bundle-strings.txt"; then
+          # Prove the exact masked per-run value was inlined. grep emits no
+          # matching content and bundle-strings.txt is never uploaded, so the
+          # credential remains absent from logs and artifacts.
+          if ! grep -qF "$E2E_TEST_AUTH_SECRET" "$RUNNER_TEMP/bundle-strings.txt"; then
             echo "::error::Per-run E2E auth secret was not inlined into the CI bundle"
             exit 1
           fi
-          if ! grep -q 'SPEC065_E2E_AUTH_SECRET_BUNDLE_ON' "$RUNNER_TEMP/bundle-strings.txt"; then
-            echo "::error::E2E auth secret bundle marker missing entirely"
-            exit 1
-          fi
-          echo "Per-run E2E auth secret is wired into the bundle (marker ON)."
+          echo "Per-run E2E auth secret is wired into the bundle."
 
       # Server half of the test-auth seam (SPEC-014), exercised from the runner
       # before any Maestro time is spent: /start → /test-token must mint a
