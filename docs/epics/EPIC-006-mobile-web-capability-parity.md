@@ -98,7 +98,7 @@ changes the direction from staged mobile subsets to durable capability parity.
 | 1 | **Authenticated E2E unblock** — resolve TD-010 with a deterministic Simulator-to-backend route; sign-in → list/detail/not-found → sign-out journeys against the real backend. Completes EPIC-004 slice 3 | 1 | [SPEC-020 (Approved)](../specs/SPEC-020-mobile-authenticated-e2e-journeys.md) | EPIC-004 slices 1–2 | In progress |
 | 2 | **Parity contract + E2E operations** — capability manifest and CI validator; failure recordings/backend and app network diagnostics; one-command local orchestration. Completes EPIC-004 slice 4 | 7 | [SPEC-021 (In Progress)](../specs/SPEC-021-mobile-parity-manifest.md) | 1 | In progress |
 | 3 | **Trip planning core** — bearer v1 create/edit/delete/move trip and destination/fixed-cost CRUD; mobile native forms and role-aware actions | 2 | [SPEC-022 (trip CRUD, In Progress)](../specs/SPEC-022-mobile-trip-crud.md); [SPEC-023 (destination/fixed-cost CRUD, In Progress)](../specs/SPEC-023-mobile-destination-and-fixed-cost-crud.md) | 1, 2 | In progress |
-| 4 | **Spend and financial insight** — idempotent spend create/edit/delete; summaries, category breakdown, alerts, charts, and burndown. Absorbs EPIC-003 | 3 | _not yet planned_ | 1–3 | Not started |
+| 4 | **Spend and financial insight** — idempotent spend create/edit/delete; summaries, category breakdown, alerts, charts, and burndown. Absorbs EPIC-003 | 3 | [SPEC-024 (In Progress)](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 1–3 | In progress |
 | 5 | **Timeline and trip intelligence** — paste/parse/apply itinerary, timeline insights, narrative, and assistant history/streaming through bearer-aware contracts | 4 | _not yet planned_ | 3 | Not started |
 | 6 | **Traveller and visa journeys** — traveller profile/passports, trip intent, deterministic visa assessment, warnings, and persistence | 5 | _not yet planned_ | 3 | Not started |
 | 7 | **Organizations and access administration** — switch/create organizations, membership management, approval/admin/pre-provision/delete operations with role parity | 6 | _not yet planned_ | 1–3 | Not started |
@@ -225,6 +225,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 | 2026-07-11 | 3 | SPEC-022 | In progress | Split trip CRUD from destination/fixed-cost CRUD so the first atomic write contract, idempotency transaction boundary, native form, and write E2E remain one reviewable vertical slice. |
 | 2026-07-11 | 3 | SPEC-023 | In progress | Reuse ADR 064 for the remaining trip-planning child resources and include stage guidance/budget suggestions so slice 3 closes without a UI-only follow-up. |
 | 2026-07-11 | 1 | SPEC-020 | In progress | The bounded `localhost` + IPv6 tracer still produced zero app requests. Fired the epic pivot and adopted ADR 065's checksum-pinned ephemeral HTTPS tunnel with a per-run secret. |
+| 2026-07-11 | 4 | SPEC-024 | In progress | Started spend CRUD and financial insight as one shared-contract slice; native charts use accessible platform primitives and canonical domain calculations. |
 
 ## Epic-level deviations
 

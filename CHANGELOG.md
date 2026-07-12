@@ -55,6 +55,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Record, edit, and delete destination spend, then review the same
+  category totals, budget pace, projected exhaustion, and dismissible alerts
+  as web through canonical domain calculations and atomic v1 commands.
+  (SPEC-024 / EPIC-006 slice 4.)
 - **Mobile:** Trip detail now supplies stage-aware next steps and native
   destination/fixed-cost create, edit, and delete journeys, including canonical
   country/date/comfort budget suggestions and atomic retry-safe v1 commands.

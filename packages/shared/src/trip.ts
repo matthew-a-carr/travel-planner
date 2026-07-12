@@ -55,6 +55,16 @@ export const fixedCostCategorySchema = z.enum([
 ]);
 export type WireFixedCostCategory = z.infer<typeof fixedCostCategorySchema>;
 
+export const spendCategorySchema = z.enum([
+  'accommodation',
+  'food',
+  'transport',
+  'activities',
+  'shopping',
+  'other',
+]);
+export type WireSpendCategory = z.infer<typeof spendCategorySchema>;
+
 export const tripSummarySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -119,6 +129,50 @@ export const tripSpendSummarySchema = z.object({
   isOverAllocated: z.boolean(),
 });
 export type TripSpendSummary = z.infer<typeof tripSpendSummarySchema>;
+
+export const spendEntrySchema = z.object({
+  id: z.uuid(),
+  destinationId: z.uuid(),
+  amount: moneySchema,
+  category: spendCategorySchema,
+  description: z.string().nullable(),
+  spentAt: isoDateSchema,
+  createdAt: asofSchema,
+});
+export type WireSpendEntry = z.infer<typeof spendEntrySchema>;
+
+const burndownPointSchema = z.object({
+  date: isoDateSchema,
+  amountPence: z.number().int(),
+});
+
+export const burndownProjectionSchema = z.object({
+  idealLine: z.array(burndownPointSchema),
+  actualLine: z.array(burndownPointSchema),
+  projectedLine: z.array(burndownPointSchema),
+  dailyPacePence: z.number().int().nonnegative(),
+  targetPacePence: z.number().int().nonnegative(),
+  paceRatio: z.number().nonnegative(),
+  projectedExhaustionDate: isoDateSchema.nullable(),
+});
+export type WireBurndownProjection = z.infer<typeof burndownProjectionSchema>;
+
+export const budgetAlertSchema = z.object({
+  type: z.enum(['over-pace', 'projected-exhaustion', 'single-day-spike']),
+  message: z.string().min(1),
+  severity: z.enum(['warning', 'danger']),
+});
+export type WireBudgetAlert = z.infer<typeof budgetAlertSchema>;
+
+export const tripFinancialsSchema = z.object({
+  entries: z.array(spendEntrySchema),
+  categoryTotals: z.array(
+    z.object({ category: spendCategorySchema, amountPence: z.number().int().nonnegative() }),
+  ),
+  burndown: burndownProjectionSchema.nullable(),
+  alerts: z.array(budgetAlertSchema),
+});
+export type TripFinancials = z.infer<typeof tripFinancialsSchema>;
 
 /** Composite trip detail (SPEC-010): summary fields + timeline + spend. */
 export const tripDetailSchema = tripSummarySchema.extend({
@@ -186,3 +240,15 @@ export const createFixedCostRequestSchema = fixedCostCommandFields;
 export type CreateFixedCostRequest = z.infer<typeof createFixedCostRequestSchema>;
 export const updateFixedCostRequestSchema = fixedCostCommandFields;
 export type UpdateFixedCostRequest = z.infer<typeof updateFixedCostRequestSchema>;
+
+const spendCommandFields = z.object({
+  amountPence: z.number().int().positive(),
+  category: spendCategorySchema,
+  description: z.string().trim().max(500).nullable(),
+  spentAt: isoDateSchema,
+});
+
+export const createSpendRequestSchema = spendCommandFields.extend({ destinationId: z.uuid() });
+export type CreateSpendRequest = z.infer<typeof createSpendRequestSchema>;
+export const updateSpendRequestSchema = spendCommandFields;
+export type UpdateSpendRequest = z.infer<typeof updateSpendRequestSchema>;

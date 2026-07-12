@@ -156,55 +156,55 @@
       "id": "spend.create",
       "title": "Record spend",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "spend.update",
       "title": "Edit spend",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "spend.delete",
       "title": "Delete spend",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "finance.category-breakdown",
       "title": "Show category totals",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "finance.burndown",
       "title": "Show budget pace and burn rate",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/07-burndown.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "finance.budget-alerts",
       "title": "Show and dismiss budget alerts",
       "slice": 4,
-      "status": "missing",
+      "status": "in_progress",
       "webEvidence": ["apps/web/tests/e2e/07-burndown.spec.ts"],
-      "mobileEvidence": [],
-      "contractEvidence": []
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
     },
     {
       "id": "timeline.itinerary-parse",

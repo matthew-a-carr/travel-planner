@@ -60,3 +60,4 @@ Issue opened (ai:plan)
 | [021](SPEC-021-mobile-parity-manifest.md) | Machine-Checked Mobile Parity Manifest | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |
 | [022](SPEC-022-mobile-trip-crud.md) | Mobile Trip CRUD over Atomic v1 Commands | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |
 | [023](SPEC-023-mobile-destination-and-fixed-cost-crud.md) | Mobile Destination and Fixed-Cost CRUD | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |
+| [024](SPEC-024-mobile-spend-and-financial-insight.md) | Mobile Spend and Financial Insight | [EPIC-006](../epics/EPIC-006-mobile-web-capability-parity.md) | 2026-07-11 | In Progress |

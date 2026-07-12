@@ -37,6 +37,7 @@ src/application/
     record-spend.ts               + record-spend.int-test.ts
     edit-spend-entry.ts           + edit-spend-entry.int-test.ts
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
+    get-trip-financials-for-user.ts + get-trip-financials-for-user.int-test.ts
     bulk-add-destinations.ts      + bulk-add-destinations.int-test.ts
     analyse-trip-timeline.ts      + analyse-trip-timeline.int-test.ts
     assess-trip-visas.ts          + assess-trip-visas.int-test.ts

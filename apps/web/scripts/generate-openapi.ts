@@ -28,6 +28,7 @@ import {
   countryReferenceSummarySchema,
   createDestinationRequestSchema,
   createFixedCostRequestSchema,
+  createSpendRequestSchema,
   createTripRequestSchema,
   meResponseSchema,
   mobileAuthExchangeRequestSchema,
@@ -41,10 +42,13 @@ import {
   tripDestinationSchema,
   tripDetailSchema,
   tripFixedCostSchema,
+  tripFinancialsSchema,
+  spendEntrySchema,
   tripSpendSummarySchema,
   tripSummarySchema,
   updateDestinationRequestSchema,
   updateFixedCostRequestSchema,
+  updateSpendRequestSchema,
   updateTripRequestSchema,
 } from '@travel-planner/shared';
 import * as z from 'zod';
@@ -89,6 +93,10 @@ function buildComponentSchemas(): Record<string, unknown> {
   registry.add(updateDestinationRequestSchema, { id: 'UpdateDestinationRequest' });
   registry.add(createFixedCostRequestSchema, { id: 'CreateFixedCostRequest' });
   registry.add(updateFixedCostRequestSchema, { id: 'UpdateFixedCostRequest' });
+  registry.add(createSpendRequestSchema, { id: 'CreateSpendRequest' });
+  registry.add(updateSpendRequestSchema, { id: 'UpdateSpendRequest' });
+  registry.add(spendEntrySchema, { id: 'SpendEntry' });
+  registry.add(tripFinancialsSchema, { id: 'TripFinancials' });
 
   // Per-endpoint success envelopes — `data` is the registered payload schema,
   // so it resolves to a `$ref`.
@@ -120,6 +128,8 @@ function buildComponentSchemas(): Record<string, unknown> {
   registry.add(apiSuccessSchema(tripFixedCostSchema), {
     id: 'TripFixedCostSuccessEnvelope',
   });
+  registry.add(apiSuccessSchema(spendEntrySchema), { id: 'SpendEntrySuccessEnvelope' });
+  registry.add(apiSuccessSchema(tripFinancialsSchema), { id: 'TripFinancialsSuccessEnvelope' });
 
   const { schemas } = z.toJSONSchema(registry, {
     target: 'draft-2020-12',
@@ -464,6 +474,46 @@ export function buildOpenApiDocument(): Record<string, unknown> {
           'TripFixedCostSuccessEnvelope',
         ),
         delete: childDeleteOperation('Delete a fixed cost', 'fixedCostId'),
+      },
+      '/api/v1/trips/{id}/spend': {
+        get: {
+          summary: 'List spend entries and canonical financial insight',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: {
+            '200': {
+              description: 'Spend entries, category totals, burndown, and budget alerts.',
+              ...jsonBody('TripFinancialsSuccessEnvelope'),
+            },
+            '401': errorResponse('Unauthenticated.'),
+            '404': errorResponse('Trip not found.'),
+          },
+        },
+        post: {
+          summary: 'Record destination spend',
+          security: [{ bearerAuth: [] }, { cookieSession: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+            idempotencyKeyParameter,
+          ],
+          requestBody: { required: true, ...jsonBody('CreateSpendRequest') },
+          responses: {
+            '201': { description: 'Created spend entry.', ...jsonBody('SpendEntrySuccessEnvelope') },
+            '400': errorResponse('Invalid request.'),
+            '401': errorResponse('Unauthenticated.'),
+            '404': errorResponse('Trip or destination not found.'),
+            '409': errorResponse('Idempotency conflict.'),
+          },
+        },
+      },
+      '/api/v1/trips/{id}/spend/{entryId}': {
+        patch: childUpdateOperation(
+          'Update a spend entry',
+          'entryId',
+          'UpdateSpendRequest',
+          'SpendEntrySuccessEnvelope',
+        ),
+        delete: childDeleteOperation('Delete a spend entry', 'entryId'),
       },
     },
     components: {

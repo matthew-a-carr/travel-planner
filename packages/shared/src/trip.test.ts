@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   createDestinationRequestSchema,
   createFixedCostRequestSchema,
+  createSpendRequestSchema,
   createTripRequestSchema,
   tripDetailSchema,
+  tripFinancialsSchema,
   tripSummarySchema,
   updateDestinationRequestSchema,
+  updateSpendRequestSchema,
   updateTripRequestSchema,
 } from './trip';
 
@@ -77,6 +80,66 @@ describe('tripSummarySchema', () => {
     expect(() =>
       tripSummarySchema.parse({ ...validSummary, updatedAt: '2026-05-30 12:34' }),
     ).toThrow();
+  });
+});
+
+describe('spend and financial schemas (SPEC-024)', () => {
+  const spend = {
+    destinationId: '3d9482f5-f6e7-4a6f-8901-123456789abc',
+    amountPence: 2500,
+    category: 'food',
+    description: 'Ramen',
+    spentAt: '2026-09-02',
+  };
+
+  it('accepts spend commands and rejects invalid money, category, and dates', () => {
+    expect(createSpendRequestSchema.parse(spend)).toEqual(spend);
+    const { destinationId: _destinationId, ...update } = spend;
+    expect(updateSpendRequestSchema.parse(update)).toEqual(update);
+    expect(() => createSpendRequestSchema.parse({ ...spend, amountPence: 0 })).toThrow();
+    expect(() => createSpendRequestSchema.parse({ ...spend, amountPence: 1.5 })).toThrow();
+    expect(() => createSpendRequestSchema.parse({ ...spend, category: 'bribes' })).toThrow();
+    expect(() => createSpendRequestSchema.parse({ ...spend, spentAt: '2026-02-30' })).toThrow();
+  });
+
+  it('parses the canonical financial read model', () => {
+    const entry = {
+      id: '4e9482f5-f6e7-4a6f-8901-123456789abc',
+      destinationId: spend.destinationId,
+      amount: { amountPence: 2500, currency: 'GBP' },
+      category: 'food',
+      description: 'Ramen',
+      spentAt: '2026-09-02',
+      createdAt: '2026-09-02T12:00:00.000Z',
+    };
+    const point = { date: '2026-09-02', amountPence: 97_500 };
+    const financials = {
+      entries: [entry],
+      categoryTotals: [{ category: 'food', amountPence: 2500 }],
+      burndown: {
+        idealLine: [point],
+        actualLine: [point],
+        projectedLine: [point],
+        dailyPacePence: 2500,
+        targetPacePence: 5000,
+        paceRatio: 0.5,
+        projectedExhaustionDate: null,
+      },
+      alerts: [
+        {
+          type: 'single-day-spike',
+          message: 'High spend day on 2 Sept',
+          severity: 'warning',
+        },
+      ],
+    };
+    expect(tripFinancialsSchema.parse(financials)).toEqual(financials);
+  });
+
+  it('supports a trip without dated destinations or spend', () => {
+    expect(
+      tripFinancialsSchema.parse({ entries: [], categoryTotals: [], burndown: null, alerts: [] }),
+    ).toEqual({ entries: [], categoryTotals: [], burndown: null, alerts: [] });
   });
 });
 

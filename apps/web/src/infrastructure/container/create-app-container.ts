@@ -39,6 +39,7 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     destinationRepository: new DrizzleDestinationRepository(tx),
     tripFixedCostRepository: new DrizzleTripFixedCostRepository(tx),
     organizationRepository: new DrizzleOrganizationRepository(tx),
+    spendEntryRepository: new DrizzleSpendEntryRepository(tx),
     countryReferenceRepository: new DrizzleCountryReferenceRepository(tx),
   }));
 

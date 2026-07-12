@@ -36,7 +36,7 @@ contract is generated from them at [`docs/openapi/v1.yaml`](./openapi/v1.yaml)
   "data": { /* the endpoint's resource shape */ },
   "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
   "asof": "2026-05-21T18:00:00.000Z",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "meta": { /* optional, endpoint-specific */ }
 }
 ```
@@ -68,7 +68,7 @@ contract is generated from them at [`docs/openapi/v1.yaml`](./openapi/v1.yaml)
   },
   "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
   "asof": "2026-05-21T18:00:00.000Z",
-  "version": "1.1.0"
+  "version": "1.3.0"
 }
 ```
 
@@ -174,8 +174,8 @@ command transaction.
 Nested trip resources use the accessible parent as their authorization
 boundary. A child ID that is missing, belongs to another trip, or belongs to an
 inaccessible trip returns the same neutral `404 not_found`; handlers never
-reveal which check failed. Current nested command resources are destinations
-and fixed costs.
+reveal which check failed. Current nested command resources are destinations,
+fixed costs, and spend entries.
 
 ## Streaming endpoints
 
@@ -194,7 +194,7 @@ whose `data:` payload is the standard error envelope:
 
 ```
 event: error
-data: {"error":{"type":"https://travel-planner.app/errors/unavailable","title":"Service unavailable","status":503,"detail":"AI gateway temporarily unavailable.","instance":"/api/v1/trips/{id}/chat/stream","code":"unavailable"},"request":{"method":"POST","path":"/api/v1/trips/{id}/chat/stream","path_params":{"id":"…"},"query_params":{}},"asof":"2026-05-21T18:00:00.000Z","version":"1.1.0"}
+data: {"error":{"type":"https://travel-planner.app/errors/unavailable","title":"Service unavailable","status":503,"detail":"AI gateway temporarily unavailable.","instance":"/api/v1/trips/{id}/chat/stream","code":"unavailable"},"request":{"method":"POST","path":"/api/v1/trips/{id}/chat/stream","path_params":{"id":"…"},"query_params":{}},"asof":"2026-05-21T18:00:00.000Z","version":"1.3.0"}
 
 ```
 

@@ -1,0 +1,93 @@
+# Spend CRUD + financial insight journey (SPEC-024 / EPIC-006 slice 4).
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'login-screen-root'
+    commands:
+      - tapOn:
+          id: 'login-google-button'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 60000
+- tapOn:
+    id: 'trips-screen-item-b0000000-0e2e-4000-8000-000000000001'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-spend'
+    timeout: 30000
+- tapOn:
+    id: 'trip-finance-open'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-root'
+    timeout: 30000
+- assertVisible:
+    id: 'finance-category-food'
+- assertVisible:
+    id: 'finance-daily-pace'
+- tapOn:
+    id: 'finance-add-spend'
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- tapOn:
+    id: 'spend-destination-c0000000-0e2e-4000-8000-000000000001'
+- tapOn:
+    id: 'spend-amount'
+- inputText: '1000'
+- tapOn:
+    id: 'spend-date'
+- eraseText
+- inputText: '2026-06-04'
+- tapOn:
+    id: 'spend-description'
+- inputText: 'Mobile Finance Entry'
+- hideKeyboard
+- tapOn:
+    id: 'spend-category-shopping'
+- tapOn:
+    id: 'spend-submit'
+- extendedWaitUntil:
+    visible: 'Mobile Finance Entry'
+    timeout: 30000
+- assertVisible:
+    id: 'finance-alerts'
+- tapOn:
+    id: 'finance-dismiss-alerts'
+- assertNotVisible:
+    id: 'finance-alerts'
+- tapOn: 'Mobile Finance Entry'
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- tapOn:
+    id: 'spend-amount'
+- eraseText
+- inputText: '1200'
+- hideKeyboard
+- tapOn:
+    id: 'spend-category-activities'
+- tapOn:
+    id: 'spend-submit'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-category-activities'
+    timeout: 30000
+- tapOn: 'Mobile Finance Entry'
+- tapOn:
+    id: 'spend-delete'
+- assertVisible:
+    id: 'spend-delete-warning'
+- tapOn:
+    id: 'spend-delete-confirm'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-root'
+    timeout: 30000
+- assertNotVisible: 'Mobile Finance Entry'

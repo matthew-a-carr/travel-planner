@@ -261,7 +261,7 @@ describe('ENVELOPE_VERSION', () => {
     expect(ENVELOPE_VERSION).toBe(pkg.version);
   });
 
-  it('is currently 1.2.0 (trips list endpoint, SPEC-009 — minor per ADR 056)', () => {
-    expect(ENVELOPE_VERSION).toBe('1.2.0');
+  it('is currently 1.3.0 (spend and financial endpoints, SPEC-024 — minor per ADR 056)', () => {
+    expect(ENVELOPE_VERSION).toBe('1.3.0');
   });
 });

@@ -142,7 +142,15 @@ function TripDetailBody({ trip }: { trip: TripDetail }) {
       )}
 
       <View style={styles.card} testID="trip-detail-spend">
-        <Text style={styles.sectionTitle}>Spend</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Spend</Text>
+          <Pressable
+            onPress={() => router.push(`/trips/${trip.id}/finance`)}
+            testID="trip-finance-open"
+          >
+            <Text style={styles.actionText}>View finances</Text>
+          </Pressable>
+        </View>
         <SpendRow label="Total budget" money={trip.spend.totalBudget} />
         <SpendRow label="Fixed costs" money={trip.spend.fixedCosts} />
         <SpendRow label="Allocated to destinations" money={trip.spend.allocated} />
