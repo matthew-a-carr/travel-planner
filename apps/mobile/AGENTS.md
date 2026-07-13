@@ -182,8 +182,10 @@ fall back to the Simulator or point at prod.
 - `src/auth/pkce.ts` — `generateVerifier()` + `verifierToChallenge()`
   over `expo-crypto`. RFC 7636 base64url, 43-char SHA-256 hash.
 - `src/auth/keychain.ts` — `storeTokens()` + `readTokens()` +
-  `clearTokens()` over `expo-secure-store`. Three discrete keys for
-  the access/refresh/expires triple. `readTokens()` returns `null`
+  `clearTokens()` over `expo-secure-store` in normal builds. The
+  `EXPO_PUBLIC_E2E_AUTH=1` CI build uses an in-process token bundle because
+  an unsigned simulator app has no provisioned Keychain access group. Three
+  discrete keys hold the access/refresh/expires triple. `readTokens()` returns `null`
   if any key is missing (partial-state defensive).
 - `src/auth/sign-in-flow.ts` — `runSignInFlow(deps)` orchestrates the
   four-step server-mediated PKCE dance (start → browser modal →
@@ -373,9 +375,9 @@ Use `id:` selectors over visible-text selectors where possible.
 ### Test-auth seam (E2E sign-in without Google — SPEC-014)
 
 Maestro can't drive Google's consent screen, so the
-signed-in journey signs in through a seam that replaces **only the browser
-leg** of the PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and
-AuthGuard all stay real:
+signed-in journey signs in through a seam that replaces the browser leg and
+the native persistence mechanism. PKCE start, `/exchange`, the token-storage
+contract, `/me`, refresh behavior, and AuthGuard all stay real:
 
 - **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
   the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
@@ -384,6 +386,11 @@ AuthGuard all stay real:
   and POSTs it to `POST /api/v1/auth/mobile/test-token`, returning the
   deep link the server mints. The sign-in screen wires it via
   `openAuthSession: resolveBrowserLeg()`.
+- **Token storage:** `src/auth/keychain.ts` keeps the token bundle in process
+  memory only when the same bundle-time flag is enabled. Normal builds always
+  use `expo-secure-store`. The CI app is unsigned because the hosted runner has
+  no Apple development team/provisioning profile; inventing an
+  `application-identifier` makes the simulator reject the binary at launch.
 - **Server:** `apps/web/.../auth/mobile/test-token/route.ts` mints a
   one-time exchange code for the seeded approved e2e user, keyed to the
   state's stored PKCE challenge. **Triple-gated, fail-closed:** enabled only
