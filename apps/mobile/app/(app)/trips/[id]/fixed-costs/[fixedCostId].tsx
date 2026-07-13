@@ -82,7 +82,11 @@ export default function FixedCostEditorScreen() {
         <Text style={styles.title}>{creating ? 'Add fixed cost' : 'Edit fixed cost'}</Text>
       </View>
       {(creating || existing) && (
-        <ScrollView contentContainerStyle={styles.form}>
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.label}>Label</Text>
           <TextInput
             accessibilityLabel="Fixed cost label"

@@ -100,7 +100,11 @@ export default function SpendEditorScreen() {
         <Text style={styles.title}>{creating ? 'Record spend' : 'Edit spend'}</Text>
       </View>
       {(creating || existing) && (
-        <ScrollView contentContainerStyle={styles.form}>
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           {creating && (
             <>
               <Text style={styles.label}>Destination</Text>

@@ -95,7 +95,11 @@ export default function EditTripScreen() {
         </View>
       )}
       {state.status === 'loaded' && (
-        <ScrollView contentContainerStyle={styles.form}>
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.label}>Trip name</Text>
           <TextInput
             editable={!submitting}

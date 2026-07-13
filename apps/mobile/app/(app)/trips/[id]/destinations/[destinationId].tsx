@@ -138,7 +138,11 @@ export default function DestinationEditorScreen() {
       {(state.status === 'loading' || countriesLoading) && <ActivityIndicator />}
       {countriesError && <Text style={styles.error}>{countriesError}</Text>}
       {(creating || existing) && !countriesLoading && (
-        <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={styles.label}>Name (optional)</Text>
           <TextInput
             accessibilityLabel="Destination name"

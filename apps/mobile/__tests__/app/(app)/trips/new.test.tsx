@@ -16,6 +16,7 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { ScrollView } from 'react-native';
 import NewTripScreen from '../../../../app/(app)/trips/new';
 
 beforeEach(() => {
@@ -31,6 +32,14 @@ beforeEach(() => {
 });
 
 describe('NewTripScreen', () => {
+  it('keeps form controls actionable while dismissing the keyboard on scroll', () => {
+    const view = render(<NewTripScreen />);
+    const form = view.UNSAFE_getByType(ScrollView);
+
+    expect(form.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(form.props.keyboardDismissMode).toBe('on-drag');
+  });
+
   it('submits pence through the selected organization and opens the created trip', async () => {
     mockCreateMobileTrip.mockResolvedValue({ ok: true, data: { id: 'trip-1' } });
     render(<NewTripScreen />);

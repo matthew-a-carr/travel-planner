@@ -67,7 +67,11 @@ export default function NewTripScreen() {
         </Pressable>
         <Text style={styles.title}>New trip</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.form}>
+      <ScrollView
+        contentContainerStyle={styles.form}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.label}>Organization</Text>
         {organizationsState.status === 'loading' && <ActivityIndicator />}
         {organizationsState.status === 'error' && (

@@ -28,13 +28,14 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-name'
 - inputText: 'Mobile Planning Stop'
-- tapOn: 'Add destination'
 - tapOn:
     id: 'destination-country'
 - inputText: 'Japan'
 - tapOn:
     id: 'destination-country-JPN'
-- tapOn: 'Add destination'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'destination-start-date'
@@ -42,7 +43,9 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-start-date'
 - inputText: '2027-04-01'
-- tapOn: 'Add destination'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'destination-end-date'
@@ -50,7 +53,9 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-end-date'
 - inputText: '2027-04-08'
-- tapOn: 'Add destination'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'destination-submit'
@@ -58,14 +63,21 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-submit'
 - extendedWaitUntil:
-    visible: 'Mobile Planning Stop'
+    visible:
+      id: 'trip-detail-root'
     timeout: 30000
+- scrollUntilVisible:
+    element: 'Mobile Planning Stop'
+    direction: DOWN
+- assertVisible: 'Mobile Planning Stop'
 - tapOn: 'Mobile Planning Stop'
 - tapOn:
     id: 'destination-name'
 - eraseText
 - inputText: 'Mobile Planning Updated'
-- tapOn: 'Edit destination'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'destination-submit'
@@ -73,8 +85,10 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-submit'
 - extendedWaitUntil:
-    visible: 'Mobile Planning Updated'
+    visible:
+      id: 'trip-detail-root'
     timeout: 30000
+- assertVisible: 'Mobile Planning Updated'
 - scrollUntilVisible:
     element:
       id: 'trip-detail-add-fixed-cost'
@@ -84,11 +98,12 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'fixed-cost-label'
 - inputText: 'Mobile Rail Pass'
-- tapOn: 'Add fixed cost'
 - tapOn:
     id: 'fixed-cost-amount'
 - inputText: '250'
-- tapOn: 'Add fixed cost'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'fixed-cost-category-transport'
@@ -102,14 +117,18 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'fixed-cost-submit'
 - extendedWaitUntil:
-    visible: 'Mobile Rail Pass'
+    visible:
+      id: 'trip-detail-root'
     timeout: 30000
+- assertVisible: 'Mobile Rail Pass'
 - tapOn: 'Mobile Rail Pass'
 - tapOn:
     id: 'fixed-cost-label'
 - eraseText
 - inputText: 'Mobile Rail Updated'
-- tapOn: 'Edit fixed cost'
+- swipe:
+    direction: UP
+    duration: 400
 - scrollUntilVisible:
     element:
       id: 'fixed-cost-submit'
@@ -117,8 +136,10 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'fixed-cost-submit'
 - extendedWaitUntil:
-    visible: 'Mobile Rail Updated'
+    visible:
+      id: 'trip-detail-root'
     timeout: 30000
+- assertVisible: 'Mobile Rail Updated'
 - tapOn: 'Mobile Rail Updated'
 - tapOn:
     id: 'fixed-cost-delete'
