@@ -78,7 +78,7 @@ appId: dev.matthewcarr.travelplanner
     element:
       id: 'finance-dismiss-alerts'
     direction: UP
-    visibilityPercentage: 50
+    centerElement: true
 - tapOn:
     id: 'finance-dismiss-alerts'
     retryTapIfNoChange: true

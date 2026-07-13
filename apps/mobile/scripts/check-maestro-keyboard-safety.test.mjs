@@ -57,7 +57,7 @@ test('write journeys wait for transitions and scroll destructive controls into v
   );
   assert.match(
     spend,
-    /scrollUntilVisible:\n\s+element:\n\s+id: 'finance-dismiss-alerts'\n\s+direction: UP\n\s+visibilityPercentage: 50\n- tapOn:\n\s+id: 'finance-dismiss-alerts'\n\s+retryTapIfNoChange: true/,
+    /scrollUntilVisible:\n\s+element:\n\s+id: 'finance-dismiss-alerts'\n\s+direction: UP\n\s+centerElement: true\n- tapOn:\n\s+id: 'finance-dismiss-alerts'\n\s+retryTapIfNoChange: true/,
   );
   assert.match(
     spend,
