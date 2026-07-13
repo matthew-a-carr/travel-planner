@@ -63,6 +63,7 @@ appId: dev.matthewcarr.travelplanner
 - scrollUntilVisible:
     element: 'Mobile Planning Stop'
     direction: DOWN
+    visibilityPercentage: 50
 - assertVisible: 'Mobile Planning Stop'
 - tapOn: 'Mobile Planning Stop'
 - tapOn:
@@ -80,6 +81,10 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'trip-detail-root'
     timeout: 30000
+- scrollUntilVisible:
+    element: 'Mobile Planning Updated'
+    direction: DOWN
+    visibilityPercentage: 50
 - assertVisible: 'Mobile Planning Updated'
 - scrollUntilVisible:
     element:
@@ -110,6 +115,10 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'trip-detail-root'
     timeout: 30000
+- scrollUntilVisible:
+    element: 'Mobile Rail Pass'
+    direction: DOWN
+    visibilityPercentage: 50
 - assertVisible: 'Mobile Rail Pass'
 - tapOn: 'Mobile Rail Pass'
 - tapOn:
@@ -127,6 +136,10 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'trip-detail-root'
     timeout: 30000
+- scrollUntilVisible:
+    element: 'Mobile Rail Updated'
+    direction: DOWN
+    visibilityPercentage: 50
 - assertVisible: 'Mobile Rail Updated'
 - tapOn: 'Mobile Rail Updated'
 - tapOn:
@@ -140,6 +153,7 @@ appId: dev.matthewcarr.travelplanner
 - scrollUntilVisible:
     element: 'Mobile Planning Updated'
     direction: UP
+    visibilityPercentage: 50
 - tapOn: 'Mobile Planning Updated'
 - tapOn:
     id: 'destination-delete'

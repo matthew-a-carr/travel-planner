@@ -121,4 +121,43 @@ describe('applyE2eFixtures', () => {
       .where(eq(organizationMemberships.userId, E2E_FIXTURES.user.id));
     expect(membershipCount).toBe(1);
   });
+
+  it('restores the dedicated organization to the exact fixture state', async () => {
+    await applyE2eFixtures(db);
+    await db.insert(trips).values({
+      id: 'b0000000-0e2e-4000-8000-000000000099',
+      organizationId: E2E_FIXTURES.organization.id,
+      name: 'Retry residue',
+      totalBudgetAmount: 1_000,
+      status: 'planning',
+      ownerId: E2E_FIXTURES.user.id,
+    });
+    await db.insert(destinations).values({
+      id: 'c0000000-0e2e-4000-8000-000000000099',
+      tripId: E2E_FIXTURES.trip.id,
+      name: 'Partial attempt',
+      country: 'Japan',
+      estimatedBudgetAmount: 56_000,
+      comfortLevel: 'mid',
+      startDate: '2027-04-01',
+      endDate: '2027-04-08',
+      sortOrder: 99,
+    });
+
+    await applyE2eFixtures(db);
+
+    const organizationTrips = await db
+      .select()
+      .from(trips)
+      .where(eq(trips.organizationId, E2E_FIXTURES.organization.id));
+    const tripDestinations = await db
+      .select()
+      .from(destinations)
+      .where(eq(destinations.tripId, E2E_FIXTURES.trip.id));
+
+    expect(organizationTrips.map((trip) => trip.id)).toEqual([E2E_FIXTURES.trip.id]);
+    expect(tripDestinations.map((destination) => destination.id).sort()).toEqual(
+      E2E_FIXTURES.destinations.map((destination) => destination.id).sort(),
+    );
+  });
 });

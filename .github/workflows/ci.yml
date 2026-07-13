@@ -695,7 +695,8 @@ jobs:
       # crash on launch + cold-start latency) even on code that passes on
       # `main` — see the mobile-e2e flakiness investigation. Per-flow retries
       # prevent one journey's UI state from poisoning already-passing flows.
-      # Each attempt is a fresh `launchApp`, so a retry recovers a transient launch failure.
+      # Each attempt restores the exact database fixtures before `launchApp`,
+      # so both native UI state and server state are fresh after a partial write.
       # This is flakiness tolerance, NOT masking a deterministic bug: a
       # persistent failure still fails all 3 attempts (and the crash-
       # diagnostics upload below captures a real crash for triage).
@@ -707,6 +708,7 @@ jobs:
             passed=0
             for attempt in 1 2 3; do
               echo "::group::$flow_name attempt $attempt"
+              pnpm seed:e2e
               if pnpm --filter @travel-planner/mobile exec maestro test "$PWD/$flow"; then
                 echo "::endgroup::"
                 echo "$flow_name passed on attempt $attempt"

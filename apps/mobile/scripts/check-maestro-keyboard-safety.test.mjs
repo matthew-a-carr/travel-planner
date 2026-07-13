@@ -20,3 +20,23 @@ test('write journeys dismiss the iOS keyboard with the return key', () => {
     );
   }
 });
+
+test('write journeys scroll created records into view before selecting them', () => {
+  const planning = readFileSync(
+    new URL('../.maestro/flows/planning-core-journey.yaml', import.meta.url),
+    'utf8',
+  );
+  const spend = readFileSync(
+    new URL('../.maestro/flows/spend-finance-journey.yaml', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    planning,
+    /element: 'Mobile Planning Stop'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
+  );
+  assert.match(
+    spend,
+    /element: 'Mobile Finance Entry'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
+  );
+});
