@@ -90,6 +90,7 @@ appId: dev.matthewcarr.travelplanner
       text: 'Mobile Finance Entry.*'
     direction: DOWN
     visibilityPercentage: 50
+    centerElement: true
 - tapOn:
     id: 'finance-entry-.*'
     text: 'Mobile Finance Entry.*'
@@ -125,6 +126,7 @@ appId: dev.matthewcarr.travelplanner
       text: 'Mobile Finance Entry.*'
     direction: DOWN
     visibilityPercentage: 50
+    centerElement: true
 - tapOn:
     id: 'finance-entry-.*'
     text: 'Mobile Finance Entry.*'
