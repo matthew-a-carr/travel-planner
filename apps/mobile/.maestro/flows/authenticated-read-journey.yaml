@@ -54,7 +54,12 @@ appId: dev.matthewcarr.travelplanner
       id: 'trips-screen-root'
     timeout: 30000
 - openLink: 'travelplanner:///trips/00000000-0000-4000-8000-000000000404'
-- tapOn: Open
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- openLink: 'travelplanner:///trips/00000000-0000-4000-8000-000000000404'
 - extendedWaitUntil:
     visible:
       id: 'trip-detail-not-found'
