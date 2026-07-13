@@ -78,11 +78,13 @@ appId: dev.matthewcarr.travelplanner
     id: 'finance-alerts'
 - tapOn:
     id: 'finance-dismiss-alerts'
+    retryTapIfNoChange: true
 - assertNotVisible:
     id: 'finance-alerts'
 - tapOn:
     id: 'finance-entry-.*'
     text: 'Mobile Finance Entry.*'
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible:
       id: 'spend-editor-root'
@@ -117,6 +119,15 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'finance-entry-.*'
     text: 'Mobile Finance Entry.*'
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'spend-delete'
+    direction: DOWN
 - tapOn:
     id: 'spend-delete'
 - assertVisible:

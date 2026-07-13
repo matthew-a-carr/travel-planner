@@ -40,3 +40,31 @@ test('write journeys scroll created records into view before selecting them', ()
     /element:\n\s+id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
   );
 });
+
+test('write journeys wait for transitions and scroll destructive controls into view', () => {
+  const planning = readFileSync(
+    new URL('../.maestro/flows/planning-core-journey.yaml', import.meta.url),
+    'utf8',
+  );
+  const spend = readFileSync(
+    new URL('../.maestro/flows/spend-finance-journey.yaml', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    planning,
+    /scrollUntilVisible:\n\s+element:\n\s+id: 'destination-delete'\n\s+direction: DOWN/,
+  );
+  assert.match(
+    spend,
+    /id: 'finance-dismiss-alerts'\n\s+retryTapIfNoChange: true/,
+  );
+  assert.match(
+    spend,
+    /id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+retryTapIfNoChange: true/,
+  );
+  assert.match(
+    spend,
+    /scrollUntilVisible:\n\s+element:\n\s+id: 'spend-delete'\n\s+direction: DOWN/,
+  );
+});
