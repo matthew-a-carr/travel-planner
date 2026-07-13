@@ -124,7 +124,7 @@ the real app against a real backend as a signed-in user:
   404 integration test + "never set on Vercel" rule are load-bearing;
   any weakening is an epic-level deviation, not a slice detail.
 - More flows = more flake surface on a runner family with a flake
-  history (TD-009). The 3× retry + diagnostics insurance stays; the
+  history (TD-009). The per-flow 3× retry + diagnostics insurance stays; the
   flake kill criterion freezes flow growth if the rate regresses.
 
 **Trade-offs:**

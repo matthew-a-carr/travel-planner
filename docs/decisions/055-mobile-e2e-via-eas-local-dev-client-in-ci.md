@@ -93,7 +93,10 @@ The dev-client `.app` can then be installed into the simulator via
 6. Boots an iOS Simulator (first available `iPhone` device on the
    runner, via `xcrun simctl list devices available`).
 7. Installs the bundle (`xcrun simctl install booted <.app>`).
-8. Runs `pnpm test:e2e:mobile` (which expands to `maestro test .maestro/flows`).
+8. Runs every `.maestro/flows/*.yaml` journey independently, retrying only a
+   failing flow up to three times so its UI state cannot invalidate unrelated
+   passing journeys. `pnpm test:e2e:mobile` remains the equivalent local
+   one-shot command.
 9. On failure, uploads Maestro's report directory as a CI artifact
    (7-day retention).
 

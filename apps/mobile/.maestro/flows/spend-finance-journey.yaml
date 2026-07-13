@@ -40,16 +40,26 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'spend-amount'
 - inputText: '1000'
+- tapOn: 'Record spend'
 - tapOn:
     id: 'spend-date'
 - eraseText
 - inputText: '2026-06-04'
+- tapOn: 'Record spend'
+- tapOn:
+    id: 'spend-category-shopping'
+- scrollUntilVisible:
+    element:
+      id: 'spend-description'
+    direction: DOWN
 - tapOn:
     id: 'spend-description'
 - inputText: 'Mobile Finance Entry'
-- hideKeyboard
-- tapOn:
-    id: 'spend-category-shopping'
+- tapOn: 'Record spend'
+- scrollUntilVisible:
+    element:
+      id: 'spend-submit'
+    direction: DOWN
 - tapOn:
     id: 'spend-submit'
 - extendedWaitUntil:
@@ -70,9 +80,17 @@ appId: dev.matthewcarr.travelplanner
     id: 'spend-amount'
 - eraseText
 - inputText: '1200'
-- hideKeyboard
+- tapOn: 'Edit spend'
+- scrollUntilVisible:
+    element:
+      id: 'spend-category-activities'
+    direction: UP
 - tapOn:
     id: 'spend-category-activities'
+- scrollUntilVisible:
+    element:
+      id: 'spend-submit'
+    direction: DOWN
 - tapOn:
     id: 'spend-submit'
 - extendedWaitUntil:

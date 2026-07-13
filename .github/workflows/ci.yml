@@ -690,29 +690,39 @@ jobs:
             --predicate 'eventMessage CONTAINS[c] "mobile-e2e-auth" OR process CONTAINS[c] "travelplanner"' \
             > "$RUNNER_TEMP/simulator-app.log" 2>&1 &
 
-      # Retry the flows up to 3 attempts. The cold-sim launch of a Release
+      # Retry each flow independently up to 3 attempts. The cold-sim launch of a Release
       # RN bundle is intermittently unreliable on CI runners (transient app
       # crash on launch + cold-start latency) even on code that passes on
-      # `main` — see the mobile-e2e flakiness investigation. Each attempt is
-      # a fresh `launchApp`, so a retry recovers a transient launch failure.
+      # `main` — see the mobile-e2e flakiness investigation. Per-flow retries
+      # prevent one journey's UI state from poisoning already-passing flows.
+      # Each attempt is a fresh `launchApp`, so a retry recovers a transient launch failure.
       # This is flakiness tolerance, NOT masking a deterministic bug: a
       # persistent failure still fails all 3 attempts (and the crash-
       # diagnostics upload below captures a real crash for triage).
       - name: Run Maestro flows
         run: |
-          for attempt in 1 2 3; do
-            echo "::group::Maestro attempt $attempt"
-            if pnpm test:e2e:mobile; then
+          failed=0
+          for flow in apps/mobile/.maestro/flows/*.yaml; do
+            flow_name=${flow##*/}
+            passed=0
+            for attempt in 1 2 3; do
+              echo "::group::$flow_name attempt $attempt"
+              if pnpm --filter @travel-planner/mobile exec maestro test "$PWD/$flow"; then
+                echo "::endgroup::"
+                echo "$flow_name passed on attempt $attempt"
+                passed=1
+                break
+              fi
               echo "::endgroup::"
-              echo "Maestro passed on attempt $attempt"
-              exit 0
+              echo "::warning::$flow_name attempt $attempt failed"
+              xcrun simctl terminate "$SIM_UDID" dev.matthewcarr.travelplanner 2>/dev/null || true
+            done
+            if [ "$passed" -ne 1 ]; then
+              echo "::error::$flow_name failed after 3 attempts"
+              failed=1
             fi
-            echo "::endgroup::"
-            echo "::warning::Maestro attempt $attempt failed"
-            xcrun simctl terminate "$SIM_UDID" dev.matthewcarr.travelplanner 2>/dev/null || true
           done
-          echo "::error::Maestro failed after 3 attempts"
-          exit 1
+          exit "$failed"
 
       - name: Upload Maestro report on failure
         if: failure()

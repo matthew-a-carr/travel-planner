@@ -362,13 +362,16 @@ One YAML per user journey under `.maestro/flows/`. Current flows:
 
 - `sign-in.yaml` — launch smoke: app boots to the sign-in screen (does
   NOT tap the button; the real Google sheet can't be driven by Maestro).
+- `authenticated-read-journey.yaml` — sign in through the test seam, read the
+  seeded trip, exercise not-found handling, and sign out.
+- `trip-crud-journey.yaml` — create, edit, and delete a trip.
+- `planning-core-journey.yaml` — create, edit, and delete a destination and a
+  fixed cost.
+- `spend-finance-journey.yaml` — create, edit, and delete spend while checking
+  financial insight states.
 
-The **live signed-in journey** (sign in via the seam → trips list → sign
-out) is **deferred to EPIC-004 slice 3** — it is blocked on the iOS-sim →
-host-backend reachability issue (TD-010 / EPIC-004 deviation #1): on the
-macOS runner the simulator can't reach the host server on any address even
-though the runner can. The server seam + client harness below are landed and
-proven; slice 3 solves reachability first, then authors the flow.
+CI retries each flow independently so a failed journey cannot leak a system
+prompt, route, or keyboard state into unrelated flows.
 
 Use `id:` selectors over visible-text selectors where possible.
 

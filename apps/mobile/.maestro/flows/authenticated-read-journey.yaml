@@ -1,7 +1,7 @@
 # Authenticated read journey (SPEC-020, EPIC-006 slice 1).
 #
 # Exercises the real Release app against the real Next.js/Postgres backend:
-# test-auth browser substitute → PKCE exchange → Keychain → /me → trips list
+# test-auth browser substitute → PKCE exchange → token store → /me → trips list
 # → seeded trip detail → neutral not-found deep link → sign-out.
 #
 # Fixture IDs come from
@@ -54,11 +54,7 @@ appId: dev.matthewcarr.travelplanner
       id: 'trips-screen-root'
     timeout: 30000
 - openLink: 'travelplanner:///trips/00000000-0000-4000-8000-000000000404'
-- runFlow:
-    when:
-      visible: 'Open in "Travel Planner"'
-    commands:
-      - tapOn: Open
+- tapOn: Open
 - extendedWaitUntil:
     visible:
       id: 'trip-detail-not-found'

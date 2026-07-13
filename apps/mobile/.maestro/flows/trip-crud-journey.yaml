@@ -27,10 +27,15 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'trip-create-name'
 - inputText: 'Mobile CRUD Journey'
+- tapOn: 'New trip'
 - tapOn:
     id: 'trip-create-budget'
 - inputText: '4321'
-- hideKeyboard
+- tapOn: 'New trip'
+- scrollUntilVisible:
+    element:
+      id: 'trip-create-submit'
+    direction: DOWN
 - tapOn:
     id: 'trip-create-submit'
 - extendedWaitUntil:
@@ -52,9 +57,17 @@ appId: dev.matthewcarr.travelplanner
     id: 'trip-edit-budget'
 - eraseText
 - inputText: '5432'
-- hideKeyboard
+- tapOn: 'Edit trip'
+- scrollUntilVisible:
+    element:
+      id: 'trip-edit-status-completed'
+    direction: DOWN
 - tapOn:
     id: 'trip-edit-status-completed'
+- scrollUntilVisible:
+    element:
+      id: 'trip-edit-submit'
+    direction: DOWN
 - tapOn:
     id: 'trip-edit-submit'
 - extendedWaitUntil:

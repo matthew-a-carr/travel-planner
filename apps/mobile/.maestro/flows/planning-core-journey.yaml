@@ -28,18 +28,33 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-name'
 - inputText: 'Mobile Planning Stop'
+- tapOn: 'Add destination'
 - tapOn:
     id: 'destination-country'
-- inputText: 'Jap'
+- inputText: 'Japan'
 - tapOn:
     id: 'destination-country-JPN'
+- tapOn: 'Add destination'
+- scrollUntilVisible:
+    element:
+      id: 'destination-start-date'
+    direction: DOWN
 - tapOn:
     id: 'destination-start-date'
 - inputText: '2027-04-01'
+- tapOn: 'Add destination'
+- scrollUntilVisible:
+    element:
+      id: 'destination-end-date'
+    direction: DOWN
 - tapOn:
     id: 'destination-end-date'
 - inputText: '2027-04-08'
-- hideKeyboard
+- tapOn: 'Add destination'
+- scrollUntilVisible:
+    element:
+      id: 'destination-submit'
+    direction: DOWN
 - tapOn:
     id: 'destination-submit'
 - extendedWaitUntil:
@@ -50,7 +65,11 @@ appId: dev.matthewcarr.travelplanner
     id: 'destination-name'
 - eraseText
 - inputText: 'Mobile Planning Updated'
-- hideKeyboard
+- tapOn: 'Edit destination'
+- scrollUntilVisible:
+    element:
+      id: 'destination-submit'
+    direction: DOWN
 - tapOn:
     id: 'destination-submit'
 - extendedWaitUntil:
@@ -65,12 +84,21 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'fixed-cost-label'
 - inputText: 'Mobile Rail Pass'
+- tapOn: 'Add fixed cost'
 - tapOn:
     id: 'fixed-cost-amount'
 - inputText: '250'
-- hideKeyboard
+- tapOn: 'Add fixed cost'
+- scrollUntilVisible:
+    element:
+      id: 'fixed-cost-category-transport'
+    direction: DOWN
 - tapOn:
     id: 'fixed-cost-category-transport'
+- scrollUntilVisible:
+    element:
+      id: 'fixed-cost-submit'
+    direction: DOWN
 - tapOn:
     id: 'fixed-cost-submit'
 - extendedWaitUntil:
@@ -81,7 +109,11 @@ appId: dev.matthewcarr.travelplanner
     id: 'fixed-cost-label'
 - eraseText
 - inputText: 'Mobile Rail Updated'
-- hideKeyboard
+- tapOn: 'Edit fixed cost'
+- scrollUntilVisible:
+    element:
+      id: 'fixed-cost-submit'
+    direction: DOWN
 - tapOn:
     id: 'fixed-cost-submit'
 - extendedWaitUntil:
