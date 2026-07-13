@@ -84,6 +84,12 @@ appId: dev.matthewcarr.travelplanner
     retryTapIfNoChange: true
 - assertNotVisible:
     id: 'finance-alerts'
+- scrollUntilVisible:
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
+    direction: DOWN
+    visibilityPercentage: 50
 - tapOn:
     id: 'finance-entry-.*'
     text: 'Mobile Finance Entry.*'

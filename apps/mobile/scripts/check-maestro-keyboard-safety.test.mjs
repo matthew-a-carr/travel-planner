@@ -61,7 +61,7 @@ test('write journeys wait for transitions and scroll destructive controls into v
   );
   assert.match(
     spend,
-    /id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+retryTapIfNoChange: true/,
+    /assertNotVisible:\n\s+id: 'finance-alerts'\n- scrollUntilVisible:\n\s+element:\n\s+id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+direction: DOWN\n\s+visibilityPercentage: 50\n- tapOn:\n\s+id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+retryTapIfNoChange: true/,
   );
   assert.match(
     spend,
