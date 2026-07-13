@@ -74,8 +74,10 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'trip-edit-submit'
 - extendedWaitUntil:
-    visible: 'Mobile CRUD Updated'
+    visible:
+      id: 'trip-detail-edit'
     timeout: 30000
+- assertVisible: 'Mobile CRUD Updated'
 - tapOn:
     id: 'trip-detail-edit'
 - tapOn:

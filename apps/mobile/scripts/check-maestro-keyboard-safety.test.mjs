@@ -42,6 +42,10 @@ test('write journeys scroll created records into view before selecting them', ()
 });
 
 test('write journeys wait for transitions and scroll destructive controls into view', () => {
+  const trip = readFileSync(
+    new URL('../.maestro/flows/trip-crud-journey.yaml', import.meta.url),
+    'utf8',
+  );
   const planning = readFileSync(
     new URL('../.maestro/flows/planning-core-journey.yaml', import.meta.url),
     'utf8',
@@ -51,6 +55,10 @@ test('write journeys wait for transitions and scroll destructive controls into v
     'utf8',
   );
 
+  assert.match(
+    trip,
+    /extendedWaitUntil:\n\s+visible:\n\s+id: 'trip-detail-edit'\n\s+timeout: 30000\n- assertVisible: 'Mobile CRUD Updated'\n- tapOn:\n\s+id: 'trip-detail-edit'/,
+  );
   assert.match(
     planning,
     /scrollUntilVisible:\n\s+element:\n\s+id: 'destination-delete'\n\s+direction: DOWN/,
