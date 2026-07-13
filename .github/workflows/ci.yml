@@ -591,6 +591,35 @@ jobs:
             CODE_SIGNING_REQUIRED=YES \
             CODE_SIGN_IDENTITY="-"
 
+      # Xcode packages the configured entitlements into the simulator-specific
+      # .xcent file and links them into the executable, but its final ad-hoc
+      # codesign invocation uses the empty non-simulator .xcent file. Re-sign
+      # the completed bundle with Xcode's own generated simulator payload so
+      # Security.framework can authorize expo-secure-store Keychain access.
+      - name: Sign simulator app with Keychain entitlements
+        working-directory: apps/mobile/ios
+        run: |
+          APP_PATH=$(find build/Build/Products/Release-iphonesimulator \
+            -maxdepth 2 -name '*.app' -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::No .app bundle found under build/Build/Products/Release-iphonesimulator"
+            exit 1
+          fi
+          APP_NAME=$(basename "$APP_PATH" .app)
+          SIMULATED_ENTITLEMENTS=$(find build/Build/Intermediates.noindex \
+            -path '*Release-iphonesimulator*' \
+            -name "$APP_NAME.app-Simulated.xcent" -type f | head -1)
+          if [ -z "$SIMULATED_ENTITLEMENTS" ]; then
+            echo "::error::Xcode generated no simulator entitlement payload for $APP_NAME"
+            exit 1
+          fi
+          codesign --force --sign - \
+            --entitlements "$SIMULATED_ENTITLEMENTS" \
+            --timestamp=none \
+            --generate-entitlement-der \
+            "$APP_PATH"
+          codesign --verify --deep --strict "$APP_PATH"
+
       # Two fail-fast gates before any Maestro time is spent (SPEC-013):
       # (1) the backend is actually serving — surfacing the server log
       # inline on failure; (2) the Release JS bundle really inlined the
@@ -627,7 +656,7 @@ jobs:
           KEYCHAIN_GROUP_COUNT=$(codesign --display --entitlements - --xml "$APP_PATH" \
             | plutil -extract keychain-access-groups raw -)
           if [ -z "$APP_IDENTIFIER" ] || [ "$KEYCHAIN_GROUP_COUNT" -lt 1 ]; then
-            echo "::error::Simulator app has no application-identifier entitlement — Keychain cannot work"
+            echo "::error::Simulator app is missing its Keychain entitlements"
             exit 1
           fi
           echo "Simulator app is ad-hoc signed with a Keychain-capable application identifier."

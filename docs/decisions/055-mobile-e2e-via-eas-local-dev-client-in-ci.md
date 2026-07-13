@@ -71,7 +71,10 @@ The dev-client `.app` can then be installed into the simulator via
    developer certificate. Because ad-hoc signing has no provisioning-profile
    team, CI adds a deterministic local team prefix, `application-identifier`,
    and matching Keychain access group to the generated, gitignored simulator
-   entitlements before building. CI verifies the signature and both Keychain
+   entitlements before building. Xcode places that payload in its generated
+   simulator `.xcent` file but uses an empty non-simulator payload for the final
+   ad-hoc signature, so CI re-signs the completed app with Xcode's generated
+   simulator payload. CI then verifies the deep signature and both Keychain
    entitlements before installing the app. **The original ADR draft named
    `eas build --local`
    here; switched to raw `xcodebuild` during step 9 implementation
