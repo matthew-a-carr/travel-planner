@@ -68,9 +68,11 @@ The dev-client `.app` can then be installed into the simulator via
    -derivedDataPath build CODE_SIGN_IDENTITY=-` from
    `apps/mobile/ios/` to produce a self-contained `.app` for the iOS
    Simulator. Xcode's local ad-hoc identity requires no Apple account or
-   developer certificate while retaining the `application-identifier`
-   entitlement required by iOS Keychain. CI verifies the signature and
-   entitlement before installing the app. **The original ADR draft named
+   developer certificate. Because ad-hoc signing has no provisioning-profile
+   team, CI adds a deterministic local team prefix, `application-identifier`,
+   and matching Keychain access group to the generated, gitignored simulator
+   entitlements before building. CI verifies the signature and both Keychain
+   entitlements before installing the app. **The original ADR draft named
    `eas build --local`
    here; switched to raw `xcodebuild` during step 9 implementation
    when EAS Local was found to require an EAS project ID + an EAS

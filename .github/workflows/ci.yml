@@ -516,6 +516,26 @@ jobs:
             pnpm exec expo prebuild --platform ios --clean
           fi
 
+      # An ad-hoc simulator signature has no Apple team, so Xcode does not
+      # synthesize the application-identifier that Keychain normally derives
+      # from a provisioning profile. Add a deterministic, CI-only local team
+      # prefix to the generated (gitignored) entitlements before signing.
+      - name: Configure simulator Keychain entitlements
+        working-directory: apps/mobile/ios
+        run: |
+          ENTITLEMENTS=$(find . -maxdepth 3 -name '*.entitlements' -type f | head -1)
+          if [ -z "$ENTITLEMENTS" ]; then
+            echo "::error::Generated iOS project has no app entitlements file"
+            exit 1
+          fi
+          TEAM_ID="E2ELOCAL00"
+          BUNDLE_ID="dev.matthewcarr.travelplanner"
+          APP_IDENTIFIER="$TEAM_ID.$BUNDLE_ID"
+          plutil -insert application-identifier -string "$APP_IDENTIFIER" "$ENTITLEMENTS"
+          /usr/libexec/PlistBuddy -c \
+            "Add :com.apple.developer.team-identifier string $TEAM_ID" "$ENTITLEMENTS"
+          plutil -insert keychain-access-groups -json "[\"$APP_IDENTIFIER\"]" "$ENTITLEMENTS"
+
       - name: Install CocoaPods dependencies
         working-directory: apps/mobile/ios
         # CocoaPods ships preinstalled on macos-latest runners. On a
@@ -604,7 +624,9 @@ jobs:
           codesign --verify --deep --strict "$APP_PATH"
           APP_IDENTIFIER=$(codesign --display --entitlements - --xml "$APP_PATH" \
             | plutil -extract application-identifier raw -)
-          if [ -z "$APP_IDENTIFIER" ]; then
+          KEYCHAIN_GROUP_COUNT=$(codesign --display --entitlements - --xml "$APP_PATH" \
+            | plutil -extract keychain-access-groups raw -)
+          if [ -z "$APP_IDENTIFIER" ] || [ "$KEYCHAIN_GROUP_COUNT" -lt 1 ]; then
             echo "::error::Simulator app has no application-identifier entitlement — Keychain cannot work"
             exit 1
           fi
