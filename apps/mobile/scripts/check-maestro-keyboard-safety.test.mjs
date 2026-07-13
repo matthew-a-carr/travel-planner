@@ -33,10 +33,10 @@ test('write journeys scroll created records into view before selecting them', ()
 
   assert.match(
     planning,
-    /element: 'Mobile Planning Stop'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
+    /element:\n\s+id: 'trip-detail-destination-\.\*'\n\s+text: 'Mobile Planning Stop\.\*'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
   );
   assert.match(
     spend,
-    /element: 'Mobile Finance Entry'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
+    /element:\n\s+id: 'finance-entry-\.\*'\n\s+text: 'Mobile Finance Entry\.\*'\n\s+direction: DOWN\n\s+visibilityPercentage: 50/,
   );
 });

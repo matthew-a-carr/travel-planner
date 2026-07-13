@@ -61,11 +61,17 @@ appId: dev.matthewcarr.travelplanner
       id: 'trip-detail-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Planning Stop'
+    element:
+      id: 'trip-detail-destination-.*'
+      text: 'Mobile Planning Stop.*'
     direction: DOWN
     visibilityPercentage: 50
-- assertVisible: 'Mobile Planning Stop'
-- tapOn: 'Mobile Planning Stop'
+- assertVisible:
+    id: 'trip-detail-destination-.*'
+    text: 'Mobile Planning Stop.*'
+- tapOn:
+    id: 'trip-detail-destination-.*'
+    text: 'Mobile Planning Stop.*'
 - tapOn:
     id: 'destination-name'
 - eraseText
@@ -82,10 +88,14 @@ appId: dev.matthewcarr.travelplanner
       id: 'trip-detail-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Planning Updated'
+    element:
+      id: 'trip-detail-destination-.*'
+      text: 'Mobile Planning Updated.*'
     direction: DOWN
     visibilityPercentage: 50
-- assertVisible: 'Mobile Planning Updated'
+- assertVisible:
+    id: 'trip-detail-destination-.*'
+    text: 'Mobile Planning Updated.*'
 - scrollUntilVisible:
     element:
       id: 'trip-detail-add-fixed-cost'
@@ -116,11 +126,17 @@ appId: dev.matthewcarr.travelplanner
       id: 'trip-detail-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Rail Pass'
+    element:
+      id: 'trip-detail-fixed-cost-.*'
+      text: 'Mobile Rail Pass.*'
     direction: DOWN
     visibilityPercentage: 50
-- assertVisible: 'Mobile Rail Pass'
-- tapOn: 'Mobile Rail Pass'
+- assertVisible:
+    id: 'trip-detail-fixed-cost-.*'
+    text: 'Mobile Rail Pass.*'
+- tapOn:
+    id: 'trip-detail-fixed-cost-.*'
+    text: 'Mobile Rail Pass.*'
 - tapOn:
     id: 'fixed-cost-label'
 - eraseText
@@ -137,11 +153,17 @@ appId: dev.matthewcarr.travelplanner
       id: 'trip-detail-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Rail Updated'
+    element:
+      id: 'trip-detail-fixed-cost-.*'
+      text: 'Mobile Rail Updated.*'
     direction: DOWN
     visibilityPercentage: 50
-- assertVisible: 'Mobile Rail Updated'
-- tapOn: 'Mobile Rail Updated'
+- assertVisible:
+    id: 'trip-detail-fixed-cost-.*'
+    text: 'Mobile Rail Updated.*'
+- tapOn:
+    id: 'trip-detail-fixed-cost-.*'
+    text: 'Mobile Rail Updated.*'
 - tapOn:
     id: 'fixed-cost-delete'
 - tapOn:
@@ -151,10 +173,14 @@ appId: dev.matthewcarr.travelplanner
       id: 'trip-detail-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Planning Updated'
+    element:
+      id: 'trip-detail-destination-.*'
+      text: 'Mobile Planning Updated.*'
     direction: UP
     visibilityPercentage: 50
-- tapOn: 'Mobile Planning Updated'
+- tapOn:
+    id: 'trip-detail-destination-.*'
+    text: 'Mobile Planning Updated.*'
 - tapOn:
     id: 'destination-delete'
 - tapOn:
@@ -163,4 +189,6 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'trip-detail-root'
     timeout: 30000
-- assertNotVisible: 'Mobile Planning Updated'
+- assertNotVisible:
+    id: 'trip-detail-destination-.*'
+    text: 'Mobile Planning Updated.*'

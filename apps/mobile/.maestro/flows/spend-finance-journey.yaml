@@ -66,17 +66,23 @@ appId: dev.matthewcarr.travelplanner
       id: 'finance-root'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Finance Entry'
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
     direction: DOWN
     visibilityPercentage: 50
-- assertVisible: 'Mobile Finance Entry'
+- assertVisible:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
 - assertVisible:
     id: 'finance-alerts'
 - tapOn:
     id: 'finance-dismiss-alerts'
 - assertNotVisible:
     id: 'finance-alerts'
-- tapOn: 'Mobile Finance Entry'
+- tapOn:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
 - extendedWaitUntil:
     visible:
       id: 'spend-editor-root'
@@ -103,10 +109,14 @@ appId: dev.matthewcarr.travelplanner
       id: 'finance-category-activities'
     timeout: 30000
 - scrollUntilVisible:
-    element: 'Mobile Finance Entry'
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
     direction: DOWN
     visibilityPercentage: 50
-- tapOn: 'Mobile Finance Entry'
+- tapOn:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
 - tapOn:
     id: 'spend-delete'
 - assertVisible:
@@ -117,4 +127,6 @@ appId: dev.matthewcarr.travelplanner
     visible:
       id: 'finance-root'
     timeout: 30000
-- assertNotVisible: 'Mobile Finance Entry'
+- assertNotVisible:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
