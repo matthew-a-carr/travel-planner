@@ -1,7 +1,7 @@
 # SPEC-024: Mobile Spend and Financial Insight
 
 **Date:** 2026-07-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Codex
 **Approved by:** Matt Carr, 2026-07-11 (full mobile parity instruction)
 **Parent epic:** [EPIC-006 — Mobile-Web Capability Parity](../epics/EPIC-006-mobile-web-capability-parity.md)
@@ -92,13 +92,13 @@ executor extension remain backward-compatible.
 3. [x] Atomic spend command route tests and executor repository extension.
 4. [x] Native command service and finance/editor component tests.
 5. [x] Native screens, Maestro journey, and in-progress parity evidence.
-6. [ ] Full verification, architecture review, docs, and CI.
+6. [x] Full verification, architecture review, docs, and CI.
 
 ## 9. ADR and tech debt
 
 ADR 063 owns shared-contract parity and ADR 064 owns atomic idempotency. Native
 accessible bars use existing platform primitives, so no new ADR is required.
-TD-010 remains the authoritative CI gate and is not silently treated as closed.
+TD-010 was the authoritative CI gate and is resolved by run 29269377480.
 
 ---
 
@@ -109,4 +109,9 @@ TD-010 remains the authoritative CI gate and is not silently treated as closed.
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- CI run 29269377480 passed spend create/edit/delete, category totals,
+  burndown, and alert dismissal on its first attempt against the real backend.
+- Failure artifacts from runs 29260214856 and 29264501830 exposed controls
+  clipped under the navigation header and rows pushed below the viewport after
+  alert regeneration. Centered `scrollUntilVisible` guards now keep both
+  post-mutation edit passes deterministic.

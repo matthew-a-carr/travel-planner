@@ -55,14 +55,15 @@ Operations runbook: [`docs/operations/autonomous-workflow.md`](./docs/operations
 ## Repo layout
 
 This is a pnpm monorepo (ADR 046). The web application lives at
-`apps/web/`; future apps (iOS — ADR 045) will sit alongside it under
-`apps/`. Shared workspace packages live under `packages/`.
+`apps/web/`, the Expo/React Native application at `apps/mobile/`, and shared
+wire contracts at `packages/shared/`.
 
 ```
 travel-planner/
 ├── .agents/skills/   ← local-only skills (deploy-smoke-test); lifecycle skills via agent-skills plugin
 ├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
-├── packages/         ← shared workspace packages (empty for now)
+├── apps/mobile/      ← Expo Router iOS application + Jest/Maestro tests
+├── packages/shared/  ← zod schemas and types for the versioned v1 wire contract
 ├── docs/             ← project-wide docs and ADRs
 │   ├── decisions/           ← Architecture Decision Records
 │   ├── epics/               ← multi-SPEC initiatives (ADR 049)
@@ -167,6 +168,16 @@ ln -s AGENTS.md CLAUDE.md
   - `src/__tests__/composition-root-boundary.test.ts`
 - Integration tests still use real Drizzle repositories + real Postgres via
   Testcontainers (no DB/repository mocks).
+
+### Mobile delivery boundary
+
+- `apps/mobile/` consumes the server only through the versioned v1 contract in
+  `@travel-planner/shared`; it must not import web application or delivery code.
+- `apps/mobile/scripts/check-mobile-architecture.mjs` enforces that boundary as
+  part of `pnpm test:mobile` and CI.
+- Authenticated Maestro flows run against the real Next.js/Postgres stack.
+  Exact E2E fixtures are restored before every attempt so partial writes cannot
+  contaminate a retry or a later mutating journey.
 
 ---
 

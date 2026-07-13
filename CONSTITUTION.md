@@ -35,10 +35,12 @@ The engineering harness consists of four things:
 | Layer import boundaries | `src/__tests__/architecture.test.ts` | `pnpm test:unit` |
 | Runtime construction guard (`src/app/**`) | `src/__tests__/app-construction-guard.test.ts` | `pnpm test:unit` |
 | Composition-root boundary (`Drizzle*Repository` construction) | `src/__tests__/composition-root-boundary.test.ts` | `pnpm test:unit` |
+| Mobile runtime independence from web delivery code | `apps/mobile/scripts/check-mobile-architecture.mjs` | `pnpm test:mobile` |
 | TypeScript correctness | `tsconfig.json` (strict) | `pnpm type-check` |
 | Code style + lint | `biome.json` | `pnpm lint` |
 | Repository + use-case correctness | `src/**/*.int-test.ts` | `pnpm test:integration` |
 | e2e acceptance criteria | `tests/e2e/` | `pnpm test:e2e` |
+| Native authenticated journeys | `apps/mobile/.maestro/flows/` | `pnpm test:e2e:mobile` |
 | Accessibility (WCAG 2.1 AA) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |

@@ -62,3 +62,15 @@
 - Made that test's healthy-token seed relative to the same real clock. The
   existing expected 200 rotation followed by predecessor reuse remains the
   regression guard; production auth code is unchanged.
+
+## 2026-07-13 — Authoritative tunnel journey green
+
+- Run 29269377480 passed the authenticated read journey on attempt one through
+  the checksum-pinned HTTPS tunnel, including sign-in, list/detail reads,
+  missing-trip routing, profile navigation, and sign-out.
+- Earlier runner evidence showed iOS's deep-link approval is permanent for the
+  Simulator: the first invocation prompts, later invocations navigate directly.
+  The flow now conditionally approves and replays the URL after first-use
+  confirmation, matching Maestro's documented platform pattern.
+- TD-010's resolution gate is satisfied. Direct runner networking remains
+  rejected; ADR 065's credentialed tunnel is the supported transport.

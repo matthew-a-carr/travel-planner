@@ -370,10 +370,17 @@ One YAML per user journey under `.maestro/flows/`. Current flows:
 - `spend-finance-journey.yaml` — create, edit, and delete spend while checking
   financial insight states.
 
-CI retries each flow independently so a failed journey cannot leak a system
-prompt, route, or keyboard state into unrelated flows.
+CI retries each flow independently and restores the exact database fixtures
+before every attempt, so a partial mutation cannot leak into a retry or later
+journey. Flows must still tolerate persistent Simulator state such as iOS's
+one-time deep-link confirmation.
 
 Use `id:` selectors over visible-text selectors where possible.
+
+Runtime code under `apps/mobile/` must not import `apps/web/` or the web
+workspace. `scripts/check-mobile-architecture.mjs`, run by `pnpm test:mobile`,
+enforces that delivery boundary while allowing `@travel-planner/shared` wire
+contracts.
 
 ### Test-auth seam (E2E sign-in without Google — SPEC-014)
 

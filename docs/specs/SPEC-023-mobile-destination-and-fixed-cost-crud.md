@@ -1,7 +1,7 @@
 # SPEC-023: Mobile Destination and Fixed-Cost CRUD
 
 **Date:** 2026-07-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Codex
 **Approved by:** Matt Carr, 2026-07-11 (full mobile parity instruction)
 **Parent epic:** [EPIC-006 — Mobile-Web Capability Parity](../epics/EPIC-006-mobile-web-capability-parity.md)
@@ -78,12 +78,12 @@ removed operations.
 
 ## 8. Implementation order
 
-1. [ ] Shared schemas/OpenAPI and route integration tests.
-2. [ ] Minimal nested route adapters and executor repository extension.
-3. [ ] Native command services and editor component tests.
-4. [ ] Detail-stage guidance and native screens.
-5. [ ] Maestro journey and parity-ledger evidence.
-6. [ ] Full verification, architecture review, docs, and CI.
+1. [x] Shared schemas/OpenAPI and route integration tests.
+2. [x] Minimal nested route adapters and executor repository extension.
+3. [x] Native command services and editor component tests.
+4. [x] Detail-stage guidance and native screens.
+5. [x] Maestro journey and parity-ledger evidence.
+6. [x] Full verification, architecture review, docs, and CI.
 
 ## 9. ADR and tech debt
 
@@ -99,4 +99,9 @@ architectural decision. No registered tech-debt item is deferred into it.
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- CI run 29269377480 passed the planning-core journey on its first attempt,
+  proving destination and fixed-cost create/edit/delete plus stage guidance
+  against exact fixtures and the real database.
+- Country-reference suggestions remain server-calculated; mobile performs only
+  presentation and deterministic day multiplication, so no pricing invariant
+  was forked into the client.

@@ -19,3 +19,10 @@ inaccessible combinations intentionally share one not-found response.
 Each resource type uses one editor route: the literal `new` path value selects
 create mode and a UUID selects edit/delete. This avoids duplicate forms while
 keeping destination and fixed-cost concepts separate.
+
+## 2026-07-13 — Real-device close-out
+
+- Run 29269377480 passed the full planning-core journey on attempt one against
+  exact reseeded fixtures and the production Next.js server.
+- Shared schemas, OpenAPI generation, nested-resource authorization, native
+  editor tests, and atomic replay tests were all green in the same run.

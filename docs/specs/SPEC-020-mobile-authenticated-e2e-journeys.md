@@ -1,7 +1,7 @@
 # SPEC-020: Mobile Authenticated E2E Journeys
 
 **Date:** 2026-07-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Codex
 **Approved by:** Matt Carr, 2026-07-11 (full mobile parity instruction)
 **Parent epic:** [EPIC-006 — Mobile-Web Capability Parity](../epics/EPIC-006-mobile-web-capability-parity.md)
@@ -189,7 +189,7 @@ database schema, and deployed API remain unchanged.
 
 ## 12. Implementation order
 
-1. [ ] **Intent:** Add the authenticated Maestro journey first; SPEC-014's
+1. [x] **Intent:** Add the authenticated Maestro journey first; SPEC-014's
    recorded runner failures are the existing red evidence for this exact
    behavior. **Verification:** YAML parses and every selector resolves to a
    committed screen `testID`; do not push an intentionally failing commit.
@@ -197,15 +197,15 @@ database schema, and deployed API remain unchanged.
    `localhost`, and dual-stack bindings produced no app requests.
    **Verification:** ADR 065 records the decision; tunnel origin and secret
    markers are asserted before Maestro.
-3. [ ] **Intent:** Add only the stable detail evidence selectors the journey
+3. [x] **Intent:** Add only the stable detail evidence selectors the journey
    needs. **Verification:** focused RNTL detail test is red then green.
-4. [ ] **Intent:** Run local non-Simulator gates. **Verification:** `pnpm lint`,
+4. [x] **Intent:** Run local non-Simulator gates. **Verification:** `pnpm lint`,
    `pnpm type-check:mobile`, `pnpm test:mobile`, relevant web unit/integration
    tests, `pnpm openapi:check`, and production build all exit 0.
-5. [ ] **Intent:** Push and force the path-filtered mobile jobs. **Verification:**
+5. [x] **Intent:** Push and force the path-filtered mobile jobs. **Verification:**
    `mobile-e2e` passes the existing smoke plus authenticated read journey; all
    other required CI checks are green.
-6. [ ] **Intent:** Close documentation truth. **Verification:** SPEC status,
+6. [x] **Intent:** Close documentation truth. **Verification:** SPEC status,
    EPIC-004/006 ledgers, TD-010, CHANGELOG (not required: CI-only behavior),
    and implementation notes agree with the observed runner result.
 
@@ -250,4 +250,11 @@ and retry insurance remain unchanged.
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- CI run 29269377480 passed the authenticated read journey on its first
+  attempt through ADR 065's ephemeral HTTPS tunnel. The flow proves the real
+  PKCE exchange, token store, `/me`, trip list/detail/not-found, and sign-out
+  against the runner-local Next.js/Postgres stack.
+- iOS remembers deep-link confirmation for the lifetime of the Simulator. The
+  flow now uses Maestro's conditional confirmation pattern and replays the URL
+  after first-use approval, so both fresh and previously-approved device state
+  exercise the same not-found outcome.

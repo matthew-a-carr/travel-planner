@@ -21,3 +21,12 @@ The parity ledger claims the three trip command capabilities only after shared
 contract, native component, route integration, executor concurrency, and a
 real-backend Maestro flow all exist. The authoritative macOS run is the final
 close-out gate.
+
+## 2026-07-13 — Real-device close-out
+
+- Run 29269377480 completed the trip create/edit/status/delete journey. Its
+  first attempt exposed a route-transition race after update: visible form text
+  was not sufficient proof that detail navigation had completed.
+- The flow now waits for the detail-only edit selector before asserting the
+  updated name and entering the delete pass. A static test prevents regression
+  to text-only transition evidence.

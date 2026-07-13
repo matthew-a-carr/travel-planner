@@ -1,7 +1,7 @@
 # SPEC-022: Mobile Trip CRUD over Atomic v1 Commands
 
 **Date:** 2026-07-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Codex
 **Approved by:** Matt Carr, 2026-07-11 (full mobile parity instruction)
 **Parent epic:** [EPIC-006 — Mobile-Web Capability Parity](../epics/EPIC-006-mobile-web-capability-parity.md)
@@ -78,13 +78,13 @@ the new routes.
 
 ## 8. Implementation order
 
-1. [ ] Shared schema tests, error vocabulary, and OpenAPI RED/GREEN.
-2. [ ] Idempotency repository/executor integration tests, schema migration, and
+1. [x] Shared schema tests, error vocabulary, and OpenAPI RED/GREEN.
+2. [x] Idempotency repository/executor integration tests, schema migration, and
    composition-root wiring per ADR 064.
-3. [ ] Trip command route integration tests then minimal handlers.
-4. [ ] Mobile API/hooks and native screen component tests then UI.
-5. [ ] Maestro write journey and parity-ledger evidence.
-6. [ ] Full verification, architecture review, docs, and CI.
+3. [x] Trip command route integration tests then minimal handlers.
+4. [x] Mobile API/hooks and native screen component tests then UI.
+5. [x] Maestro write journey and parity-ledger evidence.
+6. [x] Full verification, architecture review, docs, and CI.
 
 ## 9. ADR and tech debt
 
@@ -100,4 +100,10 @@ transaction boundary. No existing tech-debt item is deferred into this slice.
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- CI run 29269377480 exercised create, update, status transition, and delete
+  against the real backend. A post-update route race observed on the first
+  attempt is guarded by waiting for the detail screen's edit control before
+  beginning the delete pass.
+- Architecture review confirmed that command routes reuse canonical use cases,
+  unsafe retries cross the atomic ADR 064 executor, and mobile screens remain
+  outside the web delivery boundary.

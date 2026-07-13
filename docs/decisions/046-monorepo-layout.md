@@ -45,22 +45,24 @@ workspace at the repo root with the following structure:
 ```
 travel-planner/
 ├── apps/
-│   └── web/          ← the existing Next.js application
-│       ├── src/
-│       ├── tests/
-│       ├── public/
-│       ├── drizzle/
-│       ├── scripts/
-│       ├── package.json   (name: @travel-planner/web)
-│       ├── next.config.ts
-│       ├── tsconfig.json
-│       ├── vitest.config.ts
-│       ├── playwright.config.ts
-│       ├── drizzle.config.ts
-│       ├── postcss.config.mjs
-│       ├── sentry.{client,server,edge}.config.ts
-│       └── .env.example
-├── packages/         ← reserved for shared workspace packages (empty for now)
+│   ├── web/          ← the existing Next.js application
+│   │   ├── src/
+│   │   ├── tests/
+│   │   ├── public/
+│   │   ├── drizzle/
+│   │   ├── scripts/
+│   │   ├── package.json   (name: @travel-planner/web)
+│   │   ├── next.config.ts
+│   │   ├── tsconfig.json
+│   │   ├── vitest.config.ts
+│   │   ├── playwright.config.ts
+│   │   ├── drizzle.config.ts
+│   │   ├── postcss.config.mjs
+│   │   ├── sentry.{client,server,edge}.config.ts
+│   │   └── .env.example
+│   └── mobile/       ← Expo/React Native application (added by ADR 050)
+├── packages/
+│   └── shared/       ← versioned zod wire contracts (added by SPEC-005)
 ├── docs/             ← project-wide documentation (root)
 ├── infra/            ← Terraform (root, unchanged)
 ├── .github/          ← workflows (root, unchanged)

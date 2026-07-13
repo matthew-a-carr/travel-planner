@@ -19,3 +19,15 @@
 - Local lint, type-check, unit, integration, migration, OpenAPI, parity,
   production-build, and diff-integrity gates pass. The parity entries remain
   `in_progress` until the macOS Maestro job exercises the journey.
+
+## 2026-07-13 — Viewport failures resolved and CI green
+
+- Run 29260214856 proved create/edit reached the financial screen but the alert
+  action was clipped under the native navigation header. Centering the alert
+  action exposed a second geometry effect: the created row was then pushed
+  below the viewport.
+- Run 29264501830 proved alert dismissal and first edit, then showed the updated
+  row at bounds `[32,866][370,922]` below the 874px viewport after the alert was
+  regenerated. Both row selections now center before tapping.
+- Run 29269377480 passed spend create/edit/delete, category breakdown,
+  burndown, and alert dismissal on attempt one. All repository gates were green.

@@ -1,7 +1,7 @@
 # SPEC-021: Machine-Checked Mobile Parity Manifest
 
 **Date:** 2026-07-11
-**Status:** In Progress
+**Status:** Complete
 **Author:** Codex
 **Approved by:** Matt Carr, 2026-07-11 (full mobile parity instruction)
 **Parent epic:** [EPIC-006 — Mobile-Web Capability Parity](../epics/EPIC-006-mobile-web-capability-parity.md)
@@ -84,11 +84,11 @@ or persisted data changes.
 
 ## 10. Implementation order
 
-1. [ ] Write validator tests and observe RED because the module is absent.
-2. [ ] Implement the smallest validator and make focused tests green.
-3. [ ] Inventory the numbered web feature suites and record current evidence.
-4. [ ] Wire normal/strict commands and the normal CI gate.
-5. [ ] Run full relevant verification and update EPIC-006/docs.
+1. [x] Write validator tests and observe RED because the module is absent.
+2. [x] Implement the smallest validator and make focused tests green.
+3. [x] Inventory the numbered web feature suites and record current evidence.
+4. [x] Wire normal/strict commands and the normal CI gate.
+5. [x] Run full relevant verification and update EPIC-006/docs.
 
 ## 11. ADR and tech debt
 
@@ -109,4 +109,8 @@ strict modes are settled by ADR 063 and EPIC-006.
 
 ### Post-Implementation Notes
 
-_Filled at close-out._
+- The normal CI gate reports 20 complete and 14 missing capabilities after
+  run 29269377480. Strict mode intentionally remains red until EPIC-006 closes
+  all remaining gaps; incremental success cannot be mistaken for full parity.
+- The validator also enforces the mobile runtime import boundary, resolvable
+  evidence, unique IDs, and complete coverage of the numbered web E2E suites.

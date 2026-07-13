@@ -95,10 +95,10 @@ changes the direction from staged mobile subsets to durable capability parity.
 
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
-| 1 | **Authenticated E2E unblock** — resolve TD-010 with a deterministic Simulator-to-backend route; sign-in → list/detail/not-found → sign-out journeys against the real backend. Completes EPIC-004 slice 3 | 1 | [SPEC-020 (Approved)](../specs/SPEC-020-mobile-authenticated-e2e-journeys.md) | EPIC-004 slices 1–2 | In progress |
-| 2 | **Parity contract + E2E operations** — capability manifest and CI validator; failure recordings/backend and app network diagnostics; one-command local orchestration. Completes EPIC-004 slice 4 | 7 | [SPEC-021 (In Progress)](../specs/SPEC-021-mobile-parity-manifest.md) | 1 | In progress |
-| 3 | **Trip planning core** — bearer v1 create/edit/delete/move trip and destination/fixed-cost CRUD; mobile native forms and role-aware actions | 2 | [SPEC-022 (trip CRUD, In Progress)](../specs/SPEC-022-mobile-trip-crud.md); [SPEC-023 (destination/fixed-cost CRUD, In Progress)](../specs/SPEC-023-mobile-destination-and-fixed-cost-crud.md) | 1, 2 | In progress |
-| 4 | **Spend and financial insight** — idempotent spend create/edit/delete; summaries, category breakdown, alerts, charts, and burndown. Absorbs EPIC-003 | 3 | [SPEC-024 (In Progress)](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 1–3 | In progress |
+| 1 | **Authenticated E2E unblock** — resolve TD-010 with a deterministic Simulator-to-backend route; sign-in → list/detail/not-found → sign-out journeys against the real backend. Completes EPIC-004 slice 3 | 1 | [SPEC-020 (Complete)](../specs/SPEC-020-mobile-authenticated-e2e-journeys.md) | EPIC-004 slices 1–2 | Complete |
+| 2 | **Parity contract + E2E operations** — capability manifest and CI validator; failure recordings/backend and app network diagnostics; one-command local orchestration. Completes EPIC-004 slice 4 | 7 | [SPEC-021 (Complete)](../specs/SPEC-021-mobile-parity-manifest.md) | 1 | In progress — manifest complete; diagnostics/local orchestration remain |
+| 3 | **Trip planning core** — bearer v1 create/edit/delete/move trip and destination/fixed-cost CRUD; mobile native forms and role-aware actions | 2 | [SPEC-022 (trip CRUD, Complete)](../specs/SPEC-022-mobile-trip-crud.md); [SPEC-023 (destination/fixed-cost CRUD, Complete)](../specs/SPEC-023-mobile-destination-and-fixed-cost-crud.md) | 1, 2 | Complete |
+| 4 | **Spend and financial insight** — idempotent spend create/edit/delete; summaries, category breakdown, alerts, charts, and burndown. Absorbs EPIC-003 | 3 | [SPEC-024 (Complete)](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 1–3 | Complete |
 | 5 | **Timeline and trip intelligence** — paste/parse/apply itinerary, timeline insights, narrative, and assistant history/streaming through bearer-aware contracts | 4 | _not yet planned_ | 3 | Not started |
 | 6 | **Traveller and visa journeys** — traveller profile/passports, trip intent, deterministic visa assessment, warnings, and persistence | 5 | _not yet planned_ | 3 | Not started |
 | 7 | **Organizations and access administration** — switch/create organizations, membership management, approval/admin/pre-provision/delete operations with role parity | 6 | _not yet planned_ | 1–3 | Not started |
@@ -154,7 +154,7 @@ only close gaps revealed by evidence, not introduce a new foundation.
 
 | Dependency | What we rely on | Constraint / status |
 |------------|-----------------|---------------------|
-| GitHub macOS runner + iOS Simulator | Release build and Maestro | TD-010 currently blocks authenticated networking; slice 1 owns the pivot decision |
+| GitHub macOS runner + iOS Simulator | Release build and Maestro | ADR 065's credentialed HTTPS tunnel carries authenticated traffic; TD-010 is resolved |
 | Expo SDK 54 | Current Expo Go-compatible runtime | TD-003 lockstep; no speculative SDK/library upgrades |
 | Maestro | Golden mobile journey automation | Keep selectors on stable `testID`s and runtime inside §9 budgets |
 | AI Gateway | Itinerary, timeline, narrative, assistant behavior | E2E uses deterministic unavailable/stubbed outcomes unless a stable test provider exists |
@@ -226,6 +226,10 @@ only close gaps revealed by evidence, not introduce a new foundation.
 | 2026-07-11 | 3 | SPEC-023 | In progress | Reuse ADR 064 for the remaining trip-planning child resources and include stage guidance/budget suggestions so slice 3 closes without a UI-only follow-up. |
 | 2026-07-11 | 1 | SPEC-020 | In progress | The bounded `localhost` + IPv6 tracer still produced zero app requests. Fired the epic pivot and adopted ADR 065's checksum-pinned ephemeral HTTPS tunnel with a per-run secret. |
 | 2026-07-11 | 4 | SPEC-024 | In progress | Started spend CRUD and financial insight as one shared-contract slice; native charts use accessible platform primitives and canonical domain calculations. |
+| 2026-07-13 | 1 | SPEC-020 | Complete | Run 29269377480 passed authenticated list/detail/not-found/sign-out through ADR 065's real-backend tunnel on attempt one; TD-010 resolved. |
+| 2026-07-13 | 2 | SPEC-021 | Complete | Capability manifest, validator, CI command, and mobile architecture guard shipped; operations work remains on the parent slice because the >15-minute flow budget fired. |
+| 2026-07-13 | 3 | SPEC-022 / SPEC-023 | Complete | Trip, destination, fixed-cost, and stage-guidance capabilities passed shared-contract, integration, native, and Maestro gates. |
+| 2026-07-13 | 4 | SPEC-024 | Complete | Spend CRUD and all three financial insight capabilities passed the real-backend Maestro journey on attempt one. |
 
 ## Epic-level deviations
 

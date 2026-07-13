@@ -13,3 +13,12 @@
 - RED was the missing validator module. Six Node tests now cover valid
   incremental state, strict-mode gaps, duplicate IDs, absent evidence, false
   completion, and an untracked numbered web suite.
+
+## 2026-07-13 — First evidence tranche closed
+
+- Run 29269377480 closed 20 capability entries with real device evidence;
+  14 remain explicitly missing. Normal mode stays green for incremental
+  delivery and strict mode remains the epic close-out gate.
+- A separate runtime import guard mechanically prevents mobile code from
+  reaching into `apps/web`; only `@travel-planner/shared` wire contracts cross
+  the application boundary.
