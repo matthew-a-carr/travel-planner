@@ -65,9 +65,13 @@ The dev-client `.app` can then be installed into the simulator via
    on `macos-latest` runners).
 5. Runs `xcodebuild -workspace TravelPlanner.xcworkspace -scheme
    TravelPlanner -configuration Release -sdk iphonesimulator
-   -derivedDataPath build CODE_SIGNING_ALLOWED=NO` from
+   -derivedDataPath build CODE_SIGN_IDENTITY=-` from
    `apps/mobile/ios/` to produce a self-contained `.app` for the iOS
-   Simulator. **The original ADR draft named `eas build --local`
+   Simulator. Xcode's local ad-hoc identity requires no Apple account or
+   developer certificate while retaining the `application-identifier`
+   entitlement required by iOS Keychain. CI verifies the signature and
+   entitlement before installing the app. **The original ADR draft named
+   `eas build --local`
    here; switched to raw `xcodebuild` during step 9 implementation
    when EAS Local was found to require an EAS project ID + an EAS
    CLI session. The raw path has zero external-account dependency

@@ -526,8 +526,10 @@ jobs:
       - name: Build iOS Simulator .app via xcodebuild
         # Per ADR-055: skip EAS Local for the build (no external account
         # dependency); use raw xcodebuild against the prebuild output.
-        # `CODE_SIGNING_ALLOWED=NO` avoids requiring a developer cert
-        # for simulator builds.
+        # Simulator builds use Xcode's local ad-hoc identity (`-`). This needs
+        # no Apple account or developer certificate, but unlike an unsigned
+        # bundle it carries the application-identifier entitlement required by
+        # iOS Keychain / expo-secure-store.
         #
         # Build `Release` (not `Debug`): the Release config runs the
         # "Bundle React Native code and images" Xcode build phase, which
@@ -565,7 +567,9 @@ jobs:
             -sdk iphonesimulator \
             -derivedDataPath build \
             ARCHS=arm64 \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGN_IDENTITY="-"
 
       # Two fail-fast gates before any Maestro time is spent (SPEC-013):
       # (1) the backend is actually serving — surfacing the server log
@@ -597,6 +601,14 @@ jobs:
             echo "::error::No .app bundle found under build/Build/Products/Release-iphonesimulator"
             exit 1
           fi
+          codesign --verify --deep --strict "$APP_PATH"
+          APP_IDENTIFIER=$(codesign --display --entitlements - --xml "$APP_PATH" \
+            | plutil -extract application-identifier raw -)
+          if [ -z "$APP_IDENTIFIER" ]; then
+            echo "::error::Simulator app has no application-identifier entitlement — Keychain cannot work"
+            exit 1
+          fi
+          echo "Simulator app is ad-hoc signed with a Keychain-capable application identifier."
           BUNDLE=$(find "$APP_PATH" -maxdepth 1 -name 'main.jsbundle' | head -1)
           if [ -z "$BUNDLE" ]; then
             echo "::error::No main.jsbundle inside $APP_PATH — Release bundle phase did not run?"

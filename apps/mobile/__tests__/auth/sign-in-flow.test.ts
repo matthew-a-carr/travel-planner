@@ -85,12 +85,7 @@ describe('runSignInFlow — happy path', () => {
     );
     // Only two apiPost calls — /start and /exchange. No /me here anymore.
     expect(d.apiPost).toHaveBeenCalledTimes(2);
-    expect(onPhase.mock.calls).toEqual([
-      ['pkce'],
-      ['start'],
-      ['browser'],
-      ['exchange'],
-    ]);
+    expect(onPhase.mock.calls).toEqual([['pkce'], ['start'], ['browser'], ['exchange']]);
   });
 });
 
