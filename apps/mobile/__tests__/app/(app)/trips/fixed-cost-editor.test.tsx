@@ -17,14 +17,18 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import FixedCostEditorScreen from '../../../../app/(app)/trips/[id]/fixed-costs/[fixedCostId]';
 
 it('validates and creates a categorised fixed cost', async () => {
+  const dismiss = jest.spyOn(Keyboard, 'dismiss');
   mockCreate.mockResolvedValue({ ok: true, data: { id: 'f1' } });
   render(<FixedCostEditorScreen />);
   fireEvent.press(screen.getByTestId('fixed-cost-submit'));
   expect(screen.getByTestId('fixed-cost-error')).toHaveTextContent(/Label/);
   fireEvent.changeText(screen.getByTestId('fixed-cost-label'), 'Flights');
+  fireEvent(screen.getByTestId('fixed-cost-label'), 'submitEditing');
+  expect(dismiss).toHaveBeenCalled();
   fireEvent.changeText(screen.getByTestId('fixed-cost-amount'), '800');
   fireEvent.press(screen.getByTestId('fixed-cost-category-transport'));
   fireEvent.press(screen.getByTestId('fixed-cost-submit'));

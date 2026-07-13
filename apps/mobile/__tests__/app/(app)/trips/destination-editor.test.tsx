@@ -39,15 +39,19 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import DestinationEditorScreen from '../../../../app/(app)/trips/[id]/destinations/[destinationId]';
 
 it('suggests a canonical budget and creates a destination', async () => {
+  const dismiss = jest.spyOn(Keyboard, 'dismiss');
   mockCreate.mockResolvedValue({ ok: true, data: { id: 'd1' } });
   render(<DestinationEditorScreen />);
   fireEvent.changeText(screen.getByTestId('destination-country'), 'Jap');
   fireEvent.press(screen.getByTestId('destination-country-JPN'));
   fireEvent.changeText(screen.getByTestId('destination-start-date'), '2027-04-01');
   fireEvent.changeText(screen.getByTestId('destination-end-date'), '2027-04-08');
+  fireEvent(screen.getByTestId('destination-end-date'), 'submitEditing');
+  expect(dismiss).toHaveBeenCalled();
   await waitFor(() => expect(screen.getByTestId('destination-budget').props.value).toBe('700'));
   fireEvent.press(screen.getByTestId('destination-submit'));
   await waitFor(() => expect(mockCreate).toHaveBeenCalled());

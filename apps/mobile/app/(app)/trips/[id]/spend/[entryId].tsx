@@ -1,7 +1,7 @@
 import { isoDateSchema, spendCategorySchema, type WireSpendCategory } from '@travel-planner/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../../../../src/auth/auth-context';
 import {
@@ -128,6 +128,8 @@ export default function SpendEditorScreen() {
             accessibilityLabel="Spend amount in pounds"
             keyboardType="decimal-pad"
             onChangeText={setAmount}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="spend-amount"
             value={amount}
@@ -136,6 +138,8 @@ export default function SpendEditorScreen() {
           <TextInput
             accessibilityLabel="Spend date"
             onChangeText={setSpentAt}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="spend-date"
             value={spentAt}
@@ -159,6 +163,8 @@ export default function SpendEditorScreen() {
             accessibilityLabel="Spend description"
             maxLength={500}
             onChangeText={setDescription}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="spend-description"
             value={description}

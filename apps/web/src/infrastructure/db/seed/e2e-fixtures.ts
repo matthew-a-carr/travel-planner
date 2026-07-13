@@ -39,7 +39,7 @@ export const E2E_FIXTURES = {
   trip: {
     id: 'b0000000-0e2e-4000-8000-000000000001',
     name: 'Kyoto Adventure',
-    totalBudgetPence: 500_000, // £5,000
+    totalBudgetPence: 650_000, // £6,500; leaves capacity for mutating E2E journeys
     status: 'active',
   },
   destinations: [

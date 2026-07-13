@@ -1,7 +1,7 @@
 import { fixedCostCategorySchema, type WireFixedCostCategory } from '@travel-planner/shared';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../../../../src/auth/auth-context';
 import {
@@ -92,6 +92,8 @@ export default function FixedCostEditorScreen() {
             accessibilityLabel="Fixed cost label"
             value={label}
             onChangeText={setLabel}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="fixed-cost-label"
           />
@@ -101,6 +103,8 @@ export default function FixedCostEditorScreen() {
             value={amount}
             onChangeText={setAmount}
             keyboardType="decimal-pad"
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="fixed-cost-amount"
           />
@@ -109,6 +113,8 @@ export default function FixedCostEditorScreen() {
             accessibilityLabel="Fixed cost date"
             value={date}
             onChangeText={setDate}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="fixed-cost-date"
           />

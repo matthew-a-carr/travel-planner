@@ -26,15 +26,19 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import SpendEditorScreen from '../../../../app/(app)/trips/[id]/spend/[entryId]';
 
 it('validates and creates destination spend in integer pence', async () => {
+  const dismiss = jest.spyOn(Keyboard, 'dismiss');
   mockCreate.mockResolvedValue({ ok: true, data: { id: 'entry-1' } });
   render(<SpendEditorScreen />);
   fireEvent.press(screen.getByTestId('spend-submit'));
   expect(screen.getByTestId('spend-error')).toHaveTextContent(/amount/i);
   fireEvent.changeText(screen.getByTestId('spend-amount'), '25.50');
   fireEvent.changeText(screen.getByTestId('spend-description'), 'Ramen');
+  fireEvent(screen.getByTestId('spend-description'), 'submitEditing');
+  expect(dismiss).toHaveBeenCalled();
   fireEvent.press(screen.getByTestId('spend-category-food'));
   fireEvent.press(screen.getByTestId('spend-submit'));
   await waitFor(() =>

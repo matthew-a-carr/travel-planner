@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -148,6 +149,8 @@ export default function DestinationEditorScreen() {
             accessibilityLabel="Destination name"
             value={name}
             onChangeText={setName}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-name"
           />
@@ -156,6 +159,8 @@ export default function DestinationEditorScreen() {
             accessibilityLabel="Destination country"
             value={country}
             onChangeText={setCountry}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-country"
           />
@@ -174,6 +179,8 @@ export default function DestinationEditorScreen() {
             accessibilityLabel="Destination city"
             value={city}
             onChangeText={setCity}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-city"
           />
@@ -182,6 +189,8 @@ export default function DestinationEditorScreen() {
             accessibilityLabel="Destination start date"
             value={startDate}
             onChangeText={setStartDate}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-start-date"
           />
@@ -190,6 +199,8 @@ export default function DestinationEditorScreen() {
             accessibilityLabel="Destination end date"
             value={endDate}
             onChangeText={setEndDate}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-end-date"
           />
@@ -218,6 +229,8 @@ export default function DestinationEditorScreen() {
               budgetEdited.current = true;
               setBudget(value);
             }}
+            onSubmitEditing={Keyboard.dismiss}
+            returnKeyType="done"
             style={styles.input}
             testID="destination-budget"
           />

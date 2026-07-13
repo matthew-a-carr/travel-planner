@@ -44,7 +44,7 @@ appId: dev.matthewcarr.travelplanner
     id: 'spend-date'
 - eraseText
 - inputText: '2026-06-04'
-- hideKeyboard
+- pressKey: enter
 - tapOn:
     id: 'spend-category-shopping'
 - scrollUntilVisible:
@@ -54,7 +54,7 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'spend-description'
 - inputText: 'Mobile Finance Entry'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'spend-submit'
@@ -81,7 +81,7 @@ appId: dev.matthewcarr.travelplanner
     id: 'spend-amount'
 - eraseText
 - inputText: '1200'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'spend-category-activities'

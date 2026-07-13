@@ -7,11 +7,12 @@ const keyboardJourneys = [
   'spend-finance-journey.yaml',
 ];
 
-test('write journeys dismiss the iOS keyboard without swipe typing', () => {
+test('write journeys dismiss the iOS keyboard with the return key', () => {
   for (const flow of keyboardJourneys) {
     const contents = readFileSync(new URL(`../.maestro/flows/${flow}`, import.meta.url), 'utf8');
 
-    assert.match(contents, /- hideKeyboard\b/, `${flow} must dismiss the keyboard explicitly`);
+    assert.match(contents, /- pressKey: enter\b/, `${flow} must submit the focused input`);
+    assert.doesNotMatch(contents, /- hideKeyboard\b/, `${flow} must avoid flaky iOS hideKeyboard`);
     assert.doesNotMatch(
       contents,
       /- swipe:\s*\n\s*direction: UP/,

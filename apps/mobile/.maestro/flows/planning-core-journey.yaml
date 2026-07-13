@@ -33,7 +33,7 @@ appId: dev.matthewcarr.travelplanner
 - inputText: 'Japan'
 - tapOn:
     id: 'destination-country-JPN'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'destination-start-date'
@@ -41,7 +41,7 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-start-date'
 - inputText: '2027-04-01'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'destination-end-date'
@@ -49,7 +49,7 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'destination-end-date'
 - inputText: '2027-04-08'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'destination-submit'
@@ -69,7 +69,7 @@ appId: dev.matthewcarr.travelplanner
     id: 'destination-name'
 - eraseText
 - inputText: 'Mobile Planning Updated'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'destination-submit'
@@ -93,7 +93,7 @@ appId: dev.matthewcarr.travelplanner
 - tapOn:
     id: 'fixed-cost-amount'
 - inputText: '250'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'fixed-cost-category-transport'
@@ -116,7 +116,7 @@ appId: dev.matthewcarr.travelplanner
     id: 'fixed-cost-label'
 - eraseText
 - inputText: 'Mobile Rail Updated'
-- hideKeyboard
+- pressKey: enter
 - scrollUntilVisible:
     element:
       id: 'fixed-cost-submit'
