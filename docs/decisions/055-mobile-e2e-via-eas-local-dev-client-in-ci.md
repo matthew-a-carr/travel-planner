@@ -67,7 +67,15 @@ The dev-client `.app` can then be installed into the simulator via
    TravelPlanner -configuration Release -sdk iphonesimulator
    -derivedDataPath build CODE_SIGNING_ALLOWED=NO` from
    `apps/mobile/ios/` to produce a self-contained `.app` for the iOS
-   Simulator. **The original ADR draft named `eas build --local`
+   Simulator. Signing is disabled because the hosted runner has no Apple
+   development team or provisioning profile. The undistributed
+   `EXPO_PUBLIC_E2E_AUTH=1` build therefore uses the existing token-storage
+   boundary with process memory instead of `expo-secure-store`; every normal
+   build continues to use the native Keychain. Synthesizing a team and
+   `application-identifier` is not valid: those claims are protected by a
+   provisioning profile and the simulator rejects the resulting binary at
+   launch. **The original ADR draft named
+   `eas build --local`
    here; switched to raw `xcodebuild` during step 9 implementation
    when EAS Local was found to require an EAS project ID + an EAS
    CLI session. The raw path has zero external-account dependency
@@ -85,7 +93,10 @@ The dev-client `.app` can then be installed into the simulator via
 6. Boots an iOS Simulator (first available `iPhone` device on the
    runner, via `xcrun simctl list devices available`).
 7. Installs the bundle (`xcrun simctl install booted <.app>`).
-8. Runs `pnpm test:e2e:mobile` (which expands to `maestro test .maestro/flows`).
+8. Runs every `.maestro/flows/*.yaml` journey independently, retrying only a
+   failing flow up to three times so its UI state cannot invalidate unrelated
+   passing journeys. `pnpm test:e2e:mobile` remains the equivalent local
+   one-shot command.
 9. On failure, uploads Maestro's report directory as a CI artifact
    (7-day retention).
 

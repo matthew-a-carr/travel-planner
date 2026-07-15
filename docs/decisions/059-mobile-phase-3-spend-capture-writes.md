@@ -1,7 +1,7 @@
 # ADR 059: Mobile Phase 3 — Spend Capture over a v1 Write Surface
 
 **Date:** 2026-06-12
-**Status:** Accepted
+**Status:** Partially superseded by [ADR 063](063-mobile-web-capability-parity-over-shared-v1-contracts.md)
 
 > Operationalised by [EPIC-003](../epics/EPIC-003-mobile-spend-capture.md).
 > Drafted autonomously at Matt's instruction ("plan the next epic without

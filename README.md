@@ -148,8 +148,12 @@ pnpm db:check:migrations # block non-transactional SQL in deploy migrations
 pnpm type-check         # TypeScript strict type check
 pnpm test:unit          # Vitest unit tests (no Docker required)
 pnpm test:integration   # Vitest integration tests — real Postgres via Testcontainers (Docker required)
-pnpm test:e2e           # Playwright e2e — self-contained via Testcontainers (Docker required)
+pnpm test:e2e           # umbrella: Playwright web + Maestro mobile journeys
 ```
+
+The web E2E suite requires Docker for its Testcontainers database. The mobile
+E2E suite requires macOS, an iOS Simulator, and the Maestro CLI; use
+`pnpm test:e2e:web` or `pnpm test:e2e:mobile` when running only one surface.
 
 Before pushing changes that can affect production build/runtime wiring, also run:
 
@@ -163,9 +167,10 @@ production build and e2e suite.
 ## Architecture
 
 This is a pnpm monorepo (see [ADR 046](./docs/decisions/046-monorepo-layout.md)).
-The web app lives at `apps/web/`; future apps (iOS — see [ADR 045](./docs/decisions/045-ios-app-strategy.md))
-will live alongside it under `apps/`. Inside the web app, the codebase follows
-a DDD-inspired layered architecture with mechanically enforced import boundaries:
+The Next.js app lives at `apps/web/`, the Expo/React Native app at
+`apps/mobile/`, and their versioned zod wire contracts at `packages/shared/`.
+Inside the web app, the codebase follows a DDD-inspired layered architecture
+with mechanically enforced import boundaries:
 
 ```
 apps/web/src/domain/        Pure TypeScript domain logic — no external dependencies
@@ -176,6 +181,9 @@ apps/web/src/app/           Next.js App Router (pages, layouts, server actions)
 ```
 
 Layer boundaries are enforced by `apps/web/src/__tests__/architecture.test.ts`. Breaking them fails CI.
+The mobile runtime is separately prevented from importing web delivery code by
+`apps/mobile/scripts/check-mobile-architecture.mjs`; it consumes only shared v1
+contracts and server APIs.
 
 Key domain decisions:
 - **Money as integers in pence** — never floats

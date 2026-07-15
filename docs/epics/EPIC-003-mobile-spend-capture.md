@@ -112,10 +112,10 @@ writes, still Expo-Go, App-Store-grade bar).
 
 | # | Slice | Demo script line(s) | Becomes SPEC | Depends on | Status |
 |---|-------|---------------------|--------------|------------|--------|
-| 1 | **Write surface** — `POST /api/v1/destinations/{id}/spend` + reusable `Idempotency-Key` machinery (table + replay short-circuit) + spend entries added to the trip-detail wire + shared schemas + OpenAPI write conventions + integration tests (incl. replay + authz isolation) | 5, 7 (server half) | _not yet planned_ | — | Not started |
-| 2 | **Capture sheet** (**milestone**) — amount-first entry sheet with category chips, destination inference, smart date default, haptic save, animated figure updates, full error/edge handling; lands with a Maestro capture-journey flow on the EPIC-004 harness (deviation #1) | 1–2, 5 | _not yet planned_ | 1, EPIC-004 slice 5 | Not started |
-| 3 | **Edit/delete endpoints** — `PATCH` + `DELETE /api/v1/spend/{id}` reusing slice-1 conventions + integration tests | 3–4 (server half) | _not yet planned_ | 1 | Not started |
-| 4 | **Entry management UX** — per-destination entry list, edit sheet, swipe-to-delete with confirm + undo window | 3–4 | _not yet planned_ | 2, 3 | Not started |
+| 1 | **Write surface** — `POST /api/v1/destinations/{id}/spend` + reusable `Idempotency-Key` machinery (table + replay short-circuit) + spend entries added to the trip-detail wire + shared schemas + OpenAPI write conventions + integration tests (incl. replay + authz isolation) | 5, 7 (server half) | [SPEC-024](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | — | Complete |
+| 2 | **Capture sheet** (**milestone**) — amount-first entry sheet with category chips, destination inference, smart date default, haptic save, animated figure updates, full error/edge handling; lands with a Maestro capture-journey flow on the EPIC-004 harness (deviation #1) | 1–2, 5 | [SPEC-024](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 1, EPIC-004 slice 5 | Complete |
+| 3 | **Edit/delete endpoints** — `PATCH` + `DELETE /api/v1/spend/{id}` reusing slice-1 conventions + integration tests | 3–4 (server half) | [SPEC-024](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 1 | Complete |
+| 4 | **Entry management UX** — per-destination entry list, edit sheet, delete with confirm | 3–4 | [SPEC-024](../specs/SPEC-024-mobile-spend-and-financial-insight.md) | 2, 3 | Complete |
 | 5 | **App-Store polish pass** — design tokens (type/spacing/colour), dark mode across all screens incl. EPIC-002's, Dynamic Type + VoiceOver audit, transitions/haptics consistency, app icon + splash refresh | 6 | _not yet planned_ | 2 | Not started |
 
 > SPECs are drafted lazily (one `ai:plan` issue per slice). Slice 3 can
@@ -266,12 +266,14 @@ a test in the slice that owns it:
 |------|---------|------|---------------|-------|
 | 2026-06-12 | — | — | Drafted | Drafted autonomously post-EPIC-002 sign-off (issue #141). |
 | 2026-06-12 | — | — | Approved | Raised to the App-Store-grade bar and landed on `main` directly at Matt's instruction; §13 decisions taken on recommendation. |
+| 2026-07-13 | 1–4 | SPEC-024 | Complete | Consolidated atomic spend writes, native capture/edit/delete, financial read-back, and real-backend Maestro coverage under EPIC-006 slice 4. Slice 5 App-Store polish remains. |
 
 ## Epic-level deviations
 
 | # | Deviation | Reason | Impact on other slices | Resolved? |
 |---|-----------|--------|------------------------|-----------|
 | 1 | Slice 2 gains "lands with a Maestro capture-journey flow on the EPIC-004 harness" and a dependency on EPIC-004 slice 5 (write-journey readiness) | [EPIC-004](./EPIC-004-mobile-e2e-authenticated-journeys.md) builds the authenticated mobile E2E harness; the reciprocal flow obligation was approved with EPIC-004 (its §13 decision 4, PR #145) | Slice 2's implementation must wait for EPIC-004 slice 5; slices 1 and 3 unaffected | Stands by design |
+| 2 | Slices 1–4 consolidated into SPEC-024; entry deletion uses an explicit confirmation rather than swipe + undo. | EPIC-006 requires behavioural web parity and one coherent financial journey; explicit confirmation is accessible, testable, and matches the existing command boundary without adding gesture-only semantics. | App-Store interaction polish remains owned by slice 5; persisted outcomes and error semantics are complete. | Yes — SPEC-024 |
 
 ## Post-epic notes
 

@@ -4,6 +4,7 @@ import { sha256 } from '@/infrastructure/ai/hash';
 import { FetchGoogleOAuthClient } from '@/infrastructure/auth/google-oauth-client';
 import { WebCryptoMobileAuthCrypto } from '@/infrastructure/auth/mobile-auth-crypto';
 import type { Db } from '@/infrastructure/db/client';
+import { DrizzleIdempotentCommandExecutor } from '@/infrastructure/db/drizzle-idempotent-command-executor';
 import { DrizzleAuthRateLimitRepository } from '@/infrastructure/db/repositories/drizzle-auth-rate-limit-repository';
 import { DrizzleChatMessageRepository } from '@/infrastructure/db/repositories/drizzle-chat-message-repository';
 import { DrizzleCountryReferenceRepository } from '@/infrastructure/db/repositories/drizzle-country-reference-repository';
@@ -33,6 +34,14 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
   const destinationRepository = new DrizzleDestinationRepository(dbClient);
   const spendEntryRepository = new DrizzleSpendEntryRepository(dbClient);
   const tripFixedCostRepository = new DrizzleTripFixedCostRepository(dbClient);
+  const idempotentCommandExecutor = new DrizzleIdempotentCommandExecutor(dbClient, (tx) => ({
+    tripRepository: new DrizzleTripRepository(tx),
+    destinationRepository: new DrizzleDestinationRepository(tx),
+    tripFixedCostRepository: new DrizzleTripFixedCostRepository(tx),
+    organizationRepository: new DrizzleOrganizationRepository(tx),
+    spendEntryRepository: new DrizzleSpendEntryRepository(tx),
+    countryReferenceRepository: new DrizzleCountryReferenceRepository(tx),
+  }));
 
   const ai = createAiServices({
     tripRepository,
@@ -59,6 +68,7 @@ export function createAppContainer(input: CreateAppContainerInput): AppContainer
     hashFn: sha256,
     chatMessageRepository: new DrizzleChatMessageRepository(dbClient),
     chatAssistant: ai.chatAssistant,
+    idempotentCommandExecutor,
     mobileAuthStateRepository: new DrizzleMobileAuthStateRepository(dbClient),
     mobileAuthExchangeCodeRepository: new DrizzleMobileAuthExchangeCodeRepository(dbClient),
     refreshTokenRepository: new DrizzleRefreshTokenRepository(dbClient),

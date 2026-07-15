@@ -136,4 +136,19 @@ describe('SignInScreen — generic error branch', () => {
     expect(mockRunSignInFlow).toHaveBeenCalledTimes(2);
     expect(mockSignIn).toHaveBeenCalledTimes(1);
   });
+
+  it('recovers to a retryable error when the sign-in pipeline rejects unexpectedly', async () => {
+    mockRunSignInFlow.mockRejectedValueOnce(new Error('native boundary failed'));
+
+    render(<SignInScreen />);
+    fireEvent.press(screen.getByTestId('login-google-button'));
+
+    const errorView = await screen.findByTestId('login-screen-error');
+    expect(errorView).toHaveTextContent(
+      'Sign-in failed. Try again. [code: unexpected_client_error]',
+    );
+    expect(screen.getByTestId('login-google-button')).not.toBeDisabled();
+    expect(mockSignIn).not.toHaveBeenCalled();
+    expect(mockRouterReplace).not.toHaveBeenCalled();
+  });
 });

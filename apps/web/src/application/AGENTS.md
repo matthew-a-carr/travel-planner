@@ -18,6 +18,8 @@ and by code review / CI for the integration test requirement.
 
 ```
 src/application/
+  ports/
+    idempotent-command-executor.ts ← atomic command/replay boundary (ADR 064)
   email/
     base-email-template.ts         + base-email-template.test.ts
     user-added-invite-template.ts  + user-added-invite-template.test.ts
@@ -35,6 +37,7 @@ src/application/
     record-spend.ts               + record-spend.int-test.ts
     edit-spend-entry.ts           + edit-spend-entry.int-test.ts
     delete-spend-entry.ts         + delete-spend-entry.int-test.ts
+    get-trip-financials-for-user.ts + get-trip-financials-for-user.int-test.ts
     bulk-add-destinations.ts      + bulk-add-destinations.int-test.ts
     analyse-trip-timeline.ts      + analyse-trip-timeline.int-test.ts
     assess-trip-visas.ts          + assess-trip-visas.int-test.ts

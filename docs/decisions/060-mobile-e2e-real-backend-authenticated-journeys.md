@@ -1,7 +1,7 @@
 # ADR 060: Mobile E2E Phase 2 — Real Backend and Authenticated Journeys in CI
 
 **Date:** 2026-06-12
-**Status:** Accepted
+**Status:** Accepted (runner-direct transport superseded by ADR 065)
 **Related:** [ADR 055 — Mobile E2E via Local Dev-Client Build in CI](./055-mobile-e2e-via-eas-local-dev-client-in-ci.md), [ADR 051 — Mobile Authentication Model](./051-mobile-authentication-model.md), [ADR 057 — Autonomous Workflow](./057-autonomous-workflow-and-remote-execution.md), [ADR 059 — Mobile Phase 3: Spend Capture](./059-mobile-phase-3-spend-capture-writes.md), [TD-009](../tech-debt.md)
 
 > Operationalised by [EPIC-004](../epics/EPIC-004-mobile-e2e-authenticated-journeys.md).
@@ -75,10 +75,11 @@ the real app against a real backend as a signed-in user:
    for a seeded E2E user through the same machinery as the real flow,
    and an E2E app build (flagged at bundle time) injects a browser-step
    replacement at the existing `runSignInFlow(deps)` seam that calls it.
-   The endpoint is **double-gated**: it exists only when an explicit
-   env flag (set by the e2e orchestration alone) is true **and** the
-   process is not a Vercel deployment, and an integration test asserts
-   it returns 404 when the flag is unset. If that gate cannot be made
+   The endpoint is **triple-gated**: it exists only when an explicit
+   env flag (set by the e2e orchestration alone) is true, the process is
+   not a Vercel deployment, **and** ADR 065's random per-run request secret
+   matches. Integration tests assert it returns 404 when a gate is absent.
+   If that boundary cannot be made
    provable, the seam approach is killed rather than shipped (EPIC-004
    kill criterion).
 4. **Journey-level flows, not edge-case flows.** One Maestro flow per
@@ -119,11 +120,11 @@ the real app against a real backend as a signed-in user:
   app's build/boot strategy on the runner (build+`pnpm start` vs
   `pnpm dev:next`, `.next` caching) is decided in slice 1 with real
   numbers.
-- A test-auth seam is a security-sensitive artifact. The double gate +
+- A test-auth seam is a security-sensitive artifact. The triple gate +
   404 integration test + "never set on Vercel" rule are load-bearing;
   any weakening is an epic-level deviation, not a slice detail.
 - More flows = more flake surface on a runner family with a flake
-  history (TD-009). The 3× retry + diagnostics insurance stays; the
+  history (TD-009). The per-flow 3× retry + diagnostics insurance stays; the
   flake kill criterion freezes flow growth if the rate regresses.
 
 **Trade-offs:**

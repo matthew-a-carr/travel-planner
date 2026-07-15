@@ -24,6 +24,7 @@ import { clearTokens, readTokens, storeTokens } from '../../src/auth/keychain';
 type SecureStoreMock = typeof SecureStore & {
   __mockStore: Map<string, string>;
   setItemAsync: jest.Mock;
+  getItemAsync: jest.Mock;
   deleteItemAsync: jest.Mock;
 };
 
@@ -32,7 +33,13 @@ const mockedStore = SecureStore as SecureStoreMock;
 beforeEach(() => {
   mockedStore.__mockStore.clear();
   mockedStore.setItemAsync.mockClear();
+  mockedStore.getItemAsync.mockClear();
   mockedStore.deleteItemAsync.mockClear();
+  delete process.env.EXPO_PUBLIC_E2E_AUTH;
+});
+
+afterEach(() => {
+  delete process.env.EXPO_PUBLIC_E2E_AUTH;
 });
 
 describe('storeTokens', () => {
@@ -153,5 +160,25 @@ describe('readTokens', () => {
 
     const tokens = await readTokens();
     expect(tokens).toBeNull();
+  });
+});
+
+describe('E2E token-store seam', () => {
+  it('round-trips and clears tokens without calling the native Keychain', async () => {
+    process.env.EXPO_PUBLIC_E2E_AUTH = '1';
+    const tokens = {
+      access_token: 'e2e-access',
+      refresh_token: 'e2e-refresh',
+      access_expires_at: '2026-07-13T12:00:00.000Z',
+    };
+
+    await storeTokens(tokens);
+    expect(await readTokens()).toEqual(tokens);
+    await clearTokens();
+    expect(await readTokens()).toBeNull();
+
+    expect(mockedStore.setItemAsync).not.toHaveBeenCalled();
+    expect(mockedStore.getItemAsync).not.toHaveBeenCalled();
+    expect(mockedStore.deleteItemAsync).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,8 @@
  *
  * Seeds the deterministic e2e fixtures (user, org, Kyoto trip) on top of
  * an already-migrated database. Reference data is `pnpm db:seed`'s job —
- * run that first. Idempotent; safe to re-run.
+ * run that first. Safe to re-run: each application restores the dedicated
+ * E2E organization to the exact fixture state.
  */
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';

@@ -55,14 +55,15 @@ Operations runbook: [`docs/operations/autonomous-workflow.md`](./docs/operations
 ## Repo layout
 
 This is a pnpm monorepo (ADR 046). The web application lives at
-`apps/web/`; future apps (iOS — ADR 045) will sit alongside it under
-`apps/`. Shared workspace packages live under `packages/`.
+`apps/web/`, the Expo/React Native application at `apps/mobile/`, and shared
+wire contracts at `packages/shared/`.
 
 ```
 travel-planner/
 ├── .agents/skills/   ← local-only skills (deploy-smoke-test); lifecycle skills via agent-skills plugin
 ├── apps/web/         ← Next.js application (src/, tests/, drizzle/, configs)
-├── packages/         ← shared workspace packages (empty for now)
+├── apps/mobile/      ← Expo Router iOS application + Jest/Maestro tests
+├── packages/shared/  ← zod schemas and types for the versioned v1 wire contract
 ├── docs/             ← project-wide docs and ADRs
 │   ├── decisions/           ← Architecture Decision Records
 │   ├── epics/               ← multi-SPEC initiatives (ADR 049)
@@ -168,6 +169,16 @@ ln -s AGENTS.md CLAUDE.md
 - Integration tests still use real Drizzle repositories + real Postgres via
   Testcontainers (no DB/repository mocks).
 
+### Mobile delivery boundary
+
+- `apps/mobile/` consumes the server only through the versioned v1 contract in
+  `@travel-planner/shared`; it must not import web application or delivery code.
+- `apps/mobile/scripts/check-mobile-architecture.mjs` enforces that boundary as
+  part of `pnpm test:mobile` and CI.
+- Authenticated Maestro flows run against the real Next.js/Postgres stack.
+  Exact E2E fixtures are restored before every attempt so partial writes cannot
+  contaminate a retry or a later mutating journey.
+
 ---
 
 ## Key commands
@@ -186,6 +197,8 @@ ln -s AGENTS.md CLAUDE.md
 | e2e — web only (Playwright; Docker required — Testcontainers manages the DB) | `pnpm test:e2e:web` |
 | e2e — web Playwright UI mode | `pnpm test:e2e:web:ui` |
 | e2e — mobile only (Maestro; requires iOS Simulator + Maestro CLI) | `pnpm test:e2e:mobile` |
+| Validate incremental mobile/web capability ledger | `pnpm mobile:parity:check` |
+| Require complete mobile/web capability parity (epic close-out) | `pnpm mobile:parity:check:complete` |
 
 ---
 
@@ -530,7 +543,10 @@ itself changes, and can be forced on any branch via `workflow_dispatch`
 with `mobile: true`. Since SPEC-013 / ADR 060 the macOS `mobile-e2e` job
 runs Maestro against a **real backend**: native PostgreSQL (no Docker on
 macOS runners) + `db:migrate`/`db:seed`/`seed:e2e` + the production Next
-server, with a canary + bundle-URL assertion gating before Maestro.
+server behind an ephemeral, checksum-pinned HTTPS tunnel (ADR 065). Tunnel and
+bundle assertions plus the per-run-secret test-auth seam smoke all gate Maestro.
+The lint job also validates `docs/mobile-parity.json`; changing that ledger
+forces the mobile jobs so a completed-evidence claim is exercised in CI.
 
 The web jobs:
 
@@ -594,6 +610,7 @@ the code change.
 | Feature spec or tech debt | `docs/specs/README.md` index, `docs/tech-debt.md` |
 | A new `/api/v1/*` endpoint or error code | `docs/api-conventions.md` (vocabulary tables, naming, streaming-compat); `packages/shared/src/api-errors.ts` is the source of truth for the `ApiErrorCode` / `ApiErrorBody` union + zod schema (SPEC-005); `apps/web/src/app/api/v1/_lib/errors.ts` holds the load-bearing `export type {...} from '@travel-planner/shared'` shim plus the server-side `respondWithError` helper and `STATUS_BY_CODE` map — keep them in lock-step when adding a code; `apps/web/src/proxy.ts` matcher already excludes `api/v1` (SPEC-002), so v1 endpoints handle their own auth |
 | A `@travel-planner/shared` wire schema or a `/api/v1/*` request/response/error shape | Run `pnpm openapi:generate` and commit `docs/openapi/v1.yaml` in the same change — `pnpm openapi:check` (in the CI `lint` job) fails on drift. Generator: `apps/web/scripts/generate-openapi.ts` (zod-native `z.toJSONSchema`, SPEC-008 / ADR 056). New endpoints must be added to the generator's `paths`/registry |
+| A numbered web E2E feature suite or mobile capability/evidence path | Update `docs/mobile-parity.json`; run `pnpm mobile:parity:check`. At EPIC-006 close-out, `pnpm mobile:parity:check:complete` must pass |
 | Proxy / middleware matcher (`apps/web/src/proxy.ts`) | Verify excluded paths (e.g. `api/auth`, `api/v1`) still handle their own auth and return their own envelopes; run `pnpm test:e2e:web` |
 | Epic (add / status change / slice ledger update) | `docs/epics/README.md` index; the linked strategic ADR if any |
 | A slice of an epic shipped or changed status | The parent epic's §7 slice table and slice ledger |

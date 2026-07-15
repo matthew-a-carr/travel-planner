@@ -46,15 +46,26 @@ export default function TripsScreen() {
     <SafeAreaView style={styles.root} testID="trips-screen-root">
       <View style={styles.header}>
         <Text style={styles.title}>Trips</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Profile"
-          onPress={() => router.push('/me')}
-          style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
-          testID="trips-screen-profile"
-        >
-          <Text style={styles.profileButtonText}>Profile</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Create trip"
+            onPress={() => router.push('/trips/new')}
+            style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
+            testID="trips-screen-create"
+          >
+            <Text style={styles.profileButtonText}>New</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            onPress={() => router.push('/me')}
+            style={({ pressed }) => [styles.profileButton, pressed && styles.profileButtonPressed]}
+            testID="trips-screen-profile"
+          >
+            <Text style={styles.profileButtonText}>Profile</Text>
+          </Pressable>
+        </View>
       </View>
 
       {state.status === 'loading' && (
@@ -87,7 +98,7 @@ export default function TripsScreen() {
           ListEmptyComponent={
             <View style={styles.centred} testID="trips-screen-empty">
               <Text style={styles.emptyTitle}>No trips yet</Text>
-              <Text style={styles.emptyBody}>Plan your first trip on the web app.</Text>
+              <Text style={styles.emptyBody}>Tap New to plan your first trip.</Text>
             </View>
           }
           refreshControl={
@@ -145,6 +156,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#0f172a',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   profileButton: {
     minHeight: 44,

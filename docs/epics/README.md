@@ -64,3 +64,4 @@ for rationale.
 | [003](EPIC-003-mobile-spend-capture.md) | Mobile Spend Capture — Record Spend on the Phone, Beautifully | [059](../decisions/059-mobile-phase-3-spend-capture-writes.md) | Approved |
 | [004](EPIC-004-mobile-e2e-authenticated-journeys.md) | Mobile E2E Phase 2 — Authenticated Journeys Against a Real Backend | [060](../decisions/060-mobile-e2e-real-backend-authenticated-journeys.md) | Approved |
 | [005](EPIC-005-visa-requirements-end-to-end.md) | Visa Requirements — End-to-End | — | Draft |
+| [006](EPIC-006-mobile-web-capability-parity.md) | Mobile-Web Capability Parity | [063](../decisions/063-mobile-web-capability-parity-over-shared-v1-contracts.md) | Approved |

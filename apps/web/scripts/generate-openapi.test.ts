@@ -57,8 +57,43 @@ describe('OpenAPI generator', () => {
         '/api/v1/auth/mobile/revoke',
         '/api/v1/trips',
         '/api/v1/trips/{id}',
+        '/api/v1/organizations',
+        '/api/v1/countries',
+        '/api/v1/trips/{id}/destinations',
+        '/api/v1/trips/{id}/destinations/{destinationId}',
+        '/api/v1/trips/{id}/fixed-costs',
+        '/api/v1/trips/{id}/fixed-costs/{fixedCostId}',
       ]),
     );
+  });
+
+  it('documents destination and fixed-cost command contracts (SPEC-023)', () => {
+    const paths = doc.paths as Json;
+    expect((paths['/api/v1/countries'] as Json).get).toBeTypeOf('object');
+    expect((paths['/api/v1/trips/{id}/destinations'] as Json).post).toBeTypeOf('object');
+    expect((paths['/api/v1/trips/{id}/destinations/{destinationId}'] as Json).patch).toBeTypeOf('object');
+    expect((paths['/api/v1/trips/{id}/fixed-costs/{fixedCostId}'] as Json).delete).toBeTypeOf('object');
+    const schemas = (doc.components as Json).schemas as Json;
+    for (const id of ['CountryReferenceSummary', 'CreateDestinationRequest', 'UpdateDestinationRequest', 'CreateFixedCostRequest', 'UpdateFixedCostRequest']) {
+      expect(schemas[id], `missing component ${id}`).toBeTypeOf('object');
+    }
+  });
+
+  it('documents retry-safe trip commands and organization choices (SPEC-022)', () => {
+    const paths = doc.paths as Json;
+    const trips = paths['/api/v1/trips'] as Json;
+    const trip = paths['/api/v1/trips/{id}'] as Json;
+    const organizations = paths['/api/v1/organizations'] as Json;
+
+    expect(trips.post).toBeTypeOf('object');
+    expect(trip.patch).toBeTypeOf('object');
+    expect(trip.delete).toBeTypeOf('object');
+    expect(organizations.get).toBeTypeOf('object');
+    expect(((trips.post as Json).parameters as Json[])[0]).toMatchObject({
+      name: 'Idempotency-Key',
+      in: 'header',
+      required: true,
+    });
   });
 
   it('documents the trip detail payload with its nested components (SPEC-010)', () => {

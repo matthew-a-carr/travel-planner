@@ -6,8 +6,10 @@
 // internal domain logic (apps/web/src/domain/**) is NOT re-exported here.
 
 export * from './api-errors';
+export * from './country';
 export * from './envelope';
 export * from './me';
 export * from './mobile-auth';
+export * from './organization';
 export * from './trip';
 export * from './version';

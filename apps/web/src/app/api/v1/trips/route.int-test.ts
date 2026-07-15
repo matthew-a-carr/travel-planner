@@ -24,7 +24,7 @@ vi.mock('@/infrastructure/auth', () => ({
 }));
 
 import { auth } from '@/infrastructure/auth';
-import { GET } from './route';
+import { GET, POST } from './route';
 
 type MockSession = { user: { id: string; email: string; name: string } } | null;
 type MockedAuth = {
@@ -57,6 +57,21 @@ function requestWithBearer(jwt: string): Request {
 }
 
 const tripsSuccessEnvelope = apiSuccessSchema(z.array(tripSummarySchema));
+
+function postTrip(jwt: string, body: unknown, idempotencyKey?: string): Promise<Response> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${jwt}`,
+    'Content-Type': 'application/json',
+  };
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+  return POST(
+    new Request('http://localhost/api/v1/trips', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    }),
+  );
+}
 
 describe('GET /api/v1/trips', () => {
   it('returns 200 with the member trips as TripSummary[] in the success envelope (criterion 1)', async () => {
@@ -192,5 +207,100 @@ describe('GET /api/v1/trips', () => {
     const parsed = apiErrorEnvelopeSchema.parse(body);
     expect(parsed.error.code).toBe('internal');
     expect(JSON.stringify(body)).not.toContain('boom from auth()');
+  });
+});
+
+describe('POST /api/v1/trips', () => {
+  it('creates a trip in an organization the bearer belongs to', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const jwt = await signAccessToken({ userId: user.id });
+
+    const response = await postTrip(
+      jwt,
+      { organizationId: org.id, name: 'New Zealand', totalBudgetPence: 900_000 },
+      'create-nz',
+    );
+
+    expect(response.status).toBe(201);
+    const parsed = apiSuccessSchema(tripSummarySchema).parse(await response.json());
+    expect(parsed.data).toMatchObject({
+      organizationId: org.id,
+      name: 'New Zealand',
+      totalBudget: { amountPence: 900_000, currency: 'GBP' },
+      status: 'planning',
+    });
+  });
+
+  it('replays the exact response and does not create a second trip', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const jwt = await signAccessToken({ userId: user.id });
+    const body = { organizationId: org.id, name: 'Iceland', totalBudgetPence: 300_000 };
+
+    const first = await postTrip(jwt, body, 'create-iceland');
+    const replay = await postTrip(jwt, body, 'create-iceland');
+
+    expect(replay.status).toBe(201);
+    expect(await replay.json()).toEqual(await first.json());
+    const list = tripsSuccessEnvelope.parse(await (await GET(requestWithBearer(jwt))).json());
+    expect(list.data.filter((trip) => trip.name === 'Iceland')).toHaveLength(1);
+  });
+
+  it('returns conflict when the same key is reused with a different body', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const jwt = await signAccessToken({ userId: user.id });
+
+    await postTrip(
+      jwt,
+      { organizationId: org.id, name: 'First', totalBudgetPence: 100_000 },
+      'same-key',
+    );
+    const response = await postTrip(
+      jwt,
+      { organizationId: org.id, name: 'Second', totalBudgetPence: 100_000 },
+      'same-key',
+    );
+
+    expect(response.status).toBe(409);
+    expect(apiErrorEnvelopeSchema.parse(await response.json()).error.code).toBe('conflict');
+  });
+
+  it('rejects a missing idempotency key and invalid body', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const jwt = await signAccessToken({ userId: user.id });
+
+    const missingKey = await postTrip(jwt, {
+      organizationId: org.id,
+      name: 'Missing key',
+      totalBudgetPence: 100_000,
+    });
+    expect(missingKey.status).toBe(400);
+    expect(apiErrorEnvelopeSchema.parse(await missingKey.json()).error.code).toBe('bad_request');
+
+    const invalid = await postTrip(
+      jwt,
+      { organizationId: org.id, name: '', totalBudgetPence: -1 },
+      'invalid-body',
+    );
+    expect(invalid.status).toBe(400);
+    expect(apiErrorEnvelopeSchema.parse(await invalid.json()).error.code).toBe('validation_failed');
+  });
+
+  it('does not create a trip in an organization the bearer cannot access', async () => {
+    const owner = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, owner.id);
+    const outsider = await seedUser(db, { isApproved: true });
+
+    const response = await postTrip(
+      await signAccessToken({ userId: outsider.id }),
+      { organizationId: org.id, name: 'Intrusion', totalBudgetPence: 100_000 },
+      'forbidden-create',
+    );
+
+    expect(response.status).toBe(403);
+    expect(apiErrorEnvelopeSchema.parse(await response.json()).error.code).toBe('forbidden');
   });
 });

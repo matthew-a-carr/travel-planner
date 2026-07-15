@@ -1,0 +1,154 @@
+# Spend CRUD + financial insight journey (SPEC-024 / EPIC-006 slice 4).
+appId: dev.matthewcarr.travelplanner
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: 'login-screen-root'
+    commands:
+      - tapOn:
+          id: 'login-google-button'
+- extendedWaitUntil:
+    visible:
+      id: 'trips-screen-root'
+    timeout: 60000
+- tapOn:
+    id: 'trips-screen-item-b0000000-0e2e-4000-8000-000000000001'
+- extendedWaitUntil:
+    visible:
+      id: 'trip-detail-spend'
+    timeout: 30000
+- tapOn:
+    id: 'trip-finance-open'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-root'
+    timeout: 30000
+- assertVisible:
+    id: 'finance-category-food'
+- assertVisible:
+    id: 'finance-daily-pace'
+- tapOn:
+    id: 'finance-add-spend'
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- tapOn:
+    id: 'spend-destination-c0000000-0e2e-4000-8000-000000000001'
+- tapOn:
+    id: 'spend-amount'
+- inputText: '1000'
+- tapOn:
+    id: 'spend-date'
+- eraseText
+- inputText: '2026-06-04'
+- pressKey: enter
+- tapOn:
+    id: 'spend-category-shopping'
+- scrollUntilVisible:
+    element:
+      id: 'spend-description'
+    direction: DOWN
+- tapOn:
+    id: 'spend-description'
+- inputText: 'Mobile Finance Entry'
+- pressKey: enter
+- scrollUntilVisible:
+    element:
+      id: 'spend-submit'
+    direction: DOWN
+- tapOn:
+    id: 'spend-submit'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-root'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
+    direction: DOWN
+    visibilityPercentage: 50
+- assertVisible:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
+- scrollUntilVisible:
+    element:
+      id: 'finance-dismiss-alerts'
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: 'finance-dismiss-alerts'
+    retryTapIfNoChange: true
+- assertNotVisible:
+    id: 'finance-alerts'
+- scrollUntilVisible:
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
+    direction: DOWN
+    visibilityPercentage: 50
+    centerElement: true
+- tapOn:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- tapOn:
+    id: 'spend-amount'
+- eraseText
+- inputText: '1200'
+- pressKey: enter
+- scrollUntilVisible:
+    element:
+      id: 'spend-category-activities'
+    direction: UP
+- tapOn:
+    id: 'spend-category-activities'
+- scrollUntilVisible:
+    element:
+      id: 'spend-submit'
+    direction: DOWN
+- tapOn:
+    id: 'spend-submit'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-category-activities'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'finance-entry-.*'
+      text: 'Mobile Finance Entry.*'
+    direction: DOWN
+    visibilityPercentage: 50
+    centerElement: true
+- tapOn:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible:
+      id: 'spend-editor-root'
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: 'spend-delete'
+    direction: DOWN
+- tapOn:
+    id: 'spend-delete'
+- assertVisible:
+    id: 'spend-delete-warning'
+- tapOn:
+    id: 'spend-delete-confirm'
+- extendedWaitUntil:
+    visible:
+      id: 'finance-root'
+    timeout: 30000
+- assertNotVisible:
+    id: 'finance-entry-.*'
+    text: 'Mobile Finance Entry.*'

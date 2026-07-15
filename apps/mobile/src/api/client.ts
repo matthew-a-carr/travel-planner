@@ -56,11 +56,15 @@ export async function apiPost<T = undefined>(
   body: unknown,
   responseSchema?: ZodType<T>,
   bearer?: string,
+  idempotencyKey?: string,
+  additionalHeaders?: Readonly<Record<string, string>>,
 ): Promise<ApiResult<T>> {
   return request(path, responseSchema, {
     method: 'POST',
     body: JSON.stringify(body),
     bearer,
+    idempotencyKey,
+    additionalHeaders,
   });
 }
 
@@ -75,20 +79,46 @@ export async function apiGet<T = undefined>(
   });
 }
 
+export async function apiPatch<T>(
+  path: string,
+  body: unknown,
+  responseSchema: ZodType<T>,
+  bearer: string,
+  idempotencyKey: string,
+): Promise<ApiResult<T>> {
+  return request(path, responseSchema, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+    bearer,
+    idempotencyKey,
+  });
+}
+
+export async function apiDelete(
+  path: string,
+  bearer: string,
+  idempotencyKey: string,
+): Promise<ApiResult<undefined>> {
+  return request(path, undefined, { method: 'DELETE', bearer, idempotencyKey });
+}
+
 type RequestOptions = {
-  method: 'GET' | 'POST';
+  method: 'DELETE' | 'GET' | 'PATCH' | 'POST';
   body?: string;
   bearer?: string;
+  idempotencyKey?: string;
+  additionalHeaders?: Readonly<Record<string, string>>;
 };
 
 async function request<T>(
   path: string,
   responseSchema: ZodType<T> | undefined,
-  { method, body, bearer }: RequestOptions,
+  { method, body, bearer, idempotencyKey, additionalHeaders }: RequestOptions,
 ): Promise<ApiResult<T>> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...additionalHeaders };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (bearer !== undefined) headers.Authorization = `Bearer ${bearer}`;
+  if (idempotencyKey !== undefined) headers['Idempotency-Key'] = idempotencyKey;
 
   let response: Response;
   const controller = new AbortController();

@@ -8,6 +8,7 @@ import {
   seedDestination,
   seedFixedCost,
   seedOrganization,
+  seedOrganizationMember,
   seedSpendEntry,
   seedTrip,
   seedUser,
@@ -20,7 +21,7 @@ vi.mock('@/infrastructure/auth', () => ({
   auth: vi.fn().mockResolvedValue(null),
 }));
 
-import { GET } from './route';
+import { DELETE, GET, PATCH } from './route';
 
 let db: Db;
 let sql: Sql;
@@ -45,6 +46,31 @@ function getTrip(id: string, jwt?: string): Promise<Response> {
 }
 
 const detailSuccessEnvelope = apiSuccessSchema(tripDetailSchema);
+
+function patchTrip(id: string, jwt: string, body: unknown, key: string): Promise<Response> {
+  return PATCH(
+    new Request(`http://localhost/api/v1/trips/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': key,
+      },
+      body: JSON.stringify(body),
+    }),
+    { params: Promise.resolve({ id }) },
+  );
+}
+
+function deleteTrip(id: string, jwt: string, key: string): Promise<Response> {
+  return DELETE(
+    new Request(`http://localhost/api/v1/trips/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${jwt}`, 'Idempotency-Key': key },
+    }),
+    { params: Promise.resolve({ id }) },
+  );
+}
 
 describe('GET /api/v1/trips/{id}', () => {
   it('returns 200 with the composite TripDetail for an org member (criteria 1 + 5)', async () => {
@@ -119,5 +145,75 @@ describe('GET /api/v1/trips/{id}', () => {
     expect(response.status).toBe(401);
     const parsed = apiErrorEnvelopeSchema.parse(await response.json());
     expect(parsed.error.code).toBe('unauthenticated');
+  });
+});
+
+describe('PATCH /api/v1/trips/{id}', () => {
+  it('updates editable trip fields and replays the exact response', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const trip = await seedTrip(db, user.id, { organizationId: org.id });
+    const jwt = await signAccessToken({ userId: user.id });
+    const body = { name: 'Updated', totalBudgetPence: 700_000, status: 'active' };
+
+    const first = await patchTrip(trip.id, jwt, body, 'update-trip');
+    const replay = await patchTrip(trip.id, jwt, body, 'update-trip');
+
+    expect(first.status).toBe(200);
+    expect(await replay.json()).toEqual(await first.json());
+    const detail = detailSuccessEnvelope.parse(await (await getTrip(trip.id, jwt)).json());
+    expect(detail.data).toMatchObject({
+      name: 'Updated',
+      status: 'active',
+      totalBudget: { amountPence: 700_000, currency: 'GBP' },
+    });
+  });
+
+  it('collapses missing and inaccessible trips to not_found', async () => {
+    const owner = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, owner.id);
+    const trip = await seedTrip(db, owner.id, { organizationId: org.id });
+    const outsider = await seedUser(db, { isApproved: true });
+    const jwt = await signAccessToken({ userId: outsider.id });
+    const body = { name: 'Updated', totalBudgetPence: 700_000, status: 'active' };
+
+    const inaccessible = await patchTrip(trip.id, jwt, body, 'inaccessible-update');
+    const missing = await patchTrip(crypto.randomUUID(), jwt, body, 'missing-update');
+
+    expect(inaccessible.status).toBe(404);
+    expect(missing.status).toBe(404);
+  });
+});
+
+describe('DELETE /api/v1/trips/{id}', () => {
+  it('deletes as an organization owner and safely replays 204', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, user.id);
+    const trip = await seedTrip(db, user.id, { organizationId: org.id });
+    const jwt = await signAccessToken({ userId: user.id });
+
+    const first = await deleteTrip(trip.id, jwt, 'delete-trip');
+    const replay = await deleteTrip(trip.id, jwt, 'delete-trip');
+
+    expect(first.status).toBe(204);
+    expect(replay.status).toBe(204);
+    expect(await getTrip(trip.id, jwt)).toHaveProperty('status', 404);
+  });
+
+  it('forbids a regular organization member from deleting', async () => {
+    const owner = await seedUser(db, { isApproved: true });
+    const member = await seedUser(db, { isApproved: true });
+    const org = await seedOrganization(db, owner.id);
+    await seedOrganizationMember(db, org.id, member.id);
+    const trip = await seedTrip(db, owner.id, { organizationId: org.id });
+
+    const response = await deleteTrip(
+      trip.id,
+      await signAccessToken({ userId: member.id }),
+      'member-delete',
+    );
+
+    expect(response.status).toBe(403);
+    expect(apiErrorEnvelopeSchema.parse(await response.json()).error.code).toBe('forbidden');
   });
 });

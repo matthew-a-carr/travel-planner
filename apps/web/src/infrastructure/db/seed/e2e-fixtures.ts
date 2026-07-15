@@ -6,12 +6,14 @@
  * assertions / the web Playwright suite so expected values are never
  * duplicated by hand.
  *
- * Every ID and value is constant: flows assert exact figures, and the
- * seed is idempotent (upserts) so a CI retry can't fail on conflicts.
+ * Every ID and value is constant: flows assert exact figures. Applying the
+ * seed restores the dedicated organization to this exact state so a failed
+ * mutating flow cannot contaminate its CI retry.
  * Dates are fixed absolutes, not relative to run time — determinism wins
  * over "today inside the destination range" (see SPEC-013 notes; revisit
  * if a destination-inference flow ever needs a live anchor).
  */
+import { eq } from 'drizzle-orm';
 import type { drizzle } from 'drizzle-orm/postgres-js';
 import {
   destinations,
@@ -39,7 +41,7 @@ export const E2E_FIXTURES = {
   trip: {
     id: 'b0000000-0e2e-4000-8000-000000000001',
     name: 'Kyoto Adventure',
-    totalBudgetPence: 500_000, // £5,000
+    totalBudgetPence: 650_000, // £6,500; leaves capacity for mutating E2E journeys
     status: 'active',
   },
   destinations: [
@@ -141,24 +143,15 @@ export async function applyE2eFixtures(db: Db): Promise<void> {
     })
     .onConflictDoNothing();
 
-  await db
-    .insert(trips)
-    .values({
-      id: f.trip.id,
-      organizationId: f.organization.id,
-      name: f.trip.name,
-      totalBudgetAmount: f.trip.totalBudgetPence,
-      status: f.trip.status,
-      ownerId: f.user.id,
-    })
-    .onConflictDoUpdate({
-      target: trips.id,
-      set: {
-        name: f.trip.name,
-        totalBudgetAmount: f.trip.totalBudgetPence,
-        status: f.trip.status,
-      },
-    });
+  await db.delete(trips).where(eq(trips.organizationId, f.organization.id));
+  await db.insert(trips).values({
+    id: f.trip.id,
+    organizationId: f.organization.id,
+    name: f.trip.name,
+    totalBudgetAmount: f.trip.totalBudgetPence,
+    status: f.trip.status,
+    ownerId: f.user.id,
+  });
 
   for (const d of f.destinations) {
     await db

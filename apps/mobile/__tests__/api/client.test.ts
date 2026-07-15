@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod';
-import { apiGet, apiPost } from '../../src/api/client';
+import { apiDelete, apiGet, apiPatch, apiPost } from '../../src/api/client';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
@@ -108,6 +108,27 @@ describe('apiPost', () => {
     expect(init?.headers).toMatchObject({
       Authorization: 'Bearer access-token-xyz',
       'Content-Type': 'application/json',
+    });
+  });
+
+  it('forwards additional headers without allowing them to override canonical headers', async () => {
+    const spy = mockFetch(
+      new Response(JSON.stringify(successEnvelope({ message: 'ok' }, '/api/v1/echo')), {
+        status: 200,
+      }),
+    );
+
+    await apiPost('/api/v1/echo', {}, echoResponseSchema, 'access-token-xyz', undefined, {
+      Authorization: 'attacker-controlled',
+      'Content-Type': 'text/plain',
+      'X-E2E-Test-Secret': 'per-run-secret',
+    });
+
+    const init = spy.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.headers).toMatchObject({
+      Authorization: 'Bearer access-token-xyz',
+      'Content-Type': 'application/json',
+      'X-E2E-Test-Secret': 'per-run-secret',
     });
   });
 
@@ -243,5 +264,46 @@ describe('apiGet', () => {
 
     const init = spy.mock.calls[0]?.[1] as RequestInit | undefined;
     expect((init?.headers as Record<string, string>).Authorization).toBeUndefined();
+  });
+});
+
+describe('retry-safe command methods', () => {
+  it('PATCH sends JSON, bearer auth, and the idempotency key', async () => {
+    const spy = mockFetch(
+      new Response(JSON.stringify(successEnvelope({ message: 'updated' }, '/api/v1/echo')), {
+        status: 200,
+      }),
+    );
+
+    const result = await apiPatch(
+      '/api/v1/echo',
+      { message: 'updated' },
+      echoResponseSchema,
+      'bearer-1',
+      'key-1',
+    );
+
+    expect(result).toEqual({ ok: true, data: { message: 'updated' } });
+    expect(spy.mock.calls[0]?.[1]).toMatchObject({
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer bearer-1',
+        'Content-Type': 'application/json',
+        'Idempotency-Key': 'key-1',
+      },
+      body: JSON.stringify({ message: 'updated' }),
+    });
+  });
+
+  it('DELETE sends bearer auth and the idempotency key and handles 204', async () => {
+    const spy = mockFetch(new Response(null, { status: 204 }));
+
+    const result = await apiDelete('/api/v1/echo', 'bearer-2', 'key-2');
+
+    expect(result).toEqual({ ok: true, data: undefined });
+    expect(spy.mock.calls[0]?.[1]).toMatchObject({
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer bearer-2', 'Idempotency-Key': 'key-2' },
+    });
   });
 });

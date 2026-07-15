@@ -55,6 +55,19 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Added
 
+- **Mobile:** Record, edit, and delete destination spend, then review the same
+  category totals, budget pace, projected exhaustion, and dismissible alerts
+  as web through canonical domain calculations and atomic v1 commands.
+  (SPEC-024 / EPIC-006 slice 4.)
+- **Mobile:** Trip detail now supplies stage-aware next steps and native
+  destination/fixed-cost create, edit, and delete journeys, including canonical
+  country/date/comfort budget suggestions and atomic retry-safe v1 commands.
+  (SPEC-023 / EPIC-006 slice 3.)
+- **Mobile:** Native create, edit, and delete trip journeys now use bearer-authenticated,
+  atomically idempotent v1 commands, including organization selection, accessible
+  forms, destructive confirmation, and real-backend Maestro coverage. The shared
+  schemas and generated OpenAPI contract now publish the trip commands and
+  organization picker endpoint. (SPEC-022 / ADR 064 / EPIC-006 slice 3.)
 - **Mobile:** Tapping a trip now opens a **trip detail** screen — the
   timeline (destinations with dates, budget, and spend per leg), committed
   fixed costs, and a budget-vs-committed/spent summary with an

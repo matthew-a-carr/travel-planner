@@ -36,6 +36,7 @@ src/infrastructure/
   db/
     schema.ts            ← Drizzle schema (source of truth for all tables)
     client.ts            ← singleton db instance (see note below)
+    drizzle-idempotent-command-executor.ts ← atomic mutation + replay adapter (ADR 064)
     migrate.ts           ← migration runner
     repositories/
       drizzle-trip-repository.ts
@@ -77,6 +78,11 @@ Each repository:
 2. Maps between DB rows and domain types in private mapper functions.
 3. Uses `onConflictDoUpdate` for upsert (save = insert or update by id).
 4. Never leaks Drizzle types or SQL into the return type.
+
+Repositories used by the idempotent command executor accept the shared
+`DbSession` abstraction so the composition root can construct transaction-scoped
+instances without exposing Drizzle from the application/domain layers. Command
+claim, mutation, and replay response must remain in the same transaction.
 
 ## Runtime composition root
 

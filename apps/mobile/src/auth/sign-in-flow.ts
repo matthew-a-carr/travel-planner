@@ -38,11 +38,14 @@ export type SignInResult =
   | { status: 'cancelled' }
   | { status: 'error'; reason: 'access_denied' | 'generic'; code: string };
 
+export type SignInPhase = 'pkce' | 'start' | 'browser' | 'exchange';
+
 export type SignInDeps = {
   apiPost: typeof apiPost;
   openAuthSession: typeof WebBrowser.openAuthSessionAsync;
   generateVerifier: typeof generateVerifier;
   verifierToChallenge: typeof verifierToChallenge;
+  onPhase?: (phase: SignInPhase) => void;
 };
 
 const CALLBACK_RETURN_URL = 'travelplanner://auth';
@@ -51,10 +54,12 @@ const NO_CODE_IN_CALLBACK_CODE = 'no_code_in_callback';
 
 export async function runSignInFlow(deps: SignInDeps): Promise<SignInResult> {
   // 1. PKCE pair.
+  deps.onPhase?.('pkce');
   const verifier = await deps.generateVerifier();
   const challenge = await deps.verifierToChallenge(verifier);
 
   // 2. /start.
+  deps.onPhase?.('start');
   const start = await deps.apiPost<MobileAuthStartResponse>(
     '/api/v1/auth/mobile/start',
     { code_challenge: challenge },
@@ -63,6 +68,7 @@ export async function runSignInFlow(deps: SignInDeps): Promise<SignInResult> {
   if (!start.ok) return genericError(start.error.code);
 
   // 3. Browser modal — awaits the deep-link return.
+  deps.onPhase?.('browser');
   const browserResult = await deps.openAuthSession(start.data.authorise_url, CALLBACK_RETURN_URL);
   if (browserResult.type !== 'success') return { status: 'cancelled' };
 
@@ -83,6 +89,7 @@ export async function runSignInFlow(deps: SignInDeps): Promise<SignInResult> {
   }
 
   // 5. /exchange.
+  deps.onPhase?.('exchange');
   const exchange = await deps.apiPost<MobileAuthExchangeResponse>(
     '/api/v1/auth/mobile/exchange',
     { code: params.code, code_verifier: verifier },

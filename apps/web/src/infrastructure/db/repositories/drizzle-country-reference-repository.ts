@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
 import type { CountryReference } from '@/domain/country-reference/types';
 import type { Currency } from '@/domain/trip/types';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { countryReferenceData } from '../schema';
 
 function toCountryReference(row: typeof countryReferenceData.$inferSelect): CountryReference {
@@ -19,7 +19,7 @@ function toCountryReference(row: typeof countryReferenceData.$inferSelect): Coun
 }
 
 export class DrizzleCountryReferenceRepository implements CountryReferenceRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findAll(): Promise<CountryReference[]> {
     const rows = await this.db

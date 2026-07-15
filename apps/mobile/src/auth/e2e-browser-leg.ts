@@ -16,7 +16,7 @@ import { apiPost } from '../api/client';
  * Selection lives behind `resolveBrowserLeg(enabled)` (the `enabled` parameter
  * is injectable so unit tests don't depend on Expo's bundle-time
  * `EXPO_PUBLIC_*` inlining). The server endpoint is the security-sensitive
- * half — double-gated and 404 everywhere but the e2e job — so shipping this
+ * half — triple-gated and 404 everywhere but the e2e job — so shipping this
  * inert client code is harmless.
  */
 
@@ -30,6 +30,7 @@ const ERROR_RETURN_URL = 'travelplanner://auth?error=server_error';
  * `mobile-e2e` xcodebuild step.
  */
 const E2E_AUTH_ENABLED = process.env.EXPO_PUBLIC_E2E_AUTH === '1';
+const E2E_AUTH_SECRET = process.env.EXPO_PUBLIC_E2E_AUTH_SECRET ?? '';
 
 /**
  * Bundle diagnostic (SPEC-014). After babel-preset-expo inlines the flag,
@@ -62,6 +63,9 @@ export const e2eOpenAuthSession: typeof WebBrowser.openAuthSessionAsync = async 
     '/api/v1/auth/mobile/test-token',
     { state },
     mobileAuthTestTokenResponseSchema,
+    undefined,
+    undefined,
+    E2E_AUTH_SECRET.length > 0 ? { 'X-E2E-Test-Secret': E2E_AUTH_SECRET } : undefined,
   );
   if (!result.ok) {
     return { type: 'success', url: ERROR_RETURN_URL };

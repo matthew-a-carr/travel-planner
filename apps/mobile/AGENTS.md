@@ -53,9 +53,10 @@ Routines themselves do NOT run `pnpm dev:mobile`, Metro, or the iOS Simulator
   runners), `pnpm db:migrate && pnpm db:seed && pnpm seed:e2e`
   (deterministic fixtures from
   `apps/web/src/infrastructure/db/seed/e2e-fixtures.ts`), and the
-  production Next server bound to `0.0.0.0`; the Release bundle inlines
-  `EXPO_PUBLIC_API_BASE_URL=http://<runner-LAN-IP>:3000` and the job
-  asserts both (canary curl + bundle `strings` grep) before Maestro runs.
+  production Next server behind an ephemeral HTTPS tunnel (ADR 065); the
+  Release bundle inlines the generated `EXPO_PUBLIC_API_BASE_URL` and a masked
+  per-run auth-seam secret, and the job asserts the tunnel, URL, and secret
+  markers before Maestro runs.
   That's the iOS Simulator gate — if it fails on the routine's PR, Matt
   picks it up via the standard CI-failure email + the routine's
   `ai:blocked` flow.
@@ -73,8 +74,15 @@ pnpm test:mobile:watch # Jest watch mode (TDD loop)
 pnpm test:e2e:mobile   # Maestro E2E only (requires Maestro + iOS Simulator)
 pnpm test:e2e          # umbrella — Playwright (web) + Maestro (mobile) together
 pnpm type-check:mobile # tsc --noEmit on the mobile app only
+pnpm mobile:parity:check          # validate current capability/evidence claims
+pnpm mobile:parity:check:complete # epic close-out: reject every remaining gap
 pnpm lint              # repo-wide Biome — lints apps/mobile/app/** + apps/mobile/*.{ts,tsx,js,mjs} via biome.json includes
 ```
+
+`docs/mobile-parity.json` is the machine-readable 1:1 ledger (ADR 063). Add a
+stable capability ID when a numbered web E2E feature suite expands the product
+surface. Mark an entry `complete` only when its web, mobile, and shared-contract
+evidence paths all exist and the corresponding gates pass.
 
 To run on the author's iPhone: scan the QR with the Expo Go app
 (install from App Store). Expo Go runs the unsigned bundle
@@ -146,6 +154,15 @@ fall back to the Simulator or point at prod.
     (SPEC-012, the EPIC-002 milestone): timeline legs + spend summary
     via `src/trips/use-trip-detail.ts`; `not_found` is a first-class
     state.
+  - `app/(app)/trips/new.tsx` — authenticated trip creation at `/trips/new`;
+    loads organization choices through `use-organizations` and sends a fresh
+    idempotency key through `trip-commands`.
+  - `app/(app)/trips/[id]/edit.tsx` — trip edit/delete at
+    `/trips/{id}/edit`; uses the canonical v1 commands and confirms destructive
+    deletion.
+  - `app/(app)/trips/[id]/destinations/[destinationId].tsx` and
+    `fixed-costs/[fixedCostId].tsx` — `new` creates and UUID values edit/delete
+    trip-planning children through atomic v1 commands (SPEC-023).
   - Both groups have a thin `_layout.tsx` (Stack with
     `headerShown: false`).
   - **Never create a bare `app/index.tsx`** — it would collide with
@@ -155,8 +172,9 @@ fall back to the Simulator or point at prod.
   sign-in orchestrator, auth Context, proactive-refresh gateway),
   `src/api/` (fetch wrapper validating responses via
   `@travel-planner/shared` schemas; supports 204 No Content for
-  endpoints like `/revoke`), and `src/trips/` (EPIC-002: `use-trips`
-  data hook + deterministic display formatters). Add new
+  endpoints like `/revoke`, all HTTP verbs, and idempotency headers), and
+  `src/trips/` (read hooks, country/organization choices, write commands, and
+  deterministic display formatters). Add new
   subdirectories as feature areas land.
 
 ### Auth machinery (slices 6 + 7 — SPEC-006 + SPEC-007)
@@ -164,8 +182,10 @@ fall back to the Simulator or point at prod.
 - `src/auth/pkce.ts` — `generateVerifier()` + `verifierToChallenge()`
   over `expo-crypto`. RFC 7636 base64url, 43-char SHA-256 hash.
 - `src/auth/keychain.ts` — `storeTokens()` + `readTokens()` +
-  `clearTokens()` over `expo-secure-store`. Three discrete keys for
-  the access/refresh/expires triple. `readTokens()` returns `null`
+  `clearTokens()` over `expo-secure-store` in normal builds. The
+  `EXPO_PUBLIC_E2E_AUTH=1` CI build uses an in-process token bundle because
+  an unsigned simulator app has no provisioned Keychain access group. Three
+  discrete keys hold the access/refresh/expires triple. `readTokens()` returns `null`
   if any key is missing (partial-state defensive).
 - `src/auth/sign-in-flow.ts` — `runSignInFlow(deps)` orchestrates the
   four-step server-mediated PKCE dance (start → browser modal →
@@ -192,7 +212,8 @@ fall back to the Simulator or point at prod.
   → /me with rollback on failure. `signOut()` reads tokens first,
   flips state + clears Keychain optimistically, then fire-and-forget
   POST `/api/v1/auth/mobile/revoke` in the background.
-- `src/api/client.ts` — `apiPost<T>` / `apiGet<T>` over native fetch,
+- `src/api/client.ts` — `apiGet<T>` / `apiPost<T>` / `apiPatch<T>` /
+  `apiDelete<T>` over native fetch,
   validating responses via `@travel-planner/shared` schemas. After
   SPEC-008 / ADR 056 the wrapper expects every `/api/v1/*` body to
   carry the standard envelope: 2xx bodies are parsed with
@@ -341,23 +362,32 @@ One YAML per user journey under `.maestro/flows/`. Current flows:
 
 - `sign-in.yaml` — launch smoke: app boots to the sign-in screen (does
   NOT tap the button; the real Google sheet can't be driven by Maestro).
+- `authenticated-read-journey.yaml` — sign in through the test seam, read the
+  seeded trip, exercise not-found handling, and sign out.
+- `trip-crud-journey.yaml` — create, edit, and delete a trip.
+- `planning-core-journey.yaml` — create, edit, and delete a destination and a
+  fixed cost.
+- `spend-finance-journey.yaml` — create, edit, and delete spend while checking
+  financial insight states.
 
-The **live signed-in journey** (sign in via the seam → trips list → sign
-out) is **deferred to EPIC-004 slice 3** — it is blocked on the iOS-sim →
-host-backend reachability issue (TD-010 / EPIC-004 deviation #1): on the
-macOS runner the simulator can't reach the host server on any address even
-though the runner can. The server seam + client harness below are landed and
-proven; slice 3 solves reachability first, then authors the flow.
+CI retries each flow independently and restores the exact database fixtures
+before every attempt, so a partial mutation cannot leak into a retry or later
+journey. Flows must still tolerate persistent Simulator state such as iOS's
+one-time deep-link confirmation.
 
 Use `id:` selectors over visible-text selectors where possible.
 
+Runtime code under `apps/mobile/` must not import `apps/web/` or the web
+workspace. `scripts/check-mobile-architecture.mjs`, run by `pnpm test:mobile`,
+enforces that delivery boundary while allowing `@travel-planner/shared` wire
+contracts.
+
 ### Test-auth seam (E2E sign-in without Google — SPEC-014)
 
-Maestro can't drive Google's consent screen, so the (future, slice-3)
-signed-in journey signs in through a seam that replaces **only the browser
-leg** of the PKCE flow — PKCE start, `/exchange`, Keychain, `/me`, and
-AuthGuard all stay real. The seam (server + client + CI assertions) is
-landed and green; only the live Maestro flow is deferred (TD-010):
+Maestro can't drive Google's consent screen, so the
+signed-in journey signs in through a seam that replaces the browser leg and
+the native persistence mechanism. PKCE start, `/exchange`, the token-storage
+contract, `/me`, refresh behavior, and AuthGuard all stay real:
 
 - **Client:** `src/auth/e2e-browser-leg.ts`. `resolveBrowserLeg()` returns
   the real `WebBrowser.openAuthSessionAsync` in a normal build, or the
@@ -366,17 +396,21 @@ landed and green; only the live Maestro flow is deferred (TD-010):
   and POSTs it to `POST /api/v1/auth/mobile/test-token`, returning the
   deep link the server mints. The sign-in screen wires it via
   `openAuthSession: resolveBrowserLeg()`.
+- **Token storage:** `src/auth/keychain.ts` keeps the token bundle in process
+  memory only when the same bundle-time flag is enabled. Normal builds always
+  use `expo-secure-store`. The CI app is unsigned because the hosted runner has
+  no Apple development team/provisioning profile; inventing an
+  `application-identifier` makes the simulator reject the binary at launch.
 - **Server:** `apps/web/.../auth/mobile/test-token/route.ts` mints a
   one-time exchange code for the seeded approved e2e user, keyed to the
-  state's stored PKCE challenge. **Double-gated, fail-closed:** enabled
-  only when `E2E_TEST_AUTH=1` AND not on Vercel; 404 otherwise (the
-  EPIC-004 kill-criterion, asserted by a route int-test). Deliberately
-  unpublished from the OpenAPI surface.
-- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1` (job env, inherited
-  by the backend) and `EXPO_PUBLIC_E2E_AUTH=1` (xcodebuild step). **Neither
-  flag is ever defined in Terraform or any Vercel env.** Running the
-  `signed-in-journey` flow locally needs both flags set the same way (slice
-  4 automates the local backend).
+  state's stored PKCE challenge. **Triple-gated, fail-closed:** enabled only
+  when `E2E_TEST_AUTH=1`, not on Vercel, and the request supplies the masked
+  per-run `X-E2E-Test-Secret`; 404 otherwise. Deliberately unpublished from
+  the OpenAPI surface.
+- **CI:** the `mobile-e2e` job sets `E2E_TEST_AUTH=1`, generates
+  `E2E_TEST_AUTH_SECRET`, and builds the secret plus
+  `EXPO_PUBLIC_E2E_AUTH=1` into the undistributed CI app. These values are
+  never defined in Terraform or any Vercel env.
 
 ## Pnpm + Metro
 

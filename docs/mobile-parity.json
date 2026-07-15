@@ -1,0 +1,327 @@
+{
+  "version": 1,
+  "trackedWebSuites": [
+    "apps/web/tests/e2e/01-trips.spec.ts",
+    "apps/web/tests/e2e/02-destinations.spec.ts",
+    "apps/web/tests/e2e/03-spend.spec.ts",
+    "apps/web/tests/e2e/04-auth-avatar.spec.ts",
+    "apps/web/tests/e2e/05-organization-sharing.spec.ts",
+    "apps/web/tests/e2e/06-access-management.spec.ts",
+    "apps/web/tests/e2e/07-burndown.spec.ts",
+    "apps/web/tests/e2e/08-trip-stage.spec.ts",
+    "apps/web/tests/e2e/09-timeline.spec.ts",
+    "apps/web/tests/e2e/10-chat-foundation.spec.ts",
+    "apps/web/tests/e2e/11-api-me.spec.ts",
+    "apps/web/tests/e2e/12-traveller-profile.spec.ts",
+    "apps/web/tests/e2e/13-visas-panel.spec.ts",
+    "apps/web/tests/e2e/14-trip-intent.spec.ts"
+  ],
+  "capabilities": [
+    {
+      "id": "auth.sign-in-out",
+      "title": "Sign in and sign out",
+      "slice": 1,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/auth.spec.ts", "apps/web/tests/e2e/accessibility.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/mobile-auth.ts"]
+    },
+    {
+      "id": "auth.session",
+      "title": "Restore and revoke an authenticated session",
+      "slice": 1,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/11-api-me.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/mobile-auth.ts", "packages/shared/src/me.ts"]
+    },
+    {
+      "id": "account.identity-presentation",
+      "title": "Present the signed-in user's identity and avatar fallback",
+      "slice": 8,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/04-auth-avatar.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": ["packages/shared/src/me.ts"]
+    },
+    {
+      "id": "trips.list",
+      "title": "List the user's visible trips",
+      "slice": 1,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "trips.detail-read",
+      "title": "Read trip plan, destinations, fixed costs, and spend summary",
+      "slice": 1,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/authenticated-read-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "trips.create",
+      "title": "Create a trip",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "trips.update",
+      "title": "Edit trip identity, budget, and status",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "trips.delete",
+      "title": "Delete a trip",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/trip-crud-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "trips.stage-guidance",
+      "title": "Show stage-aware next-step guidance",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/08-trip-stage.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "destinations.create",
+      "title": "Add destinations with allocation validation",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts", "apps/web/tests/e2e/08-trip-stage.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "destinations.update",
+      "title": "Edit destination identity, dates, and budget",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "destinations.delete",
+      "title": "Remove a destination",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "fixed-costs.create",
+      "title": "Add a categorised fixed cost",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "fixed-costs.update",
+      "title": "Edit a fixed cost",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "fixed-costs.delete",
+      "title": "Delete a fixed cost",
+      "slice": 3,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/planning-core-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "spend.create",
+      "title": "Record spend",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "spend.update",
+      "title": "Edit spend",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "spend.delete",
+      "title": "Delete spend",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/03-spend.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "finance.category-breakdown",
+      "title": "Show category totals",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/01-trips.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "finance.burndown",
+      "title": "Show budget pace and burn rate",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/07-burndown.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "finance.budget-alerts",
+      "title": "Show and dismiss budget alerts",
+      "slice": 4,
+      "status": "complete",
+      "webEvidence": ["apps/web/tests/e2e/07-burndown.spec.ts"],
+      "mobileEvidence": ["apps/mobile/.maestro/flows/spend-finance-journey.yaml"],
+      "contractEvidence": ["packages/shared/src/trip.ts"]
+    },
+    {
+      "id": "timeline.itinerary-parse",
+      "title": "Paste and parse an itinerary",
+      "slice": 5,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/09-timeline.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "timeline.insights",
+      "title": "View timeline insights and unavailable states",
+      "slice": 5,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/09-timeline.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "assistant.chat",
+      "title": "Open the trip assistant and send a message",
+      "slice": 5,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/10-chat-foundation.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "assistant.history",
+      "title": "Restore persisted assistant history",
+      "slice": 5,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/10-chat-foundation.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "traveller.profile",
+      "title": "Record date of birth and passports",
+      "slice": 6,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/12-traveller-profile.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "visas.assessment",
+      "title": "View deterministic visa requirements and warnings",
+      "slice": 6,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/13-visas-panel.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "visas.trip-intent",
+      "title": "Change trip intent and persist reassessment",
+      "slice": 6,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/14-trip-intent.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "organizations.switch",
+      "title": "Switch active organization",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/05-organization-sharing.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "organizations.members",
+      "title": "Manage organization members and role restrictions",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/05-organization-sharing.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "access.approval-roles",
+      "title": "Approve users and manage administrative roles",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/06-access-management.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "access.preprovision",
+      "title": "Pre-provision user access",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/06-access-management.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "access.delete-revoke",
+      "title": "Delete or revoke users with sole-owner protection",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/06-access-management.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    },
+    {
+      "id": "access.organization-onboarding",
+      "title": "Route approved users without memberships to organization setup",
+      "slice": 7,
+      "status": "missing",
+      "webEvidence": ["apps/web/tests/e2e/06-access-management.spec.ts"],
+      "mobileEvidence": [],
+      "contractEvidence": []
+    }
+  ]
+}

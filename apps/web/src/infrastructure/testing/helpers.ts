@@ -68,6 +68,7 @@ export function createTestDb(): { db: Db; sql: Sql } {
 export async function truncateAll(db: Db): Promise<void> {
   await db.delete(schema.chatMessages);
   await db.delete(schema.chatThreads);
+  await db.delete(schema.idempotentCommands);
   await db.delete(schema.spendEntries);
   await db.delete(schema.destinations);
   await db.delete(schema.tripFixedCosts);

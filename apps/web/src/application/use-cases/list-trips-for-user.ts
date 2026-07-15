@@ -38,7 +38,7 @@ export async function listTripsForUser(
   return trips.map((trip) => toTripSummary(trip, destinationsByTrip.get(trip.id) ?? []));
 }
 
-function toTripSummary(trip: Trip, destinations: Destination[]): TripSummary {
+export function toTripSummary(trip: Trip, destinations: Destination[]): TripSummary {
   return {
     id: trip.id,
     name: trip.name,

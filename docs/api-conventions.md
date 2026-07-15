@@ -36,7 +36,7 @@ contract is generated from them at [`docs/openapi/v1.yaml`](./openapi/v1.yaml)
   "data": { /* the endpoint's resource shape */ },
   "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
   "asof": "2026-05-21T18:00:00.000Z",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "meta": { /* optional, endpoint-specific */ }
 }
 ```
@@ -68,7 +68,7 @@ contract is generated from them at [`docs/openapi/v1.yaml`](./openapi/v1.yaml)
   },
   "request": { "method": "GET", "path": "/api/v1/me", "path_params": {}, "query_params": {} },
   "asof": "2026-05-21T18:00:00.000Z",
-  "version": "1.1.0"
+  "version": "1.3.0"
 }
 ```
 
@@ -148,6 +148,35 @@ error response by hand.
 
 Server-Sent Events use `GET` with the `/stream` path suffix (see below).
 
+## Idempotent command retries (ADR 064)
+
+Every unsafe mobile-facing command requires a non-empty `Idempotency-Key`
+header of at most 255 characters. Mobile generates a fresh UUID, while the
+server treats the value as an opaque key.
+The key is scoped to the authenticated user and operation. The server hashes the
+canonical parsed request (including path parameters), then commits the command
+mutation and its exact status/body replay record in one Postgres transaction.
+
+- Same key and same canonical request: replay the original status and envelope
+  without invoking the use case again.
+- Same key and different request: return `409 conflict`.
+- Validation or authentication failures occur before a key is claimed.
+- Expected command results, including mapped 4xx results, are replayable;
+  unexpected exceptions roll back both the mutation and claim so a retry can run.
+- Never include credentials, tokens, or raw headers in the request hash or stored
+  response.
+
+The application port is `IdempotentCommandExecutor`; the Drizzle adapter and
+transaction-scoped repositories are constructed only in the composition root.
+External side effects require an outbox and must not run directly inside the
+command transaction.
+
+Nested trip resources use the accessible parent as their authorization
+boundary. A child ID that is missing, belongs to another trip, or belongs to an
+inaccessible trip returns the same neutral `404 not_found`; handlers never
+reveal which check failed. Current nested command resources are destinations,
+fixed costs, and spend entries.
+
 ## Streaming endpoints
 
 When an endpoint streams (SSE), it lives at the unary path with a
@@ -165,7 +194,7 @@ whose `data:` payload is the standard error envelope:
 
 ```
 event: error
-data: {"error":{"type":"https://travel-planner.app/errors/unavailable","title":"Service unavailable","status":503,"detail":"AI gateway temporarily unavailable.","instance":"/api/v1/trips/{id}/chat/stream","code":"unavailable"},"request":{"method":"POST","path":"/api/v1/trips/{id}/chat/stream","path_params":{"id":"…"},"query_params":{}},"asof":"2026-05-21T18:00:00.000Z","version":"1.1.0"}
+data: {"error":{"type":"https://travel-planner.app/errors/unavailable","title":"Service unavailable","status":503,"detail":"AI gateway temporarily unavailable.","instance":"/api/v1/trips/{id}/chat/stream","code":"unavailable"},"request":{"method":"POST","path":"/api/v1/trips/{id}/chat/stream","path_params":{"id":"…"},"query_params":{}},"asof":"2026-05-21T18:00:00.000Z","version":"1.3.0"}
 
 ```
 

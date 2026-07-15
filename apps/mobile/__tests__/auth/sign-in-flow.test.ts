@@ -58,6 +58,7 @@ const exchangeResponse = {
 
 describe('runSignInFlow — happy path', () => {
   it('walks start → browser → exchange and returns the mint tokens', async () => {
+    const onPhase = jest.fn();
     const d = deps({
       generateVerifier: jest.fn().mockResolvedValue('verifier-abc'),
       verifierToChallenge: jest.fn().mockResolvedValue('challenge-xyz'),
@@ -69,6 +70,7 @@ describe('runSignInFlow — happy path', () => {
         type: 'success',
         url: 'travelplanner://auth?code=one-time-code',
       }),
+      onPhase,
     });
 
     const result = await runSignInFlow(d);
@@ -83,6 +85,7 @@ describe('runSignInFlow — happy path', () => {
     );
     // Only two apiPost calls — /start and /exchange. No /me here anymore.
     expect(d.apiPost).toHaveBeenCalledTimes(2);
+    expect(onPhase.mock.calls).toEqual([['pkce'], ['start'], ['browser'], ['exchange']]);
   });
 });
 

@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import type { SpendEntryRepository } from '@/domain/spending/spend-entry-repository';
 import type { Currency, SpendCategory, SpendEntry } from '@/domain/trip/types';
 import { moneyUnchecked } from '@/domain/trip/types';
-import type { Db } from '../client';
+import type { DbSession } from '../client';
 import { destinations, spendEntries } from '../schema';
 
 function toSpendEntry(row: typeof spendEntries.$inferSelect): SpendEntry {
@@ -31,7 +31,7 @@ function toRow(e: SpendEntry): typeof spendEntries.$inferInsert {
 }
 
 export class DrizzleSpendEntryRepository implements SpendEntryRepository {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: DbSession) {}
 
   async findById(id: string): Promise<SpendEntry | null> {
     const rows = await this.db.select().from(spendEntries).where(eq(spendEntries.id, id));
