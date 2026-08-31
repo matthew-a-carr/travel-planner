@@ -22,15 +22,15 @@ jobs:
     name: Validate Terraform + migration policy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.12.2
 
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: pnpm
