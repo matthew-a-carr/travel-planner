@@ -74,3 +74,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [063](063-mobile-web-capability-parity-over-shared-v1-contracts.md) | Mobile-Web Capability Parity over Shared v1 Contracts | 2026-07-11 | Accepted |
 | [064](064-atomic-idempotent-v1-command-execution.md) | Atomic Idempotent v1 Command Execution | 2026-07-11 | Accepted |
 | [065](065-mobile-e2e-ephemeral-https-tunnel.md) | Mobile E2E Ephemeral HTTPS Tunnel | 2026-07-11 | Accepted |
+| [066](066-mise-for-pnpm-version-management.md) | Mise for pnpm Version Management | 2026-08-31 | Accepted |
+| [067](067-dependabot-single-pr-per-ecosystem.md) | Dependabot — One Grouped PR Per Ecosystem, Including Majors | 2026-08-31 | Accepted |

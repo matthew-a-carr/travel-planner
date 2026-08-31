@@ -59,16 +59,26 @@ if ! gh --version &>/dev/null; then
 fi
 
 ##############################################################################
-# 4. Install Node.js dependencies
+# 4. Install pnpm via mise (version pinned in mise.toml — ADR 066)
 ##############################################################################
 cd "$CLAUDE_PROJECT_DIR"
 
+if ! command -v mise &>/dev/null; then
+  curl -fsSL https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+mise install pnpm
+eval "$(mise activate bash)"
+
+##############################################################################
+# 5. Install Node.js dependencies
+##############################################################################
 if [ ! -d "node_modules" ] || [ "pnpm-lock.yaml" -nt "node_modules/.pnpm/lock.yaml" ]; then
   pnpm install
 fi
 
 ##############################################################################
-# 5. Install Playwright browsers (needed for e2e tests)
+# 6. Install Playwright browsers (needed for e2e tests)
 ##############################################################################
 if ! npx playwright install --dry-run chromium &>/dev/null 2>&1; then
   npx playwright install chromium

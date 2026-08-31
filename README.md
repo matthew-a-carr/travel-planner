@@ -18,7 +18,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 | Unit tests | Vitest |
 | Integration tests | Vitest + Testcontainers |
 | e2e tests | Playwright |
-| Package manager | pnpm |
+| Package manager | pnpm (version pinned via [mise](https://mise.jdx.dev), see `mise.toml`) |
 | Deployment | Vercel |
 | Mobile (iOS) | Expo SDK 55 + Expo Router + React Native 0.81 — Expo Go distribution for the audience-of-two phase (ADR 045 / 052) |
 | Mobile tests | Jest + jest-expo + `@testing-library/react-native` + msw/native + Maestro (E2E on iOS Simulator) |
@@ -28,7 +28,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 ### Prerequisites
 
 - Node.js 20+
-- pnpm (`npm install -g pnpm`)
+- [mise](https://mise.jdx.dev) (manages the pinned pnpm version — see `mise.toml` / ADR 066), or install pnpm 10 yourself (`npm install -g pnpm@10`)
 - Docker (required for one-command local dev, integration tests, and e2e tests)
 - Optional: a Vercel Postgres/Neon database URL if you do not want the local Testcontainers database
 - Optional: a Google OAuth application ([console.cloud.google.com](https://console.cloud.google.com)) for real Google sign-in
@@ -38,6 +38,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 ```bash
 git clone https://github.com/matthew-a-carr/travel-planner.git
 cd travel-planner
+mise install   # installs the pinned pnpm version (skip if you installed pnpm yourself)
 pnpm install
 ```
 
