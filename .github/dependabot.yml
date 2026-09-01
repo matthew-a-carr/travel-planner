@@ -49,14 +49,24 @@ updates:
       # Vite 8 hold until vitest declares vite 8 in its peer range. TD-007.
       - dependency-name: "vite"
         update-types: ["version-update:semver-major"]
-    # Group every update (major, minor, and patch) into a single PR per
-    # ecosystem so there is at most one open PR to review at a time
-    # (ADR 067). Held dependencies above never enter a group — they're
-    # excluded from updates entirely.
+    # Minor/patch updates all land in one PR (ADR 067) so there's normally
+    # just one open PR to review. Majors get their own separate group PR
+    # (ADR 068) — bundling a breaking major in with routine minor/patch
+    # bumps meant one unrelated breaking change (`ai` 6→7, #195) blocked
+    # ~27 safe updates from landing at all. Held dependencies above never
+    # enter either group — they're excluded from updates entirely.
     groups:
-      all-dependencies:
+      minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
+      major:
+        patterns:
+          - "*"
+        update-types:
+          - major
 
   # ── GitHub Actions ───────────────────────────────────────────────────────────
   - package-ecosystem: github-actions
@@ -71,6 +81,14 @@ updates:
       - dependencies
       - ci
     groups:
-      all-dependencies:
+      minor-and-patch:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
+      major:
+        patterns:
+          - "*"
+        update-types:
+          - major

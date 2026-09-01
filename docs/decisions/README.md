@@ -75,4 +75,5 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [064](064-atomic-idempotent-v1-command-execution.md) | Atomic Idempotent v1 Command Execution | 2026-07-11 | Accepted |
 | [065](065-mobile-e2e-ephemeral-https-tunnel.md) | Mobile E2E Ephemeral HTTPS Tunnel | 2026-07-11 | Accepted |
 | [066](066-mise-for-pnpm-version-management.md) | Mise for pnpm Version Management | 2026-08-31 | Accepted |
-| [067](067-dependabot-single-pr-per-ecosystem.md) | Dependabot — One Grouped PR Per Ecosystem, Including Majors | 2026-08-31 | Accepted |
+| [067](067-dependabot-single-pr-per-ecosystem.md) | Dependabot — One Grouped PR Per Ecosystem, Including Majors | 2026-08-31 | Majors split out by ADR 068 |
+| [068](068-dependabot-split-major-updates-from-minor-patch.md) | Dependabot — Split Major Updates from Minor/Patch | 2026-09-01 | Accepted |

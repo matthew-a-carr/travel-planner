@@ -1,7 +1,7 @@
 # ADR 067: Dependabot — One Grouped PR Per Ecosystem, Including Majors
 
 **Date:** 2026-08-31
-**Status:** Accepted
+**Status:** Accepted (majors split into their own group by [ADR 068](068-dependabot-split-major-updates-from-minor-patch.md); the single-PR-per-ecosystem goal for minor/patch stands)
 
 ## Context
 
