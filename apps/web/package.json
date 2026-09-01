@@ -30,12 +30,12 @@
     "auth:mint-token": "tsx scripts/mint-token.ts"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.187",
+    "@ai-sdk/react": "^4.0.87",
     "@auth/drizzle-adapter": "^1.11.2",
     "@sentry/nextjs": "^10.53.1",
     "@travel-planner/shared": "workspace:*",
     "@vercel/analytics": "^2.0.1",
-    "ai": "^6.0.185",
+    "ai": "^7.0.84",
     "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
     "jose": "^6.2.3",
@@ -57,7 +57,7 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@testcontainers/postgresql": "^12.0.0",
     "@types/leaflet": "^1.9.21",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.4.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
@@ -69,7 +69,7 @@
     "vite": "^7.3.3",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.6",
-    "vitest-mock-extended": "^4.0.0",
+    "vitest-mock-extended": "^5.1.1",
     "yaml": "^2.9.0"
   }
 }
