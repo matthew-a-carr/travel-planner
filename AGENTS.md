@@ -566,11 +566,13 @@ The web jobs:
   ADR 009 for Testcontainers rationale.
 
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
-Actions updates. All updates — major, minor, and patch — are grouped into a
-single PR per ecosystem (ADR 067), so there are at most two open Dependabot
-PRs at a time. Held dependencies (see the `ignore:` list — Expo-SDK-managed
-deps, `react`, `jest`, the TypeScript 6 / Vite 8 major holds) never enter a
-PR regardless of grouping.
+Actions updates. Minor and patch updates are grouped into one PR per
+ecosystem; majors are grouped separately into their own PR (ADR 067 / 068)
+so a breaking major can't block routine minor/patch updates from landing —
+at most two open Dependabot PRs per ecosystem (four total) at a time. Held
+dependencies (see the `ignore:` list — Expo-SDK-managed deps, `react`,
+`jest`, the TypeScript 6 / Vite 8 major holds) never enter a PR regardless
+of grouping.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
 the build-time dummy POSTGRES_URL pattern, ADR 028 for runtime composition-root DI,
