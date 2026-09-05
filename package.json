@@ -16,7 +16,7 @@
     "format": "biome format --write",
     "type-check": "pnpm -r type-check",
     "test": "pnpm -r test",
-    "test:unit": "pnpm -r test:unit",
+    "test:unit": "pnpm -r --workspace-concurrency=1 test:unit",
     "test:integration": "pnpm -r test:integration",
     "test:watch": "pnpm --filter @travel-planner/web test:watch",
     "test:e2e": "pnpm -r test:e2e",

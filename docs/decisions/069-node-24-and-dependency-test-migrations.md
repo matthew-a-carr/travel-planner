@@ -24,7 +24,11 @@ Router peers at SDK 54-compatible versions so a fresh install cannot
 select newer SDK packages or the web app's React DOM version.
 
 Adopt Vitest 5 with the existing Vite 7 hold; inline projects inherit the
-root plugin configuration. Supply an empty context to direct AI SDK 7
+root plugin configuration. Run workspace unit suites sequentially: concurrent
+Vitest and Jest processes caused an async-render timeout in the aggregate CI
+job while the standalone mobile job passed. Each runner retains its own
+file-level parallelism; test timeouts and assertions remain unchanged.
+Supply an empty context to direct AI SDK 7
 tool invocations in tests. Existing application behavior remains covered
 by the same assertions and real-database integration tests.
 
