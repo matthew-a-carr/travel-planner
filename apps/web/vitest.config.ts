@@ -10,7 +10,6 @@ export default defineConfig({
         // build-tooling scripts (e.g. the OpenAPI generator).
         // Matches all *.test.ts files, excluding *.int-test.ts.
         // No Docker required; runs instantly.
-        plugins: [tsconfigPaths()],
         test: {
           name: 'unit',
           environment: 'node',
@@ -23,7 +22,6 @@ export default defineConfig({
         // Matches all *.int-test.ts files anywhere under src/.
         // Requires Docker. A shared Testcontainers instance is started by globalSetup.
         // Run serially in one worker because each file truncates shared tables in beforeEach.
-        plugins: [tsconfigPaths()],
         test: {
           name: 'integration',
           environment: 'node',

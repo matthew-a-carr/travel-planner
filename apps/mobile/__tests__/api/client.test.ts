@@ -250,7 +250,7 @@ describe('apiGet', () => {
     expect(init?.method).toBe('GET');
     expect(init?.headers).toMatchObject({ Authorization: 'Bearer bearer-abc' });
     // GET requests don't carry a JSON body, so no Content-Type header.
-    expect((init?.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    expect((init?.headers as Record<string, string> | undefined)?.['Content-Type']).toBeUndefined();
   });
 
   it('omits the Authorization header when no bearer is supplied', async () => {
@@ -263,7 +263,7 @@ describe('apiGet', () => {
     await apiGet('/api/v1/echo', echoResponseSchema);
 
     const init = spy.mock.calls[0]?.[1] as RequestInit | undefined;
-    expect((init?.headers as Record<string, string>).Authorization).toBeUndefined();
+    expect((init?.headers as Record<string, string> | undefined)?.Authorization).toBeUndefined();
   });
 });
 

@@ -68,6 +68,7 @@ export default function NewTripScreen() {
         <Text style={styles.title}>New trip</Text>
       </View>
       <ScrollView
+        testID="trip-create-form"
         contentContainerStyle={styles.form}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

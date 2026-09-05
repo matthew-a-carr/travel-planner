@@ -69,11 +69,19 @@ afterEach(() => {
 
 describe('useTrips', () => {
   it('starts loading then lands loaded with the fetched trips', async () => {
-    fetchSpy.mockResolvedValueOnce(successEnvelope([TRIP]));
+    let release: (response: Response) => void = () => {};
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        release = resolve;
+      }),
+    );
 
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
 
     expect(result.current.state.status).toBe('loading');
+    await act(async () => {
+      release(successEnvelope([TRIP]));
+    });
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(result.current.state).toEqual({ status: 'loaded', trips: [TRIP] });
 
@@ -85,7 +93,7 @@ describe('useTrips', () => {
   it('lands loaded with an empty list', async () => {
     fetchSpy.mockResolvedValueOnce(successEnvelope([]));
 
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(result.current.state).toEqual({ status: 'loaded', trips: [] });
@@ -94,7 +102,7 @@ describe('useTrips', () => {
   it('maps an API error to the error state with the server detail', async () => {
     fetchSpy.mockResolvedValueOnce(errorEnvelope(500, 'internal', 'Something broke.'));
 
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(result.current.state).toEqual({ status: 'error', message: 'Something broke.' });
@@ -103,7 +111,7 @@ describe('useTrips', () => {
   it('maps a token failure to the error state without calling the API', async () => {
     mockGetAccessToken.mockResolvedValue({ ok: false, reason: 'refresh_failed' });
 
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -111,11 +119,11 @@ describe('useTrips', () => {
 
   it('reload() re-enters loading and refetches', async () => {
     fetchSpy.mockResolvedValueOnce(errorEnvelope(500, 'internal', 'Down.'));
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     fetchSpy.mockResolvedValueOnce(successEnvelope([TRIP]));
-    act(() => result.current.reload());
+    await act(() => result.current.reload());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -123,7 +131,7 @@ describe('useTrips', () => {
 
   it('refresh() keeps the loaded list visible while refetching, then applies the result', async () => {
     fetchSpy.mockResolvedValueOnce(successEnvelope([TRIP]));
-    const { result } = renderHook(() => useTrips());
+    const { result } = await renderHook(() => useTrips());
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
 
     let release: (response: Response) => void = () => {};
@@ -134,7 +142,7 @@ describe('useTrips', () => {
     );
 
     let refreshPromise: Promise<void> = Promise.resolve();
-    act(() => {
+    await act(() => {
       refreshPromise = result.current.refresh();
     });
     await waitFor(() => expect(result.current.refreshing).toBe(true));

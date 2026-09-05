@@ -62,7 +62,7 @@ describe('useTripFinancials', () => {
     mockGetAccessToken.mockResolvedValue({ ok: true, token: 'jwt' });
     const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(envelope(FINANCIALS));
 
-    const { result } = renderHook(() => useTripFinancials('trip-1'));
+    const { result } = await renderHook(() => useTripFinancials('trip-1'));
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
 
     expect(result.current.state).toEqual({ status: 'loaded', financials: FINANCIALS });
@@ -72,14 +72,14 @@ describe('useTripFinancials', () => {
   it('maps a neutral not-found response', async () => {
     mockGetAccessToken.mockResolvedValueOnce({ ok: true, token: 'jwt' });
     jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(notFoundEnvelope());
-    const missing = renderHook(() => useTripFinancials('trip-1'));
+    const missing = await renderHook(() => useTripFinancials('trip-1'));
     await waitFor(() => expect(missing.result.current.state.status).toBe('not_found'));
   });
 
   it('fails before the request when the token is unavailable', async () => {
     mockGetAccessToken.mockResolvedValueOnce({ ok: false, reason: 'missing' });
     const fetchSpy = jest.spyOn(globalThis, 'fetch');
-    const missingToken = renderHook(() => useTripFinancials('trip-1'));
+    const missingToken = await renderHook(() => useTripFinancials('trip-1'));
     await waitFor(() => expect(missingToken.result.current.state.status).toBe('error'));
     expect(fetchSpy).not.toHaveBeenCalled();
   });

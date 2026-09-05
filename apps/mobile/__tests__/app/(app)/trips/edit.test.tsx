@@ -39,12 +39,12 @@ beforeEach(() => {
 describe('EditTripScreen', () => {
   it('updates the canonical editable fields and returns to detail', async () => {
     mockUpdateMobileTrip.mockResolvedValue({ ok: true, data: { id: 'trip-1' } });
-    render(<EditTripScreen />);
+    await render(<EditTripScreen />);
 
-    fireEvent.changeText(screen.getByTestId('trip-edit-name'), 'Japan updated');
-    fireEvent.changeText(screen.getByTestId('trip-edit-budget'), '6000');
-    fireEvent.press(screen.getByTestId('trip-edit-status-active'));
-    fireEvent.press(screen.getByTestId('trip-edit-submit'));
+    await fireEvent.changeText(screen.getByTestId('trip-edit-name'), 'Japan updated');
+    await fireEvent.changeText(screen.getByTestId('trip-edit-budget'), '6000');
+    await fireEvent.press(screen.getByTestId('trip-edit-status-active'));
+    await fireEvent.press(screen.getByTestId('trip-edit-submit'));
 
     await waitFor(() =>
       expect(mockUpdateMobileTrip).toHaveBeenCalledWith('trip-1', {
@@ -58,11 +58,11 @@ describe('EditTripScreen', () => {
 
   it('requires an explicit second tap before deleting and returns to the list', async () => {
     mockDeleteMobileTrip.mockResolvedValue({ ok: true, data: undefined });
-    render(<EditTripScreen />);
+    await render(<EditTripScreen />);
 
-    fireEvent.press(screen.getByTestId('trip-edit-delete'));
+    await fireEvent.press(screen.getByTestId('trip-edit-delete'));
     expect(mockDeleteMobileTrip).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId('trip-edit-delete-confirm'));
+    await fireEvent.press(screen.getByTestId('trip-edit-delete-confirm'));
 
     await waitFor(() => expect(mockDeleteMobileTrip).toHaveBeenCalledWith('trip-1'));
     expect(mockReplace).toHaveBeenCalledWith('/');

@@ -16,7 +16,6 @@ jest.mock('expo-router', () => ({
 }));
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
-import { ScrollView } from 'react-native';
 import NewTripScreen from '../../../../app/(app)/trips/new';
 
 beforeEach(() => {
@@ -32,9 +31,9 @@ beforeEach(() => {
 });
 
 describe('NewTripScreen', () => {
-  it('keeps form controls actionable while dismissing the keyboard on scroll', () => {
-    const view = render(<NewTripScreen />);
-    const form = view.UNSAFE_getByType(ScrollView);
+  it('keeps form controls actionable while dismissing the keyboard on scroll', async () => {
+    await render(<NewTripScreen />);
+    const form = screen.getByTestId('trip-create-form');
 
     expect(form.props.keyboardShouldPersistTaps).toBe('handled');
     expect(form.props.keyboardDismissMode).toBe('on-drag');
@@ -42,12 +41,12 @@ describe('NewTripScreen', () => {
 
   it('submits pence through the selected organization and opens the created trip', async () => {
     mockCreateMobileTrip.mockResolvedValue({ ok: true, data: { id: 'trip-1' } });
-    render(<NewTripScreen />);
+    await render(<NewTripScreen />);
 
-    fireEvent.press(screen.getByTestId('trip-create-organization-org-1'));
-    fireEvent.changeText(screen.getByTestId('trip-create-name'), 'Japan');
-    fireEvent.changeText(screen.getByTestId('trip-create-budget'), '5000');
-    fireEvent.press(screen.getByTestId('trip-create-submit'));
+    await fireEvent.press(screen.getByTestId('trip-create-organization-org-1'));
+    await fireEvent.changeText(screen.getByTestId('trip-create-name'), 'Japan');
+    await fireEvent.changeText(screen.getByTestId('trip-create-budget'), '5000');
+    await fireEvent.press(screen.getByTestId('trip-create-submit'));
 
     await waitFor(() =>
       expect(mockCreateMobileTrip).toHaveBeenCalledWith({
@@ -60,11 +59,11 @@ describe('NewTripScreen', () => {
   });
 
   it('shows local validation and does not submit an invalid budget', async () => {
-    render(<NewTripScreen />);
+    await render(<NewTripScreen />);
 
-    fireEvent.changeText(screen.getByTestId('trip-create-name'), 'Japan');
-    fireEvent.changeText(screen.getByTestId('trip-create-budget'), 'nope');
-    fireEvent.press(screen.getByTestId('trip-create-submit'));
+    await fireEvent.changeText(screen.getByTestId('trip-create-name'), 'Japan');
+    await fireEvent.changeText(screen.getByTestId('trip-create-budget'), 'nope');
+    await fireEvent.press(screen.getByTestId('trip-create-submit'));
 
     expect(await screen.findByTestId('trip-create-error')).toHaveTextContent(/valid budget/i);
     expect(mockCreateMobileTrip).not.toHaveBeenCalled();
