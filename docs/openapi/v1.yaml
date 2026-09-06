@@ -976,9 +976,9 @@ components:
           type: string
           minLength: 1
         name:
-          anyOf:
-            - type: string
-            - type: "null"
+          type:
+            - string
+            - "null"
         isApproved:
           type: boolean
       required:
@@ -1131,9 +1131,9 @@ components:
           type: string
           minLength: 1
         city:
-          anyOf:
-            - type: string
-            - type: "null"
+          type:
+            - string
+            - "null"
         latitude:
           anyOf:
             - type: number
@@ -1526,13 +1526,13 @@ components:
           minLength: 3
           maxLength: 3
         region:
-          anyOf:
-            - type: string
-            - type: "null"
+          type:
+            - string
+            - "null"
         subregion:
-          anyOf:
-            - type: string
-            - type: "null"
+          type:
+            - string
+            - "null"
         currency:
           type: string
           enum:
@@ -1612,134 +1612,124 @@ components:
         - suggestedDailyBudget
       additionalProperties: false
     CreateDestinationRequest:
-      allOf:
-        - type: object
-          properties:
-            name:
-              type: string
-              maxLength: 200
-            country:
-              type: string
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        country:
+          type: string
+          minLength: 1
+          maxLength: 100
+        city:
+          anyOf:
+            - type: string
               minLength: 1
               maxLength: 100
-            city:
-              anyOf:
-                - type: string
-                  minLength: 1
-                  maxLength: 100
-                - type: "null"
-            latitude:
-              anyOf:
-                - type: number
-                  minimum: -90
-                  maximum: 90
-                - type: "null"
-            longitude:
-              anyOf:
-                - type: number
-                  minimum: -180
-                  maximum: 180
-                - type: "null"
-            estimatedBudgetPence:
-              type: integer
-              exclusiveMinimum: 0
-              maximum: 9007199254740991
-            comfortLevel:
-              type: string
-              enum:
-                - budget
-                - mid
-                - luxury
-          required:
-            - name
-            - country
-            - city
-            - latitude
-            - longitude
-            - estimatedBudgetPence
-            - comfortLevel
-          additionalProperties: false
-        - type: object
-          properties:
-            startDate:
-              anyOf:
-                - type: string
-                  pattern: ^\d{4}-\d{2}-\d{2}$
-                - type: "null"
-            endDate:
-              anyOf:
-                - type: string
-                  pattern: ^\d{4}-\d{2}-\d{2}$
-                - type: "null"
-          required:
-            - startDate
-            - endDate
-          additionalProperties: false
+            - type: "null"
+        latitude:
+          anyOf:
+            - type: number
+              minimum: -90
+              maximum: 90
+            - type: "null"
+        longitude:
+          anyOf:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: "null"
+        estimatedBudgetPence:
+          type: integer
+          exclusiveMinimum: 0
+          maximum: 9007199254740991
+        comfortLevel:
+          type: string
+          enum:
+            - budget
+            - mid
+            - luxury
+        startDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+        endDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+      required:
+        - name
+        - country
+        - city
+        - latitude
+        - longitude
+        - estimatedBudgetPence
+        - comfortLevel
+        - startDate
+        - endDate
+      additionalProperties: false
     UpdateDestinationRequest:
-      allOf:
-        - type: object
-          properties:
-            name:
-              type: string
-              maxLength: 200
-            country:
-              type: string
+      $ref: "#/components/schemas/CreateDestinationRequest"
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        country:
+          type: string
+          minLength: 1
+          maxLength: 100
+        city:
+          anyOf:
+            - type: string
               minLength: 1
               maxLength: 100
-            city:
-              anyOf:
-                - type: string
-                  minLength: 1
-                  maxLength: 100
-                - type: "null"
-            latitude:
-              anyOf:
-                - type: number
-                  minimum: -90
-                  maximum: 90
-                - type: "null"
-            longitude:
-              anyOf:
-                - type: number
-                  minimum: -180
-                  maximum: 180
-                - type: "null"
-            estimatedBudgetPence:
-              type: integer
-              exclusiveMinimum: 0
-              maximum: 9007199254740991
-            comfortLevel:
-              type: string
-              enum:
-                - budget
-                - mid
-                - luxury
-          required:
-            - name
-            - country
-            - city
-            - latitude
-            - longitude
-            - estimatedBudgetPence
-            - comfortLevel
-          additionalProperties: false
-        - type: object
-          properties:
-            startDate:
-              anyOf:
-                - type: string
-                  pattern: ^\d{4}-\d{2}-\d{2}$
-                - type: "null"
-            endDate:
-              anyOf:
-                - type: string
-                  pattern: ^\d{4}-\d{2}-\d{2}$
-                - type: "null"
-          required:
-            - startDate
-            - endDate
-          additionalProperties: false
-      $ref: "#/components/schemas/CreateDestinationRequest"
+            - type: "null"
+        latitude:
+          anyOf:
+            - type: number
+              minimum: -90
+              maximum: 90
+            - type: "null"
+        longitude:
+          anyOf:
+            - type: number
+              minimum: -180
+              maximum: 180
+            - type: "null"
+        estimatedBudgetPence:
+          type: integer
+          exclusiveMinimum: 0
+          maximum: 9007199254740991
+        comfortLevel:
+          type: string
+          enum:
+            - budget
+            - mid
+            - luxury
+        startDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+        endDate:
+          anyOf:
+            - type: string
+              pattern: ^\d{4}-\d{2}-\d{2}$
+            - type: "null"
+      required:
+        - name
+        - country
+        - city
+        - latitude
+        - longitude
+        - estimatedBudgetPence
+        - comfortLevel
+        - startDate
+        - endDate
+      additionalProperties: false
     CreateFixedCostRequest:
       type: object
       properties:
@@ -1916,9 +1906,9 @@ components:
             - shopping
             - other
         description:
-          anyOf:
-            - type: string
-            - type: "null"
+          type:
+            - string
+            - "null"
         spentAt:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$

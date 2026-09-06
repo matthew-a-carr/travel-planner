@@ -44,7 +44,7 @@ The engineering harness consists of four things:
 | Accessibility (WCAG 2.1 AA) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |
-| CI gate | `.github/workflows/ci.yml` | automatic on push/PR |
+| CI gate | `.github/workflows/ci.yml` (Node 24, ADR 069) | automatic on push/PR |
 
 **Nothing ships unless all gates are green.**
 

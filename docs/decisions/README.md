@@ -77,3 +77,4 @@ See [CONSTITUTION.md §7](../../CONSTITUTION.md) for naming rules and the trigge
 | [066](066-mise-for-pnpm-version-management.md) | Mise for pnpm Version Management | 2026-08-31 | Accepted |
 | [067](067-dependabot-single-pr-per-ecosystem.md) | Dependabot — One Grouped PR Per Ecosystem, Including Majors | 2026-08-31 | Majors split out by ADR 068 |
 | [068](068-dependabot-split-major-updates-from-minor-patch.md) | Dependabot — Split Major Updates from Minor/Patch | 2026-09-01 | Accepted |
+| [069](069-node-24-and-dependency-test-migrations.md) | Node 24 and Dependency Test Migrations | 2026-09-05 | Accepted |

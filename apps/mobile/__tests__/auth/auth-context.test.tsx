@@ -114,7 +114,7 @@ describe('AuthProvider — cold-start', () => {
   it('(a) no tokens → signed_out', async () => {
     mockGetAccessToken.mockResolvedValue({ ok: false, reason: 'no_tokens' });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
@@ -127,7 +127,7 @@ describe('AuthProvider — cold-start', () => {
     mockGetAccessToken.mockResolvedValue({ ok: true, token: 'eyJaccess' });
     mockApiGet.mockResolvedValue({ ok: true, data: fixtureMe });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_in');
@@ -141,7 +141,7 @@ describe('AuthProvider — cold-start', () => {
     mockGetAccessToken.mockResolvedValue({ ok: true, token: 'new-access-after-refresh' });
     mockApiGet.mockResolvedValue({ ok: true, data: fixtureMe });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_in');
@@ -156,7 +156,7 @@ describe('AuthProvider — cold-start', () => {
   it('(d) expired access + /refresh failure → signed_out (getAccessToken already cleared keychain)', async () => {
     mockGetAccessToken.mockResolvedValue({ ok: false, reason: 'refresh_failed' });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
@@ -173,7 +173,7 @@ describe('AuthProvider — cold-start', () => {
       error: apiError('unauthenticated', 'No session found.'),
     });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
@@ -188,7 +188,7 @@ describe('AuthProvider — cold-start', () => {
       error: apiError('internal', 'Could not reach the server.'),
     });
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
@@ -202,7 +202,7 @@ describe('AuthProvider — cold-start', () => {
     // app hangs on the splash forever (the mobile-e2e stuck-screen bug).
     mockGetAccessToken.mockRejectedValue(new Error('keychain unavailable'));
 
-    renderProvider();
+    await renderProvider();
 
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
@@ -214,7 +214,7 @@ describe('AuthProvider — signIn', () => {
   it('(g) success: stores tokens, fetches /me, transitions to signed_in', async () => {
     // Cold-start lands signed_out.
     mockGetAccessToken.mockResolvedValueOnce({ ok: false, reason: 'no_tokens' });
-    renderProvider();
+    await renderProvider();
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
     });
@@ -223,7 +223,7 @@ describe('AuthProvider — signIn', () => {
     mockApiGet.mockResolvedValueOnce({ ok: true, data: fixtureMe });
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trigger-sign-in'));
+      await fireEvent.press(screen.getByTestId('trigger-sign-in'));
     });
 
     await waitFor(() => {
@@ -240,7 +240,7 @@ describe('AuthProvider — signIn', () => {
 
   it('(h) /me failure post-exchange: clears Keychain, transitions to signed_out', async () => {
     mockGetAccessToken.mockResolvedValueOnce({ ok: false, reason: 'no_tokens' });
-    renderProvider();
+    await renderProvider();
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_out');
     });
@@ -251,7 +251,7 @@ describe('AuthProvider — signIn', () => {
     });
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trigger-sign-in'));
+      await fireEvent.press(screen.getByTestId('trigger-sign-in'));
     });
 
     await waitFor(() => {
@@ -271,13 +271,13 @@ describe('AuthProvider — signOut', () => {
     mockApiGet.mockResolvedValueOnce({ ok: true, data: fixtureMe });
     mockReadTokens.mockResolvedValueOnce(fixtureTokens);
 
-    renderProvider();
+    await renderProvider();
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_in');
     });
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trigger-sign-out'));
+      await fireEvent.press(screen.getByTestId('trigger-sign-out'));
     });
 
     await waitFor(() => {
@@ -295,14 +295,14 @@ describe('AuthProvider — signOut', () => {
     mockReadTokens.mockResolvedValueOnce(fixtureTokens);
     mockApiPost.mockRejectedValueOnce(new Error('network down'));
 
-    renderProvider();
+    await renderProvider();
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_in');
     });
 
     // Should NOT throw despite the /revoke rejection.
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trigger-sign-out'));
+      await fireEvent.press(screen.getByTestId('trigger-sign-out'));
     });
 
     await waitFor(() => {
@@ -322,13 +322,13 @@ describe('AuthProvider — signOut', () => {
     // out-of-band, e.g. user clearing app data).
     mockReadTokens.mockResolvedValueOnce(null);
 
-    renderProvider();
+    await renderProvider();
     await waitFor(() => {
       expect(screen.getByTestId('status').props.children).toBe('signed_in');
     });
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trigger-sign-out'));
+      await fireEvent.press(screen.getByTestId('trigger-sign-out'));
     });
 
     await waitFor(() => {
@@ -340,7 +340,7 @@ describe('AuthProvider — signOut', () => {
 });
 
 describe('useAuth — error path', () => {
-  it('throws when used outside AuthProvider', () => {
+  it('throws when used outside AuthProvider', async () => {
     // Suppress React's error-boundary noise for this expected throw.
     const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -349,7 +349,7 @@ describe('useAuth — error path', () => {
       return <Text testID="x">{auth.status}</Text>;
     }
 
-    expect(() => render(<StandaloneConsumer />)).toThrow(
+    await expect(render(<StandaloneConsumer />)).rejects.toThrow(
       /useAuth must be used inside AuthProvider/,
     );
 

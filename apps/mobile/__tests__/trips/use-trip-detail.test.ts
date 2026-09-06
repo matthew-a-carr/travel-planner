@@ -102,11 +102,19 @@ afterEach(() => {
 
 describe('useTripDetail', () => {
   it('loads the composite detail and requests the right path with the bearer', async () => {
-    fetchSpy.mockResolvedValueOnce(envelope({ data: DETAIL }));
+    let release: (response: Response) => void = () => {};
+    fetchSpy.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        release = resolve;
+      }),
+    );
 
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
 
     expect(result.current.state.status).toBe('loading');
+    await act(async () => {
+      release(envelope({ data: DETAIL }));
+    });
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(result.current.state).toEqual({ status: 'loaded', trip: DETAIL });
 
@@ -118,7 +126,7 @@ describe('useTripDetail', () => {
   it('maps a 404 not_found to the dedicated not_found state', async () => {
     fetchSpy.mockResolvedValueOnce(envelope(errorBody(404, 'not_found', 'Trip not found.'), 404));
 
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
 
     await waitFor(() => expect(result.current.state.status).toBe('not_found'));
   });
@@ -126,7 +134,7 @@ describe('useTripDetail', () => {
   it('maps other API errors to the error state with the server detail', async () => {
     fetchSpy.mockResolvedValueOnce(envelope(errorBody(500, 'internal', 'Down.'), 500));
 
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
 
     await waitFor(() =>
       expect(result.current.state).toEqual({ status: 'error', message: 'Down.' }),
@@ -136,7 +144,7 @@ describe('useTripDetail', () => {
   it('maps a token failure to the error state without calling the API', async () => {
     mockGetAccessToken.mockResolvedValue({ ok: false, reason: 'no_tokens' });
 
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -144,18 +152,18 @@ describe('useTripDetail', () => {
 
   it('reload() after an error refetches into loaded', async () => {
     fetchSpy.mockResolvedValueOnce(envelope(errorBody(500, 'internal', 'Down.'), 500));
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
     await waitFor(() => expect(result.current.state.status).toBe('error'));
 
     fetchSpy.mockResolvedValueOnce(envelope({ data: DETAIL }));
-    act(() => result.current.reload());
+    await act(() => result.current.reload());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
   });
 
   it('refresh() keeps the loaded detail visible while refetching', async () => {
     fetchSpy.mockResolvedValueOnce(envelope({ data: DETAIL }));
-    const { result } = renderHook(() => useTripDetail('trip-1'));
+    const { result } = await renderHook(() => useTripDetail('trip-1'));
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
 
     let release: (response: Response) => void = () => {};
@@ -166,7 +174,7 @@ describe('useTripDetail', () => {
     );
 
     let refreshPromise: Promise<void> = Promise.resolve();
-    act(() => {
+    await act(() => {
       refreshPromise = result.current.refresh();
     });
     await waitFor(() => expect(result.current.refreshing).toBe(true));

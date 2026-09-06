@@ -535,6 +535,8 @@ Email template rule:
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
+CI and web deployment use Node 24 (ADR 069); local verification must use Node 24 too.
+
 The five web jobs run in parallel on every push and PR; three
 path-filtered mobile jobs (`mobile-typecheck`, `mobile-unit-test`,
 `mobile-e2e` — ADR 052/055) run when `apps/mobile/**`, the lockfile /

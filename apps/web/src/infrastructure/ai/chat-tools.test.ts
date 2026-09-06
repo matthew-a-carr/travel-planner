@@ -128,7 +128,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.get_trip_summary.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as Record<string, unknown>;
 
       expect(result.name).toBe('Asia 2026');
@@ -147,7 +147,7 @@ describe('createChatTools', () => {
       const tools = createChatTools(makeDeps({ trip: null }), 'missing');
       const result = (await tools.get_trip_summary.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as Record<string, unknown>;
       expect(result.error).toMatch(/Trip not found/);
     });
@@ -178,7 +178,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.list_destinations.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { destinations: { id: string; days: number | null; startDate: string | null }[] };
 
       expect(result.destinations.map((d) => d.id)).toEqual(['d2', 'd1', 'd3']);
@@ -201,7 +201,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.get_burndown.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { projection: unknown; alerts: unknown[]; totalSpentPence: number };
 
       expect(result.projection).toBe(null);
@@ -228,7 +228,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.get_burndown.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as {
         projection: { dailyPacePence: number; targetPacePence: number; paceRatio: number };
         alerts: { type: string }[];
@@ -257,7 +257,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.get_spending_by_category.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { byCategoryPence: Record<string, number>; totalPence: number; entryCount: number };
 
       expect(result.byCategoryPence).toEqual({
@@ -272,7 +272,7 @@ describe('createChatTools', () => {
       const tools = createChatTools(makeDeps({ spend: [] }), 'trip-1');
       const result = (await tools.get_spending_by_category.execute?.(
         {},
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { byCategoryPence: Record<string, number>; totalPence: number };
       expect(result.byCategoryPence).toEqual({});
       expect(result.totalPence).toBe(0);
@@ -283,7 +283,7 @@ describe('createChatTools', () => {
     const deps = makeDeps();
     const tools = createChatTools(deps, 'trip-bound');
 
-    await tools.get_trip_summary.execute?.({}, { toolCallId: 'c1', messages: [] });
+    await tools.get_trip_summary.execute?.({}, { toolCallId: 'c1', messages: [], context: {} });
 
     expect(deps.tripRepository.findById).toHaveBeenCalledWith('trip-bound');
     expect(deps.destinationRepository.findByTrip).toHaveBeenCalledWith('trip-bound');
@@ -315,7 +315,7 @@ describe('createChatTools', () => {
           amountPence: 500,
           category: 'food',
         },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { ok?: boolean; requiresConfirmation?: boolean; summary?: string };
 
       expect(result.ok).toBe(true);
@@ -336,7 +336,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.record_spend.execute?.(
         { destinationId: 'd1', amountPence: 5_000, category: 'food' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -365,7 +365,7 @@ describe('createChatTools', () => {
           category: 'food',
           confirmed: true,
         },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { ok?: boolean };
 
       expect(result.ok).toBe(true);
@@ -380,7 +380,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.record_spend.execute?.(
         { destinationId: 'd1', amountPence: 100, category: 'food' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { error?: string };
 
       expect(result.error).toMatch(/not part of this trip/);
@@ -400,7 +400,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.edit_destination.execute?.(
         { destinationId: 'd1', name: 'Hanoi (updated)' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { ok?: boolean; summary?: string };
 
       expect(result.ok).toBe(true);
@@ -419,7 +419,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.edit_destination.execute?.(
         { destinationId: 'd1', startDate: '2026-04-03', endDate: '2026-04-10' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -435,7 +435,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.edit_destination.execute?.(
         { destinationId: 'd1', name: 'X' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { error?: string };
 
       expect(result.error).toMatch(/not part of this trip/);
@@ -460,7 +460,7 @@ describe('createChatTools', () => {
           category: 'insurance',
           date: '2026-04-01',
         },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { ok?: boolean; summary?: string };
 
       expect(result.ok).toBe(true);
@@ -481,7 +481,7 @@ describe('createChatTools', () => {
           category: 'visas',
           date: '2026-04-01',
         },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -495,7 +495,7 @@ describe('createChatTools', () => {
       const tools = createChatTools(deps, 'trip-1');
       const result = (await tools.edit_trip_budget.execute?.(
         { totalBudgetPence: 600_000 },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -508,7 +508,7 @@ describe('createChatTools', () => {
       const tools = createChatTools(deps, 'trip-1');
       const result = (await tools.edit_trip_budget.execute?.(
         { totalBudgetPence: 600_000, name: 'Renamed Trip', status: 'completed' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -523,7 +523,7 @@ describe('createChatTools', () => {
       const trip = makeTrip();
       const result = (await tools.edit_trip_budget.execute?.(
         { totalBudgetPence: trip.totalBudget.amountPence, name: trip.name, status: trip.status },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { requiresConfirmation?: boolean; summary?: string };
 
       expect(result.requiresConfirmation).toBe(true);
@@ -540,7 +540,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.edit_trip_budget.execute?.(
         { totalBudgetPence: 600_000, confirmed: true },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { ok?: boolean };
 
       expect(result.ok).toBe(true);
@@ -559,7 +559,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.delete_spend_entry.execute?.(
         { spendEntryId: 's1' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as {
         ok?: boolean;
         undo?: { kind: string; destinationId: string; amountPence: number };
@@ -586,7 +586,7 @@ describe('createChatTools', () => {
 
       const result = (await tools.delete_spend_entry.execute?.(
         { spendEntryId: 's1' },
-        { toolCallId: 'c1', messages: [] },
+        { toolCallId: 'c1', messages: [], context: {} },
       )) as { error?: string };
 
       expect(result.error).toMatch(/not part of this trip/);

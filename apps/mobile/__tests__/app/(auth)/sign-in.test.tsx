@@ -40,8 +40,8 @@ beforeEach(() => {
 });
 
 describe('SignInScreen — idle render', () => {
-  it('renders the sign-in button + root testID', () => {
-    render(<SignInScreen />);
+  it('renders the sign-in button + root testID', async () => {
+    await render(<SignInScreen />);
 
     expect(screen.getByTestId('login-screen-root')).toBeOnTheScreen();
     expect(screen.getByTestId('login-google-button')).toBeOnTheScreen();
@@ -54,8 +54,8 @@ describe('SignInScreen — success branch', () => {
   it('hands tokens to auth.signIn and navigates to /signed-in', async () => {
     mockRunSignInFlow.mockResolvedValueOnce({ status: 'success', tokens: fixtureTokens });
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
 
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith(fixtureTokens);
@@ -69,8 +69,8 @@ describe('SignInScreen — cancellation branch', () => {
   it('silently returns to idle (no error UI, no navigation)', async () => {
     mockRunSignInFlow.mockResolvedValueOnce({ status: 'cancelled' });
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
 
     await waitFor(() => {
       expect(mockRunSignInFlow).toHaveBeenCalledTimes(1);
@@ -90,8 +90,8 @@ describe('SignInScreen — access_denied branch', () => {
       code: 'access_denied',
     });
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
 
     const errorView = await screen.findByTestId('login-screen-error');
     expect(errorView).toHaveTextContent(
@@ -110,8 +110,8 @@ describe('SignInScreen — generic error branch', () => {
       code: 'pkce_mismatch',
     });
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
 
     const errorView = await screen.findByTestId('login-screen-error');
     expect(errorView).toHaveTextContent('Sign-in failed. Try again. [code: pkce_mismatch]');
@@ -124,12 +124,12 @@ describe('SignInScreen — generic error branch', () => {
       .mockResolvedValueOnce({ status: 'error', reason: 'generic', code: 'rate_limited' })
       .mockResolvedValueOnce({ status: 'success', tokens: fixtureTokens });
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
     await screen.findByTestId('login-screen-error');
 
     // Tap again — should fire the flow a second time and navigate on success.
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await fireEvent.press(screen.getByTestId('login-google-button'));
     await waitFor(() => {
       expect(mockRouterReplace).toHaveBeenCalledTimes(1);
     });
@@ -140,8 +140,8 @@ describe('SignInScreen — generic error branch', () => {
   it('recovers to a retryable error when the sign-in pipeline rejects unexpectedly', async () => {
     mockRunSignInFlow.mockRejectedValueOnce(new Error('native boundary failed'));
 
-    render(<SignInScreen />);
-    fireEvent.press(screen.getByTestId('login-google-button'));
+    await render(<SignInScreen />);
+    await fireEvent.press(screen.getByTestId('login-google-button'));
 
     const errorView = await screen.findByTestId('login-screen-error');
     expect(errorView).toHaveTextContent(
