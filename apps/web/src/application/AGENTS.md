@@ -104,3 +104,11 @@ pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # si
 
 There are currently 34 integration test files in `use-cases/` (plus 5 under `use-cases/auth/`), **one per use case**.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.
+
+### AI read snapshots
+
+`summarise-trip-narrative.ts` and `analyse-trip-timeline.ts` expose `FromSnapshot`
+variants for authorized server pages that already loaded their inputs. The
+repository-based entry points delegate to the same cache and evaluation path;
+API and chat callers retain their existing entry points. Snapshots are scoped
+to the render, with no cross-request data cache (ADR 070).

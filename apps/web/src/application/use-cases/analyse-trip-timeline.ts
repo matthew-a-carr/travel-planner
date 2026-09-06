@@ -1,12 +1,13 @@
 import type { AiCacheRepository } from '@/application/ports/ai-cache-repository';
 import type { TimelineInsightsService } from '@/application/ports/timeline-insights-service';
 import type { CountryReferenceRepository } from '@/domain/country-reference/country-reference-repository';
+import type { CountryReference } from '@/domain/country-reference/types';
 import type { DestinationRepository } from '@/domain/destination/destination-repository';
 import { detectDeterministicFindings, mergeFindings } from '@/domain/timeline/timeline';
 import type { TimelineFinding } from '@/domain/timeline/types';
 import type { TripFixedCostRepository } from '@/domain/trip/fixed-cost-repository';
 import type { TripRepository } from '@/domain/trip/trip-repository';
-import type { Result } from '@/domain/trip/types';
+import type { Destination, Result, TripFixedCost } from '@/domain/trip/types';
 import { err, ok } from '@/domain/trip/types';
 
 const INSIGHTS_CACHE_TTL_SECONDS = 24 * 60 * 60;
@@ -34,6 +35,29 @@ export async function analyseTripTimeline(
     countryRefRepo.findAll(),
   ]);
 
+  return analyseTripTimelineFromSnapshot(insights, cache, hashFn, {
+    destinations,
+    fixedCosts,
+    references,
+    nationalities,
+  });
+}
+
+export type TimelineAnalysisSnapshot = {
+  readonly destinations: readonly Destination[];
+  readonly fixedCosts: readonly TripFixedCost[];
+  readonly references: readonly CountryReference[];
+  readonly nationalities: readonly string[];
+};
+
+/** Reuse the authorized page's data; keep cache keys and fallback behavior shared. */
+export async function analyseTripTimelineFromSnapshot(
+  insights: TimelineInsightsService,
+  cache: AiCacheRepository,
+  hashFn: (input: string) => string,
+  input: TimelineAnalysisSnapshot,
+): Promise<Result<readonly TimelineFinding[]>> {
+  const { destinations, fixedCosts, references, nationalities } = input;
   const deterministic = detectDeterministicFindings(destinations, references);
 
   const nationalityKey = [...nationalities].sort().join(',');

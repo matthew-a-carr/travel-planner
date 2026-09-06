@@ -1,5 +1,6 @@
 import type { AiCacheRepository } from '@/application/ports/ai-cache-repository';
 import type {
+  TripNarrativeInput,
   TripNarrativeResult,
   TripNarrativeService,
 } from '@/application/ports/trip-narrative-service';
@@ -38,6 +39,23 @@ export async function summariseTripNarrative(
     spendRepo.findByTrip(tripId),
   ]);
 
+  return summariseTripNarrativeFromSnapshot(narrative, cache, hashFn, {
+    trip,
+    destinations,
+    fixedCosts,
+    spendEntries,
+    currentDate,
+  });
+}
+
+/** Reuse the authorized page's data without another round of repository reads. */
+export async function summariseTripNarrativeFromSnapshot(
+  narrative: TripNarrativeService,
+  cache: AiCacheRepository,
+  hashFn: (input: string) => string,
+  input: TripNarrativeInput,
+): Promise<Result<TripNarrativeResult>> {
+  const { trip, destinations, fixedCosts, spendEntries, currentDate } = input;
   const cacheKey = hashFn(
     `${NARRATIVE_CACHE_KIND}:${stableStateKey(trip, destinations, fixedCosts, spendEntries, currentDate)}`,
   );

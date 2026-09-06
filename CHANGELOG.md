@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Changed
+
+- Trip overview and timeline content appears without waiting for AI summaries or insights; timeline warnings remain available while AI loads.
+- Trip pages reuse loaded data for AI panels, removing duplicate database reads.
+- The assistant's chat code now loads only when opened, reducing initial trip-page JavaScript.
+
 ## [1.21.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.20.0...v1.21.0) (2026-07-15)
 
 
