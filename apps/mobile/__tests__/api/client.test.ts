@@ -60,6 +60,47 @@ function errorEnvelope(
 
 afterEach(() => {
   jest.restoreAllMocks();
+  jest.useRealTimers();
+});
+
+describe('request deadline', () => {
+  it.each(['headers', 'body'])('aborts a response stalled at %s', async (stage) => {
+    jest.useFakeTimers();
+    let signal: AbortSignal | null | undefined;
+    jest.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+      signal = init?.signal;
+      if (stage === 'headers') {
+        return new Promise<Response>((_resolve, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+        });
+      }
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            signal?.addEventListener('abort', () => controller.error(new Error('aborted')), {
+              once: true,
+            });
+          },
+        }),
+      );
+    });
+
+    const pending = apiGet('/api/v1/echo', echoResponseSchema);
+    await jest.advanceTimersByTimeAsync(15_000);
+    expect(signal?.aborted).toBe(true);
+    expect(await pending).toMatchObject({
+      ok: false,
+      error: { code: 'internal', detail: 'Could not reach the server.' },
+    });
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('clears the deadline after a successful response', async () => {
+    jest.useFakeTimers();
+    mockFetch(Response.json(successEnvelope({ message: 'ok' }, '/api/v1/echo')));
+    await apiGet('/api/v1/echo', echoResponseSchema);
+    expect(jest.getTimerCount()).toBe(0);
+  });
 });
 
 describe('apiPost', () => {

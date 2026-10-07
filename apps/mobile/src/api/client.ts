@@ -121,6 +121,7 @@ async function request<T>(
   if (idempotencyKey !== undefined) headers['Idempotency-Key'] = idempotencyKey;
 
   let response: Response;
+  let payload: unknown;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -130,25 +131,17 @@ async function request<T>(
       body,
       signal: controller.signal,
     });
+    // Keep the deadline active until the body is read; fetch resolves as
+    // soon as headers arrive. A 204 has no body to decode.
+    if (response.status !== 204) payload = await response.json();
   } catch {
     return { ok: false, error: synthesiseError('internal', 'Could not reach the server.', path) };
   } finally {
     clearTimeout(timer);
   }
 
-  // 204 No Content — no body to parse. Skip the json() call entirely
-  // (empty bodies fail JSON.parse, which would otherwise collapse to a
-  // synthetic 'internal' error via the catch below). Used by /revoke
-  // (sign-out) and any future delete-style endpoint.
   if (response.status === 204) {
     return { ok: true, data: undefined as T };
-  }
-
-  let payload: unknown;
-  try {
-    payload = await response.json();
-  } catch {
-    return { ok: false, error: synthesiseError('internal', 'Could not reach the server.', path) };
   }
 
   if (!response.ok) {
