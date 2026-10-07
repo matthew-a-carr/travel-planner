@@ -14,10 +14,12 @@ import type {
   GoogleOAuthClient,
   GoogleProfile,
 } from '@/domain/auth/google-oauth-client';
+import { isGoogleEmailVerified } from './google-email-verification';
 
 const GOOGLE_AUTHORISE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
+const EXCHANGE_TIMEOUT_MS = 15_000;
 
 export type FetchLike = typeof fetch;
 
@@ -43,8 +45,12 @@ export class FetchGoogleOAuthClient implements GoogleOAuthClient {
   }
 
   async exchangeAuthCode(input: ExchangeAuthCodeInput): Promise<ExchangeAuthCodeResult> {
+    // Bound the whole exchange, including both response bodies.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), EXCHANGE_TIMEOUT_MS);
     try {
       const tokenRes = await this.fetchImpl(GOOGLE_TOKEN_URL, {
+        signal: controller.signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -64,11 +70,15 @@ export class FetchGoogleOAuthClient implements GoogleOAuthClient {
       }
 
       const profileRes = await this.fetchImpl(GOOGLE_USERINFO_URL, {
+        signal: controller.signal,
         headers: { Authorization: `Bearer ${tokenJson.access_token}` },
       });
       if (!profileRes.ok) return { ok: false, error: 'malformed_response' };
 
       const profile = (await profileRes.json()) as Record<string, unknown>;
+      if (!isGoogleEmailVerified({ provider: 'google' }, profile)) {
+        return { ok: false, error: 'malformed_response' };
+      }
       const sub = profile.sub;
       const email = profile.email;
       const name = profile.name;
@@ -85,6 +95,8 @@ export class FetchGoogleOAuthClient implements GoogleOAuthClient {
       return { ok: true, profile: result };
     } catch {
       return { ok: false, error: 'network_error' };
+    } finally {
+      clearTimeout(timer);
     }
   }
 }

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Security
+
+- Require an explicitly verified Google email for web and mobile sign-in, and reject access tokens without expiry or issuance claims.
+
+### Fixed
+
+- Stop stalled Google sign-in exchanges after 15 seconds, including response-body reads.
+
 ## [1.21.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.20.0...v1.21.0) (2026-07-15)
 
 

@@ -113,6 +113,10 @@ claim, mutation, and replay response must remain in the same transaction.
 `provider-availability.ts` centralises environment checks for which sign-in providers are shown.
 `access-policy.ts` owns app-level closed-auth checks (approved-user gating, local-dev bootstrap
 admin sync, canonical email matching).
+Google sign-in requires an explicit verified-email claim on both the Auth.js and
+mobile OAuth paths. The mobile Google exchange has a 15-second deadline across
+the token/profile requests and their response bodies. Bearer JWT verification
+requires `sub`, `iat`, and `exp` in addition to a valid signature and issuer.
 `index.ts` imports the Drizzle adapter — only import in server-side code, never in middleware.
 `index.ts` uses the shared `db` from `client.ts` (not its own connection). Do not create
 a separate drizzle instance inside `auth/`.
