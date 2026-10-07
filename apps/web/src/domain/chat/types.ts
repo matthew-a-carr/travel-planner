@@ -26,8 +26,8 @@ export type ChatThread = {
  * `{ type: 'tool-record_spend', state: 'output-available', input: ..., output: ... }`.
  *
  * Repositories serialise/deserialise this transparently through the
- * `chat_messages.parts` jsonb column. Application/infrastructure layers
- * may narrow this to `UIMessagePart` from the `ai` package.
+ * `chat_messages.parts` jsonb column. Infrastructure
+ * adapters may narrow this to `UIMessagePart` from the `ai` package.
  */
 export type ChatMessagePart = {
   readonly type: string;

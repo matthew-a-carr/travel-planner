@@ -36,8 +36,8 @@ export type ProcessChatMessageDeps = {
 function totalTextLength(parts: readonly ChatUIMessagePart[]): number {
   let total = 0;
   for (const part of parts) {
-    if (part.type === 'text' && typeof (part as { text?: unknown }).text === 'string') {
-      total += (part as { text: string }).text.length;
+    if (part.type === 'text' && typeof part.text === 'string') {
+      total += part.text.length;
     }
   }
   return total;
@@ -45,8 +45,8 @@ function totalTextLength(parts: readonly ChatUIMessagePart[]): number {
 
 function hasNonEmptyText(parts: readonly ChatUIMessagePart[]): boolean {
   for (const part of parts) {
-    if (part.type === 'text' && typeof (part as { text?: unknown }).text === 'string') {
-      if ((part as { text: string }).text.trim().length > 0) return true;
+    if (part.type === 'text' && typeof part.text === 'string') {
+      if (part.text.trim().length > 0) return true;
     }
   }
   return false;

@@ -78,6 +78,12 @@ src/app/           Next.js App Router (pages, layouts, server actions). May impo
 These rules are **mechanically enforced** by `src/__tests__/architecture.test.ts`.
 Breaking them causes test failures. Do not use `// @ts-ignore` or similar to silence them.
 
+The guard parses TypeScript imports, re-exports, side-effect imports, dynamic
+imports, and CommonJS requires, and resolves relative paths before checking
+boundaries. Application code may import shared **wire types only** from
+`@travel-planner/shared`, following SPEC-005/010/024; runtime schemas and external
+SDK types remain at the edges.
+
 ### Runtime dependency composition rule
 
 - Runtime dependency wiring is centralized in

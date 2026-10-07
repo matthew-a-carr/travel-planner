@@ -5,6 +5,9 @@
 ## Hard rules
 
 - **Import from `domain/` only.** No `next`, `drizzle`, `react`, or infrastructure imports.
+  Imports within `application/` and type-only imports from `@travel-planner/shared`
+  are allowed (SPEC-005/010/024). Shared runtime schemas remain at delivery boundaries;
+  SDK types, including AI SDK message parts, remain in adapters.
 - **Thin orchestration only.** Use cases fetch, validate, and delegate — no business logic here.
 - Business logic belongs in `domain/`. Infrastructure concerns belong in `infrastructure/`.
 - **Every use case must have a co-located integration test.** When you add `my-use-case.ts`,
