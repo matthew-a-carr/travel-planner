@@ -590,7 +590,7 @@ and ADR 033 for the removal of the pre-push hook.
 
 Terraform orchestration lives in dedicated workflows:
 
-- `.github/workflows/infra-validate.yml` — fmt/validate for `infra/stacks/prod` and `infra/stacks/preview` plus migration policy check
+- `.github/workflows/infra-validate.yml` — fmt/validate for `infra/stacks/prod` and `infra/stacks/preview`, preview cleanup tests with mocked providers (`terraform -chdir=infra/stacks/preview test`), plus migration policy check
 - `.github/workflows/infra-prod.yml` — applies `infra/stacks/prod` with Terraform Cloud remote state workspace `travel-planner-prod`
 - `.github/workflows/infra-preview.yml` — applies `infra/stacks/preview` per PR lifecycle with Terraform Cloud remote state workspace `travel-planner-preview`
 

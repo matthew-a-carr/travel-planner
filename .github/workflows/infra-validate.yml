@@ -55,3 +55,6 @@ jobs:
         run: |
           terraform -chdir=infra/stacks/preview init -backend=false -input=false
           terraform -chdir=infra/stacks/preview validate
+
+      - name: Test preview cleanup with mocked providers
+        run: terraform -chdir=infra/stacks/preview test

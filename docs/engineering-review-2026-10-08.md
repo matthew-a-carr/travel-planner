@@ -107,7 +107,7 @@ Final checks use Node.js 24.20.0 and pnpm 10.34.5 after integrating `main`.
 | `POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build` | Passed with Next.js 16.3.8; existing Sentry config-import deprecation warning. |
 | Migration policy, OpenAPI and visa-schema drift | Passed. |
 | Mobile parity manifest | Passed incremental validation; 20 complete, 14 missing. Country-reset evidence note updated. |
-| `terraform fmt -check -recursive infra` | Passed. No manual apply or remote-state changes. |
+| Terraform formatting, preview validation, and mock-provider tests | Passed on Terraform 1.12.2: 3 cleanup/create scenarios, no skips. No manual cloud apply or remote-state changes. |
 | Workflow inventory checks | Passed: 21 workflow tests, including paginated API fixtures, API failure, and manual-input handling; live read-only GitHub inventory smoke includes PR 208. |
 | Production dependency audit | **Not clean**: 7 reports remain (4 high, 3 moderate); see TD-011. |
 | `pnpm test:e2e:web` | Passed: 85 tests in 44.7 seconds, with one existing development-only sign-in test skipped under the production server. |
@@ -135,6 +135,13 @@ manual-input path only. Filtering now runs through standalone `jq`, and
 `pipefail` propagates inventory failures before a deletion plan is possible.
 Five executable shell regressions cover paginated/empty inventories, API failure,
 and manual-input validation; the live CLI path was also checked read-only.
+
+After inventory succeeded, CI exposed an existing targeted-cleanup bug: URL
+outputs indexed desired PRs that were outside the targeted resource graph.
+The preview stack's mock-provider test reproduced the same invalid-index error.
+URL outputs now iterate included database resources; cleanup and the subsequent
+full apply pass all three Terraform scenarios. The infrastructure validation job
+runs this regression without cloud credentials or real provider operations.
 
 ## Architecture review
 

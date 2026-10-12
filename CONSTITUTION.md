@@ -46,6 +46,7 @@ The engineering harness consists of four things:
 | Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |
 | CI gate | `.github/workflows/ci.yml` (Node 24, ADR 069) | automatic on push/PR |
 | Action SHA pins, token permissions, and shell input boundaries (ADR 071) | `apps/web/scripts/workflow-security.test.ts` | `pnpm test:unit` |
+| Targeted preview cleanup and subsequent creation (ADR 039) | `infra/stacks/preview/tests/preview-cleanup.tftest.hcl` | `terraform -chdir=infra/stacks/preview test` |
 
 **Nothing ships unless all gates are green.**
 
