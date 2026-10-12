@@ -27,7 +27,7 @@ Built as a portfolio piece demonstrating production-quality Next.js architecture
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24 LTS (matches CI)
 - [mise](https://mise.jdx.dev) (manages the pinned pnpm version — see `mise.toml` / ADR 066), or install pnpm 10 yourself (`npm install -g pnpm@10`)
 - Docker (required for one-command local dev, integration tests, and e2e tests)
 - Optional: a Vercel Postgres/Neon database URL if you do not want the local Testcontainers database

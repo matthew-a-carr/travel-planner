@@ -45,6 +45,7 @@ The engineering harness consists of four things:
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |
 | CI gate | `.github/workflows/ci.yml` | automatic on push/PR |
+| Action SHA pins, token permissions, and shell input boundaries (ADR 071) | `apps/web/scripts/workflow-security.test.ts` | `pnpm test:unit` |
 
 **Nothing ships unless all gates are green.**
 
