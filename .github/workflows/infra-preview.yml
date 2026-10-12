@@ -62,6 +62,7 @@ jobs:
           MANUAL_OPEN_PREVIEWS: ${{ inputs.open_previews_json }}
           REPOSITORY: ${{ github.repository }}
         run: |
+          set -euo pipefail
           if [[ -n "$MANUAL_OPEN_PREVIEWS" ]]; then
             open_previews="$MANUAL_OPEN_PREVIEWS"
           else
@@ -72,7 +73,7 @@ jobs:
               "repos/$REPOSITORY/pulls" \
               --paginate --slurp \
               -f state=open \
-              --jq 'add | map(select(.user.type != "Bot")) | map({(.number|tostring): .head.ref}) | add // {}')"
+              | jq -c 'add | map(select(.user.type != "Bot")) | map({(.number|tostring): .head.ref}) | add // {}')"
           fi
           # Validate and compact before writing a single-line Actions output.
           open_previews=$(printf '%s' "$open_previews" | jq -ce '

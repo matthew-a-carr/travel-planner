@@ -102,13 +102,13 @@ Final checks use Node.js 24.20.0 and pnpm 10.34.5 after integrating `main`.
 | `pnpm install --frozen-lockfile` | Passed; no peer-dependency warnings. |
 | `pnpm lint` | Passed; 427 files. One existing optional-chain warning in the chat route. |
 | `pnpm type-check` | Passed for all three packages. |
-| `pnpm test:unit` | Passed: shared 82, web 549, mobile 158, plus 14 mobile script checks (803 total). No skips. |
+| `pnpm test:unit` | Passed: shared 82, web 554, mobile 158, plus 14 mobile script checks (808 total). No skips. |
 | `pnpm test:integration` | Passed: 394 tests across 75 files, real Testcontainers PostgreSQL. |
 | `POSTGRES_URL=postgresql://build:build@localhost:5432/build pnpm build` | Passed with Next.js 16.3.8; existing Sentry config-import deprecation warning. |
 | Migration policy, OpenAPI and visa-schema drift | Passed. |
 | Mobile parity manifest | Passed incremental validation; 20 complete, 14 missing. Country-reset evidence note updated. |
 | `terraform fmt -check -recursive infra` | Passed. No manual apply or remote-state changes. |
-| Workflow input smoke | Passed: shell payload stays data, multiline JSON is compact, non-string map values fail. |
+| Workflow inventory checks | Passed: 21 workflow tests, including paginated API fixtures, API failure, and manual-input handling; live read-only GitHub inventory smoke includes PR 208. |
 | Production dependency audit | **Not clean**: 7 reports remain (4 high, 3 moderate); see TD-011. |
 | `pnpm test:e2e:web` | Passed: 85 tests in 44.7 seconds, with one existing development-only sign-in test skipped under the production server. |
 | Native Maestro / hosted CI / production smoke | Not run locally on this branch. Hosted CI, including Maestro, remains a merge gate; production smoke belongs after deployment. |
@@ -128,6 +128,13 @@ Local verification logs (temporary, not committed):
 Test traces contain session data and stay within the normal private artifact
 boundary. All changes are recorded in signed logical commits, with an explicit
 merge retaining upstream dependency/tooling and performance work.
+
+The first hosted preview run exposed an unsupported `gh api --slurp --jq`
+combination before Terraform started. The original shell smoke had covered the
+manual-input path only. Filtering now runs through standalone `jq`, and
+`pipefail` propagates inventory failures before a deletion plan is possible.
+Five executable shell regressions cover paginated/empty inventories, API failure,
+and manual-input validation; the live CLI path was also checked read-only.
 
 ## Architecture review
 
