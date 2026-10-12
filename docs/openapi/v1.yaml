@@ -29,12 +29,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
-        "403":
-          description: Authenticated but not approved.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorEnvelope"
   /api/v1/auth/mobile/start:
     post:
       summary: Begin the mobile server-mediated PKCE flow
@@ -166,6 +160,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
     post:
       summary: Create a trip
       security:
@@ -208,7 +208,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "403":
-          description: The caller is not a member of the organization.
+          description: "Account not approved, or: The caller is not a member of the
+            organization."
           content:
             application/json:
               schema:
@@ -245,6 +246,12 @@ paths:
                 $ref: "#/components/schemas/TripDetailSuccessEnvelope"
         "401":
           description: No valid session or bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -293,6 +300,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
         "404":
           description: Unknown trip, or not visible to the caller.
           content:
@@ -334,7 +347,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "403":
-          description: Only organization owners can delete trips.
+          description: "Account not approved, or: Only organization owners can delete
+            trips."
           content:
             application/json:
               schema:
@@ -370,6 +384,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
   /api/v1/countries:
     get:
       summary: List country references and canonical daily budget suggestions
@@ -385,6 +405,12 @@ paths:
                 $ref: "#/components/schemas/CountriesListSuccessEnvelope"
         "401":
           description: No valid session or bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -423,6 +449,12 @@ paths:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -482,6 +514,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
         "404":
           description: Resource not found.
           content:
@@ -516,6 +554,12 @@ paths:
           description: Resource deleted.
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -566,6 +610,12 @@ paths:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -625,6 +675,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
         "404":
           description: Resource not found.
           content:
@@ -663,6 +719,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
         "404":
           description: Resource not found.
           content:
@@ -696,6 +758,12 @@ paths:
                 $ref: "#/components/schemas/TripFinancialsSuccessEnvelope"
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -739,6 +807,12 @@ paths:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:
@@ -798,6 +872,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
         "404":
           description: Resource not found.
           content:
@@ -832,6 +912,12 @@ paths:
           description: Resource deleted.
         "401":
           description: Unauthenticated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorEnvelope"
+        "403":
+          description: Account not approved.
           content:
             application/json:
               schema:

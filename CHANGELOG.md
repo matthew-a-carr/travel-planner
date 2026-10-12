@@ -9,6 +9,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Security
 
+- Apply approval revocations immediately to v1 API reads and writes while retaining account-status access through `/me`.
 - Require an explicitly verified Google email for web and mobile sign-in, and reject access tokens without expiry or issuance claims.
 
 ### Fixed

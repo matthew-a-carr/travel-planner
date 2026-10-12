@@ -236,6 +236,12 @@ true, userId, email, name, isApproved } | { ok: false, response }`).
 Handlers branch identically regardless of which credential the caller
 used.
 
+`requireAuth` also requires the current database row to be approved, returning
+`403 forbidden` immediately after approval is revoked. `GET /me` uses
+`requireAuth(request, { allowUnapproved: true })` so clients can still display
+`isApproved: false`. The credential-specific helpers resolve identity only;
+resource handlers should use `requireAuth` for the approval gate.
+
 ### When both are present
 
 If a request bears **both** a valid cookie session and a valid bearer
