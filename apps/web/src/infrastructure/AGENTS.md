@@ -12,6 +12,15 @@
 
 These rules are enforced by `src/__tests__/architecture.test.ts`. Violations break the test suite.
 
+Mobile sign-in state and exchange-code repositories claim records with a single
+conditional update (`consumed_at IS NULL` and `expires_at > now`). Callers must
+check the returned boolean before issuing a code or tokens; a prior read alone
+does not prevent concurrent redemption.
+
+Refresh-token replay detection locks and revokes the forward chain inside the
+rotation transaction. Sign-out uses the same traversal; fetching a list of IDs
+and revoking it after releasing the locks can miss a concurrent successor.
+
 ## Structure
 
 ```

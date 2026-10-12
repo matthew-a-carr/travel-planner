@@ -18,6 +18,30 @@ beforeEach(async () => {
 });
 
 describe('DrizzleMobileAuthStateRepository', () => {
+  it('atomically consumes a state once and preserves the first consumption time', async () => {
+    const repo = new DrizzleMobileAuthStateRepository(db);
+    const now = new Date();
+    const row = await repo.create({
+      state: 'race',
+      codeChallenge: 'challenge',
+      expiresAt: new Date(now.getTime() + 120_000),
+    });
+    const claims = await Promise.all(
+      Array.from({ length: 4 }, () => repo.markConsumed(row.id, now)),
+    );
+    expect(claims.filter(Boolean)).toHaveLength(1);
+    expect(await repo.markConsumed(row.id, new Date(now.getTime() + 1_000))).toBe(false);
+    expect((await repo.findByState('race'))?.consumedAt).toEqual(now);
+  });
+
+  it('cannot consume expired state, including at the expiry boundary', async () => {
+    const repo = new DrizzleMobileAuthStateRepository(db);
+    const now = new Date();
+    const row = await repo.create({ state: 'expired', codeChallenge: 'challenge', expiresAt: now });
+    expect(await repo.markConsumed(row.id, now)).toBe(false);
+    expect(await repo.markConsumed(row.id, new Date(now.getTime() + 1))).toBe(false);
+  });
+
   it('creates a row and retrieves it by state', async () => {
     const repo = new DrizzleMobileAuthStateRepository(db);
     const expiresAt = new Date(Date.now() + 120_000);

@@ -26,5 +26,6 @@ export type CreateMobileAuthExchangeCodeInput = {
 export interface MobileAuthExchangeCodeRepository {
   create(input: CreateMobileAuthExchangeCodeInput): Promise<MobileAuthExchangeCodeRecord>;
   findByCodeHash(codeHash: string): Promise<MobileAuthExchangeCodeRecord | null>;
-  markConsumed(id: string, consumedAt: Date): Promise<void>;
+  /** Atomically claim an unconsumed, unexpired row; false if another request won. */
+  markConsumed(id: string, consumedAt: Date): Promise<boolean>;
 }

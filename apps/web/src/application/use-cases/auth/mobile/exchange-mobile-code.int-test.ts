@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { verifyAccessToken } from '@/infrastructure/auth/bearer-token';
 import { WebCryptoMobileAuthCrypto } from '@/infrastructure/auth/mobile-auth-crypto';
 import { DrizzleMobileAuthExchangeCodeRepository } from '@/infrastructure/db/repositories/drizzle-mobile-auth-exchange-code-repository';
@@ -14,6 +14,8 @@ import { makeExchangeMobileCode } from './exchange-mobile-code';
 
 let db: Db;
 let sql: Sql;
+
+afterEach(() => vi.restoreAllMocks());
 
 beforeAll(() => {
   ({ db, sql } = createTestDb());
@@ -61,6 +63,36 @@ async function setupRow(opts: {
 }
 
 describe('exchangeMobileCode', () => {
+  it('issues one token pair when two requests redeem the same code concurrently', async () => {
+    const verifier = 'concurrent-verifier';
+    const challenge = await new WebCryptoMobileAuthCrypto().sha256Base64url(verifier);
+    const now = new Date();
+    const { cleartext, exchange, cryptoImpl } = await setupRow({ codeChallenge: challenge, now });
+    const hash = cryptoImpl.sha256Base64url.bind(cryptoImpl);
+    let arrivals = 0;
+    let release = () => {};
+    const bothRead = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    // Pause at the crypto boundary after both real repository reads. This
+    // reproduces the race deterministically without mocking the database.
+    vi.spyOn(cryptoImpl, 'sha256Base64url').mockImplementation(async (value) => {
+      if (value === verifier) {
+        if (++arrivals === 2) release();
+        await bothRead;
+      }
+      return hash(value);
+    });
+    const results = await Promise.all([
+      exchange({ code: cleartext, codeVerifier: verifier }, now),
+      exchange({ code: cleartext, codeVerifier: verifier }, now),
+    ]);
+    expect(results.filter((result) => result.ok)).toHaveLength(1);
+    expect(results.filter((result) => !result.ok)).toEqual([
+      { ok: false, error: 'invalid_exchange_code' },
+    ]);
+  });
+
   it('happy path: returns access + refresh and persists refresh row', async () => {
     const cryptoImpl = new WebCryptoMobileAuthCrypto();
     const verifier = cryptoImpl.randomBase64url(32);

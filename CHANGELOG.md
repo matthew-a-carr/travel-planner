@@ -9,6 +9,8 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Security
 
+- Revoke refresh-token successors within the locked transaction on replay or sign-out, including concurrent rotations.
+- Atomically consume mobile sign-in states and exchange codes to prevent concurrent redemption and reject expired claims.
 - Apply approval revocations immediately to v1 API reads and writes while retaining account-status access through `/me`.
 - Require an explicitly verified Google email for web and mobile sign-in, and reject access tokens without expiry or issuance claims.
 

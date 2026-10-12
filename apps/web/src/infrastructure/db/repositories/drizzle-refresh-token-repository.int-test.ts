@@ -113,6 +113,68 @@ describe('DrizzleRefreshTokenRepository', () => {
     expect(second.kind).toBe('reused');
     if (second.kind !== 'reused') throw new Error('unreachable');
     expect(second.chain.map((r) => r.tokenHash)).toEqual(['t1', 't2']);
+    // Reuse detection must finish revoking before releasing its transaction.
+    for (const hash of ['t1', 't2']) {
+      expect((await repo.findByTokenHash(hash))?.revokedAt).toEqual(now);
+    }
+  });
+
+  it('revokes a successor when sign-out presents an already rotated token', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const repo = new DrizzleRefreshTokenRepository(db);
+    const now = new Date();
+    const input = { userId: user.id, issuedAt: now, expiresAt: new Date(now.getTime() + HOUR) };
+    const first = await repo.create({ ...input, tokenHash: 'sign-out-first' });
+    await repo.rotate(
+      {
+        presentedTokenHash: 'sign-out-first',
+        successor: { ...input, tokenHash: 'sign-out-next' },
+      },
+      now,
+    );
+
+    await repo.revokeChain([first.id], now);
+
+    expect((await repo.findByTokenHash('sign-out-next'))?.revokedAt).toEqual(now);
+  });
+
+  it('leaves no active successor when reuse races the current token rotation', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const repo = new DrizzleRefreshTokenRepository(db);
+    const now = new Date();
+    const input = { userId: user.id, issuedAt: now, expiresAt: new Date(now.getTime() + HOUR) };
+    await repo.create({ ...input, tokenHash: 'ancestor' });
+    await repo.rotate(
+      {
+        presentedTokenHash: 'ancestor',
+        successor: { ...input, tokenHash: 'head' },
+      },
+      now,
+    );
+
+    const [reuse] = await Promise.all([
+      repo.rotate(
+        {
+          presentedTokenHash: 'ancestor',
+          successor: { ...input, tokenHash: 'unused' },
+        },
+        now,
+      ),
+      repo.rotate(
+        {
+          presentedTokenHash: 'head',
+          successor: { ...input, tokenHash: 'racing-successor' },
+        },
+        now,
+      ),
+    ]);
+
+    expect(reuse.kind).toBe('reused');
+    for (const hash of ['ancestor', 'head', 'racing-successor']) {
+      const row = await repo.findByTokenHash(hash);
+      if (row) expect(row.revokedAt).toEqual(now);
+    }
+    expect(await repo.findByTokenHash('unused')).toBeNull();
   });
 
   it('returns unusable=expired for an expired but non-rotated token', async () => {

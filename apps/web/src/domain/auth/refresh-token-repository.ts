@@ -6,9 +6,9 @@
  * predecessor inside a single transaction with `SELECT … FOR UPDATE` on
  * the presented row, so two concurrent refreshes can't both succeed.
  *
- * `revokeChain()` is called on reuse-detection and walks the chain
- * forward setting `revoked_at` on every link, including the currently-
- * active head. Idempotent — re-revoking is a no-op.
+ * Reuse detection revokes the forward chain inside the rotation transaction.
+ * `revokeChain()` provides the same forward locking and revocation for sign-out.
+ * Both preserve existing revocation timestamps.
  */
 
 import type { RefreshTokenRecord } from './types';
@@ -42,9 +42,8 @@ export type RotateRefreshTokenOutcome =
   | { readonly kind: 'rotated'; readonly successor: RefreshTokenRecord }
   /**
    * The presented row was already rotated (`replaced_by_id` set) by a
-   * prior call. Reuse-detection territory. The chain is returned (in
-   * forward order, starting with the presented row) so the use case
-   * can hand it to `revokeChain()`.
+   * prior call. The full forward chain has been locked and revoked in
+   * the same transaction. Return it for the reuse-detection observer.
    */
   | { readonly kind: 'reused'; readonly chain: readonly RefreshTokenRecord[] }
   /**
@@ -63,11 +62,12 @@ export interface RefreshTokenRepository {
   /**
    * Atomically rotate. Must use a transaction with `SELECT … FOR UPDATE`
    * on the presented row to prevent two concurrent refresh requests
-   * both succeeding.
+   * both succeeding. On reuse, lock and revoke every forward link before
+   * committing, so rotation of a successor cannot escape revocation.
    */
   rotate(input: RotateRefreshTokenInput, now: Date): Promise<RotateRefreshTokenOutcome>;
   /**
-   * Set `revoked_at` on every row whose id appears in `chainIds`.
+   * Lock and revoke each listed row and all of its successors atomically.
    * Idempotent — already-revoked rows are left alone (their existing
    * `revoked_at` is preserved).
    */

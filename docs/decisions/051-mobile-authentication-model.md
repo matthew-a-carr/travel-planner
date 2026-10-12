@@ -90,6 +90,10 @@ endpoints.
   on every link, including the still-current refresh. The legitimate
   client is forced to re-login through Google PKCE. The attacker's
   copy is now useless.
+  Detection, forward row locking, and revocation happen in one transaction.
+  Each successor is locked before reading its next link, so a concurrent
+  rotation either observes revocation or has its newly created token revoked.
+  Sign-out uses the same forward locking to cover a token rotated in flight.
 
 ### 3. PKCE issuance flow (slice 3)
 

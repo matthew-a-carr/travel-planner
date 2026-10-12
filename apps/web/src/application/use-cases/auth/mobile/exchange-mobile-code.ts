@@ -55,7 +55,9 @@ export function makeExchangeMobileCode(deps: ExchangeMobileCodeDeps) {
     }
 
     // 3. Mark consumed (single-use).
-    await deps.exchangeCodeRepo.markConsumed(row.id, now);
+    if (!(await deps.exchangeCodeRepo.markConsumed(row.id, now))) {
+      return { ok: false, error: 'invalid_exchange_code' };
+    }
 
     // 4. Mint refresh token + sign access token.
     const refresh = await deps.crypto.mintRefreshToken();
