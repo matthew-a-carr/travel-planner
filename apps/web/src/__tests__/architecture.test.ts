@@ -6,7 +6,13 @@ import { describe, expect, it } from 'vitest';
 type Dependency = { specifier: string; typeOnly: boolean };
 
 function getImports(source: string): Dependency[] {
-  const file = ts.createSourceFile('source.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const file = ts.createSourceFile(
+    'source.tsx',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
   const imports: Dependency[] = [];
   function add(node: ts.Node | undefined, typeOnly = false) {
     if (node && ts.isStringLiteralLike(node)) imports.push({ specifier: node.text, typeOnly });
@@ -15,21 +21,28 @@ function getImports(source: string): Dependency[] {
     if (ts.isImportDeclaration(node)) {
       const clause = node.importClause;
       const bindings = clause?.namedBindings;
-      const typeOnly = !!clause?.isTypeOnly || (
-        !clause?.name && !!bindings && ts.isNamedImports(bindings) &&
-        bindings.elements.length > 0 && bindings.elements.every((element) => element.isTypeOnly)
-      );
+      const typeOnly =
+        !!clause?.isTypeOnly ||
+        (!clause?.name &&
+          !!bindings &&
+          ts.isNamedImports(bindings) &&
+          bindings.elements.length > 0 &&
+          bindings.elements.every((element) => element.isTypeOnly));
       add(node.moduleSpecifier, typeOnly);
     } else if (ts.isExportDeclaration(node)) {
       add(node.moduleSpecifier, node.isTypeOnly);
-    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference)
+    ) {
       add(node.moduleReference.expression, node.isTypeOnly);
     } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
       add(node.argument.literal, true);
-    } else if (ts.isCallExpression(node) && (
-      node.expression.kind === ts.SyntaxKind.ImportKeyword ||
-      (ts.isIdentifier(node.expression) && node.expression.text === 'require')
-    )) {
+    } else if (
+      ts.isCallExpression(node) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) && node.expression.text === 'require'))
+    ) {
       add(node.arguments[0]);
     }
     ts.forEachChild(node, visit);
@@ -50,20 +63,26 @@ function allowed(file: string, layer: Layer, dependency: Dependency): boolean {
   const { specifier, typeOnly } = dependency;
   const target = specifier.startsWith('.')
     ? path.resolve(path.dirname(file), specifier)
-    : specifier.startsWith('@/') ? path.resolve(sourceRoot, specifier.slice(2)) : null;
+    : specifier.startsWith('@/')
+      ? path.resolve(sourceRoot, specifier.slice(2))
+      : null;
 
   if (layer === 'shared') {
     return target !== null ? within(target, sharedRoot) : specifier === 'zod';
   }
   if (target === null) {
     // Shared wire types are the recorded exception (SPEC-005/010/024).
-    return layer === 'infrastructure' || (
-      layer === 'application' && specifier === '@travel-planner/shared' && typeOnly
+    return (
+      layer === 'infrastructure' ||
+      (layer === 'application' && specifier === '@travel-planner/shared' && typeOnly)
     );
   }
-  const layers = layer === 'domain' ? ['domain']
-    : layer === 'application' ? ['domain', 'application']
-    : ['domain', 'application', 'infrastructure'];
+  const layers =
+    layer === 'domain'
+      ? ['domain']
+      : layer === 'application'
+        ? ['domain', 'application']
+        : ['domain', 'application', 'infrastructure'];
   return layers.some((permitted) => within(target, path.join(sourceRoot, permitted)));
 }
 
@@ -72,22 +91,28 @@ function runtimeFiles(dir: string): string[] {
     const file = path.join(dir, entry.name);
     if (entry.isDirectory()) return entry.name === '__tests__' ? [] : runtimeFiles(file);
     return /\.[cm]?tsx?$/.test(entry.name) && !/\.(test|int-test|spec)\.[cm]?tsx?$/.test(entry.name)
-      ? [file] : [];
+      ? [file]
+      : [];
   });
 }
 
 describe('Architecture layer boundaries', () => {
-  it.each(['domain', 'application', 'infrastructure', 'shared'] as const)(
-    '%s imports stay within the permitted layers', (layer) => {
-      const root = layer === 'shared' ? sharedRoot : path.join(sourceRoot, layer);
-      const files = runtimeFiles(root);
-      expect(files.length).toBeGreaterThan(0);
-      const violations = files.flatMap((file) => getImports(fs.readFileSync(file, 'utf8'))
+  it.each([
+    'domain',
+    'application',
+    'infrastructure',
+    'shared',
+  ] as const)('%s imports stay within the permitted layers', (layer) => {
+    const root = layer === 'shared' ? sharedRoot : path.join(sourceRoot, layer);
+    const files = runtimeFiles(root);
+    expect(files.length).toBeGreaterThan(0);
+    const violations = files.flatMap((file) =>
+      getImports(fs.readFileSync(file, 'utf8'))
         .filter((dependency) => !allowed(file, layer, dependency))
-        .map(({ specifier }) => `${path.relative(process.cwd(), file)} imports ${specifier}`));
-      expect(violations).toEqual([]);
-    },
-  );
+        .map(({ specifier }) => `${path.relative(process.cwd(), file)} imports ${specifier}`),
+    );
+    expect(violations).toEqual([]);
+  });
 });
 
 describe('Architecture guard regression cases', () => {
@@ -118,7 +143,9 @@ describe('Architecture guard regression cases', () => {
     ['domain', '../application/example'],
     ['domain', './../../../packages/shared/src'],
   ] as const)('rejects %s importing %s', (layer, specifier) => {
-    expect(allowed(path.join(sourceRoot, layer, 'model.ts'), layer, { specifier, typeOnly: true })).toBe(false);
+    expect(
+      allowed(path.join(sourceRoot, layer, 'model.ts'), layer, { specifier, typeOnly: true }),
+    ).toBe(false);
   });
 
   it('allows only type imports from the shared wire package in application code', () => {
@@ -129,12 +156,21 @@ describe('Architecture guard regression cases', () => {
     ]) {
       expect(allowed(file, 'application', getImports(source)[0])).toBe(true);
     }
-    expect(allowed(file, 'application', getImports("import { tripSummarySchema } from '@travel-planner/shared';")[0])).toBe(false);
+    expect(
+      allowed(
+        file,
+        'application',
+        getImports("import { tripSummarySchema } from '@travel-planner/shared';")[0],
+      ),
+    ).toBe(false);
   });
 
   it('rejects shared-package relative imports outside its boundary', () => {
-    expect(allowed(path.join(sharedRoot, 'index.ts'), 'shared', {
-      specifier: '../../../apps/web/src/domain/trip/types', typeOnly: true,
-    })).toBe(false);
+    expect(
+      allowed(path.join(sharedRoot, 'index.ts'), 'shared', {
+        specifier: '../../../apps/web/src/domain/trip/types',
+        typeOnly: true,
+      }),
+    ).toBe(false);
   });
 });

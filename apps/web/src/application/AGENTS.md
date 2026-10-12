@@ -105,5 +105,6 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 34 integration test files in `use-cases/` (plus 5 under `use-cases/auth/`), **one per use case**.
+Use cases have co-located integration tests in `use-cases/`, including the nested
+`use-cases/auth/` suites. Run `pnpm test:integration` to check the current set.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.
