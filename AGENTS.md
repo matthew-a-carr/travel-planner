@@ -535,7 +535,9 @@ Email template rule:
 
 ## CI pipeline (`.github/workflows/ci.yml`)
 
-CI runs on Node.js 24 LTS. All external Actions are pinned to full commit SHAs, with version comments for
+CI and web deployment use Node 24 (ADR 069); local verification must use Node 24 too.
+
+All external Actions are pinned to full commit SHAs, with version comments for
 Dependabot updates. Workflows declare read-only token permissions by default;
 Release Please has the write scopes it needs. Pass event/dispatch input through
 quoted environment variables, never directly into shell source. Unit tests

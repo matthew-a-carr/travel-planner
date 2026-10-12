@@ -12,9 +12,8 @@ settings. Preview dispatch input was interpolated directly into a shell script.
 
 ## Decision
 
-- Run repository checks on Node.js 24 LTS. Node.js 20 is end-of-life per the
-  [Node.js release schedule](https://nodejs.org/en/about/previous-releases); the
-  verification baseline for this change runs on Node.js 24.
+Retain the Node.js 24 baseline established by ADR 069.
+
 - Pin external actions and reusable workflows to full commit SHAs, retaining a
   version comment for reviewers. Dependabot continues managing updates (ADR 068).
 - Declare `contents: read` as the workflow default. Grant `pull-requests: read`

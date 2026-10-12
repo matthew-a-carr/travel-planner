@@ -32,15 +32,15 @@ import SpendEditorScreen from '../../../../app/(app)/trips/[id]/spend/[entryId]'
 it('validates and creates destination spend in integer pence', async () => {
   const dismiss = jest.spyOn(Keyboard, 'dismiss');
   mockCreate.mockResolvedValue({ ok: true, data: { id: 'entry-1' } });
-  render(<SpendEditorScreen />);
-  fireEvent.press(screen.getByTestId('spend-submit'));
+  await render(<SpendEditorScreen />);
+  await fireEvent.press(screen.getByTestId('spend-submit'));
   expect(screen.getByTestId('spend-error')).toHaveTextContent(/amount/i);
-  fireEvent.changeText(screen.getByTestId('spend-amount'), '25.50');
-  fireEvent.changeText(screen.getByTestId('spend-description'), 'Ramen');
-  fireEvent(screen.getByTestId('spend-description'), 'submitEditing');
+  await fireEvent.changeText(screen.getByTestId('spend-amount'), '25.50');
+  await fireEvent.changeText(screen.getByTestId('spend-description'), 'Ramen');
+  await fireEvent(screen.getByTestId('spend-description'), 'submitEditing');
   expect(dismiss).toHaveBeenCalled();
-  fireEvent.press(screen.getByTestId('spend-category-food'));
-  fireEvent.press(screen.getByTestId('spend-submit'));
+  await fireEvent.press(screen.getByTestId('spend-category-food'));
+  await fireEvent.press(screen.getByTestId('spend-submit'));
   await waitFor(() =>
     expect(mockCreate).toHaveBeenCalledWith(
       'trip-1',

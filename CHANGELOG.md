@@ -20,6 +20,12 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 - Stop stalled Google sign-in exchanges after 15 seconds, including response-body reads.
 - Keep the mobile request deadline active while downloading response bodies so a stalled response does not leave screens loading indefinitely.
 
+### Changed
+
+- Trip overview and timeline content appears without waiting for AI summaries or insights; timeline warnings remain available while AI loads.
+- Trip pages reuse loaded data for AI panels, removing duplicate database reads.
+- The assistant's chat code now loads only when opened, reducing initial trip-page JavaScript.
+
 ## [1.21.0](https://github.com/matthew-a-carr/travel-planner/compare/v1.20.0...v1.21.0) (2026-07-15)
 
 

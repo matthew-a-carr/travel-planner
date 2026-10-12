@@ -61,26 +61,26 @@ beforeEach(() => {
 });
 
 describe('TripsScreen', () => {
-  it('(a) renders null while auth.status !== "signed_in"', () => {
+  it('(a) renders null while auth.status !== "signed_in"', async () => {
     mockUseAuth.mockReturnValue({ status: 'unknown', signIn: jest.fn(), signOut: jest.fn() });
 
-    render(<TripsScreen />);
+    await render(<TripsScreen />);
 
     expect(screen.queryByTestId('trips-screen-root')).toBeNull();
   });
 
-  it('(b) renders the loading state while the fetch is in flight', () => {
+  it('(b) renders the loading state while the fetch is in flight', async () => {
     withTripsState({ status: 'loading' });
 
-    render(<TripsScreen />);
+    await render(<TripsScreen />);
 
     expect(screen.getByTestId('trips-screen-loading')).toBeOnTheScreen();
     expect(screen.queryByTestId('trips-screen-empty')).toBeNull();
     expect(screen.queryByTestId('trips-screen-error')).toBeNull();
   });
 
-  it('(c) renders name, date range, status, and budget for each trip', () => {
-    render(<TripsScreen />);
+  it('(c) renders name, date range, status, and budget for each trip', async () => {
+    await render(<TripsScreen />);
 
     const card = screen.getByTestId('trips-screen-item-trip-1');
     expect(card).toBeOnTheScreen();
@@ -90,29 +90,29 @@ describe('TripsScreen', () => {
     expect(card).toHaveTextContent(/£5,000 budget/);
   });
 
-  it('(d) renders the empty state for a user with no trips', () => {
+  it('(d) renders the empty state for a user with no trips', async () => {
     withTripsState({ status: 'loaded', trips: [] });
 
-    render(<TripsScreen />);
+    await render(<TripsScreen />);
 
     expect(screen.getByTestId('trips-screen-empty')).toBeOnTheScreen();
     expect(screen.getByText('No trips yet')).toBeOnTheScreen();
   });
 
-  it('(e) renders the error state and Retry triggers reload()', () => {
+  it('(e) renders the error state and Retry triggers reload()', async () => {
     withTripsState({ status: 'error', message: 'Could not load your trips.' });
 
-    render(<TripsScreen />);
+    await render(<TripsScreen />);
 
     expect(screen.getByTestId('trips-screen-error')).toHaveTextContent(
       /Could not load your trips\./,
     );
-    fireEvent.press(screen.getByTestId('trips-screen-retry'));
+    await fireEvent.press(screen.getByTestId('trips-screen-retry'));
     expect(mockReload).toHaveBeenCalledTimes(1);
   });
 
-  it('(f) pull-to-refresh triggers refresh()', () => {
-    render(<TripsScreen />);
+  it('(f) pull-to-refresh triggers refresh()', async () => {
+    await render(<TripsScreen />);
 
     const list = screen.getByTestId('trips-screen-list');
     list.props.refreshControl.props.onRefresh();
@@ -120,26 +120,26 @@ describe('TripsScreen', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('(g) the profile button navigates to /me', () => {
-    render(<TripsScreen />);
+  it('(g) the profile button navigates to /me', async () => {
+    await render(<TripsScreen />);
 
-    fireEvent.press(screen.getByTestId('trips-screen-profile'));
+    await fireEvent.press(screen.getByTestId('trips-screen-profile'));
 
     expect(mockPush).toHaveBeenCalledWith('/me');
   });
 
-  it('opens the native create-trip form', () => {
-    render(<TripsScreen />);
+  it('opens the native create-trip form', async () => {
+    await render(<TripsScreen />);
 
-    fireEvent.press(screen.getByTestId('trips-screen-create'));
+    await fireEvent.press(screen.getByTestId('trips-screen-create'));
 
     expect(mockPush).toHaveBeenCalledWith('/trips/new');
   });
 
-  it('(h) tapping a trip navigates to its detail route', () => {
-    render(<TripsScreen />);
+  it('(h) tapping a trip navigates to its detail route', async () => {
+    await render(<TripsScreen />);
 
-    fireEvent.press(screen.getByTestId('trips-screen-item-trip-1'));
+    await fireEvent.press(screen.getByTestId('trips-screen-item-trip-1'));
 
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1');
   });

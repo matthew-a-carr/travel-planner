@@ -1,7 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
-import { analyseTripTimeline } from '@/application/use-cases/analyse-trip-timeline';
+import { Suspense } from 'react';
+import {
+  analyseTripTimelineFromSnapshot,
+  type TimelineAnalysisSnapshot,
+} from '@/application/use-cases/analyse-trip-timeline';
 import { getTravellerProfile } from '@/application/use-cases/get-traveller-profile';
 import { sortDestinations } from '@/domain/destination/destination';
+import { detectDeterministicFindings } from '@/domain/timeline/timeline';
 import { hasAiCredentials } from '@/infrastructure/ai/vercel-gateway-client';
 import { auth } from '@/infrastructure/auth';
 import { getAppContainer } from '@/infrastructure/container';
@@ -23,12 +28,9 @@ export default async function TripTimelinePage({ params }: Props) {
   if (!session?.user) redirect('/login');
 
   const {
-    aiCacheRepository,
     countryReferenceRepository,
     destinationRepository,
-    hashFn,
     organizationRepository,
-    timelineInsightsService,
     tripFixedCostRepository,
     tripRepository,
     userProfileRepository,
@@ -43,9 +45,11 @@ export default async function TripTimelinePage({ params }: Props) {
   );
   if (!membership) notFound();
 
-  const [profile, references] = await Promise.all([
+  const [profile, references, destinations, fixedCosts] = await Promise.all([
     getTravellerProfile(userProfileRepository, context.userId),
     countryReferenceRepository.findAll(),
+    destinationRepository.findByTrip(id),
+    tripFixedCostRepository.findByTrip(id),
   ]);
   const nameByAlpha3 = new Map(references.map((r) => [r.alpha3, r.country]));
   const nationalities =
@@ -53,24 +57,8 @@ export default async function TripTimelinePage({ params }: Props) {
       ? profile.passports.map((p) => nameByAlpha3.get(p.nationality) ?? p.nationality)
       : ['United Kingdom'];
 
-  const [destinations, fixedCosts, insightsResult] = await Promise.all([
-    destinationRepository.findByTrip(id),
-    tripFixedCostRepository.findByTrip(id),
-    analyseTripTimeline(
-      tripRepository,
-      destinationRepository,
-      tripFixedCostRepository,
-      countryReferenceRepository,
-      timelineInsightsService,
-      aiCacheRepository,
-      hashFn,
-      id,
-      nationalities,
-    ),
-  ]);
-
   const sortedDestinations = sortDestinations(destinations);
-  const findings = insightsResult.ok ? insightsResult.value : [];
+  const findings = detectDeterministicFindings(destinations, references);
   const aiAvailable = hasAiCredentials();
 
   return (
@@ -102,8 +90,34 @@ export default async function TripTimelinePage({ params }: Props) {
 
         <TripTimeline destinations={sortedDestinations} fixedCosts={fixedCosts} />
 
-        <TimelineInsightsPanel findings={findings} aiAvailable={aiAvailable} />
+        <Suspense
+          fallback={<TimelineInsightsPanel findings={findings} aiAvailable={aiAvailable} />}
+        >
+          <TimelineInsights
+            input={{ destinations, fixedCosts, references, nationalities }}
+            aiAvailable={aiAvailable}
+          />
+        </Suspense>
       </div>
     </main>
+  );
+}
+
+async function TimelineInsights({
+  input,
+  aiAvailable,
+}: {
+  input: TimelineAnalysisSnapshot;
+  aiAvailable: boolean;
+}) {
+  const { timelineInsightsService, aiCacheRepository, hashFn } = getAppContainer();
+  const result = await analyseTripTimelineFromSnapshot(
+    timelineInsightsService,
+    aiCacheRepository,
+    hashFn,
+    input,
+  );
+  return (
+    <TimelineInsightsPanel findings={result.ok ? result.value : []} aiAvailable={aiAvailable} />
   );
 }

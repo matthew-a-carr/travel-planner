@@ -45,15 +45,15 @@ import DestinationEditorScreen from '../../../../app/(app)/trips/[id]/destinatio
 it('suggests a canonical budget and creates a destination', async () => {
   const dismiss = jest.spyOn(Keyboard, 'dismiss');
   mockCreate.mockResolvedValue({ ok: true, data: { id: 'd1' } });
-  render(<DestinationEditorScreen />);
-  fireEvent.changeText(screen.getByTestId('destination-country'), 'Jap');
-  fireEvent.press(screen.getByTestId('destination-country-JPN'));
-  fireEvent.changeText(screen.getByTestId('destination-start-date'), '2027-04-01');
-  fireEvent.changeText(screen.getByTestId('destination-end-date'), '2027-04-08');
-  fireEvent(screen.getByTestId('destination-end-date'), 'submitEditing');
+  await render(<DestinationEditorScreen />);
+  await fireEvent.changeText(screen.getByTestId('destination-country'), 'Jap');
+  await fireEvent.press(screen.getByTestId('destination-country-JPN'));
+  await fireEvent.changeText(screen.getByTestId('destination-start-date'), '2027-04-01');
+  await fireEvent.changeText(screen.getByTestId('destination-end-date'), '2027-04-08');
+  await fireEvent(screen.getByTestId('destination-end-date'), 'submitEditing');
   expect(dismiss).toHaveBeenCalled();
   await waitFor(() => expect(screen.getByTestId('destination-budget').props.value).toBe('700'));
-  fireEvent.press(screen.getByTestId('destination-submit'));
+  await fireEvent.press(screen.getByTestId('destination-submit'));
   await waitFor(() => expect(mockCreate).toHaveBeenCalled());
   expect(mockReplace).toHaveBeenCalledWith('/trips/trip-1');
 });

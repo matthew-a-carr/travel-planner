@@ -54,23 +54,23 @@ beforeEach(() => {
 });
 
 describe('MeScreen', () => {
-  it('(a) renders null while auth.status === "unknown"', () => {
+  it('(a) renders null while auth.status === "unknown"', async () => {
     mockUseAuth.mockReturnValue({
       status: 'unknown',
       signIn: jest.fn(),
       signOut: mockSignOut,
     });
 
-    render(<MeScreen />);
+    await render(<MeScreen />);
 
     expect(screen.queryByTestId('me-screen-root')).toBeNull();
     expect(screen.queryByTestId('me-screen-greeting')).toBeNull();
   });
 
-  it('(b) signed_in with a name: renders "Hello, {name}" + email', () => {
+  it('(b) signed_in with a name: renders "Hello, {name}" + email', async () => {
     withSignedIn();
 
-    render(<MeScreen />);
+    await render(<MeScreen />);
 
     expect(screen.getByTestId('me-screen-root')).toBeOnTheScreen();
     expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello, Matt');
@@ -78,19 +78,19 @@ describe('MeScreen', () => {
     expect(screen.queryByTestId('me-screen-approval-banner')).toBeNull();
   });
 
-  it('(c) signed_in with name: null: renders "Hello!" + email always visible', () => {
+  it('(c) signed_in with name: null: renders "Hello!" + email always visible', async () => {
     withSignedIn({ name: null });
 
-    render(<MeScreen />);
+    await render(<MeScreen />);
 
     expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello!');
     expect(screen.getByTestId('me-screen-email')).toHaveTextContent('matt@example.com');
   });
 
-  it('(d) signed_in with isApproved: false: renders the approval banner', () => {
+  it('(d) signed_in with isApproved: false: renders the approval banner', async () => {
     withSignedIn({ isApproved: false });
 
-    render(<MeScreen />);
+    await render(<MeScreen />);
 
     expect(screen.getByTestId('me-screen-greeting')).toHaveTextContent('Hello, Matt');
     expect(screen.getByTestId('me-screen-email')).toHaveTextContent('matt@example.com');
@@ -99,20 +99,20 @@ describe('MeScreen', () => {
     );
   });
 
-  it('(e) sign-out tap calls auth.signOut() once', () => {
+  it('(e) sign-out tap calls auth.signOut() once', async () => {
     withSignedIn();
 
-    render(<MeScreen />);
-    fireEvent.press(screen.getByTestId('me-screen-sign-out'));
+    await render(<MeScreen />);
+    await fireEvent.press(screen.getByTestId('me-screen-sign-out'));
 
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
-  it('(f) back tap returns to the trips list', () => {
+  it('(f) back tap returns to the trips list', async () => {
     withSignedIn();
 
-    render(<MeScreen />);
-    fireEvent.press(screen.getByTestId('me-screen-back'));
+    await render(<MeScreen />);
+    await fireEvent.press(screen.getByTestId('me-screen-back'));
 
     expect(mockBack).toHaveBeenCalledTimes(1);
   });

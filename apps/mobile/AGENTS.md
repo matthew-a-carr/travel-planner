@@ -292,6 +292,10 @@ changes are cheap; testID changes break flows.
 
 ### Component testing (Jest + RNTL)
 
+RNTL 14 uses async rendering and events with `test-renderer` 1.1 for React
+19.1 (ADR 069). Await `render`, `renderHook`, `fireEvent`, and `act`; use
+a pending mock request when asserting intermediate loading states.
+
 Tests live under `apps/mobile/__tests__/` mirroring the `app/` tree.
 **Never put test files inside `app/`** — Expo Router would treat
 them as routes and bundle them into the iOS app, which then pulls
@@ -316,8 +320,8 @@ import { render, screen } from '@testing-library/react-native';
 import MyScreen from '../../app/my-screen';
 
 describe('MyScreen', () => {
-  it('renders the heading', () => {
-    render(<MyScreen />);
+  it('renders the heading', async () => {
+    await render(<MyScreen />);
     expect(screen.getByTestId('my-screen-heading')).toBeOnTheScreen();
   });
 });

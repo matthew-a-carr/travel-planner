@@ -70,7 +70,7 @@ describe('chat write tools (integration)', () => {
         category: 'food',
         description: 'Pho',
       },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { ok?: boolean; spendEntryId?: string; summary?: string };
 
     expect(result.ok).toBe(true);
@@ -101,7 +101,7 @@ describe('chat write tools (integration)', () => {
         amountPence: 5_000,
         category: 'food',
       },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { requiresConfirmation?: boolean };
 
     expect(first.requiresConfirmation).toBe(true);
@@ -114,7 +114,7 @@ describe('chat write tools (integration)', () => {
         category: 'food',
         confirmed: true,
       },
-      { toolCallId: 'c2', messages: [] },
+      { toolCallId: 'c2', messages: [], context: {} },
     )) as { ok?: boolean };
 
     expect(second.ok).toBe(true);
@@ -134,7 +134,7 @@ describe('chat write tools (integration)', () => {
 
     const result = (await tools.record_spend.execute?.(
       { destinationId: destB.id, amountPence: 100, category: 'food' },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { error?: string };
 
     expect(result.error).toMatch(/not part of this trip/);
@@ -157,14 +157,14 @@ describe('chat write tools (integration)', () => {
         category: 'food',
         confirmed: true,
       },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { ok?: boolean; spendEntryId: string };
 
     expect(recorded.ok).toBe(true);
 
     const deleted = (await tools.delete_spend_entry.execute?.(
       { spendEntryId: recorded.spendEntryId },
-      { toolCallId: 'c2', messages: [] },
+      { toolCallId: 'c2', messages: [], context: {} },
     )) as {
       ok?: boolean;
       undo?: { kind: string; destinationId: string; amountPence: number };
@@ -186,7 +186,7 @@ describe('chat write tools (integration)', () => {
 
     const first = (await tools.edit_trip_budget.execute?.(
       { totalBudgetPence: 6_000_00 },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { requiresConfirmation?: boolean };
     expect(first.requiresConfirmation).toBe(true);
     const stillOriginal = await deps.tripRepository.findById(trip.id);
@@ -194,7 +194,7 @@ describe('chat write tools (integration)', () => {
 
     const second = (await tools.edit_trip_budget.execute?.(
       { totalBudgetPence: 6_000_00, confirmed: true },
-      { toolCallId: 'c2', messages: [] },
+      { toolCallId: 'c2', messages: [], context: {} },
     )) as { ok?: boolean };
     expect(second.ok).toBe(true);
 
@@ -216,7 +216,7 @@ describe('chat write tools (integration)', () => {
         category: 'insurance',
         date: '2026-03-15',
       },
-      { toolCallId: 'c1', messages: [] },
+      { toolCallId: 'c1', messages: [], context: {} },
     )) as { ok?: boolean; fixedCostId?: string };
 
     expect(result.ok).toBe(true);

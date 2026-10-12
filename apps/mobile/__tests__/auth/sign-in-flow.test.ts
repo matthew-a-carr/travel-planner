@@ -140,30 +140,28 @@ describe('runSignInFlow — access_denied (closed-auth)', () => {
 });
 
 describe('runSignInFlow — generic deep-link errors', () => {
-  it.each([
-    'invalid_request',
-    'server_error',
-    'invalid_state',
-    'google_error',
-  ] as const)('maps deep-link ?error=%s to a generic failure carrying the code', async (errorCode) => {
-    const d = deps({
-      generateVerifier: jest.fn().mockResolvedValue('verifier-abc'),
-      verifierToChallenge: jest.fn().mockResolvedValue('challenge-xyz'),
-      apiPost: jest.fn().mockResolvedValueOnce(startResponse),
-      openAuthSession: jest.fn().mockResolvedValue({
-        type: 'success',
-        url: `travelplanner://auth?error=${errorCode}`,
-      }),
-    });
+  it.each(['invalid_request', 'server_error', 'invalid_state', 'google_error'] as const)(
+    'maps deep-link ?error=%s to a generic failure carrying the code',
+    async (errorCode) => {
+      const d = deps({
+        generateVerifier: jest.fn().mockResolvedValue('verifier-abc'),
+        verifierToChallenge: jest.fn().mockResolvedValue('challenge-xyz'),
+        apiPost: jest.fn().mockResolvedValueOnce(startResponse),
+        openAuthSession: jest.fn().mockResolvedValue({
+          type: 'success',
+          url: `travelplanner://auth?error=${errorCode}`,
+        }),
+      });
 
-    const result = await runSignInFlow(d);
+      const result = await runSignInFlow(d);
 
-    expect(result).toEqual({
-      status: 'error',
-      reason: 'generic',
-      code: errorCode,
-    });
-  });
+      expect(result).toEqual({
+        status: 'error',
+        reason: 'generic',
+        code: errorCode,
+      });
+    },
+  );
 
   it('maps an unknown ?error=<string> to code: unknown_callback_error', async () => {
     const d = deps({

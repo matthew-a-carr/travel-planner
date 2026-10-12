@@ -10,7 +10,7 @@ packages:
 #     GHSA-fxqj-rqcc-2cmp. Keep framework-transitive copies patched.
 #   - vite < 7.3.2 — three high/medium issues: arbitrary file read via
 #     WebSocket, path traversal in optimized deps .map handling, and
-#     server.fs.deny bypass. Stays on 7.x because vitest 4.x peers it.
+#     server.fs.deny bypass. Retain the Vite 7 hold per ADR 069.
 #   - protobufjs <= 7.5.7 — DoS via unbounded recursive JSON descriptor
 #     expansion (transitive via testcontainers → dockerode →
 #     @grpc/proto-loader).

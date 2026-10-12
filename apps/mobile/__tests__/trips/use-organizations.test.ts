@@ -60,7 +60,7 @@ describe('useOrganizations', () => {
   it('loads organizations through the authenticated API client', async () => {
     fetchSpy.mockResolvedValueOnce(successEnvelope([ORGANIZATION]));
 
-    const { result } = renderHook(() => useOrganizations());
+    const { result } = await renderHook(() => useOrganizations());
 
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(result.current.state).toEqual({ status: 'loaded', organizations: [ORGANIZATION] });
@@ -70,7 +70,7 @@ describe('useOrganizations', () => {
 
   it('surfaces API failures and reloads', async () => {
     fetchSpy.mockResolvedValueOnce(errorEnvelope('Organizations unavailable.'));
-    const { result } = renderHook(() => useOrganizations());
+    const { result } = await renderHook(() => useOrganizations());
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(result.current.state).toEqual({
       status: 'error',
@@ -78,7 +78,7 @@ describe('useOrganizations', () => {
     });
 
     fetchSpy.mockResolvedValueOnce(successEnvelope([ORGANIZATION]));
-    act(() => result.current.reload());
+    await act(() => result.current.reload());
     await waitFor(() => expect(result.current.state.status).toBe('loaded'));
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
@@ -86,7 +86,7 @@ describe('useOrganizations', () => {
   it('does not call the API when the session cannot be refreshed', async () => {
     mockGetAccessToken.mockResolvedValue({ ok: false, reason: 'refresh_failed' });
 
-    const { result } = renderHook(() => useOrganizations());
+    const { result } = await renderHook(() => useOrganizations());
 
     await waitFor(() => expect(result.current.state.status).toBe('error'));
     expect(fetchSpy).not.toHaveBeenCalled();

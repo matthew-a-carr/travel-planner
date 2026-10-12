@@ -45,28 +45,28 @@ beforeEach(() => {
   mockFinancials.mockReturnValue({ state: { status: 'loaded', financials: FINANCIALS } });
 });
 
-it('renders financial relationships, navigates entries, and dismisses alerts', () => {
-  render(<FinanceScreen />);
+it('renders financial relationships, navigates entries, and dismisses alerts', async () => {
+  await render(<FinanceScreen />);
   expect(screen.getByTestId('finance-daily-pace')).toHaveTextContent(/£12\.50/);
   expect(screen.getByTestId('finance-target-pace')).toHaveTextContent(/£20/);
   expect(screen.getByTestId('finance-category-food')).toHaveAccessibilityValue({
     text: '£25',
   });
   expect(screen.getByText('Spending over pace')).toBeOnTheScreen();
-  fireEvent.press(screen.getByTestId('finance-dismiss-alerts'));
+  await fireEvent.press(screen.getByTestId('finance-dismiss-alerts'));
   expect(screen.queryByText('Spending over pace')).not.toBeOnTheScreen();
-  fireEvent.press(screen.getByTestId('finance-entry-entry-1'));
+  await fireEvent.press(screen.getByTestId('finance-entry-entry-1'));
   expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/spend/entry-1');
 });
 
-it('renders the empty and unavailable states', () => {
+it('renders the empty and unavailable states', async () => {
   mockFinancials.mockReturnValue({
     state: {
       status: 'loaded',
       financials: { entries: [], categoryTotals: [], burndown: null, alerts: [] },
     },
   });
-  render(<FinanceScreen />);
+  await render(<FinanceScreen />);
   expect(screen.getByTestId('finance-empty')).toBeOnTheScreen();
   expect(screen.getByTestId('finance-burndown-unavailable')).toBeOnTheScreen();
 });

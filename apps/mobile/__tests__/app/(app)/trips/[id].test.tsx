@@ -116,24 +116,24 @@ beforeEach(() => {
 });
 
 describe('TripDetailScreen', () => {
-  it('(a) renders null while auth.status !== "signed_in"', () => {
+  it('(a) renders null while auth.status !== "signed_in"', async () => {
     mockUseAuth.mockReturnValue({ status: 'signed_out', signIn: jest.fn(), signOut: jest.fn() });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.queryByTestId('trip-detail-root')).toBeNull();
   });
 
-  it('(b) renders the loading state', () => {
+  it('(b) renders the loading state', async () => {
     withDetailState({ status: 'loading' });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.getByTestId('trip-detail-loading')).toBeOnTheScreen();
   });
 
-  it('(c) renders the trip header, spend summary, timeline legs, and fixed costs', () => {
-    render(<TripDetailScreen />);
+  it('(c) renders the trip header, spend summary, timeline legs, and fixed costs', async () => {
+    await render(<TripDetailScreen />);
 
     expect(mockUseTripDetail).toHaveBeenCalledWith('trip-1');
     expect(screen.getByTestId('trip-detail-name')).toHaveTextContent(/Japan 2026/);
@@ -168,26 +168,26 @@ describe('TripDetailScreen', () => {
     expect(flight).toHaveTextContent(/£1,200/);
   });
 
-  it('(d) renders the not-found state', () => {
+  it('(d) renders the not-found state', async () => {
     withDetailState({ status: 'not_found' });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.getByTestId('trip-detail-not-found')).toHaveTextContent(/Trip not found/);
   });
 
-  it('(e) renders the error state and Retry triggers reload()', () => {
+  it('(e) renders the error state and Retry triggers reload()', async () => {
     withDetailState({ status: 'error', message: 'Could not load this trip.' });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.getByTestId('trip-detail-error')).toHaveTextContent(/Could not load this trip\./);
-    fireEvent.press(screen.getByTestId('trip-detail-retry'));
+    await fireEvent.press(screen.getByTestId('trip-detail-retry'));
     expect(mockReload).toHaveBeenCalledTimes(1);
   });
 
-  it('(f) pull-to-refresh triggers refresh()', () => {
-    render(<TripDetailScreen />);
+  it('(f) pull-to-refresh triggers refresh()', async () => {
+    await render(<TripDetailScreen />);
 
     const scroll = screen.getByTestId('trip-detail-scroll');
     scroll.props.refreshControl.props.onRefresh();
@@ -195,20 +195,20 @@ describe('TripDetailScreen', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('(g) renders empty placeholders for a bare trip', () => {
+  it('(g) renders empty placeholders for a bare trip', async () => {
     withDetailState({
       status: 'loaded',
       trip: { ...DETAIL, destinations: [], fixedCosts: [] },
     });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.getByTestId('trip-detail-timeline-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('trip-detail-fixed-costs-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('trip-detail-next-steps')).toHaveTextContent(/Start shaping/);
   });
 
-  it('(h) shows the over-allocation warning and negative available', () => {
+  it('(h) shows the over-allocation warning and negative available', async () => {
     withDetailState({
       status: 'loaded',
       trip: {
@@ -221,37 +221,37 @@ describe('TripDetailScreen', () => {
       },
     });
 
-    render(<TripDetailScreen />);
+    await render(<TripDetailScreen />);
 
     expect(screen.getByTestId('trip-detail-over-allocated')).toBeOnTheScreen();
     expect(screen.getByTestId('trip-detail-spend')).toHaveTextContent(/-£500/);
   });
 
-  it('(i) the back control navigates back to the list', () => {
-    render(<TripDetailScreen />);
+  it('(i) the back control navigates back to the list', async () => {
+    await render(<TripDetailScreen />);
 
-    fireEvent.press(screen.getByTestId('trip-detail-back'));
+    await fireEvent.press(screen.getByTestId('trip-detail-back'));
 
     expect(mockBack).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the native edit-trip form', () => {
-    render(<TripDetailScreen />);
+  it('opens the native edit-trip form', async () => {
+    await render(<TripDetailScreen />);
 
-    fireEvent.press(screen.getByTestId('trip-detail-edit'));
+    await fireEvent.press(screen.getByTestId('trip-detail-edit'));
 
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/edit');
   });
 
-  it('opens native destination and fixed-cost editors', () => {
-    render(<TripDetailScreen />);
-    fireEvent.press(screen.getByTestId('trip-detail-add-destination'));
+  it('opens native destination and fixed-cost editors', async () => {
+    await render(<TripDetailScreen />);
+    await fireEvent.press(screen.getByTestId('trip-detail-add-destination'));
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/destinations/new');
-    fireEvent.press(screen.getByTestId('trip-detail-destination-d1'));
+    await fireEvent.press(screen.getByTestId('trip-detail-destination-d1'));
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/destinations/d1');
-    fireEvent.press(screen.getByTestId('trip-detail-add-fixed-cost'));
+    await fireEvent.press(screen.getByTestId('trip-detail-add-fixed-cost'));
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/fixed-costs/new');
-    fireEvent.press(screen.getByTestId('trip-detail-fixed-cost-f1'));
+    await fireEvent.press(screen.getByTestId('trip-detail-fixed-cost-f1'));
     expect(mockPush).toHaveBeenCalledWith('/trips/trip-1/fixed-costs/f1');
   });
 });
