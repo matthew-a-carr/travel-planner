@@ -17,6 +17,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ### Fixed
 
+- Clear the country field after saving another destination and preserve a new search when the field is quickly refocused.
 - Stop stalled Google sign-in exchanges after 15 seconds, including response-body reads.
 - Keep the mobile request deadline active while downloading response bodies so a stalled response does not leave screens loading indefinitely.
 

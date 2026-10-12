@@ -59,9 +59,10 @@ test.describe('Trip stage and streamlined destination form', () => {
     await form.getByRole('button', { name: /save and add another/i }).click();
     await expect(page.getByRole('button', { name: /^edit japan$/i })).toBeVisible();
 
-    // Form stayed open and budget was cleared for the next entry.
+    // Form stayed open and controlled fields were cleared for the next entry.
     await expect(form).toBeVisible();
     await expect(budgetInput).toHaveValue('');
+    await expect(form.getByLabel(/country/i)).toHaveValue('');
 
     // Second destination — different country, fresh auto-fill.
     await form.getByLabel(/country/i).fill('Thailand');

@@ -101,6 +101,7 @@
     {
       "id": "destinations.create",
       "title": "Add destinations with allocation validation",
+      "notes": "The web stage suite also verifies that save-and-add-another clears the country selection; mobile creation evidence remains the planning-core journey.",
       "slice": 3,
       "status": "complete",
       "webEvidence": ["apps/web/tests/e2e/02-destinations.spec.ts", "apps/web/tests/e2e/08-trip-stage.spec.ts"],
