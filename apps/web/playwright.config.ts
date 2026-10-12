@@ -39,8 +39,8 @@ export default defineConfig({
     },
   ],
 
-  // start-web-server.ts waits for the DB URL written by globalSetup, then
-  // starts either `pnpm start` (CI) or `pnpm dev:next` (local) with that URL.
+  // start-web-server.ts starts Postgres, publishes its URL for globalSetup,
+  // and boots `pnpm start` in both CI and local runs. Build before running E2E.
   webServer: {
     command: 'pnpm exec tsx tests/e2e/setup/start-web-server.ts',
     url: 'http://localhost:3000',

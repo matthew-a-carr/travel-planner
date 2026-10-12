@@ -47,13 +47,14 @@ resource "neon_database" "preview" {
 
 locals {
   preview_postgres_urls = {
-    for pr_number, preview in local.previews :
+    # A targeted cleanup omits new previews; derive URLs only for included databases.
+    for pr_number, database in neon_database.preview :
     pr_number => format(
       "postgresql://%s:%s@%s/%s?sslmode=require",
       neon_role.preview[pr_number].name,
       urlencode(neon_role.preview[pr_number].password),
       neon_endpoint.preview[pr_number].host,
-      neon_database.preview[pr_number].name,
+      database.name,
     )
   }
 }

@@ -43,7 +43,14 @@ terraform -chdir=infra/stacks/prod validate
 
 terraform -chdir=infra/stacks/preview init -backend=false
 terraform -chdir=infra/stacks/preview validate
+terraform -chdir=infra/stacks/preview test
 ```
+
+Use Terraform 1.12.x, matching the stack constraint and CI. The preview tests mock
+both providers and keep state in memory: they create no cloud resources and need
+no credentials. They exercise old-preview creation, targeted cleanup while a new
+preview is requested, and the subsequent full apply. URL outputs follow included
+database resources so the cleanup pass does not index previews outside its plan.
 
 ## Secrets
 

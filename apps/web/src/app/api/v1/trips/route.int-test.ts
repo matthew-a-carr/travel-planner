@@ -3,9 +3,11 @@ import {
   apiSuccessSchema,
   tripSummarySchema,
 } from '@travel-planner/shared';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { signAccessToken } from '@/infrastructure/auth/bearer-token';
+import { users } from '@/infrastructure/db/schema';
 import {
   createTestDb,
   type Db,
@@ -74,6 +76,39 @@ function postTrip(jwt: string, body: unknown, idempotencyKey?: string): Promise<
 }
 
 describe('GET /api/v1/trips', () => {
+  it.each(['cookie', 'bearer'])(
+    'denies reads and writes after approval is revoked (%s)',
+    async (credential) => {
+      const user = await seedUser(db, { isApproved: true });
+      const org = await seedOrganization(db, user.id);
+      await seedTrip(db, user.id, { organizationId: org.id });
+      const jwt = await signAccessToken({ userId: user.id });
+      if (credential === 'cookie') {
+        mockedAuth.mockResolvedValue({ user: { id: user.id, email: user.email, name: 'Member' } });
+      }
+      await db.update(users).set({ isApproved: false }).where(eq(users.id, user.id));
+      const headers: Record<string, string> =
+        credential === 'bearer' ? { Authorization: `Bearer ${jwt}` } : {};
+
+      const read = await GET(new Request('http://localhost/api/v1/trips', { headers }));
+      const write = await POST(
+        new Request('http://localhost/api/v1/trips', {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json', 'Idempotency-Key': 'revoked' },
+          body: JSON.stringify({
+            organizationId: org.id,
+            name: 'Denied trip',
+            totalBudgetPence: 100_000,
+          }),
+        }),
+      );
+      for (const response of [read, write]) {
+        expect(response.status).toBe(403);
+        expect(apiErrorEnvelopeSchema.parse(await response.json()).error.code).toBe('forbidden');
+      }
+    },
+  );
+
   it('returns 200 with the member trips as TripSummary[] in the success envelope (criterion 1)', async () => {
     const user = await seedUser(db, { isApproved: true });
     const org = await seedOrganization(db, user.id);

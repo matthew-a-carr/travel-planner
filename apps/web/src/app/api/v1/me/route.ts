@@ -4,7 +4,7 @@ import { respondWithData } from '../_lib/respond';
 
 export async function GET(request: Request): Promise<Response> {
   try {
-    const session = await requireAuth(request);
+    const session = await requireAuth(request, { allowUnapproved: true });
     if (!session.ok) return session.response;
 
     return respondWithData(request, {

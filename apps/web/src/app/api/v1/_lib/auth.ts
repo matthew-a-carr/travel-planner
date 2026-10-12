@@ -68,14 +68,24 @@ export async function requireBearerSession(request: Request): Promise<AuthResult
 /**
  * Cookie OR bearer auth. The default for authenticated /api/v1/*
  * endpoints. Bearer wins when both are present (per ADR 051 / the
- * conventions doc).
+ * conventions doc). Approval is checked from the current user row;
+ * only /me opts out so it can report an account's approval status.
  */
-export async function requireAuth(request: Request): Promise<AuthResult> {
+export async function requireAuth(
+  request: Request,
+  { allowUnapproved = false }: { allowUnapproved?: boolean } = {},
+): Promise<AuthResult> {
   const header = request.headers.get('authorization');
-  if (header?.toLowerCase().startsWith('bearer ')) {
-    return requireBearerSession(request);
+  const result = header?.toLowerCase().startsWith('bearer ')
+    ? await requireBearerSession(request)
+    : await requireCookieSession(request);
+  if (result.ok && !result.isApproved && !allowUnapproved) {
+    return {
+      ok: false,
+      response: respondWithError(request, 'forbidden', { detail: 'This account is not approved.' }),
+    };
   }
-  return requireCookieSession(request);
+  return result;
 }
 
 function extractBearerToken(header: string | null): string | null {

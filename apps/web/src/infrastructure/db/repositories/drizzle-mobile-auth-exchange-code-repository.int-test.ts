@@ -24,6 +24,38 @@ beforeEach(async () => {
 });
 
 describe('DrizzleMobileAuthExchangeCodeRepository', () => {
+  it('atomically consumes a code once and preserves the first consumption time', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const repo = new DrizzleMobileAuthExchangeCodeRepository(db);
+    const now = new Date();
+    const row = await repo.create({
+      codeHash: 'race',
+      codeChallenge: 'challenge',
+      userId: user.id,
+      expiresAt: new Date(now.getTime() + 120_000),
+    });
+    const claims = await Promise.all(
+      Array.from({ length: 4 }, () => repo.markConsumed(row.id, now)),
+    );
+    expect(claims.filter(Boolean)).toHaveLength(1);
+    expect(await repo.markConsumed(row.id, new Date(now.getTime() + 1_000))).toBe(false);
+    expect((await repo.findByCodeHash('race'))?.consumedAt).toEqual(now);
+  });
+
+  it('cannot consume an expired code, including at the expiry boundary', async () => {
+    const user = await seedUser(db, { isApproved: true });
+    const repo = new DrizzleMobileAuthExchangeCodeRepository(db);
+    const now = new Date();
+    const row = await repo.create({
+      codeHash: 'expired',
+      codeChallenge: 'challenge',
+      userId: user.id,
+      expiresAt: now,
+    });
+    expect(await repo.markConsumed(row.id, now)).toBe(false);
+    expect(await repo.markConsumed(row.id, new Date(now.getTime() + 1))).toBe(false);
+  });
+
   it('round-trips a code via codeHash lookup', async () => {
     const user = await seedUser(db, { isApproved: true });
     const repo = new DrizzleMobileAuthExchangeCodeRepository(db);

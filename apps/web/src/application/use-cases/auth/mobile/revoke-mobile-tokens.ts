@@ -12,12 +12,13 @@ export type RevokeMobileTokensDeps = {
 };
 
 /**
- * Sign-out: revoke the presented (active head) refresh-token row.
+ * Sign-out: atomically revoke the presented token and any successors.
+ * Forward locks include tokens rotated concurrently with sign-out.
  *
  * Predecessor rows in the same chain are intentionally NOT touched
  * here — they already carry `replaced_by_id`, so any attempt to
  * reuse them fires the existing reuse-detection path in
- * `refreshMobileTokens` (ADR 054) which then revokes the rest of
+ * `refreshMobileTokens` (ADR 051) which then revokes the rest of
  * the chain.
  *
  * The operation is idempotent and non-revealing:

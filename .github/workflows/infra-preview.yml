@@ -14,6 +14,9 @@ concurrency:
   group: infra-preview
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   apply:
     name: Apply preview stack
@@ -46,9 +49,9 @@ jobs:
       TF_VAR_sentry_project: ${{ vars.SENTRY_PROJECT }}
       TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: hashicorp/setup-terraform@v4
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_version: 1.12.2
 
@@ -56,21 +59,27 @@ jobs:
         id: open_previews
         env:
           GH_TOKEN: ${{ github.token }}
+          MANUAL_OPEN_PREVIEWS: ${{ inputs.open_previews_json }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          manual_open_previews='${{ inputs.open_previews_json }}'
-          if [[ -n "$manual_open_previews" ]]; then
-            open_previews="$manual_open_previews"
+          set -euo pipefail
+          if [[ -n "$MANUAL_OPEN_PREVIEWS" ]]; then
+            open_previews="$MANUAL_OPEN_PREVIEWS"
           else
             # Skip bot-authored PRs (Dependabot, release-please) so they don't
             # consume Neon's free-plan branch budget. See ADR 039.
             open_previews="$(gh api \
               -X GET \
-              repos/${{ github.repository }}/pulls \
-              --paginate \
+              "repos/$REPOSITORY/pulls" \
+              --paginate --slurp \
               -f state=open \
-              --jq 'map(select(.user.type != "Bot")) | map({(.number|tostring): .head.ref}) | add // {}')"
+              | jq -c 'add | map(select(.user.type != "Bot")) | map({(.number|tostring): .head.ref}) | add // {}')"
           fi
-          echo "open_previews=${open_previews}" >> "$GITHUB_OUTPUT"
+          # Validate and compact before writing a single-line Actions output.
+          open_previews=$(printf '%s' "$open_previews" | jq -ce '
+            if type == "object" and all(.[]; type == "string") then .
+            else error("open_previews must be an object of branch-name strings") end')
+          printf 'open_previews=%s\n' "$open_previews" >> "$GITHUB_OUTPUT"
 
       - name: Configure backend
         run: |

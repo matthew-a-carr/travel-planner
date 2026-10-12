@@ -38,7 +38,9 @@ export function CountryCombobox({
   required?: boolean;
   placeholder?: string;
 }) {
-  const [inputText, setInputText] = useState(value);
+  // A query exists only while editing; otherwise display the parent's selection.
+  const [query, setQuery] = useState<string | null>(null);
+  const inputText = query ?? value;
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const listboxId = useId();
@@ -47,14 +49,14 @@ export function CountryCombobox({
   const filtered = isOpen ? filterCountries(inputText, countries) : [];
 
   function selectCountry(country: string) {
-    setInputText(country);
+    setQuery(null);
     onChange(country);
     setIsOpen(false);
     setActiveIndex(-1);
   }
 
   function handleInputChange(text: string) {
-    setInputText(text);
+    setQuery(text);
     setIsOpen(true);
     setActiveIndex(-1);
     // Clear selected value when user types — only valid after explicit selection
@@ -64,16 +66,10 @@ export function CountryCombobox({
   }
 
   function handleBlur() {
-    // Delay to allow click on option to fire before closing
-    window.setTimeout(() => {
-      setIsOpen(false);
-      // If input doesn't match a valid selection, revert or clear
-      if (!value) {
-        setInputText('');
-      } else {
-        setInputText(value);
-      }
-    }, 150);
+    // Options prevent mousedown's focus change, so selection needs no blur delay.
+    setIsOpen(false);
+    setQuery(null);
+    setActiveIndex(-1);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

@@ -65,6 +65,7 @@ export async function verifyAccessToken(jwt: string): Promise<VerifyAccessTokenR
     const { payload } = await jwtVerify(jwt, key, {
       algorithms: ['HS256'],
       issuer: ISSUER,
+      requiredClaims: ['sub', 'iat', 'exp'],
     });
 
     if (typeof payload.sub !== 'string' || payload.sub.length === 0) {

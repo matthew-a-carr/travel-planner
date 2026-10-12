@@ -1,4 +1,4 @@
-import { eq, lt } from 'drizzle-orm';
+import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 import type {
   CreateMobileAuthStateInput,
   MobileAuthStateRecord,
@@ -37,8 +37,19 @@ export class DrizzleMobileAuthStateRepository implements MobileAuthStateReposito
     return rows[0] ? toRecord(rows[0]) : null;
   }
 
-  async markConsumed(id: string, consumedAt: Date): Promise<void> {
-    await this.db.update(mobileAuthStates).set({ consumedAt }).where(eq(mobileAuthStates.id, id));
+  async markConsumed(id: string, consumedAt: Date): Promise<boolean> {
+    const claimed = await this.db
+      .update(mobileAuthStates)
+      .set({ consumedAt })
+      .where(
+        and(
+          eq(mobileAuthStates.id, id),
+          isNull(mobileAuthStates.consumedAt),
+          gt(mobileAuthStates.expiresAt, consumedAt),
+        ),
+      )
+      .returning({ id: mobileAuthStates.id });
+    return claimed.length === 1;
   }
 }
 

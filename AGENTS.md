@@ -537,6 +537,12 @@ Email template rule:
 
 CI and web deployment use Node 24 (ADR 069); local verification must use Node 24 too.
 
+All external Actions are pinned to full commit SHAs, with version comments for
+Dependabot updates. Workflows declare read-only token permissions by default;
+Release Please has the write scopes it needs. Pass event/dispatch input through
+quoted environment variables, never directly into shell source. Unit tests
+enforce these boundaries (ADR 071).
+
 The five web jobs run in parallel on every push and PR; three
 path-filtered mobile jobs (`mobile-typecheck`, `mobile-unit-test`,
 `mobile-e2e` — ADR 052/055) run when `apps/mobile/**`, the lockfile /
@@ -561,8 +567,8 @@ The web jobs:
   on `ubuntu-latest` GitHub Actions runners.
 - `e2e` (web Playwright) — builds the app with a dummy `POSTGRES_URL` (`pnpm build`),
   then runs `pnpm test:e2e:web`. `tests/e2e/setup/start-web-server.ts` starts a throwaway
-  `postgres:16-alpine` container via Testcontainers and boots the app (`pnpm start`
-  in CI, `pnpm dev:next` locally). Playwright `globalSetup` then waits for the
+  `postgres:16-alpine` container via Testcontainers and boots the production app (`pnpm start`
+  in both CI and local E2E runs; build first). Playwright `globalSetup` then waits for the
   DB URL file, runs migrations, seeds data, and writes `auth-state.json`. Failed
   runs upload the Playwright HTML report as an artifact (7-day retention). See
   ADR 009 for Testcontainers rationale.
@@ -584,7 +590,7 @@ and ADR 033 for the removal of the pre-push hook.
 
 Terraform orchestration lives in dedicated workflows:
 
-- `.github/workflows/infra-validate.yml` — fmt/validate for `infra/stacks/prod` and `infra/stacks/preview` plus migration policy check
+- `.github/workflows/infra-validate.yml` — fmt/validate for `infra/stacks/prod` and `infra/stacks/preview`, preview cleanup tests with mocked providers (`terraform -chdir=infra/stacks/preview test`), plus migration policy check
 - `.github/workflows/infra-prod.yml` — applies `infra/stacks/prod` with Terraform Cloud remote state workspace `travel-planner-prod`
 - `.github/workflows/infra-preview.yml` — applies `infra/stacks/preview` per PR lifecycle with Terraform Cloud remote state workspace `travel-planner-preview`
 

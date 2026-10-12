@@ -93,7 +93,6 @@ export function makeRefreshMobileTokens(deps: RefreshMobileTokensDeps) {
       }
       case 'reused': {
         const chainIds = outcome.chain.map((row) => row.id);
-        await deps.refreshTokenRepo.revokeChain(chainIds, now);
         onChainRevoked({ userId: peek.userId, chainIds });
         return { ok: false, error: 'refresh_reused' };
       }

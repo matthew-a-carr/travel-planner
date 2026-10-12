@@ -24,5 +24,6 @@ export type CreateMobileAuthStateInput = {
 export interface MobileAuthStateRepository {
   create(input: CreateMobileAuthStateInput): Promise<MobileAuthStateRecord>;
   findByState(state: string): Promise<MobileAuthStateRecord | null>;
-  markConsumed(id: string, consumedAt: Date): Promise<void>;
+  /** Atomically claim an unconsumed, unexpired row; false if another request won. */
+  markConsumed(id: string, consumedAt: Date): Promise<boolean>;
 }

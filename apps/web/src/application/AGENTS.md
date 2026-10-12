@@ -5,6 +5,9 @@
 ## Hard rules
 
 - **Import from `domain/` only.** No `next`, `drizzle`, `react`, or infrastructure imports.
+  Imports within `application/` and type-only imports from `@travel-planner/shared`
+  are allowed (SPEC-005/010/024). Shared runtime schemas remain at delivery boundaries;
+  SDK types, including AI SDK message parts, remain in adapters.
 - **Thin orchestration only.** Use cases fetch, validate, and delegate — no business logic here.
 - Business logic belongs in `domain/`. Infrastructure concerns belong in `infrastructure/`.
 - **Every use case must have a co-located integration test.** When you add `my-use-case.ts`,
@@ -102,7 +105,8 @@ pnpm test:integration   # runs all *.int-test.ts files (Docker required)
 pnpm test:integration -- src/application/use-cases/create-trip.int-test.ts  # single file
 ```
 
-There are currently 34 integration test files in `use-cases/` (plus 5 under `use-cases/auth/`), **one per use case**.
+Use cases have co-located integration tests in `use-cases/`, including the nested
+`use-cases/auth/` suites. Run `pnpm test:integration` to check the current set.
 Adding a use case without its paired `.int-test.ts` breaks this invariant.
 
 ### AI read snapshots

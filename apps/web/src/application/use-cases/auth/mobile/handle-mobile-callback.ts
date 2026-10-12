@@ -57,7 +57,7 @@ export function makeHandleMobileCallback(deps: HandleMobileCallbackDeps) {
     if (!user?.isApproved) return deny('access_denied');
 
     // 4. Mark the state row consumed so it can't be replayed.
-    await deps.stateRepo.markConsumed(stateRow.id, now);
+    if (!(await deps.stateRepo.markConsumed(stateRow.id, now))) return deny('invalid_state');
 
     // 5. Mint a one-time exchange code, persist its hash + the PKCE
     //    challenge, and deep-link the cleartext into the app.

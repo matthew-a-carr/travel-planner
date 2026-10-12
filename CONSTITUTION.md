@@ -45,6 +45,8 @@ The engineering harness consists of four things:
 | Responsive layout (375/768/1280px) | `tests/e2e/accessibility.spec.ts` | `pnpm test:e2e` |
 | Production build | `next build` (dummy `POSTGRES_URL` required) | `pnpm build` |
 | CI gate | `.github/workflows/ci.yml` (Node 24, ADR 069) | automatic on push/PR |
+| Action SHA pins, token permissions, and shell input boundaries (ADR 071) | `apps/web/scripts/workflow-security.test.ts` | `pnpm test:unit` |
+| Targeted preview cleanup and subsequent creation (ADR 039) | `infra/stacks/preview/tests/preview-cleanup.tftest.hcl` | `terraform -chdir=infra/stacks/preview test` |
 
 **Nothing ships unless all gates are green.**
 
@@ -77,6 +79,12 @@ src/app/           Next.js App Router (pages, layouts, server actions). May impo
 
 These rules are **mechanically enforced** by `src/__tests__/architecture.test.ts`.
 Breaking them causes test failures. Do not use `// @ts-ignore` or similar to silence them.
+
+The guard parses TypeScript imports, re-exports, side-effect imports, dynamic
+imports, and CommonJS requires, and resolves relative paths before checking
+boundaries. Application code may import shared **wire types only** from
+`@travel-planner/shared`, following SPEC-005/010/024; runtime schemas and external
+SDK types remain at the edges.
 
 ### Runtime dependency composition rule
 

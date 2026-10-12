@@ -69,6 +69,19 @@ describe('signAccessToken', () => {
 });
 
 describe('verifyAccessToken', () => {
+  it.each(['exp', 'iat'])('rejects a signed token without its %s claim', async (missing) => {
+    const now = Math.floor(Date.now() / 1000);
+    const claims: Record<string, unknown> = { iat: now, exp: now + 900 };
+    delete claims[missing];
+    const jwt = await new SignJWT(claims)
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(USER_ID)
+      .setIssuer('travel-planner-api')
+      .sign(new TextEncoder().encode(SIGNING_KEY));
+
+    expect(await verifyAccessToken(jwt)).toEqual({ ok: false, error: 'claims_invalid' });
+  });
+
   it('returns ok with userId for a valid token', async () => {
     const jwt = await signAccessToken({ userId: USER_ID });
     const result = await verifyAccessToken(jwt);

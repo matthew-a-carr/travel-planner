@@ -66,7 +66,7 @@ export function makeMintTestExchangeCode(deps: MintTestExchangeCodeDeps) {
     if (!user?.isApproved) return deny('access_denied');
 
     // 3. Burn the state row.
-    await deps.stateRepo.markConsumed(stateRow.id, now);
+    if (!(await deps.stateRepo.markConsumed(stateRow.id, now))) return deny('invalid_state');
 
     // 4. Mint a one-time exchange code keyed to the stored PKCE challenge.
     const cleartextCode = deps.crypto.randomBase64url(EXCHANGE_CODE_BYTE_LENGTH);

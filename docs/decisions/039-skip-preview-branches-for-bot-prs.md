@@ -25,7 +25,7 @@ seeded data in a way that requires isolation from other previews.
 ## Decision
 
 Filter bot-authored PRs out of `open_previews` at the workflow source. The
-`gh api` jq expression now selects only PRs where `.user.type != "Bot"`,
+inventory's jq expression selects only PRs where `.user.type != "Bot"`,
 which excludes both `dependabot[bot]` and the GitHub-Actions identity used
 by release-please.
 
@@ -42,6 +42,11 @@ plan both adds and removes branches Neon's count is briefly the sum of the
 two and trips the cap before destroys settle. The workflow runs a targeted
 destroy pass first (extracting `delete` addresses from the saved plan and
 applying them with `-target`), then a normal apply for the remaining changes.
+Connection URL outputs iterate included database resources, whose dependencies
+include their role and endpoint, rather than the full desired PR map. New PRs
+are outside the targeted cleanup graph and only gain URLs during the full apply.
+Mock-provider tests in the preview stack cover this cleanup-then-create sequence
+and run in the existing infrastructure validation job.
 
 If a bot PR genuinely needs an isolated branch (e.g. a major bump that
 exercises schema), trigger the workflow manually via `workflow_dispatch`

@@ -7,6 +7,20 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Security
+
+- Update Next.js, Auth.js, and compatible transitive packages to address published dependency advisories.
+- Revoke refresh-token successors within the locked transaction on replay or sign-out, including concurrent rotations.
+- Atomically consume mobile sign-in states and exchange codes to prevent concurrent redemption and reject expired claims.
+- Apply approval revocations immediately to v1 API reads and writes while retaining account-status access through `/me`.
+- Require an explicitly verified Google email for web and mobile sign-in, and reject access tokens without expiry or issuance claims.
+
+### Fixed
+
+- Clear the country field after saving another destination and preserve a new search when the field is quickly refocused.
+- Stop stalled Google sign-in exchanges after 15 seconds, including response-body reads.
+- Keep the mobile request deadline active while downloading response bodies so a stalled response does not leave screens loading indefinitely.
+
 ### Changed
 
 - Trip overview and timeline content appears without waiting for AI summaries or insights; timeline warnings remain available while AI loads.

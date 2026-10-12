@@ -6,24 +6,23 @@ packages:
 # transitive dependency (typically deep inside a framework like Next.js)
 # pins a vulnerable version we can't reach via a normal dep bump.
 #
-#   - postcss < 8.5.10 — XSS via Unescaped </style> in CSS stringify
-#     (Next.js 16.2.6 bundles 8.4.31 transitively).
+#   - postcss <= 8.5.22 — CSS parsing/stringify advisories, including
+#     GHSA-fxqj-rqcc-2cmp. Keep framework-transitive copies patched.
 #   - vite < 7.3.2 — three high/medium issues: arbitrary file read via
 #     WebSocket, path traversal in optimized deps .map handling, and
-#     server.fs.deny bypass. Stays on 7.x because vitest 4.x peers it.
+#     server.fs.deny bypass. Retain the Vite 7 hold per ADR 069.
 #   - protobufjs <= 7.5.7 — DoS via unbounded recursive JSON descriptor
 #     expansion (transitive via testcontainers → dockerode →
 #     @grpc/proto-loader).
-#   - ws < 8.20.1 — uninitialized memory disclosure (transitive via
-#     @vercel/postgres + drizzle-orm).
+#   - ws < 8.21.0 — GHSA-96hv-2xvq-fx4p (transitive via framework/tooling).
 #
 # These live here (not in package.json's `pnpm.overrides`) because pnpm
 # v11 dropped support for the package.json location.
 overrides:
-  postcss: ^8.5.15
+  postcss: ^8.5.23
   vite: ^7.3.3
   protobufjs: ^7.5.8
-  ws: ^8.20.1
+  ws: ^8.21.0
 
 # pnpm v11 build-script policy. Each native dep below is allowed (true)
 # to run its postinstall, or denied (false). Without this map, pnpm v11

@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type {
   CreateRefreshTokenInput,
   RefreshTokenRepository,
@@ -6,7 +6,7 @@ import type {
   RotateRefreshTokenOutcome,
 } from '@/domain/auth/refresh-token-repository';
 import type { RefreshTokenRecord } from '@/domain/auth/types';
-import type { Db } from '../client';
+import type { Db, DbSession } from '../client';
 import { refreshTokens } from '../schema';
 
 export class DrizzleRefreshTokenRepository implements RefreshTokenRepository {
@@ -50,23 +50,7 @@ export class DrizzleRefreshTokenRepository implements RefreshTokenRepository {
       if (!presented) return { kind: 'unknown' as const };
 
       if (presented.replacedById !== null) {
-        // Walk the chain forward inside the same transaction so the
-        // caller can revoke it atomically. Bounded by natural chain
-        // length (rotations); audience-of-two won't produce long chains.
-        type Row = typeof refreshTokens.$inferSelect;
-        const chain: RefreshTokenRecord[] = [];
-        let cursorId: string | null = presented.id;
-        while (cursorId !== null) {
-          const rows: Row[] = await tx
-            .select()
-            .from(refreshTokens)
-            .where(eq(refreshTokens.id, cursorId))
-            .limit(1);
-          const row: Row | undefined = rows[0];
-          if (!row) break;
-          chain.push(toRecord(row));
-          cursorId = row.replacedById;
-        }
+        const chain = await revokeForward(tx, [presented.id], now);
         return { kind: 'reused' as const, chain };
       }
 
@@ -101,13 +85,36 @@ export class DrizzleRefreshTokenRepository implements RefreshTokenRepository {
 
   async revokeChain(chainIds: readonly string[], revokedAt: Date): Promise<void> {
     if (chainIds.length === 0) return;
-    // Only set revokedAt on rows that aren't already revoked — preserves
-    // the original revocation time and makes the operation idempotent.
-    await this.db
-      .update(refreshTokens)
-      .set({ revokedAt })
-      .where(and(inArray(refreshTokens.id, chainIds as string[]), isNull(refreshTokens.revokedAt)));
+    await this.db.transaction((tx) => revokeForward(tx, chainIds, revokedAt));
   }
+}
+
+/** Lock forward before revoking so concurrent rotation cannot escape the chain. */
+async function revokeForward(
+  tx: DbSession,
+  chainIds: readonly string[],
+  revokedAt: Date,
+): Promise<RefreshTokenRecord[]> {
+  const chain: RefreshTokenRecord[] = [];
+  for (const id of chainIds) {
+    let cursorId: string | null = id;
+    while (cursorId !== null) {
+      const rows: (typeof refreshTokens.$inferSelect)[] = await tx
+        .select()
+        .from(refreshTokens)
+        .where(eq(refreshTokens.id, cursorId))
+        .for('update')
+        .limit(1);
+      const row = rows[0];
+      if (!row) break;
+      if (row.revokedAt === null) {
+        await tx.update(refreshTokens).set({ revokedAt }).where(eq(refreshTokens.id, row.id));
+      }
+      chain.push(toRecord({ ...row, revokedAt: row.revokedAt ?? revokedAt }));
+      cursorId = row.replacedById;
+    }
+  }
+  return chain;
 }
 
 function toRecord(row: typeof refreshTokens.$inferSelect): RefreshTokenRecord {
