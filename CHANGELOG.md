@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.21.1](https://github.com/matthew-a-carr/travel-planner/compare/v1.21.0...v1.21.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **deps:** group security updates and patch vulnerable packages ([#224](https://github.com/matthew-a-carr/travel-planner/issues/224)) ([ca764e0](https://github.com/matthew-a-carr/travel-planner/commit/ca764e098d23ac92d4d672b08506b7c8ec76e8c8))
+
 ## [Unreleased]
 
 ### Security
