@@ -7,6 +7,10 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/en/
 
 ## [Unreleased]
 
+### Security
+
+- Update Next.js and vulnerable runtime/tooling dependencies; batch future security updates in one Dependabot PR per ecosystem.
+
 ### Changed
 
 - Trip overview and timeline content appears without waiting for AI summaries or insights; timeline warnings remain available while AI loads.

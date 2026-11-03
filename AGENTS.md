@@ -570,11 +570,13 @@ The web jobs:
 Dependabot (`.github/dependabot.yml`) raises weekly PRs for npm and GitHub
 Actions updates. Minor and patch updates are grouped into one PR per
 ecosystem; majors are grouped separately into their own PR (ADR 067 / 068)
-so a breaking major can't block routine minor/patch updates from landing —
-at most two open Dependabot PRs per ecosystem (four total) at a time. Held
-dependencies (see the `ignore:` list — Expo-SDK-managed deps, `react`,
-`jest`, the TypeScript 6 / Vite 8 major holds) never enter a PR regardless
-of grouping.
+so a breaking major can't block routine minor/patch updates from landing.
+Security updates have their own group per ecosystem (`applies-to: security-updates`,
+ADR 072); routine groups do not cover security updates by default. Held
+dependencies (see the `ignore:` list — Expo-SDK-managed deps, React/React DOM
+and their types, the mobile test renderer, `jest`, and the TypeScript 6 / Vite 8
+major holds) never enter a PR regardless of grouping. Unit tests enforce the
+security group and React compatibility holds.
 
 See ADR 008 for CI structure rationale, ADR 009 for Testcontainers, ADR 010 for
 the build-time dummy POSTGRES_URL pattern, ADR 028 for runtime composition-root DI,

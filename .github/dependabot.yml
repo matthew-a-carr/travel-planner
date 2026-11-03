@@ -37,6 +37,11 @@ updates:
       # (#122). Hold entirely until a deliberate, tested react upgrade.
       - dependency-name: "react"
       - dependency-name: "@types/react"
+      # React DOM must exactly match each app's React version. The replacement
+      # test renderer also follows mobile React (ADR 069 / ADR 072).
+      - dependency-name: "react-dom"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "test-renderer"
       # jest stack is the Expo (jest-expo) test toolchain — mobile-only, SDK-
       # pinned to jest 29. jest 30 broke the suites (#123). Hold entirely.
       - dependency-name: "jest"
@@ -56,6 +61,10 @@ updates:
     # ~27 safe updates from landing at all. Held dependencies above never
     # enter either group — they're excluded from updates entirely.
     groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
       minor-and-patch:
         patterns:
           - "*"
@@ -81,6 +90,10 @@ updates:
       - dependencies
       - ci
     groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
       minor-and-patch:
         patterns:
           - "*"
